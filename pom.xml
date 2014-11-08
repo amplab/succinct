@@ -1,0 +1,23 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.succinctproject</groupId>
+  <artifactId>succinct</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>Succinct</name>
+  <description>Succinct is a data representation scheme and associated algorithms that allow queries directly on compressed data.</description>
+  <url>succinct.cs.berkeley.edu</url>
+  <build>
+  <pluginManagement>
+   <plugins>
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>          
+        <configuration>
+            <source>1.7</source>
+            <target>1.7</target>
+        </configuration>
+    </plugin>
+   </plugins>
+  </pluginManagement>
+ </build>
+</project>
