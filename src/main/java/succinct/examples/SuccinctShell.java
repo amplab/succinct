@@ -92,22 +92,13 @@ public class SuccinctShell {
                     continue;
                 }
 
-                RegExParser parser = new RegExParser(cmdArray[1]);
-                RegEx regEx;
+                Map<Long, Integer> results = null;
                 try {
-                    regEx = parser.parse();
+                    results = succinctBuffer.regexSearch(cmdArray[1]);
                 } catch (RegExParsingException e) {
-                    System.err.println("Could not parse regular expression.");
+                    System.err.println("Could not parse regular expression: [" + cmdArray[1] + "]");
                     continue;
                 }
-
-                RegExPlanner planner = new NaiveRegExPlanner(succinctBuffer, regEx);
-                RegEx optRegEx = planner.plan();
-
-                RegExExecutor regExExecutor = new RegExExecutor(succinctBuffer, optRegEx);
-                regExExecutor.execute();
-
-                Map<Long, Integer> results = regExExecutor.getFinalResults();
                 System.out.println("Result size = " + results.size());
                 System.out.print("Regex[" + cmdArray[1] + "] = {");
                 int count = 0;

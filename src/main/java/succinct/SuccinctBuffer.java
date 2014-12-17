@@ -18,6 +18,12 @@
 package succinct;
 
 import succinct.dictionary.Tables;
+import succinct.regex.execcutor.RegExExecutor;
+import succinct.regex.parser.RegEx;
+import succinct.regex.parser.RegExParser;
+import succinct.regex.parser.RegExParsingException;
+import succinct.regex.planner.NaiveRegExPlanner;
+import succinct.regex.planner.RegExPlanner;
 import succinct.util.SerializedOperations;
 
 import java.io.IOException;
@@ -31,6 +37,7 @@ import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SuccinctBuffer extends SuccinctCore {
 
@@ -274,6 +281,21 @@ public class SuccinctBuffer extends SuccinctCore {
         }
 
         return positions;
+    }
+
+    public Map<Long, Integer> regexSearch(String query) throws RegExParsingException {
+        RegExParser parser = new RegExParser(query);
+        RegEx regEx;
+
+        regEx = parser.parse();
+
+        RegExPlanner planner = new NaiveRegExPlanner(this, regEx);
+        RegEx optRegEx = planner.plan();
+
+        RegExExecutor regExExecutor = new RegExExecutor(this, optRegEx);
+        regExExecutor.execute();
+
+        return regExExecutor.getFinalResults();
     }
 
     private void writeObject(ObjectOutputStream oos) throws IOException {
