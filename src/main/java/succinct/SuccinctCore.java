@@ -2,9 +2,12 @@ package succinct;
 
 import succinct.bitmap.BMArray;
 import succinct.bitmap.BitMap;
-import succinct.qsufsort.QSufSort;
 import succinct.dictionary.Dictionary;
 import succinct.dictionary.Tables;
+import succinct.qsufsort.QSufSort;
+import succinct.util.CommonUtils;
+import succinct.util.SerializedOperations;
+import succinct.wavelettree.WaveletTree;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -21,10 +24,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-
-import succinct.wavelettree.WaveletTree;
-import succinct.util.CommonUtils;
-import succinct.util.SerializedOperations;
 
 public class SuccinctCore implements Serializable {
 
@@ -223,9 +222,9 @@ public class SuccinctCore implements Serializable {
 
     private int constructAux(BMArray SA, byte[] T) {
 
-        ArrayList<Long> CinvIndex = new ArrayList<>();
+        ArrayList<Long> CinvIndex = new ArrayList<Long>();
         byte[] alphabetArray;
-        alphabetMap = new HashMap<>();
+        alphabetMap = new HashMap<Byte, Pair<Long, Integer>>();
         alphaSize = 1;
 
         for (long i = 1; i < T.length; ++i) {
@@ -239,14 +238,14 @@ public class SuccinctCore implements Serializable {
         alphabetArray = new byte[alphaSize];
 
         alphabetArray[0] = T[(int) SA.getVal(0)];
-        alphabetMap.put(alphabetArray[0], new Pair<>(0L, 0));
+        alphabetMap.put(alphabetArray[0], new Pair<Long, Integer>(0L, 0));
         long i;
         for (i = 1; i < alphaSize - 1; i++) {
             long sel = CinvIndex.get((int) i - 1);
             alphabetArray[(int) i] = T[(int) SA.getVal((int) sel)];
-            alphabetMap.put(alphabetArray[(int) i], new Pair<>(sel, (int) i));
+            alphabetMap.put(alphabetArray[(int) i], new Pair<Long, Integer>(sel, (int) i));
         }
-        alphabetMap.put((byte) 0, new Pair<>((long) T.length, (int) i));
+        alphabetMap.put((byte) 0, new Pair<Long, Integer>((long) T.length, (int) i));
         alphabetArray[(int) i] = (char) 0;
 
         // Serialize cmap
@@ -282,18 +281,18 @@ public class SuccinctCore implements Serializable {
 
         int k = 0, contextVal, contextId;
         long k1, k2, lOff = 0, npaVal, p = 0;
-        HashMap<Long, Long> contextSizesMap = new HashMap<>();
+        HashMap<Long, Long> contextSizesMap = new HashMap<Long, Long>();
 
         ArrayList<ArrayList<ArrayList<Long>>> table;
-        ArrayList<Pair<ArrayList<Long>, Character>> context = new ArrayList<>();
+        ArrayList<Pair<ArrayList<Long>, Character>> context = new ArrayList<Pair<ArrayList<Long>, Character>>();
         ArrayList<Long> cell;
-        ArrayList<Long> contextValues = new ArrayList<>();
-        ArrayList<Long> contextColumnIds = new ArrayList<>();
+        ArrayList<Long> contextValues = new ArrayList<Long>();
+        ArrayList<Long> contextColumnIds = new ArrayList<Long>();
         boolean flag;
         long[] sizes, starts, c_sizes;
         long last_i = 0;
 
-        contextMap = new TreeMap<>();
+        contextMap = new TreeMap<Long, Long>();
         for (long i = 0; i < n; i++) {
             long contextValue = getContextVal(T, sigma_size, i, h, n);
             contextMap.put(contextValue, 0L);
@@ -320,18 +319,18 @@ public class SuccinctCore implements Serializable {
         contextSizesMap.clear();
 
         BitMap NonNullBitMap = new BitMap((int) (k * sigma_size));
-        table = new ArrayList<>(k);
-        cellOffsets = new ArrayList<>();
-        necCol = new ArrayList<>();
-        colOffsets = new ArrayList<>();
-        rowOffsets = new ArrayList<>();
-        necRow = new ArrayList<>();
+        table = new ArrayList<ArrayList<ArrayList<Long>>>(k);
+        cellOffsets = new ArrayList<ArrayList<Long>>();
+        necCol = new ArrayList<ArrayList<Long>>();
+        colOffsets = new ArrayList<Long>();
+        rowOffsets = new ArrayList<Long>();
+        necRow = new ArrayList<ArrayList<Long>>();
         wavelettree = new ByteBuffer[k];
 
         for (int i = 0; i < k; i++) {
             table.add(new ArrayList<ArrayList<Long>>(sigma_size));
             for (int j = 0; j < sigma_size; j++) {
-                ArrayList<Long> tableCell = new ArrayList<>();
+                ArrayList<Long> tableCell = new ArrayList<Long>();
                 table.get(i).add(tableCell);
             }
             necRow.add(new ArrayList<Long>());
@@ -413,13 +412,13 @@ public class SuccinctCore implements Serializable {
                 }
 
                 if (NonNullBitMap.getBit((int) (i + j * k)) == 1) {
-                    cell = new ArrayList<>();
+                    cell = new ArrayList<Long>();
                     for (long t = 0; t < table.get((int) i).get((int) j).size(); t++) {
                         cell.add(table.get((int) i).get((int) j).get((int) t)
                                 - starts[i]);
                     }
                     assert (cell.size() > 0);
-                    context.add(new Pair<>(cell, (char) j));
+                    context.add(new Pair<ArrayList<Long>, Character>(cell, (char) j));
 
                     necRow.get(i).add((long) j);
                     necRowSize++;
@@ -781,12 +780,12 @@ public class SuccinctCore implements Serializable {
         this.alphabetmap.flip();
 
         // Deserialize cmap
-        alphabetMap = new HashMap<>();
+        alphabetMap = new HashMap<Byte, Pair<Long, Integer>>();
         for (int i = 0; i < this.alphaSize; i++) {
             byte c = alphabetmap.get();
             long v1 = alphabetmap.getLong();
             int v2 = alphabetmap.getInt();
-            alphabetMap.put(c, new Pair<>(v1, v2));
+            alphabetMap.put(c, new Pair<Long, Integer>(v1, v2));
         }
 
         // Read contexts
@@ -798,7 +797,7 @@ public class SuccinctCore implements Serializable {
         this.contextmap = contextBuf.asLongBuffer();
 
         // Deserialize contexts
-        contextMap = new HashMap<>();
+        contextMap = new HashMap<Long, Long>();
         for (int i = 0; i < this.numContexts; i++) {
             long v1 = contextmap.get();
             long v2 = contextmap.get();

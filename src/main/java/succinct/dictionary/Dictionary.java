@@ -2,6 +2,7 @@ package succinct.dictionary;
 
 import succinct.bitmap.BitMap;
 import succinct.util.CommonUtils;
+
 import java.util.ArrayList;
 
 public class Dictionary {
@@ -39,7 +40,7 @@ public class Dictionary {
         int flag = 0;
         int compSize = 0;
         int p;
-        ArrayList<Integer> dict = new ArrayList<>();
+        ArrayList<Integer> dict = new ArrayList<Integer>();
         for (i = 0; i < bitMap.size; i++) {
             if (i % two32 == 0) {
                 rankL3[(int) (i / two32)] = count;

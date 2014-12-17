@@ -1,9 +1,9 @@
 package succinct.util;
 
+import succinct.dictionary.Tables;
+
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
-
-import succinct.dictionary.Tables;
 
 public class SerializedOperations {
 

@@ -2,6 +2,7 @@ package succinct.wavelettree;
 
 import succinct.bitmap.BitMap;
 import succinct.dictionary.Dictionary;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
@@ -38,10 +39,10 @@ public class WaveletTree {
             long r;
             ArrayList<Long> v1, v1_c, v0, v0_c;
 
-            v1 = new ArrayList<>();
-            v1_c = new ArrayList<>();
-            v0 = new ArrayList<>();
-            v0_c = new ArrayList<>();
+            v1 = new ArrayList<Long>();
+            v1_c = new ArrayList<Long>();
+            v0 = new ArrayList<Long>();
+            v0_c = new ArrayList<Long>();
             BitMap B = new BitMap(v.size());
 
             this.id = m;

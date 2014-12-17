@@ -1,15 +1,8 @@
 package succinct.examples;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
-import java.io.ObjectOutputStream;
-
 import succinct.SuccinctCore;
+
+import java.io.*;
 
 public class SuccinctCoreSerializeTest {
 
@@ -23,10 +16,9 @@ public class SuccinctCoreSerializeTest {
             IOException, ClassNotFoundException {
         File file = new File(args[0]);
         byte[] fileData = new byte[(int) file.length()];
-        try (DataInputStream dis = new DataInputStream(
-                new FileInputStream(file))) {
-            dis.readFully(fileData);
-        }
+        DataInputStream dis = new DataInputStream(
+                new FileInputStream(file));
+        dis.readFully(fileData);
         SuccinctCore succinctBuf = new SuccinctCore(
                 (new String(fileData) + (char) 1).getBytes(), 3);
 

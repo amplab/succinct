@@ -1,16 +1,20 @@
 package succinct.dictionary;
 
+import succinct.util.CommonUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import succinct.util.CommonUtils;
 
 public class Tables {
     public static char[] offsetBits = new char[17];
     public static char[][] smallRank = new char[65536][16];
     public static int[][] decodeTable = new int[17][];
-    public static ArrayList<HashMap<Integer, Integer>> encodeTable = new ArrayList<>();
+    public static ArrayList<HashMap<Integer, Integer>> encodeTable = new ArrayList<HashMap<Integer, Integer>>();
+    public static boolean isInitialized = false;
 
-    public static void init() {
+    public static synchronized void init() {
+
+        if(isInitialized) return;
 
         short[] C16 = new short[17];
         C16[0] = 2;
@@ -39,8 +43,8 @@ public class Tables {
                 offsetBits[i] = offsetBits[16 - i];
             }
             decodeTable[i] = new int[C16[i]];
-            HashMap<Integer, Integer> encode_row = new HashMap<>();
-            encodeTable.add(encode_row);
+            HashMap<Integer, Integer> encodeRow = new HashMap<Integer, Integer>();
+            encodeTable.add(encodeRow);
             q[i] = 0;
         }
         q[16] = 1;
@@ -53,5 +57,7 @@ public class Tables {
                 smallRank[i][j] = (char) CommonUtils.popcount(i >> (15 - j));
             }
         }
+
+        isInitialized = true;
     }
 }
