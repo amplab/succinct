@@ -1,4 +1,4 @@
-package succinct.regex.execcutor;
+package succinct.regex.executor;
 
 import succinct.SuccinctBuffer;
 import succinct.regex.parser.*;
