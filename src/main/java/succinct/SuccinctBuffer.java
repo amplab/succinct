@@ -18,7 +18,7 @@
 package succinct;
 
 import succinct.dictionary.Tables;
-import succinct.regex.execcutor.RegExExecutor;
+import succinct.regex.executor.RegExExecutor;
 import succinct.regex.parser.RegEx;
 import succinct.regex.parser.RegExParser;
 import succinct.regex.parser.RegExParsingException;

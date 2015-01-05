@@ -1,14 +1,7 @@
 package succinct.examples;
 
 import succinct.SuccinctBuffer;
-import succinct.SuccinctCore;
-import succinct.regex.execcutor.RegExExecutor;
-import succinct.regex.parser.RegEx;
-import succinct.regex.parser.RegExParser;
 import succinct.regex.parser.RegExParsingException;
-import succinct.regex.planner.NaiveRegExPlanner;
-import succinct.regex.planner.RegExPlanner;
-import sun.reflect.annotation.ExceptionProxy;
 
 import java.io.*;
 import java.util.List;
