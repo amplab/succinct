@@ -11,6 +11,23 @@ This repository maintains the java implementation of Succinct. The master branch
 
 #### Apache Maven
 
+First add the following repository to your pom.xml:
+
+```xml
+<repositories>
+    <repository>
+        <id>succinct-java-mvn-repo</id>
+        <url>https://raw.github.com/anuragkh/succinct-java/mvn-repo/</url>
+        <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
+Then add the following dependency information:
+
 ```xml
 <dependency>
     <groupId>edu.berkeley.cs.succinct</groupId>
