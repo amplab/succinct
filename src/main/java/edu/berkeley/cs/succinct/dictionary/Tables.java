@@ -12,6 +12,9 @@ public class Tables {
     public static ArrayList<HashMap<Integer, Integer>> encodeTable = new ArrayList<HashMap<Integer, Integer>>();
     public static boolean isInitialized = false;
 
+    /**
+     * Initializes all shared tables.
+     */
     public static synchronized void init() {
 
         if(isInitialized) return;
