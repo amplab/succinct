@@ -9,15 +9,35 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
     protected static char RECORD_DELIM = '\n';
     protected long[] offsets;
 
+    /**
+     * Constructor to initialize SuccinctIndexedBuffer from input byte array, offsets corresponding to records, and
+     * context length.
+     *  
+     * @param input The input byte array.
+     * @param offsets Offsets corresponding to records.
+     * @param contextLen Context Length.
+     */
     public SuccinctIndexedBuffer(byte[] input, long[] offsets, int contextLen) {
         super(input, contextLen);
         this.offsets = offsets;
     }
 
+    /**
+     * Constructor to initialize SuccinctIndexedBuffer from input byte array and offsets corresponding to records
+     *
+     * @param input The input byte array.
+     * @param offsets Offsets corresponding to records.
+     */
     public SuccinctIndexedBuffer(byte[] input, long[] offsets) {
         this(input, offsets, 3);
     }
 
+
+    /**
+     * Get the record delimiter.
+     *
+     * @return The record delimiter.
+     */
     public static char getRecordDelim() {
         return RECORD_DELIM;
     }
@@ -40,6 +60,12 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         return ep;
     }
 
+    /**
+     * Search for an input query and return offsets of all matching records.
+     *
+     * @param query Input query.
+     * @return Offsets of all matching records.
+     */
     public Long[] recordSearchOffsets(byte[] query) {
         Set<Long> results = new HashSet<Long>();
         Pair<Long, Long> range;
@@ -57,6 +83,12 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         return results.toArray(new Long[results.size()]);
     }
 
+    /**
+     * Search for all records that contains the query.
+     *
+     * @param query Input query.
+     * @return All records containing input query.
+     */
     public byte[][] searchRecords(byte[] query) {
         Set<Long> offsetResults = new HashSet<Long>();
         ArrayList<byte[]> results = new ArrayList<byte[]>();
@@ -82,6 +114,12 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         return results.toArray(new byte[results.size()][]);
     }
 
+    /**
+     * Count of all records containing a particular query.
+     *
+     * @param query Input query.
+     * @return Count of all records containing input query.
+     */
     public long recordCount(byte[] query) {
         return recordSearchOffsets(query).length;
     }

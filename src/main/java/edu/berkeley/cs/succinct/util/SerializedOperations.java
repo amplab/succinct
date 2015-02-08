@@ -9,36 +9,53 @@ import static edu.berkeley.cs.succinct.util.CommonUtils.DictionaryUtils.*;
 
 public class SerializedOperations {
 
-    // TESTED
-    public static long getValueWtree(ByteBuffer wtree, int contextPos,
-            int cellPos, int s, int e) {
+    /**
+     * Get value encoded in wavelet tree.
+     *
+     * @param wTree Serialized WaveletTree.
+     * @param contextPos Context Position.
+     * @param cellPos Cell Position.
+     * @param startIdx Starting context index.
+     * @param endIdx Ending context index.
+     * @return Decoded value.
+     */
+    public static long getValueWtree(ByteBuffer wTree, int contextPos,
+            int cellPos, int startIdx, int endIdx) {
 
-        char m = (char) wtree.get();
-        int left = (int) wtree.getLong();
-        int right = (int) wtree.getLong();
-        int dictPos = wtree.position();
+        char m = (char) wTree.get();
+        int left = (int) wTree.getLong();
+        int right = (int) wTree.getLong();
+        int dictPos = wTree.position();
         long p, v;
 
-        if (contextPos > m && contextPos <= e) {
+        if (contextPos > m && contextPos <= endIdx) {
             if (right == 0) {
-                return SerializedOperations.getSelect1(wtree, dictPos, cellPos);
+                return SerializedOperations.getSelect1(wTree, dictPos, cellPos);
             }
-            p = getValueWtree((ByteBuffer) wtree.position(right), contextPos,
-                    cellPos, m + 1, e);
-            v = SerializedOperations.getSelect1(wtree, dictPos, (int) p);
+            p = getValueWtree((ByteBuffer) wTree.position(right), contextPos,
+                    cellPos, m + 1, endIdx);
+            v = SerializedOperations.getSelect1(wTree, dictPos, (int) p);
         } else {
             if (left == 0) {
-                return SerializedOperations.getSelect0(wtree, dictPos, cellPos);
+                return SerializedOperations.getSelect0(wTree, dictPos, cellPos);
             }
-            p = getValueWtree((ByteBuffer) wtree.position(left), contextPos,
-                    cellPos, s, m);
-            v = SerializedOperations.getSelect0(wtree, dictPos, (int) p);
+            p = getValueWtree((ByteBuffer) wTree.position(left), contextPos,
+                    cellPos, startIdx, m);
+            v = SerializedOperations.getSelect0(wTree, dictPos, (int) p);
         }
 
         return v;
     }
 
-    // TESTED
+    /**
+     * Get rank1 value at specified index in serialized Long array.
+     *  
+     * @param B Serialized Long array.
+     * @param startPos Start position.
+     * @param size Size of array.
+     * @param i Rank query.
+     * @return Value of rank1 for query.
+     */
     public static int getRank1(LongBuffer B, int startPos, int size, long i) {
         int sp = 0, ep = size - 1;
         int m;
@@ -57,16 +74,23 @@ public class SerializedOperations {
         return ep + 1;
     }
 
-    // TESTED
-    public static long getRank1(ByteBuffer buf, int startPos, int query) {
-        if (query < 0) {
+    /**
+     * Get rank1 at specified index of serialized dictionary.
+     *
+     * @param buf ByteBuffer containing serialized Dictionary.
+     * @param startPos Starting position within ByteBuffer.
+     * @param i Index to compute rank1.
+     * @return Value of rank1.
+     */
+    public static long getRank1(ByteBuffer buf, int startPos, int i) {
+        if (i < 0) {
             return 0;
         }
 
-        int l3Idx = (int) (query / CommonUtils.two32);
-        int l2Idx = query / 2048;
-        int l1Idx = (query % 512);
-        int rem = ((query % 2048) / 512);
+        int l3Idx = (int) (i / CommonUtils.two32);
+        int l2Idx = i / 2048;
+        int l1Idx = (i % 512);
+        int rem = ((i % 2048) / 512);
         int blockClass, blockOffset;
 
         buf.position(startPos);
@@ -134,11 +158,26 @@ public class SerializedOperations {
         return res;
     }
 
-    // TESTED
+    /**
+     * Get rank0 at specified index of serialized dictionary.
+     *
+     * @param buf ByteBuffer containing serialized Dictionary.
+     * @param startPos Starting position within ByteBuffer.
+     * @param i Index to compute rank0.
+     * @return Value of rank0.
+     */
     public static long getRank0(ByteBuffer buf, int startPos, int i) {
         return i - getRank1(buf, startPos, i) + 1;
     }
 
+    /**
+     * Get select1 at specified index of serialized dictionary.
+     *
+     * @param buf ByteBuffer containing serialized Dictionary.
+     * @param startPos Starting position within ByteBuffer.
+     * @param i Index to compute select1.
+     * @return Value of select1.
+     */
     public static long getSelect1(ByteBuffer buf, int startPos, int i) {
 
         assert (i >= 0);
@@ -261,6 +300,14 @@ public class SerializedOperations {
         return sel;
     }
 
+    /**
+     * Get select0 at specified index of serialized dictionary.
+     *
+     * @param buf ByteBuffer containing serialized Dictionary.
+     * @param startPos Starting position within ByteBuffer.
+     * @param i Index to compute select0.
+     * @return Value of select0.
+     */
     public static long getSelect0(ByteBuffer buf, int startPos, int i) {
 
         assert (i >= 0);
@@ -384,6 +431,14 @@ public class SerializedOperations {
         return sel;
     }
 
+    /**
+     * Get value at specified index of a serialized Long array.
+     *
+     * @param B Serialized Long array.
+     * @param i Index into serialized array.
+     * @param bits Width in bits of value.
+     * @return Value at specified index.
+     */
     public static long getVal(LongBuffer B, int i, int bits) {
         assert (i >= 0);
 
@@ -404,25 +459,14 @@ public class SerializedOperations {
         return val;
     }
 
-    public static long getValPos(long bitmap[], int pos, int bits) {
-        assert (pos >= 0);
-
-        long val;
-        long s = (long) pos;
-        long e = s + (bits - 1);
-
-        if ((s / 64) == (e / 64)) {
-            val = bitmap[(int) (s / 64L)] << (s % 64);
-            val = val >>> (63 - e % 64 + s % 64);
-        } else {
-            val = bitmap[(int) (s / 64L)] << (s % 64);
-            val = val >>> (s % 64 - (e % 64 + 1));
-            val = val | (bitmap[(int) (e / 64L)] >>> (63 - e % 64));
-        }
-        assert (val >= 0);
-        return val;
-    }
-
+    /**
+     * Get value at specified index of serialized bitmap.
+     *
+     * @param bitmap Serialized bitmap.
+     * @param pos Position into bitmap.
+     * @param bits Width in bits of value.
+     * @return Value at specified position.
+     */
     public static long getValPos(LongBuffer bitmap, int pos, int bits) {
         assert (pos >= 0);
 
@@ -444,10 +488,13 @@ public class SerializedOperations {
         return val;
     }
 
-    public static long getBit(long bitmap[], int i) {
-        return ((bitmap[i / 64] >>> (63L - i)) & 1L);
-    }
-
+    /**
+     * Get bit at specified position in serialized bitmap.
+     *
+     * @param bitmap Serialized bitmap.
+     * @param i Index into serialized bitmap.
+     * @return Value of bit.
+     */
     public static long getBit(LongBuffer bitmap, int i) {
         return ((bitmap.get(bitmap.position() + (i / 64)) >>> (63L - i)) & 1L);
     }

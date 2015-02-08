@@ -68,13 +68,13 @@ public class QSufSortTest extends TestCase {
     }
 
     /**
-     * Test method: int[] getSAinv()
+     * Test method: int[] getISA()
      *
      * @throws Exception
      */
     public void testGetSAinv() throws Exception {
-        System.out.println("getSAinv");
-        int[] ISA = instance.getSAinv();
+        System.out.println("getISA");
+        int[] ISA = instance.getISA();
         
         long sum = 0;
         for(int i = 0; i < ISA.length; i++) {

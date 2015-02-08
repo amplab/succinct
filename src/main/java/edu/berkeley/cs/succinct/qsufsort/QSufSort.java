@@ -98,7 +98,7 @@ public class QSufSort {
      * Get the inverse suffix array.
      * @return The inverse suffix array.
      */
-    public final int[] getSAinv() {
+    public final int[] getISA() {
         return V;
     }
 
