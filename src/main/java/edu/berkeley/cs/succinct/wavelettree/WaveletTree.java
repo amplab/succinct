@@ -177,17 +177,6 @@ public class WaveletTree {
         return buf;
     }
 
-    private void printTree(WaveletNode root) {
-        if (root == null)
-            return;
-        printTree(root.left);
-        printTree(root.right);
-    }
-
-    public void printWaveletTree() {
-        printTree(this.root);
-    }
-
     public ByteBuffer getByteBuffer() {
         int size = findSizeOfSerializedTree(root);
         if (size == 0)

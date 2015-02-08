@@ -4,28 +4,25 @@ import junit.framework.TestCase;
 
 public class CommonUtilsTest extends TestCase {
 
+    /**
+     * Set up test.
+     *
+     * @throws Exception
+     */
     public void setUp() throws Exception {
         super.setUp();
 
     }
 
-    public void tearDown() throws Exception {
-
-    }
-
     public void testIntLog2() throws Exception {
-
+        
     }
 
     public void testModulo() throws Exception {
 
     }
 
-    public void testPopcount() throws Exception {
-
-    }
-
-    public void testReadFile() throws Exception {
+    public void testPopCount() throws Exception {
 
     }
 }

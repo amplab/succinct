@@ -30,18 +30,30 @@ public class QSufSort {
         public final int min;
         public final int max;
 
+        /**
+         * Constructor to initalize MinMax container
+         * @param min Minimum value.
+         * @param max Maximum value.
+         */
         MinMax(int min, int max) {
             this.min = min;
             this.max = max;
         }
 
+        /**
+         * Computes range using minimum and maximum values.
+         * @return Range between max and min.
+         */
         public int range() {
             return max - min;
         }
     }
-
+    
     /**
      * Calculate minimum and maximum value for an array.
+     *
+     * @param input Input byte array.
+     * @return MinMax object populated with minimum and maximum values.
      */
     static MinMax minmax(byte[] input) {
         int max = input[0];
@@ -58,6 +70,11 @@ public class QSufSort {
         return new MinMax(min, max);
     }
 
+    /**
+     * Builds suffix array from input byte array.
+     *
+     * @param input Input byte array.
+     */
     public final void buildSuffixArray(byte[] input) {
         MinMax minmax = minmax(input);
         I = new int[input.length + 1];
@@ -65,25 +82,24 @@ public class QSufSort {
         this.start = 0;
         for (int i = 0; i < input.length; i++)
             V[i] = input[i];
-        suffixsort(input.length, minmax.max + 1, minmax.min);
+        suffixSort(input.length, minmax.max + 1, minmax.min);
     }
 
+    /**
+     * Get the suffix array.
+     *
+     * @return The suffix array.
+     */
     public final int[] getSA() {
         return I;
     }
 
+    /**
+     * Get the inverse suffix array.
+     * @return The inverse suffix array.
+     */
     public final int[] getSAinv() {
         return V;
-    }
-
-    public final void cleanSA() {
-        I = null;
-        System.gc();
-    }
-
-    public final void cleanSAinv() {
-        V = null;
-        System.gc();
     }
 
     /**
@@ -95,19 +111,19 @@ public class QSufSort {
      * disregarded, the <code>n</code> -th symbol being regarded as
      * end-of-string smaller than all other symbols.
      */
-    private void suffixsort(int n, int k, int l) {
+    private void suffixSort(int n, int k, int l) {
         int pi, pk; // I pointers
         int i, j, s, sl;
 
         if (n >= k - l) { /* if bucketing possible, */
             j = transform(n, k, l, n);
-            bucketsort(n, j); /* bucketsort on first r positions. */
+            bucketSort(n, j); /* bucketSort on first r positions. */
         } else {
             transform(n, k, l, Integer.MAX_VALUE);
             for (i = 0; i <= n; ++i)
                 I[i] = i; /* initialize I with suffix numbers. */
             h = 0;
-            sort_split(0, n + 1); /* quicksort on first r positions. */
+            sortSplit(0, n + 1); /* quicksort on first r positions. */
         }
         h = r; /* number of symbols aggregated by transform. */
         while (I[0] >= -n) {
@@ -126,7 +142,7 @@ public class QSufSort {
                                             * pk-1 is last position of unsorted
                                             * group.
                                             */
-                    sort_split(pi, pk - pi);
+                    sortSplit(pi, pk - pi);
                     pi = pk; /* next group. */
                 }
             } while (pi <= n);
@@ -152,7 +168,7 @@ public class QSufSort {
      * "Engineering a Sort Function", Software -- Practice and Experience
      * 23(11), 1249-1265 (November 1993). This function is based on Program 7.
      */
-    private void sort_split(int p, int n) {
+    private void sortSplit(int p, int n) {
         int pa, pb, pc, pd, pl, pm, pn;// pointers
         int f, v, s, t;
 
@@ -161,7 +177,7 @@ public class QSufSort {
             return;
         }
 
-        v = choose_pivot(p, n);
+        v = choosePivot(p, n);
         pa = pb = p;
         pc = pd = p + n - 1;
         while (true) { /* split-end partition. */
@@ -198,19 +214,19 @@ public class QSufSort {
         s = pb - pa;
         t = pd - pc;
         if (s > 0)
-            sort_split(p, s);
-        update_group(p + s, p + n - t - 1);
+            sortSplit(p, s);
+        updateGroup(p + s, p + n - t - 1);
         if (t > 0)
-            sort_split(p + n - t, t);
+            sortSplit(p + n - t, t);
     }
 
     /**
      * Subroutine for {@link #select_sort_split(int, int)} and
-     * {@link #sort_split(int, int)}. Sets group numbers for a group whose
+     * {@link #sortSplit(int, int)}. Sets group numbers for a group whose
      * lowest position in {@link #I} is <code>pl</code> and highest position is
      * <code>pm</code>.
      */
-    private void update_group(int pl, int pm) {
+    private void updateGroup(int pl, int pm) {
         int g;
 
         g = pm; /* group number. */
@@ -226,10 +242,10 @@ public class QSufSort {
     }
 
     /**
-     * Subroutine for {@link #sort_split(int, int)} , algorithm by Bentley &
+     * Subroutine for {@link #sortSplit(int, int)} , algorithm by Bentley &
      * McIlroy.
      */
-    private int choose_pivot(int p, int n) {
+    private int choosePivot(int p, int n) {
         int pl, pm, pn;// pointers
         int s;
 
@@ -268,7 +284,7 @@ public class QSufSort {
                     SWAP(pi, pb); /* place next to other smallest elements. */
                     ++pb;
                 }
-            update_group(pa, pb - 1); /* update group values for new group. */
+            updateGroup(pa, pb - 1); /* update group values for new group. */
             pa = pb; /* continue sorting rest of the subarray. */
         }
         if (pa == pn) { /* check if last part is single element. */
@@ -287,7 +303,7 @@ public class QSufSort {
      * <code>I</code> is array of size <code>n+1</code> whose contents are
      * disregarded.
      */
-    private void bucketsort(int n, int k) {
+    private void bucketSort(int n, int k) {
         int pi;// pointer
         int i, c, d, g;
 

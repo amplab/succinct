@@ -28,12 +28,6 @@ public class RegExExecutor {
         return finalResults;
     }
 
-    public void displayResults() {
-        for (Map.Entry<Long, Integer> entry : finalResults.entrySet()) {
-            System.out.println(entry.getKey() + " => " + entry.getValue());
-        }
-    }
-
     private Map<Long, Integer> compute(RegEx r) {
         switch(r.getRegExType()) {
             case Blank:

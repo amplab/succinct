@@ -4,13 +4,13 @@ import junit.framework.TestCase;
 
 public class RegExExecutorTest extends TestCase {
 
+    /**
+     * Set up test.
+     *
+     * @throws Exception
+     */
     public void setUp() throws Exception {
         super.setUp();
-
-    }
-
-    public void tearDown() throws Exception {
-
     }
 
     public void testExecute() throws Exception {
@@ -18,10 +18,6 @@ public class RegExExecutorTest extends TestCase {
     }
 
     public void testGetFinalResults() throws Exception {
-
-    }
-
-    public void testDisplayResults() throws Exception {
 
     }
 
