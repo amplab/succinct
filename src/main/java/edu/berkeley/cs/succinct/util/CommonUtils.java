@@ -1,13 +1,27 @@
 package edu.berkeley.cs.succinct.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
 public class CommonUtils {
 
     public static final long two32 = 1L << 32;
+    
+    public static class DictionaryUtils {
+
+        public static long GETRANKL2(long n) {
+            return (n >>> 32);
+        }
+
+        public static long GETRANKL1(long n, int i) {
+            return (((n & 0xffffffff) >>> (32 - i * 10)) & 0x3ff);
+        }
+
+        public static long GETPOSL2(long n) {
+            return (n >>> 31);
+        }
+
+        public static long GETPOSL1(long n, int i) {
+            return (((n & 0x7fffffff) >>> (31 - i * 10)) & 0x3ff);
+        }
+    }
 
     public static int intLog2(long n) {
         int l = (n != 0) && ((n & (n - 1)) == 0) ? 0 : 1;
@@ -22,21 +36,8 @@ public class CommonUtils {
         return a % n;
     }
 
-    public static int popcount(long x) {
+    public static int popCount(long x) {
         return Long.bitCount(x);
-    }
-
-    public static byte[] readFile(String filePath) throws FileNotFoundException, IOException {
-        File file = new File(filePath);
-        FileInputStream fis = new FileInputStream(file);
-        byte[] data = new byte[(int)file.length() + 1];
-
-        fis.read(data, 0, data.length - 1);
-        fis.close();
-
-        data[data.length - 1] = 1;
-
-        return data;
     }
 
 }

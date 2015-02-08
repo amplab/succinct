@@ -14,23 +14,28 @@ public class Dictionary {
     public long[] posL12;
     public long[] posL3;
 
+    /**
+     * Constructor to create a Dictionary from an input BitMap.
+     *
+     * @param bitMap Bitmap to convert to dictionary.
+     */
     public Dictionary(BitMap bitMap) {
 
         long two32 = (1L << 32);
-        int l3_size = (int) ((bitMap.size / two32) + 1);
-        int l2_size = (int) ((bitMap.size / 2048) + 1);
-        int l1_size = (int) ((bitMap.size / 512) + 1);
+        int l3Size = (int) ((bitMap.size / two32) + 1);
+        int l2Size = (int) ((bitMap.size / 2048) + 1);
+        int l1Size = (int) ((bitMap.size / 512) + 1);
         long count = 0;
 
         size = bitMap.size;
-        rankL3 = new long[l3_size];
-        posL3 = new long[l3_size];
-        rankL12 = new long[l2_size];
-        posL12 = new long[l2_size];
-        long[] rank_l2 = new long[l2_size];
-        long[] pos_l2 = new long[l2_size];
-        long[] rank_l1 = new long[l1_size];
-        long[] pos_l1 = new long[l1_size];
+        rankL3 = new long[l3Size];
+        posL3 = new long[l3Size];
+        rankL12 = new long[l2Size];
+        posL12 = new long[l2Size];
+        long[] rank_l2 = new long[l2Size];
+        long[] pos_l2 = new long[l2Size];
+        long[] rank_l1 = new long[l1Size];
+        long[] pos_l1 = new long[l1Size];
         rankL3[0] = 0;
         posL3[0] = 0;
         rankL12[0] = 0;
@@ -71,7 +76,7 @@ public class Dictionary {
             }
             if (i % 64 == 0) {
                 p = (short) CommonUtils
-                        .popcount((bitMap.data[i / 64] >> 48) & 65535);
+                        .popCount((bitMap.data[i / 64] >> 48) & 65535);
                 p = (short) (p % 16);
                 compSize += Tables.offsetBits[p];
                 dict.add(p);
@@ -79,7 +84,7 @@ public class Dictionary {
                         (int) ((bitMap.data[i / 64] >> 48) & 65535)));
 
                 p = (short) CommonUtils
-                        .popcount((bitMap.data[i / 64] >> 32) & 65535);
+                        .popCount((bitMap.data[i / 64] >> 32) & 65535);
                 p = (short) (p % 16);
                 compSize += Tables.offsetBits[p];
                 dict.add(p);
@@ -87,14 +92,14 @@ public class Dictionary {
                         (int) ((bitMap.data[i / 64] >> 32) & 65535)));
 
                 p = (short) CommonUtils
-                        .popcount((bitMap.data[i / 64] >> 16) & 65535);
+                        .popCount((bitMap.data[i / 64] >> 16) & 65535);
                 p = (short) (p % 16);
                 compSize += Tables.offsetBits[p];
                 dict.add(p);
                 dict.add(Tables.encodeTable.get(p).get(
                         (int) ((bitMap.data[i / 64] >> 16) & 65535)));
 
-                p = (short) CommonUtils.popcount(bitMap.data[i / 64] & 65535);
+                p = (short) CommonUtils.popCount(bitMap.data[i / 64] & 65535);
                 p = (short) (p % 16);
                 compSize += Tables.offsetBits[p];
                 dict.add(p);
@@ -105,7 +110,7 @@ public class Dictionary {
             }
         }
 
-        this.bitMap = new BitMap((int) compSize);
+        this.bitMap = new BitMap(compSize);
         long numBits = 0;
         for (i = 0; i < dict.size(); i++) {
             if (i % 2 == 0) {
@@ -119,55 +124,45 @@ public class Dictionary {
         }
     }
 
-    private long GETRANKL2(long n) {
-        return (n >>> 32);
-    }
-
-    private long GETRANKL1(long n, int i) {
-        return (((n & 0xffffffff) >>> (32 - i * 10)) & 0x3ff);
-    }
-
-    private long GETPOSL2(long n) {
-        return (n >>> 31);
-    }
-
-    private long GETPOSL1(long n, int i) {
-        return (((n & 0x7fffffff) >>> (31 - i * 10)) & 0x3ff);
-    }
-
-    public long getRank1(int query) {
-        if (query < 0)
+    /**
+     * Method to perform rank1 using dictionary index.
+     *
+     * @param i Position in the bitmap.
+     * @return Value of rank1 at specified position.
+     */
+    public long getRank1(int i) {
+        if (i < 0)
             return 0;
 
-        int l3Idx = (int) (query / CommonUtils.two32);
-        int l2Idx = query / 2048;
-        int l1Idx = (query % 512);
-        int rem = ((query % 2048) / 512);
+        int l3Idx = (int) (i / CommonUtils.two32);
+        int l2Idx = i / 2048;
+        int l1Idx = (i % 512);
+        int rem = ((i % 2048) / 512);
         int blockClass, blockOffset;
 
-        long res = this.rankL3[l3Idx] + GETRANKL2(rankL12[l2Idx]);
-        long pos = this.posL3[l3Idx] + GETPOSL2(posL12[l2Idx]);
+        long res = this.rankL3[l3Idx] + CommonUtils.DictionaryUtils.GETRANKL2(rankL12[l2Idx]);
+        long pos = this.posL3[l3Idx] + CommonUtils.DictionaryUtils.GETPOSL2(posL12[l2Idx]);
 
         switch (rem) {
-        case 1:
-            res += GETRANKL1(rankL12[l2Idx], 1);
-            pos += GETPOSL1(posL12[l2Idx], 1);
-            break;
+            case 1:
+                res += CommonUtils.DictionaryUtils.GETRANKL1(rankL12[l2Idx], 1);
+                pos += CommonUtils.DictionaryUtils.GETPOSL1(posL12[l2Idx], 1);
+                break;
 
-        case 2:
-            res += GETRANKL1(rankL12[l2Idx], 1) + GETRANKL1(rankL12[l2Idx], 2);
-            pos += GETPOSL1(posL12[l2Idx], 1) + GETPOSL1(posL12[l2Idx], 2);
-            break;
+            case 2:
+                res += CommonUtils.DictionaryUtils.GETRANKL1(rankL12[l2Idx], 1) + CommonUtils.DictionaryUtils.GETRANKL1(rankL12[l2Idx], 2);
+                pos += CommonUtils.DictionaryUtils.GETPOSL1(posL12[l2Idx], 1) + CommonUtils.DictionaryUtils.GETPOSL1(posL12[l2Idx], 2);
+                break;
 
-        case 3:
-            res += GETRANKL1(rankL12[l2Idx], 1) + GETRANKL1(rankL12[l2Idx], 2)
-                    + GETRANKL1(rankL12[l2Idx], 3);
-            pos += GETPOSL1(posL12[l2Idx], 1) + GETPOSL1(posL12[l2Idx], 2)
-                    + GETPOSL1(posL12[l2Idx], 3);
-            break;
+            case 3:
+                res += CommonUtils.DictionaryUtils.GETRANKL1(rankL12[l2Idx], 1) + CommonUtils.DictionaryUtils.GETRANKL1(rankL12[l2Idx], 2)
+                        + CommonUtils.DictionaryUtils.GETRANKL1(rankL12[l2Idx], 3);
+                pos += CommonUtils.DictionaryUtils.GETPOSL1(posL12[l2Idx], 1) + CommonUtils.DictionaryUtils.GETPOSL1(posL12[l2Idx], 2)
+                        + CommonUtils.DictionaryUtils.GETPOSL1(posL12[l2Idx], 3);
+                break;
 
-        default:
-            break;
+            default:
+                break;
         }
 
         // Popcount
@@ -190,6 +185,12 @@ public class Dictionary {
         return res;
     }
 
+    /**
+     * Method to perform rank0 using dictionary index.
+     *
+     * @param i Position in the bitmap.
+     * @return Value of rank0 at specified position.
+     */
     public long getRank0(int i) {
         return i - getRank1(i) + 1;
     }

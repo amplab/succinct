@@ -49,12 +49,12 @@ public class Tables {
         }
         q[16] = 1;
         for (int i = 0; i <= 65535; i++) {
-            int p = CommonUtils.popcount(i);
+            int p = CommonUtils.popCount(i);
             decodeTable[p % 16][q[p]] = i;
             encodeTable.get(p % 16).put(i, q[p]);
             q[p]++;
             for (int j = 0; j < 16; j++) {
-                smallRank[i][j] = (char) CommonUtils.popcount(i >> (15 - j));
+                smallRank[i][j] = (char) CommonUtils.popCount(i >> (15 - j));
             }
         }
 

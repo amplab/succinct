@@ -5,6 +5,8 @@ import edu.berkeley.cs.succinct.dictionary.Tables;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 
+import static edu.berkeley.cs.succinct.util.CommonUtils.DictionaryUtils.*;
+
 public class SerializedOperations {
 
     // TESTED
@@ -400,22 +402,6 @@ public class SerializedOperations {
         }
 
         return val;
-    }
-
-    public static long GETPOSL1(long n, int i) {
-        return (((n & 0x7fffffff) >>> (31 - i * 10)) & 0x3ff);
-    }
-
-    public static long GETPOSL2(long n) {
-        return (n >>> 31);
-    }
-
-    public static long GETRANKL1(long n, int i) {
-        return (((n & 0xffffffff) >>> (32 - i * 10)) & 0x3ff);
-    }
-
-    public static long GETRANKL2(long n) {
-        return (n >>> 32);
     }
 
     public static long getValPos(long bitmap[], int pos, int bits) {
