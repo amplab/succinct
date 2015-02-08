@@ -192,10 +192,10 @@ public class SuccinctCore implements Serializable {
         QSufSort qsuf = new QSufSort();
         qsuf.buildSuffixArray(input);
 
-        BMArray cSA = new BMArray(qsuf.getSA(), getOriginalSize());
+        BMArray cSA = new BMArray(qsuf.getSA());
         qsuf.cleanSA();
 
-        BMArray cSAinv = new BMArray(qsuf.getSAinv(), getOriginalSize());
+        BMArray cSAinv = new BMArray(qsuf.getSAinv());
         qsuf.cleanSAinv();
 
         qsuf = null;

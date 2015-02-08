@@ -7,22 +7,43 @@ public class BMArray extends BitMap {
     public int bits;
     public int n;
 
+    /**
+     * Constructor to initialize bitmap array.
+     *
+     * @param n Number of values in bitmap.
+     * @param bits width of each value in bits.
+     */
     public BMArray(int n, int bits) {
-        super((long) (((long) n) * ((long) bits)));
+        super(((long) n) * ((long) bits));
 
         this.n = n;
         this.bits = bits;
     }
 
-    public BMArray(int[] input, int n) {
-        super((long) (((long) n) * ((long) CommonUtils.intLog2(n))));
-        this.n = n;
+    /**
+     * Constructor to convert a integer array into a bitmap array.
+     *
+     * @param input Input integer array.
+     */
+    public BMArray(int[] input) {
+        /* 
+            Note that with this implementation, the width of each value is set to
+            log2(len(input))
+         */
+        super(((long) input.length) * ((long) CommonUtils.intLog2(input.length)));
+        this.n = input.length;
         this.bits = CommonUtils.intLog2(this.n + 1);
         for (int i = 0; i < this.n; i++) {
             this.setVal(i, input[i]);
         }
     }
 
+    /**
+     * Set value in the bitmap array at a certain index.
+     *
+     * @param i Index of value to be set.
+     * @param val Value to be set.
+     */
     public final void setVal(int i, long val) {
 
         assert (i >= 0 && i < this.n);
@@ -38,6 +59,12 @@ public class BMArray extends BitMap {
         }
     }
 
+    /**
+     * Get value in the bitmap array at a certain index.
+     *
+     * @param i Index of the value to get.
+     * @return The value at specified index.
+     */
     public final long getVal(int i) {
 
         assert (i >= 0 && i < (this.n));
@@ -55,6 +82,8 @@ public class BMArray extends BitMap {
             val1 = val1 >>> (s % 64 - (e % 64 + 1));
             val = val1 | val2;
         }
+        
+        assert(val >= 0);
 
         return val;
     }
