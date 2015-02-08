@@ -11,7 +11,6 @@ public class CommonUtilsTest extends TestCase {
      */
     public void setUp() throws Exception {
         super.setUp();
-
     }
 
     public void testIntLog2() throws Exception {

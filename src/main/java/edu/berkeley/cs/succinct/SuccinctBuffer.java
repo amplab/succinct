@@ -17,32 +17,42 @@ import java.nio.ByteOrder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class SuccinctBuffer extends SuccinctCore {
 
-    /**
-	 * 
-	 */
     private static final long serialVersionUID = 5879363803993345049L;
 
+    /**
+     * Constructor to create SuccinctBuffer from byte array and context length.
+     * @param input Input byte array.
+     * @param contextLen Context length.
+     */
     public SuccinctBuffer(byte[] input, int contextLen) {
         super(input, contextLen);
     }
 
+    /**
+     * Constructor to create SuccinctBuffer from byte array.
+     * @param input Input byte array.
+     */
     public SuccinctBuffer(byte[] input) {
         this(input, 3);
     }
 
-    private long computeContextVal(byte[] p, int sigma_size, int i, int k) {
+    /**
+     * Compute context value at an index in a byte array.
+     * @param buf Input byte buffer.
+     * @param i Index in the byte buffer.
+     * @return Value of context at specified index.
+     */
+    private long computeContextVal(byte[] buf, int i) {
         long val = 0;
-        long max = i + k;
+        long max = i + contextLen;
         for (int t = i; t < max; t++) {
-            if (alphabetMap.containsKey((byte) p[t])) {
-                val = val * sigma_size + alphabetMap.get((byte) p[t]).second;
+            if (alphabetMap.containsKey(buf[t])) {
+                val = val * sigmaSize + alphabetMap.get(buf[t]).second;
             } else {
                 return -1;
             }
@@ -51,7 +61,13 @@ public class SuccinctBuffer extends SuccinctCore {
         return val;
     }
 
-    /* Extract portion of text starting at offset, with length len */
+    /**
+     * Extract data of specified length from Succinct data structures at specified index.
+     *
+     * @param i Index into original input to start extracting at.
+     * @param len Length of data to be extracted.
+     * @return Extracted data.
+     */
     public byte[] extract(int i, int len) {
 
         byte[] buf = new byte[len];
@@ -67,6 +83,13 @@ public class SuccinctBuffer extends SuccinctCore {
         return buf;
     }
 
+    /**
+     * Extract data from Succinct data structures at specified index until specified delimiter.
+     *
+     * @param i Index into original input to start extracting at.
+     * @param delim Delimiter at which to stop extracting.
+     * @return Extracted data.
+     */
     public byte[] extractUntil(int i, char delim) {
 
         String strBuf = "";
@@ -85,11 +108,18 @@ public class SuccinctBuffer extends SuccinctCore {
         return strBuf.getBytes();
     }
 
-    /* Binary search */
-    private long binSearchPsi(long val, long s, long e, boolean flag) {
+    /**
+     * Binary Search for a value withing NPA.
+     * @param val Value to be searched.
+     * @param startIdx Starting index into NPA.
+     * @param endIdx Ending index into NPA.
+     * @param flag Whether to search for left boundary or the right boundary.
+     * @return Search result as an index into the NPA.
+     */
+    private long binSearchNPA(long val, long startIdx, long endIdx, boolean flag) {
 
-        long sp = s;
-        long ep = e;
+        long sp = startIdx;
+        long ep = endIdx;
         long m;
 
         while (sp <= ep) {
@@ -110,16 +140,21 @@ public class SuccinctBuffer extends SuccinctCore {
         return flag ? ep : sp;
     }
 
-    /* Get range of SA positions using Slow Backward search */
-    private Pair<Long, Long> getRangeSlow(byte[] p) {
+    /**
+     * Get range of SA positions using Slow Backward search
+     *
+     * @param buf Input query to be searched.
+     * @return Range of indices into the SA.
+     */
+    private Pair<Long, Long> getRangeSlow(byte[] buf) {
         Pair<Long, Long> range = new Pair<Long, Long>(0L, -1L);
-        int m = p.length;
+        int m = buf.length;
         long sp, ep, c1, c2;
 
-        if (alphabetMap.containsKey((byte) p[m - 1])) {
-            sp = alphabetMap.get((byte) p[m - 1]).first;
+        if (alphabetMap.containsKey((byte) buf[m - 1])) {
+            sp = alphabetMap.get((byte) buf[m - 1]).first;
             ep = alphabetMap
-                    .get((alphabet.get(alphabetMap.get((byte) p[m - 1]).second + 1))).first - 1;
+                    .get((alphabet.get(alphabetMap.get((byte) buf[m - 1]).second + 1))).first - 1;
         } else {
             return range;
         }
@@ -129,15 +164,15 @@ public class SuccinctBuffer extends SuccinctCore {
         }
 
         for (int i = m - 2; i >= 0; i--) {
-            if (alphabetMap.containsKey((byte) p[i])) {
-                c1 = alphabetMap.get((byte) p[i]).first;
+            if (alphabetMap.containsKey((byte) buf[i])) {
+                c1 = alphabetMap.get((byte) buf[i]).first;
                 c2 = alphabetMap
-                        .get((alphabet.get(alphabetMap.get((byte) p[i]).second + 1))).first - 1;
+                        .get((alphabet.get(alphabetMap.get((byte) buf[i]).second + 1))).first - 1;
             } else {
                 return range;
             }
-            sp = binSearchPsi(sp, c1, c2, false);
-            ep = binSearchPsi(ep, c1, c2, true);
+            sp = binSearchNPA(sp, c1, c2, false);
+            ep = binSearchNPA(ep, c1, c2, true);
             if (sp > ep) {
                 return range;
             }
@@ -149,12 +184,17 @@ public class SuccinctBuffer extends SuccinctCore {
         return range;
     }
 
-    /* Get range of SA positions using Backward search */
-    protected Pair<Long, Long> getRange(byte[] p) {
+    /**
+     * Get range of SA positions using Backward search
+     *
+     * @param buf Input query to be searched.
+     * @return Range of indices into the SA.
+     */
+    protected Pair<Long, Long> getRange(byte[] buf) {
 
-        int m = p.length;
+        int m = buf.length;
         if (m <= contextLen) {
-            return getRangeSlow(p);
+            return getRangeSlow(buf);
         }
         Pair<Long, Long> range = new Pair<Long, Long>(0L, -1L);
         int sigma_id;
@@ -162,10 +202,9 @@ public class SuccinctBuffer extends SuccinctCore {
         int start_off;
         long context_val, context_id;
 
-        if (alphabetMap.containsKey((byte) p[m - contextLen - 1])) {
-            sigma_id = alphabetMap.get((byte) p[m - contextLen - 1]).second;
-            context_val = computeContextVal(p, sigmaSize, m - contextLen,
-                    contextLen);
+        if (alphabetMap.containsKey((byte) buf[m - contextLen - 1])) {
+            sigma_id = alphabetMap.get((byte) buf[m - contextLen - 1]).second;
+            context_val = computeContextVal(buf, m - contextLen);
 
             if (context_val == -1) {
                 return range;
@@ -197,9 +236,9 @@ public class SuccinctBuffer extends SuccinctCore {
         }
 
         for (int i = m - contextLen - 2; i >= 0; i--) {
-            if (alphabetMap.containsKey((byte) p[i])) {
-                sigma_id = alphabetMap.get((byte) p[i]).second;
-                context_val = computeContextVal(p, sigmaSize, i + 1, contextLen);
+            if (alphabetMap.containsKey(buf[i])) {
+                sigma_id = alphabetMap.get(buf[i]).second;
+                context_val = computeContextVal(buf, i + 1);
 
                 if (context_val == -1) {
                     return range;
@@ -226,8 +265,8 @@ public class SuccinctBuffer extends SuccinctCore {
             } else {
                 return range;
             }
-            sp = binSearchPsi(sp, c1, c2, false);
-            ep = binSearchPsi(ep, c1, c2, true);
+            sp = binSearchNPA(sp, c1, c2, false);
+            ep = binSearchNPA(ep, c1, c2, true);
             if (sp > ep) {
                 return range;
             }
@@ -238,14 +277,24 @@ public class SuccinctBuffer extends SuccinctCore {
         return range;
     }
 
-    /* Get count of pattern occurrances */
+    /**
+     * Get count of pattern occurrences in original input.
+     *
+     * @param query Input query.
+     * @return Count of occurrences.
+     */
     public long count(byte[] query) {
         Pair<Long, Long> range;
         range = getRange(query);
         return range.second - range.first + 1;
     }
 
-    /* Function for backward search */
+    /**
+     * Get all locations of pattern occurrences in original input.
+     *
+     * @param query Input query.
+     * @return All locations of pattern occurrences in original input.
+     */
     public Long[] search(byte[] query) {
 
         Pair<Long, Long> range;
@@ -264,6 +313,13 @@ public class SuccinctBuffer extends SuccinctCore {
         return positions;
     }
 
+    /**
+     * Performs regular expression search for an input expression using Succinct data-structures.
+     *
+     * @param query Regular expression pattern to be matched. (UTF-8 encoded)
+     * @return All locations and lengths of matching patterns in original input.
+     * @throws RegExParsingException
+     */
     public Map<Long, Integer> regexSearch(String query) throws RegExParsingException {
         RegExParser parser = new RegExParser(new String(query));
         RegEx regEx;
@@ -279,86 +335,76 @@ public class SuccinctBuffer extends SuccinctCore {
         return regExExecutor.getFinalResults();
     }
 
+    /**
+     * Serialize SuccinctBuffer to OutputStream.
+     *
+     * @param oos ObjectOutputStream to write to.
+     * @throws IOException
+     */
     private void writeObject(ObjectOutputStream oos) throws IOException {
         WritableByteChannel dataChannel = Channels.newChannel(oos);
 
-        // System.out.println("metadata size = " + metadata.capacity());
         dataChannel.write(metadata.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("cmap size = " + cmap.capacity());
         dataChannel.write(alphabetmap.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("contxt size = " + contxt.capacity());
         ByteBuffer bufContext = ByteBuffer.allocate(contextmap.capacity() * 8);
         bufContext.asLongBuffer().put(contextmap);
         dataChannel.write(bufContext.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("slist size = " + slist.capacity());
         dataChannel.write(alphabet.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("dbpos size = " + dbpos.capacity());
         oos.writeLong((long) dbpos.capacity());
         dataChannel.write(dbpos.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("sa size = " + sa.capacity());
         ByteBuffer bufSA = ByteBuffer.allocate(sa.capacity() * 8);
         bufSA.asLongBuffer().put(sa);
         dataChannel.write(bufSA.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("isa size = " + sainv.capacity());
         ByteBuffer bufISA = ByteBuffer.allocate(isa.capacity() * 8);
         bufISA.asLongBuffer().put(isa);
         dataChannel.write(bufISA.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("neccol size = " + neccol.capacity());
         oos.writeLong((long) neccol.capacity());
         ByteBuffer bufNecCol = ByteBuffer.allocate(neccol.capacity() * 8);
         bufNecCol.asLongBuffer().put(neccol);
         dataChannel.write(bufNecCol.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("necrow size = " + necrow.capacity());
         oos.writeLong((long) necrow.capacity());
         ByteBuffer bufNecRow = ByteBuffer.allocate(necrow.capacity() * 8);
         bufNecRow.asLongBuffer().put(necrow);
         dataChannel.write(bufNecRow.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("rowoffsets size = " + rowoffsets.capacity());
         oos.writeLong((long) rowoffsets.capacity());
         ByteBuffer bufRowOff = ByteBuffer.allocate(rowoffsets.capacity() * 8);
         bufRowOff.asLongBuffer().put(rowoffsets);
         dataChannel.write(bufRowOff.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("coloffsets size = " + coloffsets.capacity());
         oos.writeLong((long) coloffsets.capacity());
         ByteBuffer bufColOff = ByteBuffer.allocate(coloffsets.capacity() * 8);
         bufColOff.asLongBuffer().put(coloffsets);
         dataChannel.write(bufColOff.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("celloffsets size = " + celloffsets.capacity());
         oos.writeLong((long) celloffsets.capacity());
         ByteBuffer bufCellOff = ByteBuffer.allocate(celloffsets.capacity() * 8);
         bufCellOff.asLongBuffer().put(celloffsets);
         dataChannel.write(bufCellOff.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("rowsizes size = " + rowsizes.capacity());
         oos.writeLong((long) rowsizes.capacity());
         ByteBuffer bufRowSizes = ByteBuffer.allocate(rowsizes.capacity() * 4);
         bufRowSizes.asIntBuffer().put(rowsizes);
         dataChannel.write(bufRowSizes.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("colsizes size = " + colsizes.capacity());
         oos.writeLong((long) colsizes.capacity());
         ByteBuffer bufColSizes = ByteBuffer.allocate(colsizes.capacity() * 4);
         bufColSizes.asIntBuffer().put(colsizes);
         dataChannel.write(bufColSizes.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("roff size = " + roff.capacity());
         oos.writeLong((long) roff.capacity());
         ByteBuffer bufROff = ByteBuffer.allocate(roff.capacity() * 4);
         bufROff.asIntBuffer().put(roff);
         dataChannel.write(bufROff.order(ByteOrder.nativeOrder()));
 
-        // System.out.println("coff size = " + coff.capacity());
         oos.writeLong((long) coff.capacity());
         ByteBuffer bufCoff = ByteBuffer.allocate(coff.capacity() * 4);
         bufCoff.asIntBuffer().put(coff);
@@ -375,6 +421,12 @@ public class SuccinctBuffer extends SuccinctCore {
         }
     }
 
+    /**
+     * Deserialize SuccinctBuffer from InputStream.
+     *
+     * @param ois ObjectInputStream to read from.
+     * @throws IOException
+     */
     private void readObject(ObjectInputStream ois)
             throws ClassNotFoundException, IOException {
 
@@ -382,23 +434,14 @@ public class SuccinctBuffer extends SuccinctCore {
 
         ReadableByteChannel dataChannel = Channels.newChannel(ois);
         this.setOriginalSize((int) ois.readLong());
-        // System.out.println("originalSize = " + originalSize);
         this.sampledSASize = (int) ois.readLong();
-        // System.out.println("sampledSASize = " + sampledSASize);
         this.alphaSize = ois.readInt();
-        // System.out.println("alphaSize = " + alphaSize);
         this.sigmaSize = ois.readInt();
-        // System.out.println("sigmaSize = " + sigmaSize);
         this.bits = ois.readInt();
-        // System.out.println("bits = " + bits);
         this.sampledSABits = ois.readInt();
-        // System.out.println("sampledSABits = " + sampledSABits);
         this.samplingBase = ois.readInt();
-        // System.out.println("samplingBase = " + samplingBase);
         this.samplingRate = ois.readInt();
-        // System.out.println("samplingRate = " + samplingRate);
         this.numContexts = ois.readInt();
-        // System.out.println("numContexts = " + numContexts);
 
         metadata = ByteBuffer.allocate(52);
         metadata.putLong(getOriginalSize());
@@ -413,7 +456,6 @@ public class SuccinctBuffer extends SuccinctCore {
         metadata.flip();
 
         int cmapSize = this.alphaSize;
-        // System.out.println("Cmap size = " + cmapSize);
         this.alphabetmap = ByteBuffer.allocate(cmapSize * (1 + 8 + 4));
         dataChannel.read(this.alphabetmap);
         this.alphabetmap.flip();
@@ -429,7 +471,6 @@ public class SuccinctBuffer extends SuccinctCore {
 
         // Read contexts
         int contextsSize = this.numContexts;
-        // System.out.println("Contexts size = " + contextsSize);
         ByteBuffer contextBuf = ByteBuffer.allocate(contextsSize * 8 * 2);
         dataChannel.read(contextBuf);
         contextBuf.flip();
@@ -445,29 +486,25 @@ public class SuccinctBuffer extends SuccinctCore {
 
         // Read slist
         int slistSize = this.alphaSize;
-        // System.out.println("Slist size = " + slistSize);
         this.alphabet = ByteBuffer.allocate(slistSize);
         dataChannel.read(this.alphabet);
         this.alphabet.flip();
 
         // Read dbpos
         int dbposSize = (int) ois.readLong();
-        // System.out.println("Dbpos size = " + dbposSize);
         this.dbpos = ByteBuffer.allocate(dbposSize);
         dataChannel.read(this.dbpos);
         this.dbpos.flip();
 
         // Read sa
-        int saSize = (int) ((sampledSASize * sampledSABits) / 64) + 1;
-        // System.out.println("SA size = " + saSize);
+        int saSize = (sampledSASize * sampledSABits) / 64 + 1;
         ByteBuffer saBuf = ByteBuffer.allocate(saSize * 8);
         dataChannel.read(saBuf);
         saBuf.flip();
         this.sa = saBuf.asLongBuffer();
 
         // Read sainv
-        int isaSize = (int) ((sampledSASize * sampledSABits) / 64) + 1;
-        // System.out.println("ISA size = " + isaSize);
+        int isaSize = (sampledSASize * sampledSABits) / 64 + 1;
         ByteBuffer isaBuf = ByteBuffer.allocate(isaSize * 8);
         dataChannel.read(isaBuf);
         isaBuf.flip();
@@ -475,7 +512,6 @@ public class SuccinctBuffer extends SuccinctCore {
 
         // Read neccol
         int neccolSize = (int) ois.readLong();
-        // System.out.println("neccol size = " + neccolSize);
         ByteBuffer neccolBuf = ByteBuffer.allocate(neccolSize * 8);
         dataChannel.read(neccolBuf);
         neccolBuf.flip();
@@ -483,7 +519,6 @@ public class SuccinctBuffer extends SuccinctCore {
 
         // Read necrow
         int necrowSize = (int) ois.readLong();
-        // System.out.println("necrow size = " + necrowSize);
         ByteBuffer necrowBuf = ByteBuffer.allocate(necrowSize * 8);
         dataChannel.read(necrowBuf);
         necrowBuf.flip();
@@ -491,7 +526,6 @@ public class SuccinctBuffer extends SuccinctCore {
 
         // Read rowoffsets
         int rowoffsetsSize = (int) ois.readLong();
-        // System.out.println("rowoffsets size = " + rowoffsetsSize);
         ByteBuffer rowoffsetsBuf = ByteBuffer.allocate(rowoffsetsSize * 8);
         dataChannel.read(rowoffsetsBuf);
         rowoffsetsBuf.flip();
@@ -499,7 +533,6 @@ public class SuccinctBuffer extends SuccinctCore {
 
         // Read coloffsets
         int coloffsetsSize = (int) ois.readLong();
-        // System.out.println("coloffsets size = " + coloffsetsSize);
         ByteBuffer coloffsetsBuf = ByteBuffer.allocate(coloffsetsSize * 8);
         dataChannel.read(coloffsetsBuf);
         coloffsetsBuf.flip();
@@ -507,7 +540,6 @@ public class SuccinctBuffer extends SuccinctCore {
 
         // Read celloffsets
         int celloffsetsSize = (int) ois.readLong();
-        // System.out.println("celloffsets size = " + celloffsetsSize);
         ByteBuffer celloffsetsBuf = ByteBuffer.allocate(celloffsetsSize * 8);
         dataChannel.read(celloffsetsBuf);
         celloffsetsBuf.flip();
@@ -515,38 +547,32 @@ public class SuccinctBuffer extends SuccinctCore {
 
         // Read rowsizes
         int rowsizesSize = (int) ois.readLong();
-        // System.out.println("rowsizes size = " + rowsizesSize);
         ByteBuffer rowsizesBuf = ByteBuffer.allocate(rowsizesSize * 4);
         dataChannel.read(rowsizesBuf);
         rowsizesBuf.flip();
         this.rowsizes = rowsizesBuf.asIntBuffer();
 
         int colsizesSize = (int) ois.readLong();
-        // System.out.println("colsizes size = " + colsizesSize);
         ByteBuffer colsizesBuf = ByteBuffer.allocate(colsizesSize * 4);
         dataChannel.read(colsizesBuf);
         colsizesBuf.flip();
         this.colsizes = colsizesBuf.asIntBuffer();
 
         int roffSize = (int) ois.readLong();
-        // System.out.println("roff size = " + roffSize);
         ByteBuffer roffBuf = ByteBuffer.allocate(roffSize * 4);
         dataChannel.read(roffBuf);
         roffBuf.flip();
         this.roff = roffBuf.asIntBuffer();
 
         int coffSize = (int) ois.readLong();
-        // System.out.println("coff size = " + coffSize);
         ByteBuffer coffBuf = ByteBuffer.allocate(coffSize * 4);
         dataChannel.read(coffBuf);
         coffBuf.flip();
         this.coff = coffBuf.asIntBuffer();
 
         wavelettree = new ByteBuffer[contextsSize];
-        // System.out.println("contexts size = " + contextsSize);
         for (int i = 0; i < contextsSize; i++) {
             long wavelettreeSize = ois.readLong();
-            // System.out.println("Size = " + wavelettreeSize);
             wavelettree[i] = null;
             if (wavelettreeSize != 0) {
                 ByteBuffer wavelettreeBuf = ByteBuffer

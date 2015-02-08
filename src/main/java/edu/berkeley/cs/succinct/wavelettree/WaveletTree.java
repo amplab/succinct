@@ -9,19 +9,31 @@ import java.util.ArrayList;
 public class WaveletTree {
 
     private WaveletNode root;
-    private long wavelet_write_offset = 0;
+    private long waveletWriteOffset = 0;
 
+    /**
+     * Constructor to initialize WaveletTree from an input WaveletNode
+     *
+     * @param root Input root node.
+     */
     public WaveletTree(WaveletNode root) {
         this.root = root;
     }
 
-    public WaveletTree(long s, long e, ArrayList<Long> v, ArrayList<Long> v_c) {
-        assert (v.size() > 0);
-        assert (v_c.size() == v.size());
-        if (s == e)
+    /**
+     * Constructor to initialize WaveletTree from values and their corresponding columnIds
+     * @param startIdx Starting context index.
+     * @param endIdx Ending context index.
+     * @param values Context values.
+     * @param columnIds Column IDs.
+     */
+    public WaveletTree(long startIdx, long endIdx, ArrayList<Long> values, ArrayList<Long> columnIds) {
+        assert (values.size() > 0);
+        assert (columnIds.size() == values.size());
+        if (startIdx == endIdx)
             this.root = null;
         else
-            this.root = new WaveletNode(s, e, v, v_c);
+            this.root = new WaveletNode(startIdx, endIdx, values, columnIds);
     }
 
     public static class WaveletNode {
@@ -29,12 +41,20 @@ public class WaveletTree {
         public char id;
         public Dictionary D;
 
-        public WaveletNode(long s, long e, ArrayList<Long> v,
-                ArrayList<Long> v_c) {
-            assert (v.size() > 0);
-            assert (v.size() == v_c.size());
-            char m = (char) v_c.get((v.size() - 1) / 2).intValue();
-            m = (char) Math.min(m, e - 1);
+        /**
+         * Constructor to initialize WaveletNode from values and their corresponding columnIds
+         *
+         * @param startIdx Starting context index.
+         * @param endIdx Ending context index.
+         * @param values Context Values.
+         * @param columnIds Column IDs.
+         */
+        public WaveletNode(long startIdx, long endIdx, ArrayList<Long> values,
+                ArrayList<Long> columnIds) {
+            assert (values.size() > 0);
+            assert (values.size() == columnIds.size());
+            char m = (char) columnIds.get((values.size() - 1) / 2).intValue();
+            m = (char) Math.min(m, endIdx - 1);
 
             long r;
             ArrayList<Long> v1, v1_c, v0, v0_c;
@@ -43,69 +63,79 @@ public class WaveletTree {
             v1_c = new ArrayList<Long>();
             v0 = new ArrayList<Long>();
             v0_c = new ArrayList<Long>();
-            BitMap B = new BitMap(v.size());
+            BitMap B = new BitMap(values.size());
 
             this.id = m;
 
-            for (int i = 0; i < v.size(); i++) {
-                if (v_c.get(i) > m && v_c.get(i) <= e) {
-                    B.setBit(v.get(i).intValue());
+            for (int i = 0; i < values.size(); i++) {
+                if (columnIds.get(i) > m && columnIds.get(i) <= endIdx) {
+                    B.setBit(values.get(i).intValue());
                 }
             }
 
             this.D = new Dictionary(B);
 
-            for (long i = 0; i < v.size(); i++) {
-                if (v_c.get((int) i) > m && v_c.get((int) i) <= e) {
-                    r = D.getRank1(v.get((int) i).intValue()) - 1;
+            for (long i = 0; i < values.size(); i++) {
+                if (columnIds.get((int) i) > m && columnIds.get((int) i) <= endIdx) {
+                    r = D.getRank1(values.get((int) i).intValue()) - 1;
                     assert (r >= 0);
                     v1.add(r);
-                    v1_c.add(v_c.get((int) i));
+                    v1_c.add(columnIds.get((int) i));
                 } else {
-                    r = D.getRank0(v.get((int) i).intValue()) - 1;
+                    r = D.getRank0(values.get((int) i).intValue()) - 1;
                     assert (r >= 0);
                     v0.add(r);
-                    v0_c.add(v_c.get((int) i));
+                    v0_c.add(columnIds.get((int) i));
                 }
             }
 
-            if (s == m)
+            if (startIdx == m)
                 this.left = null;
             else
-                this.left = new WaveletNode(s, m, v0, v0_c);
+                this.left = new WaveletNode(startIdx, m, v0, v0_c);
             v0.clear();
             v0_c.clear();
 
-            if (m + 1 == e)
+            if (m + 1 == endIdx)
                 this.right = null;
             else
-                this.right = new WaveletNode(m + 1, e, v1, v1_c);
+                this.right = new WaveletNode(m + 1, endIdx, v1, v1_c);
             v1.clear();
             v1_c.clear();
         }
     }
 
-    private int findSizeOfSerializedNode(WaveletNode root) {
+    /**
+     * Get size of serialized WaveletNode.
+     *
+     * @param node Input node.
+     * @return Size of the serialized node.
+     */
+    private int findSizeOfSerializedNode(WaveletNode node) {
         int size = 0;
 
-        if (root == null) {
+        if (node == null) {
             return size;
         }
 
         // Adding up bytes for current node
-        size += 1; // ID size
-        size += 2 * 8; // Offsets for left and right
-        size += 8; // Size of Dictionary
-        size += 8 * (root.D.rankL3.length + root.D.posL3.length);
-        // RANKL3, POSL3
-        size += 8 * (root.D.rankL12.length + root.D.posL12.length);
-        // RANKL12, POSL12
-        size += 8; // Size of bitmap
-        size += 8 * root.D.bitMap.data.length; // Bitmap
+        size += 1;                                                  // ID size
+        size += 2 * 8;                                              // Offsets for left and right
+        size += 8;                                                  // Size of Dictionary
+        size += 8 * (node.D.rankL3.length + node.D.posL3.length);   // RANKL3, POSL3
+        size += 8 * (node.D.rankL12.length + node.D.posL12.length); // RANKL12, POSL12
+        size += 8;                                                  // Size of bitmap
+        size += 8 * node.D.bitMap.data.length;                      // Bitmap
 
         return size;
     }
 
+    /**
+     * Get size of serialized WaveletTree.
+     *
+     * @param root Input root node.
+     * @return Size of the serialized tree.
+     */
     private int findSizeOfSerializedTree(WaveletNode root) {
 
         if (root == null) {
@@ -118,54 +148,80 @@ public class WaveletTree {
         return size;
     }
 
-    private long findOffsetLeft(WaveletNode root) {
-        return findSizeOfSerializedNode(root);
+    /**
+     * Get left offset in serialized output for input node.
+     *
+     * @param node Input node.
+     * @return Left offset in serialized output.
+     */
+    private long findOffsetLeft(WaveletNode node) {
+        return findSizeOfSerializedNode(node);
     }
 
-    private long findOffsetRight(WaveletNode root) {
-        return findSizeOfSerializedNode(root)
-                + findSizeOfSerializedTree(root.left);
+    /**
+     * Get left offset in serialized output for input node.
+     *
+     * @param node Input node.
+     * @return Right offset in serialized output.
+     */
+    private long findOffsetRight(WaveletNode node) {
+        return findSizeOfSerializedNode(node)
+                + findSizeOfSerializedTree(node.left);
     }
 
-    private ByteBuffer getWaveletNodeByteBuffer(WaveletNode root, ByteBuffer buf) {
+    /**
+     * Serialize WaveletNode into input ByteBuffer.
+     *
+     * @param node Input node.
+     * @param buf Input ByteBuffer.
+     * @return Updated ByteBuffer with the serialized WaveletNode.
+     */
+    private ByteBuffer getWaveletNodeByteBuffer(WaveletNode node, ByteBuffer buf) {
 
-        buf.put((byte) root.id);
+        buf.put((byte) node.id);
 
         // Write byte offset to left child, right child
         long offset_left = 0, offset_right = 0;
-        if (root.left != null) {
-            offset_left = wavelet_write_offset + findOffsetLeft(root);
+        if (node.left != null) {
+            offset_left = waveletWriteOffset + findOffsetLeft(node);
         }
-        if (root.right != null) {
-            offset_right = wavelet_write_offset + findOffsetRight(root);
+        if (node.right != null) {
+            offset_right = waveletWriteOffset + findOffsetRight(node);
         }
 
         buf.putLong(offset_left);
         buf.putLong(offset_right);
 
-        buf.putLong(root.D.size);
-        for (int i = 0; i < root.D.rankL3.length; i++) {
-            buf.putLong(root.D.rankL3[i]);
+        buf.putLong(node.D.size);
+        for (int i = 0; i < node.D.rankL3.length; i++) {
+            buf.putLong(node.D.rankL3[i]);
         }
-        for (int i = 0; i < root.D.posL3.length; i++) {
-            buf.putLong(root.D.posL3[i]);
+        for (int i = 0; i < node.D.posL3.length; i++) {
+            buf.putLong(node.D.posL3[i]);
         }
-        for (int i = 0; i < root.D.rankL12.length; i++) {
-            buf.putLong(root.D.rankL12[i]);
+        for (int i = 0; i < node.D.rankL12.length; i++) {
+            buf.putLong(node.D.rankL12[i]);
         }
-        for (int i = 0; i < root.D.posL12.length; i++) {
-            buf.putLong(root.D.posL12[i]);
+        for (int i = 0; i < node.D.posL12.length; i++) {
+            buf.putLong(node.D.posL12[i]);
         }
-        buf.putLong(root.D.bitMap.size);
-        for (int i = 0; i < root.D.bitMap.data.length; i++) {
-            buf.putLong(root.D.bitMap.data[i]);
+        buf.putLong(node.D.bitMap.size);
+        for (int i = 0; i < node.D.bitMap.data.length; i++) {
+            buf.putLong(node.D.bitMap.data[i]);
         }
 
-        wavelet_write_offset += findSizeOfSerializedNode(root);
+        waveletWriteOffset += findSizeOfSerializedNode(node);
 
         return buf;
     }
 
+    /**
+     * Serialize WaveletTree into input ByteBuffer.
+     *
+     * @param root Input root node.
+     * @param buf Input ByteBuffer.
+     * @return Updated ByteBuffer with the serialized WaveletTree.
+     */
     private ByteBuffer getWaveletTreeByteBuffer(WaveletNode root, ByteBuffer buf) {
         if (root == null) {
             return buf;
@@ -177,6 +233,11 @@ public class WaveletTree {
         return buf;
     }
 
+    /**
+     * Serialize WaveletTree as a ByteBuffer.
+     * 
+     * @return Serialized WaveletTree as a ByteBuffer.
+     */
     public ByteBuffer getByteBuffer() {
         int size = findSizeOfSerializedTree(root);
         if (size == 0)

@@ -4,9 +4,10 @@ import junit.framework.TestCase;
 
 public class SuccinctBufferTest extends TestCase {
 
+    private SuccinctBuffer instance;
+    
     public void setUp() throws Exception {
         super.setUp();
-
     }
 
     public void tearDown() throws Exception {

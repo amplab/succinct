@@ -443,9 +443,9 @@ public class SuccinctCore implements Serializable {
             assert (contextValues.size() > 0);
             assert (contextColumnIds.size() == contextValues.size());
 
-            WaveletTree wtree = new WaveletTree(0, context.size() - 1,
+            WaveletTree wTree = new WaveletTree(0, context.size() - 1,
                     contextValues, contextColumnIds);
-            wavelettree[i] = wtree.getByteBuffer();
+            wavelettree[i] = wTree.getByteBuffer();
 
             contextValues.clear();
             contextColumnIds.clear();
