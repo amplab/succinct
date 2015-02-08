@@ -5,24 +5,52 @@ public class BitMap {
     public long[] data;
     public long size;
 
+    /**
+     * Constructor to set up a bitmap
+     *
+     * @param n Number of bits in the bitmap.
+     */
     public BitMap(long n) {
         long bmSize = ((n / 64) + 1);
         this.data = new long[(int) bmSize];
         this.size = n;
     }
 
+    /**
+     * Get the length of the backing bitmap array.
+     *  
+     * @return The length of the backing bitmap array.
+     */
     public int bitmapSize() {
         return this.data.length;
     }
 
-    public long getBit(int i) {
-        return ((data[i / 64] >>> (63L - i)) & 1L);
-    }
-
+    /**
+     * Set the bit at a certain position in the bitmap.
+     *
+     * @param i The position of the bit.
+     */
     public void setBit(int i) {
         this.data[i / 64] |= (1L << (63L - i));
     }
 
+    /**
+     * Get the bit at a certain position in the bitmap.
+     *
+     * @param i The position of the bit.
+     * @return The value of the bit.
+     */
+    public long getBit(int i) {
+        return ((data[i / 64] >>> (63L - i)) & 1L);
+    }
+
+    /**
+     * Set the value at a certain position in the bitmap.
+     *
+     * @param pos The position of the value.
+     * @param val The value to be set.
+     * @param bits The size in bits of the value.
+     */
     public void setValPos(int pos, long val, int bits) {
 
         assert (pos >= 0 && pos < this.size);
@@ -38,6 +66,13 @@ public class BitMap {
         }
     }
 
+    /**
+     * Get the value at a certain position in the bitmap.
+     *  
+     * @param pos The position of the value.
+     * @param bits The size in bits of the value.
+     * @return The value at specified position.
+     */
     public long getValPos(int pos, int bits) {
         assert (pos >= 0 && pos < (this.size));
 
@@ -57,14 +92,12 @@ public class BitMap {
         return val;
     }
 
-    public void display() {
-        for (int i = 0; i < this.size; i++) {
-            System.out.print(this.getBit(i));
-        }
-        System.out.println();
-    }
-
-    // Very inefficient!
+    /**
+     * Method to perform select1 using linear scan.
+     *
+     * @param i Position in the bitmap.
+     * @return Value of select1 at specified position.
+     */
     public long getSelect1(int i) {
         long sel = -1, count = 0;
         for (int k = 0; k < this.size; ++k) {
@@ -79,7 +112,12 @@ public class BitMap {
         return sel;
     }
 
-    // Very inefficient
+    /**
+     * Method to perform select0 using linear scan.
+     *
+     * @param i Position in the bitmap.
+     * @return Value of select0 at specified position.
+     */
     public long getSelect0(int i) {
         long sel = -1, count = 0;
         for (int k = 0; k < this.size; ++k) {
@@ -93,7 +131,12 @@ public class BitMap {
         return sel;
     }
 
-    // Very inefficient
+    /**
+     * Method to perform rank1 using linear scan.
+     *
+     * @param i Position in the bitmap.
+     * @return Value of rank1 at specified position.
+     */
     public long getRank1(int i) {
         long count = 0;
         for (int k = 0; k <= i; k++) {
@@ -103,7 +146,12 @@ public class BitMap {
         return count;
     }
 
-    // Very inefficient
+    /**
+     * Method to perform rank0 using linear scan.
+     *
+     * @param i Position in the bitmap.
+     * @return Value of rank0 at specified position.
+     */
     public long getRank0(int i) {
         long count = 0;
         for (int k = 0; k <= i; k++) {
@@ -113,8 +161,13 @@ public class BitMap {
         return count;
     }
 
-    public void clean() {
-        this.data = null;
-        System.gc();
+    /**
+     * Method to clear the contents of the bitmap.
+     *
+     */
+    public void clear() {
+        for(int i = 0; i < data.length; i++) {
+            data[i] = 0;
+        }
     }
 }
