@@ -56,6 +56,7 @@ public class CommonUtils {
      * @return Integer logarithm to base 2.
      */
     public static int intLog2(long n) {
+        if(n < 0) return -1;
         int l = (n != 0) && ((n & (n - 1)) == 0) ? 0 : 1;
         while ((n >>= 1) > 0)
             ++l;
@@ -78,11 +79,11 @@ public class CommonUtils {
     /**
      * Counts the number of set bits in input integer.
      *
-     * @param x Input integer.
+     * @param n Input integer.
      * @return The pop-count.
      */
-    public static int popCount(long x) {
-        return Long.bitCount(x);
+    public static int popCount(long n) {
+        return Long.bitCount(n);
     }
 
 }
