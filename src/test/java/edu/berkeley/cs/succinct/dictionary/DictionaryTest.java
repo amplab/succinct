@@ -3,6 +3,8 @@ package edu.berkeley.cs.succinct.dictionary;
 import edu.berkeley.cs.succinct.bitmap.BitMap;
 import junit.framework.TestCase;
 
+import java.nio.ByteBuffer;
+
 public class DictionaryTest extends TestCase {
 
     /**
@@ -53,5 +55,26 @@ public class DictionaryTest extends TestCase {
         for (int i = 0; i < 2048; i++) {
             assertEquals(B.getRank0(i), instance.getRank0(i));
         }
+    }
+
+    /**
+     * Test method: ByteBuffer getByteBuffer()
+     *
+     * @throws Exception
+     */
+    public void testGetByteBuffer() throws Exception {
+        System.out.println("getByteBuffer");
+
+        BitMap B = new BitMap(2048);
+        for(int i = 0; i < 2048; i++) {
+            if((int)(Math.random() * 2) == 1) {
+                B.setBit(i);
+            }
+        }
+        
+        ByteBuffer instance = new Dictionary(B).getByteBuffer();
+        assertNotNull(instance);
+        
+        // TODO: Check serialization format
     }
 }

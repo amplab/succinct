@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct.util;
 
+import edu.berkeley.cs.succinct.bitmap.BMArray;
 import edu.berkeley.cs.succinct.bitmap.BitMap;
 import edu.berkeley.cs.succinct.dictionary.Dictionary;
 import edu.berkeley.cs.succinct.dictionary.Tables;
@@ -72,39 +73,118 @@ public class SerializedOperationsTest extends TestCase {
                 B.setBit(i);
             }
         }
-        Dictionary D = new Dictionary(B);
         
+        Dictionary D = new Dictionary(B);
+        ByteBuffer dBuf = D.getByteBuffer();
         for (int i = 0; i < 2048; i++) {
-            
+            assertEquals(SerializedOperations.getRank1(dBuf, 0, i), D.getRank1(i));
         }
     }
 
     public void testGetRank0() throws Exception {
         System.out.println("getRank0");
 
+        BitMap B = new BitMap(2048);
+        for(int i = 0; i < 2048; i++) {
+            if((int)(Math.random() * 2) == 1) {
+                B.setBit(i);
+            }
+        }
+
+        Dictionary D = new Dictionary(B);
+        ByteBuffer dBuf = D.getByteBuffer();
+        for (int i = 0; i < 2048; i++) {
+            assertEquals(SerializedOperations.getRank0(dBuf, 0, i), D.getRank0(i));
+        }
     }
 
     public void testGetSelect1() throws Exception {
         System.out.println("getSelect1");
 
+        BitMap B = new BitMap(2048);
+        ArrayList<Long> test =  new ArrayList<Long>();
+        for(int i = 0; i < 2048; i++) {
+            if((int)(Math.random() * 2) == 1) {
+                B.setBit(i);
+                test.add(Long.valueOf(i));
+            }
+        }
+        
+        Dictionary D =  new Dictionary(B);
+        ByteBuffer dBuf = D.getByteBuffer();
+        for(int i = 0; i < test.size(); i++) {
+            assertEquals(SerializedOperations.getSelect1(dBuf, 0, i), test.get(i).longValue());
+        }
     }
 
     public void testGetSelect0() throws Exception {
         System.out.println("getSelect0");
 
+        BitMap B = new BitMap(2048);
+        ArrayList<Long> test = new ArrayList<Long>();
+        for(int i = 0; i < 2048; i++) {
+            if((int)(Math.random() * 2) == 1) {
+                B.setBit(i);
+            } else {
+                test.add(Long.valueOf(i));
+            }
+        }
+        
+        Dictionary D =  new Dictionary(B);
+        ByteBuffer dBuf = D.getByteBuffer();
+        for(int i = 0; i < test.size(); i++) {
+            assertEquals(SerializedOperations.getSelect0(dBuf, 0, i), test.get(i).longValue());
+        }
     }
 
     public void testGetVal() throws Exception {
         System.out.println("getVal");
 
+        BMArray bmArray = new BMArray(1000, 64);
+        for(int i = 0; i < 1000; i++) {
+            bmArray.setVal(i, i);
+        }
+        
+        LongBuffer bBuf = bmArray.getLongBuffer();
+        for(int i = 0; i < 1000; i++) {
+            assertEquals(SerializedOperations.getVal(bBuf, i, 64), i);
+        }
+        
     }
-
+    
     public void testGetValPos() throws Exception {
         System.out.println("getValPos");
+
+        int pos = 60;
+        int bits = 10;
+        BitMap instance = new BitMap(1000L);
+        instance.setValPos(pos, 1000, bits);
+        LongBuffer bBuf = instance.getLongBuffer();
+        long expResult = 1000L;
+        long result = SerializedOperations.getValPos(bBuf, pos, bits);
+        assertEquals(expResult, result);
     }
 
     public void testGetBit() throws Exception {
         System.out.println("getBit");
+
+        BitMap instance = new BitMap(1000L);
+        ArrayList<Long> test = new ArrayList<Long>();
+        for(int i = 0; i < 1000; i++) {
+            if((int)(Math.random() * 2) == 1) {
+                instance.setBit(i);
+                test.add(1L);
+            } else {
+                test.add(0L);
+            }
+        }
+
+        LongBuffer bBuf = instance.getLongBuffer();
+        for(int i = 0; i < 1000; i++) {
+            long expResult = test.get(i);
+            long result = SerializedOperations.getBit(bBuf, i);
+            assertEquals(expResult, result);
+        }
     }
 
 }

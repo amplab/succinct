@@ -1,5 +1,7 @@
 package edu.berkeley.cs.succinct.bitmap;
 
+import java.nio.LongBuffer;
+
 public class BitMap {
 
     public long[] data;
@@ -169,5 +171,14 @@ public class BitMap {
         for(int i = 0; i < data.length; i++) {
             data[i] = 0;
         }
+    }
+
+    /**
+     * Serializes bitmap array data as a LongBuffer.
+     *
+     * @return Serialized bitmap array data as LongBuffer.
+     */
+    public LongBuffer getLongBuffer() {
+        return LongBuffer.wrap(data);
     }
 }

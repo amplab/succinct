@@ -26,7 +26,7 @@ public class BMArray extends BitMap {
      * @param input Input integer array.
      */
     public BMArray(int[] input) {
-        /* 
+        /*
             Note that with this implementation, the width of each value is set to
             log2(len(input))
          */
@@ -82,7 +82,7 @@ public class BMArray extends BitMap {
             val1 = val1 >>> (s % 64 - (e % 64 + 1));
             val = val1 | val2;
         }
-        
+
         assert(val >= 0);
 
         return val;

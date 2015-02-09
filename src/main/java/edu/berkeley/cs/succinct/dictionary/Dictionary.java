@@ -3,6 +3,7 @@ package edu.berkeley.cs.succinct.dictionary;
 import edu.berkeley.cs.succinct.bitmap.BitMap;
 import edu.berkeley.cs.succinct.util.CommonUtils;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 public class Dictionary {
@@ -193,5 +194,38 @@ public class Dictionary {
      */
     public long getRank0(int i) {
         return i - getRank1(i) + 1;
+    }
+
+    /**
+     * Serialize Dictionary as a ByteBuffer.
+     *
+     * @return Serialized Dictionary as a ByteBuffer.
+     */
+    public ByteBuffer getByteBuffer() {
+        int dSize = 8 * (1 + rankL3.length + rankL12.length
+                + posL3.length + posL12.length
+                + bitMap.data.length + 1);
+        
+        ByteBuffer dBuf = ByteBuffer.allocate(dSize);
+        dBuf.putLong(size);
+        for (int i = 0; i < rankL3.length; i++) {
+            dBuf.putLong(rankL3[i]);
+        }
+        for (int i = 0; i < posL3.length; i++) {
+            dBuf.putLong(posL3[i]);
+        }
+        for (int i = 0; i < rankL12.length; i++) {
+            dBuf.putLong(rankL12[i]);
+        }
+        for (int i = 0; i < posL12.length; i++) {
+            dBuf.putLong(posL12[i]);
+        }
+        dBuf.putLong(bitMap.size);
+        for (int i = 0; i < bitMap.data.length; i++) {
+            dBuf.putLong(bitMap.data[i]);
+        }
+        dBuf.flip();
+        
+        return dBuf;
     }
 }

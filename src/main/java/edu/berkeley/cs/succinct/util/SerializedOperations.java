@@ -50,21 +50,21 @@ public class SerializedOperations {
     /**
      * Get rank1 value at specified index in serialized Long array.
      *  
-     * @param B Serialized Long array.
+     * @param arrayBuf Serialized Long array.
      * @param startPos Start position.
      * @param size Size of array.
      * @param i Rank query.
      * @return Value of rank1 for query.
      */
-    public static int getRank1(LongBuffer B, int startPos, int size, long i) {
+    public static int getRank1(LongBuffer arrayBuf, int startPos, int size, long i) {
         int sp = 0, ep = size - 1;
         int m;
 
         while (sp <= ep) {
             m = (sp + ep) / 2;
-            if (B.get(startPos + m) == i) {
+            if (arrayBuf.get(startPos + m) == i) {
                 return m + 1;
-            } else if (i < B.get(startPos + m)) {
+            } else if (i < arrayBuf.get(startPos + m)) {
                 ep = m - 1;
             } else {
                 sp = m + 1;
@@ -195,7 +195,7 @@ public class SerializedOperations {
         int pos = 0;
         int blockClass, blockOffset;
         long sel = 0;
-        int lastblock;
+        int lastBlock;
         long rankL12, posL12;
 
         int l3Size = (int) ((size / CommonUtils.two32) + 1);
@@ -266,14 +266,14 @@ public class SerializedOperations {
 
         while (true) {
             blockClass = (int) getValPos(dictBuf, pos, 4);
-            short tempint = (short) Tables.offsetBits[blockClass];
+            short offsetSize = (short) Tables.offsetBits[blockClass];
             pos += 4;
             blockOffset = (int) ((blockClass == 0) ? getBit(dictBuf, pos) * 16
                     : 0);
-            pos += tempint;
+            pos += offsetSize;
 
             if (val <= (blockClass + blockOffset)) {
-                pos -= (4 + tempint);
+                pos -= (4 + offsetSize);
                 break;
             }
 
@@ -285,11 +285,11 @@ public class SerializedOperations {
         pos += 4;
         blockOffset = (int) getValPos(dictBuf, pos,
                 Tables.offsetBits[blockClass]);
-        lastblock = Tables.decodeTable[blockClass][blockOffset];
+        lastBlock = Tables.decodeTable[blockClass][blockOffset];
 
         long count = 0;
         for (i = 0; i < 16; i++) {
-            if (((lastblock >>> (15 - i)) & 1) == 1) {
+            if (((lastBlock >>> (15 - i)) & 1) == 1) {
                 count++;
             }
             if (count == val) {
@@ -323,13 +323,13 @@ public class SerializedOperations {
         int m;
         long r;
         int pos = 0;
-        int block_class, block_offset;
+        int blockClass, blockOffset;
         long sel = 0;
-        int lastblock;
-        long rank_l12, pos_l12;
+        int lastBlock;
+        long rankL12, posL12;
 
-        int l3_size = (int) ((size / CommonUtils.two32) + 1);
-        int l12_size = (int) ((size / 2048) + 1);
+        int l3Size = (int) ((size / CommonUtils.two32) + 1);
+        int l12Size = (int) ((size / 2048) + 1);
 
         int basePos = dictBuf.position();
 
@@ -345,12 +345,12 @@ public class SerializedOperations {
 
         ep = Math.max(ep, 0);
         val -= (ep * CommonUtils.two32 - dictBuf.get(basePos + ep));
-        pos += dictBuf.get(basePos + l3_size + ep);
+        pos += dictBuf.get(basePos + l3Size + ep);
         sp = (int) (ep * CommonUtils.two32 / 2048);
         ep = (int) (Math.min(((ep + 1) * CommonUtils.two32 / 2048),
                 Math.ceil((double) size / 2048.0)) - 1);
 
-        dictBuf.position(basePos + 2 * l3_size);
+        dictBuf.position(basePos + 2 * l3Size);
         basePos = dictBuf.position();
 
         while (sp <= ep) {
@@ -365,62 +365,62 @@ public class SerializedOperations {
 
         ep = Math.max(ep, 0);
         sel = (long) (ep) * 2048L;
-        rank_l12 = dictBuf.get(basePos + ep);
-        pos_l12 = dictBuf.get(basePos + l12_size + ep);
-        val -= (ep * 2048 - GETRANKL2(rank_l12));
-        pos += GETPOSL2(pos_l12);
+        rankL12 = dictBuf.get(basePos + ep);
+        posL12 = dictBuf.get(basePos + l12Size + ep);
+        val -= (ep * 2048 - GETRANKL2(rankL12));
+        pos += GETPOSL2(posL12);
 
         assert (val <= 2048);
-        r = (512 - GETRANKL1(rank_l12, 1));
+        r = (512 - GETRANKL1(rankL12, 1));
         if (sel + 512 < size && val > r) {
-            pos += GETPOSL1(pos_l12, 1);
+            pos += GETPOSL1(posL12, 1);
             val -= r;
             sel += 512;
-            r = (512 - GETRANKL1(rank_l12, 2));
+            r = (512 - GETRANKL1(rankL12, 2));
             if (sel + 512 < size && val > r) {
-                pos += GETPOSL1(pos_l12, 2);
+                pos += GETPOSL1(posL12, 2);
                 val -= r;
                 sel += 512;
-                r = (512 - GETRANKL1(rank_l12, 3));
+                r = (512 - GETRANKL1(rankL12, 3));
                 if (sel + 512 < size && val > r) {
-                    pos += GETPOSL1(pos_l12, 3);
+                    pos += GETPOSL1(posL12, 3);
                     val -= r;
                     sel += 512;
                 }
             }
         }
 
-        dictBuf.position(basePos + 2 * l12_size);
+        dictBuf.position(basePos + 2 * l12Size);
 
         assert (val <= 512);
         dictBuf.get(); // TODO: Could remove this field altogether
 
         while (true) {
-            block_class = (int) getValPos(dictBuf, pos, 4);
-            short tempint = (short) Tables.offsetBits[block_class];
+            blockClass = (int) getValPos(dictBuf, pos, 4);
+            short offsetSize = (short) Tables.offsetBits[blockClass];
             pos += 4;
-            block_offset = (int) ((block_class == 0) ? getBit(dictBuf, pos) * 16
+            blockOffset = (int) ((blockClass == 0) ? getBit(dictBuf, pos) * 16
                     : 0);
-            pos += tempint;
+            pos += offsetSize;
 
-            if (val <= (16 - (block_class + block_offset))) {
-                pos -= (4 + tempint);
+            if (val <= (16 - (blockClass + blockOffset))) {
+                pos -= (4 + offsetSize);
                 break;
             }
 
-            val -= (16 - (block_class + block_offset));
+            val -= (16 - (blockClass + blockOffset));
             sel += 16;
         }
 
-        block_class = (int) getValPos(dictBuf, pos, 4);
+        blockClass = (int) getValPos(dictBuf, pos, 4);
         pos += 4;
-        block_offset = (int) getValPos(dictBuf, pos,
-                Tables.offsetBits[block_class]);
-        lastblock = Tables.decodeTable[block_class][block_offset];
+        blockOffset = (int) getValPos(dictBuf, pos,
+                Tables.offsetBits[blockClass]);
+        lastBlock = Tables.decodeTable[blockClass][blockOffset];
 
         long count = 0;
         for (i = 0; i < 16; i++) {
-            if (((lastblock >> (15 - i)) & 1) == 0) {
+            if (((lastBlock >> (15 - i)) & 1) == 0) {
                 count++;
             }
             if (count == val) {

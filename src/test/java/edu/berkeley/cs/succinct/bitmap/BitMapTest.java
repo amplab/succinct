@@ -2,6 +2,7 @@ package edu.berkeley.cs.succinct.bitmap;
 
 import junit.framework.TestCase;
 
+import java.nio.LongBuffer;
 import java.util.ArrayList;
 
 public class BitMapTest extends TestCase {
@@ -186,6 +187,29 @@ public class BitMapTest extends TestCase {
         
         for(int i = 0; i < 1000; i++) {
             assertEquals(instance.getBit(i), 0L);
+        }
+    }
+
+    /**
+     * Test method: LongBuffer getLongBuffer()
+     *
+     * @throws Exception
+     */
+    public void testGetLongBuffer() throws Exception {
+        System.out.println("getLongBuffer");
+
+        BitMap instance = new BitMap(1000L);
+        for(int i = 0; i < 1000; i++) {
+            if((int)(Math.random() * 2) == 1) {
+                instance.setBit(i);
+            }
+        }
+
+        LongBuffer bBuf = instance.getLongBuffer();
+        assertNotNull(bBuf);
+        
+        for(int i = 0; i < instance.bitmapSize(); i++) {
+            assertEquals(bBuf.get(i), instance.data[i]);
         }
     }
 

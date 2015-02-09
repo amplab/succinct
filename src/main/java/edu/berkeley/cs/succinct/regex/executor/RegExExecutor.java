@@ -4,7 +4,6 @@ import edu.berkeley.cs.succinct.SuccinctBuffer;
 import edu.berkeley.cs.succinct.regex.parser.*;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -13,7 +12,6 @@ public class RegExExecutor {
     private SuccinctBuffer succinctBuffer;
     private RegEx regEx;
     private Map<Long, Integer> finalResults;
-    private static final RegEx BLANK = new RegExBlank();
 
     public RegExExecutor(SuccinctBuffer succinctBuffer, RegEx regEx) {
         this.succinctBuffer = succinctBuffer;
