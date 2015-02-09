@@ -33,7 +33,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>succinct.examples.SuccinctShell</mainClass>
+                            <mainClass>edu.berkeley.cs.succinct.examples.SuccinctShell</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
