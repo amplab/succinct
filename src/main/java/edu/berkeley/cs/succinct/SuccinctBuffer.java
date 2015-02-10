@@ -78,7 +78,7 @@ public class SuccinctBuffer extends SuccinctCore {
 
         s = lookupISA(offset);
         for (int k = 0; k < len; k++) {
-            buf[k] = alphabet.get(SerializedOperations.getRank1(
+            buf[k] = alphabet.get(SerializedOperations.ArrayOps.getRank1(
                     coloffsets, 0, sigmaSize, s) - 1);
             s = lookupNPA(s);
         }
@@ -101,7 +101,7 @@ public class SuccinctBuffer extends SuccinctCore {
         s = lookupISA(offset);
         char nextChar;
         do {
-            nextChar = (char) alphabet.get(SerializedOperations.getRank1(
+            nextChar = (char) alphabet.get(SerializedOperations.ArrayOps.getRank1(
                     coloffsets, 0, sigmaSize, s) - 1);
             if(nextChar == delim || nextChar == 1) break;
             strBuf += nextChar;
@@ -218,7 +218,7 @@ public class SuccinctBuffer extends SuccinctCore {
             }
 
             context_id = contextMap.get(context_val);
-            start_off = SerializedOperations.getRank1(neccol,
+            start_off = SerializedOperations.ArrayOps.getRank1(neccol,
                     coff.get(sigma_id), colsizes.get(sigma_id), context_id) - 1;
             sp = coloffsets.get(sigma_id)
                     + celloffsets.get(coff.get(sigma_id) + start_off);
@@ -252,7 +252,7 @@ public class SuccinctBuffer extends SuccinctCore {
                 }
 
                 context_id = contextMap.get(context_val);
-                start_off = SerializedOperations.getRank1(neccol,
+                start_off = SerializedOperations.ArrayOps.getRank1(neccol,
                         coff.get(sigma_id), colsizes.get(sigma_id), context_id) - 1;
                 c1 = coloffsets.get(sigma_id)
                         + celloffsets.get(coff.get(sigma_id) + start_off);

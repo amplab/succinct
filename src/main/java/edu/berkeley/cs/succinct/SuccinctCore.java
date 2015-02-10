@@ -121,13 +121,13 @@ public class SuccinctCore implements Serializable {
         long colOff, rowOff;
 
         // Search columnoffset
-        colId = SerializedOperations.getRank1(coloffsets, 0, sigmaSize, i) - 1;
+        colId = SerializedOperations.ArrayOps.getRank1(coloffsets, 0, sigmaSize, i) - 1;
 
         // Get columnoffset
         colOff = coloffsets.get(colId);
 
         // Search celloffsets
-        cellId = SerializedOperations.getRank1(celloffsets, coff.get(colId),
+        cellId = SerializedOperations.ArrayOps.getRank1(celloffsets, coff.get(colId),
                 colsizes.get(colId), i - colOff) - 1;
 
         // Get position within cell
@@ -143,12 +143,12 @@ public class SuccinctCore implements Serializable {
         contextSize = rowsizes.get(rowId);
 
         // Get context position
-        contextPos = SerializedOperations.getRank1(necrow, roff.get(rowId),
+        contextPos = SerializedOperations.ArrayOps.getRank1(necrow, roff.get(rowId),
                 rowsizes.get(rowId), colId) - 1;
 
         long cellValue = cellOff;
         if (wavelettree[rowId] != null) {
-            cellValue = SerializedOperations.getValueWtree(
+            cellValue = SerializedOperations.WaveletTreeOps.getValue(
                     (ByteBuffer) wavelettree[rowId].position(0), contextPos,
                     cellOff, 0, contextSize - 1);
             wavelettree[rowId].position(0);
@@ -170,16 +170,16 @@ public class SuccinctCore implements Serializable {
         }
 
         long value = 0, rank, sampledValue;
-        while (SerializedOperations.getRank1(dbpos, 0, (int) i)
-                - SerializedOperations.getRank1(dbpos, 0, (int) (i - 1)) == 0) {
+        while (SerializedOperations.DictionaryOps.getRank1(dbpos, 0, (int) i)
+                - SerializedOperations.DictionaryOps.getRank1(dbpos, 0, (int) (i - 1)) == 0) {
             i = lookupNPA(i);
             value++;
         }
 
         rank = CommonUtils.modulo(
-                SerializedOperations.getRank1(dbpos, 0, (int) i) - 1,
+                SerializedOperations.DictionaryOps.getRank1(dbpos, 0, (int) i) - 1,
                 getOriginalSize());
-        sampledValue = SerializedOperations.getVal(sa, (int) rank,
+        sampledValue = SerializedOperations.BMArrayOps.getVal(sa, (int) rank,
                 sampledSABits);
 
         return CommonUtils.modulo((samplingRate * sampledValue) - value,
@@ -200,9 +200,9 @@ public class SuccinctCore implements Serializable {
 
         long sampledValue, pos;
         long v = i % samplingRate;
-        sampledValue = SerializedOperations.getVal(isa,
+        sampledValue = SerializedOperations.BMArrayOps.getVal(isa,
                 (int) (i / samplingRate), sampledSABits);
-        pos = SerializedOperations.getSelect1(dbpos, 0, (int) sampledValue);
+        pos = SerializedOperations.DictionaryOps.getSelect1(dbpos, 0, (int) sampledValue);
         while (v != 0) {
             pos = lookupNPA(pos);
             v--;
