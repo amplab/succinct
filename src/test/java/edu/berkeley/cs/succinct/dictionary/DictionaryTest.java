@@ -74,7 +74,5 @@ public class DictionaryTest extends TestCase {
         
         ByteBuffer instance = new Dictionary(B).getByteBuffer();
         assertNotNull(instance);
-        
-        // TODO: Check serialization format
     }
 }

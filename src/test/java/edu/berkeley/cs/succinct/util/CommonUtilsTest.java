@@ -13,6 +13,11 @@ public class CommonUtilsTest extends TestCase {
         super.setUp();
     }
 
+    /**
+     * Test method: int intLog2(long n)
+     *
+     * @throws Exception
+     */
     public void testIntLog2() throws Exception {
         System.out.println("intLog2");
         
@@ -27,6 +32,11 @@ public class CommonUtilsTest extends TestCase {
         assertEquals(CommonUtils.intLog2(-5), -1);
     }
 
+    /**
+     * Test method: long modulo(long a, long n)
+     *
+     * @throws Exception
+     */
     public void testModulo() throws Exception {
         System.out.println("modulo");
         
