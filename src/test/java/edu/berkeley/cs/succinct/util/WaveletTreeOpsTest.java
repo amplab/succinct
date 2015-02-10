@@ -20,7 +20,7 @@ public class WaveletTreeOpsTest extends TestCase {
      *
      * @throws Exception
      */
-    public void testGetValueWtree() throws Exception {
+    public void testGetValue() throws Exception {
         System.out.println("getValue");
 
         // TODO: Fix test
