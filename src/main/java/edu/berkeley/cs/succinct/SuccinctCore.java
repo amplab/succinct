@@ -224,12 +224,12 @@ public class SuccinctCore implements Serializable {
         samplingBase = 5; // Hard coded
         samplingRate = (1 << samplingBase);
 
-        // Construct SA, SAinv
+        // Construct SA, ISA
         QSufSort qsuf = new QSufSort();
         qsuf.buildSuffixArray(input);
 
-        BMArray cSA = new BMArray(qsuf.getSA());
-        BMArray cISA = new BMArray(qsuf.getISA());
+        BMArray cSA = new BMArray(qsuf.getSA(), 0, getOriginalSize());
+        BMArray cISA = new BMArray(qsuf.getISA(), 0, getOriginalSize());
 
         this.constructAux(cSA, input);
 
@@ -261,7 +261,8 @@ public class SuccinctCore implements Serializable {
     }
 
     /**
-     * Construct auxiliary data structures. 
+     * Construct auxiliary data structures.
+     *  
      * @param SA Suffix Array.
      * @param input Input byte array.
      */
@@ -582,6 +583,7 @@ public class SuccinctCore implements Serializable {
 
     /**
      * Compare two positions in bitmap representation of input.
+     *
      * @param T Bitmap representation of input.
      * @param i First position.
      * @param j Second position.

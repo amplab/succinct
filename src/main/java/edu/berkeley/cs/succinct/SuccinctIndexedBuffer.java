@@ -42,15 +42,21 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         return RECORD_DELIM;
     }
 
-    private int searchOffset(long i) {
+    /**
+     * Search for offset corresponding to a position in the input.
+     *
+     * @param pos Position in the input
+     * @return Offset corresponding to the position.
+     */
+    private int searchOffset(long pos) {
         int sp = 0, ep = offsets.length - 1;
         int m;
 
         while (sp <= ep) {
             m = (sp + ep) / 2;
-            if (offsets[m] == i) {
+            if (offsets[m] == pos) {
                 return m;
-            } else if (i < offsets[m]) {
+            } else if (pos < offsets[m]) {
                 ep = m - 1;
             } else {
                 sp = m + 1;
@@ -89,7 +95,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      * @param query Input query.
      * @return All records containing input query.
      */
-    public byte[][] searchRecords(byte[] query) {
+    public byte[][] recordSearch(byte[] query) {
         Set<Long> offsetResults = new HashSet<Long>();
         ArrayList<byte[]> results = new ArrayList<byte[]>();
         Pair<Long, Long> range;
@@ -124,6 +130,13 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         return recordSearchOffsets(query).length;
     }
 
+    /**
+     * Extract a part of all records.
+     *
+     * @param offset Offset into record.
+     * @param length Length of part to be extracted.
+     * @return Extracted data.
+     */
     public byte[][] extractRecords(int offset, int length) {
         byte[][] records = new byte[offsets.length][];
         for(int i = 0; i < records.length; i++) {

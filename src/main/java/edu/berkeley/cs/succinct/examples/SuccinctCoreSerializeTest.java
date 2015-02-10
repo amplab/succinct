@@ -6,8 +6,7 @@ import java.io.*;
 
 public class SuccinctCoreSerializeTest {
 
-    public static void main(String[] args) throws FileNotFoundException,
-            IOException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         File file = new File(args[0]);
         byte[] fileData = new byte[(int) file.length()];
         DataInputStream dis = new DataInputStream(
@@ -59,5 +58,7 @@ public class SuccinctCoreSerializeTest {
         ObjectOutputStream oos = new ObjectOutputStream(fout);
         oos.writeObject(succinctBuf);
         oos.close();
+
+
     }
 }

@@ -26,6 +26,7 @@ public class SuccinctBuffer extends SuccinctCore {
 
     /**
      * Constructor to create SuccinctBuffer from byte array and context length.
+     *  
      * @param input Input byte array.
      * @param contextLen Context length.
      */
@@ -35,6 +36,7 @@ public class SuccinctBuffer extends SuccinctCore {
 
     /**
      * Constructor to create SuccinctBuffer from byte array.
+     *  
      * @param input Input byte array.
      */
     public SuccinctBuffer(byte[] input) {
@@ -43,6 +45,7 @@ public class SuccinctBuffer extends SuccinctCore {
 
     /**
      * Compute context value at an index in a byte array.
+     *  
      * @param buf Input byte buffer.
      * @param i Index in the byte buffer.
      * @return Value of context at specified index.
@@ -64,16 +67,16 @@ public class SuccinctBuffer extends SuccinctCore {
     /**
      * Extract data of specified length from Succinct data structures at specified index.
      *
-     * @param i Index into original input to start extracting at.
+     * @param offset Index into original input to start extracting at.
      * @param len Length of data to be extracted.
      * @return Extracted data.
      */
-    public byte[] extract(int i, int len) {
+    public byte[] extract(int offset, int len) {
 
         byte[] buf = new byte[len];
         long s;
 
-        s = lookupISA(i);
+        s = lookupISA(offset);
         for (int k = 0; k < len; k++) {
             buf[k] = alphabet.get(SerializedOperations.getRank1(
                     coloffsets, 0, sigmaSize, s) - 1);
@@ -86,16 +89,16 @@ public class SuccinctBuffer extends SuccinctCore {
     /**
      * Extract data from Succinct data structures at specified index until specified delimiter.
      *
-     * @param i Index into original input to start extracting at.
+     * @param offset Index into original input to start extracting at.
      * @param delim Delimiter at which to stop extracting.
      * @return Extracted data.
      */
-    public byte[] extractUntil(int i, char delim) {
+    public byte[] extractUntil(int offset, char delim) {
 
         String strBuf = "";
         long s;
 
-        s = lookupISA(i);
+        s = lookupISA(offset);
         char nextChar;
         do {
             nextChar = (char) alphabet.get(SerializedOperations.getRank1(
@@ -110,10 +113,11 @@ public class SuccinctBuffer extends SuccinctCore {
 
     /**
      * Binary Search for a value withing NPA.
+     *
      * @param val Value to be searched.
      * @param startIdx Starting index into NPA.
      * @param endIdx Ending index into NPA.
-     * @param flag Whether to search for left boundary or the right boundary.
+     * @param flag Whether to search for left or the right boundary.
      * @return Search result as an index into the NPA.
      */
     private long binSearchNPA(long val, long startIdx, long endIdx, boolean flag) {
@@ -151,10 +155,10 @@ public class SuccinctBuffer extends SuccinctCore {
         int m = buf.length;
         long sp, ep, c1, c2;
 
-        if (alphabetMap.containsKey((byte) buf[m - 1])) {
-            sp = alphabetMap.get((byte) buf[m - 1]).first;
+        if (alphabetMap.containsKey(buf[m - 1])) {
+            sp = alphabetMap.get(buf[m - 1]).first;
             ep = alphabetMap
-                    .get((alphabet.get(alphabetMap.get((byte) buf[m - 1]).second + 1))).first - 1;
+                    .get((alphabet.get(alphabetMap.get(buf[m - 1]).second + 1))).first - 1;
         } else {
             return range;
         }
@@ -164,10 +168,10 @@ public class SuccinctBuffer extends SuccinctCore {
         }
 
         for (int i = m - 2; i >= 0; i--) {
-            if (alphabetMap.containsKey((byte) buf[i])) {
-                c1 = alphabetMap.get((byte) buf[i]).first;
+            if (alphabetMap.containsKey(buf[i])) {
+                c1 = alphabetMap.get(buf[i]).first;
                 c2 = alphabetMap
-                        .get((alphabet.get(alphabetMap.get((byte) buf[i]).second + 1))).first - 1;
+                        .get((alphabet.get(alphabetMap.get(buf[i]).second + 1))).first - 1;
             } else {
                 return range;
             }
@@ -202,8 +206,8 @@ public class SuccinctBuffer extends SuccinctCore {
         int start_off;
         long context_val, context_id;
 
-        if (alphabetMap.containsKey((byte) buf[m - contextLen - 1])) {
-            sigma_id = alphabetMap.get((byte) buf[m - contextLen - 1]).second;
+        if (alphabetMap.containsKey(buf[m - contextLen - 1])) {
+            sigma_id = alphabetMap.get(buf[m - contextLen - 1]).second;
             context_val = computeContextVal(buf, m - contextLen);
 
             if (context_val == -1) {

@@ -13,10 +13,6 @@ public class RegExParserTest extends TestCase {
         super.setUp();
     }
 
-    public void tearDown() throws Exception {
-
-    }
-
     public void testParse() throws Exception {
 
     }

@@ -21,20 +21,19 @@ public class BMArray extends BitMap {
     }
 
     /**
-     * Constructor to convert a integer array into a bitmap array.
+     * Constructor to convert a part of an integer array into a bitmap array.
      *
      * @param input Input integer array.
+     * @param offset Beginning offset into input.
+     * @param length Length of sub-array to convert.
      */
-    public BMArray(int[] input) {
-        /*
-            Note that with this implementation, the width of each value is set to
-            log2(len(input))
-         */
-        super(((long) input.length) * ((long) CommonUtils.intLog2(input.length)));
-        this.n = input.length;
+    public BMArray(int[] input, int offset, int length) {
+        super(((long) length) * ((long) CommonUtils.intLog2(length)));
+
+        this.n = length;
         this.bits = CommonUtils.intLog2(this.n + 1);
-        for (int i = 0; i < this.n; i++) {
-            this.setVal(i, input[i]);
+        for(int i = offset; i < offset + length; i++) {
+            this.setVal(i - offset, input[i]);
         }
     }
 

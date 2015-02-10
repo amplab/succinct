@@ -13,10 +13,6 @@ public class NaiveRegExPlannerTest extends TestCase {
         super.setUp();
     }
 
-    public void tearDown() throws Exception {
-
-    }
-
     public void testPlan() throws Exception {
 
     }

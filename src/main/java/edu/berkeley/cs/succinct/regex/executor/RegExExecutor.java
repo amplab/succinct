@@ -57,7 +57,7 @@ public class RegExExecutor {
         return new TreeMap<Long, Integer>();
     }
 
-    private Map<Long, Integer> mgramSearch(RegExPrimitive rp) {
+    protected Map<Long, Integer> mgramSearch(RegExPrimitive rp) {
         Map<Long, Integer> mgramRes = new TreeMap<Long, Integer>();
         String mgram = rp.getMgram();
         Long[] searchRes = succinctBuffer.search(mgram.getBytes());
@@ -67,14 +67,14 @@ public class RegExExecutor {
         return mgramRes;
     }
 
-    private Map<Long, Integer> regexUnion(Map<Long, Integer> a, Map<Long, Integer> b) {
+    protected Map<Long, Integer> regexUnion(Map<Long, Integer> a, Map<Long, Integer> b) {
         Map<Long, Integer> unionRes = new TreeMap<Long, Integer>();
         unionRes.putAll(a);
         unionRes.putAll(b);
         return unionRes;
     }
 
-    Map<Long, Integer> regexConcat(Map<Long, Integer> a, Map<Long, Integer> b) {
+    protected Map<Long, Integer> regexConcat(Map<Long, Integer> a, Map<Long, Integer> b) {
 
         Map<Long, Integer> concatRes = new TreeMap<Long, Integer>();
         Iterator<Long> bKeyIterator = b.keySet().iterator();
@@ -91,7 +91,7 @@ public class RegExExecutor {
         return concatRes;
     }
 
-    Map<Long, Integer> regexRepeat(Map<Long, Integer> a, RegExRepeatType repeatType) {
+    protected Map<Long, Integer> regexRepeat(Map<Long, Integer> a, RegExRepeatType repeatType) {
         Map<Long, Integer> repeatRes = null;
         switch(repeatType) {
             case ZeroOrMore:

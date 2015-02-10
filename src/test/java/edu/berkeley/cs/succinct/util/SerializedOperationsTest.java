@@ -31,6 +31,7 @@ public class SerializedOperationsTest extends TestCase {
     public void testGetValueWtree() throws Exception {
         System.out.println("getValueWtree");
 
+        // TODO: Fix test
         /*
         ArrayList<Long> A = new ArrayList<Long>(), B = new ArrayList<Long>();
         for(int i = 0; i < 1000; i++) {
@@ -48,6 +49,11 @@ public class SerializedOperationsTest extends TestCase {
         */
     }
 
+    /**
+     * Test method: long getRank1(LongBuffer arrayBuf, int startPos, int size, long i)
+     *
+     * @throws Exception
+     */
     public void testGetRank11() throws Exception {
         System.out.println("getRank11");
 
@@ -64,6 +70,11 @@ public class SerializedOperationsTest extends TestCase {
 
     }
 
+    /**
+     * Test method: getRank1(ByteBuffer buf, int startPos, int i)
+     *
+     * @throws Exception
+     */
     public void testGetRank1() throws Exception {
         System.out.println("getRank1");
 
@@ -81,6 +92,11 @@ public class SerializedOperationsTest extends TestCase {
         }
     }
 
+    /**
+     * Test method: getRank0(ByteBuffer buf, int startPos, int i)
+     *
+     * @throws Exception
+     */
     public void testGetRank0() throws Exception {
         System.out.println("getRank0");
 
@@ -98,6 +114,11 @@ public class SerializedOperationsTest extends TestCase {
         }
     }
 
+    /**
+     * Test method: getSelect1(ByteBuffer buf, int startPos, int i)
+     *
+     * @throws Exception
+     */
     public void testGetSelect1() throws Exception {
         System.out.println("getSelect1");
 
@@ -117,6 +138,11 @@ public class SerializedOperationsTest extends TestCase {
         }
     }
 
+    /**
+     * Test method: getSelect0(ByteBuffer buf, int startPos, int i)
+     *
+     * @throws Exception
+     */
     public void testGetSelect0() throws Exception {
         System.out.println("getSelect0");
 
@@ -137,6 +163,11 @@ public class SerializedOperationsTest extends TestCase {
         }
     }
 
+    /**
+     * Test method: long getVal(LongBuffer B, int i, int bits)
+     *
+     * @throws Exception
+     */
     public void testGetVal() throws Exception {
         System.out.println("getVal");
 
@@ -151,7 +182,12 @@ public class SerializedOperationsTest extends TestCase {
         }
         
     }
-    
+
+    /**
+     * Test method: long getValPos(LongBuffer bitmap, int pos, int bits)
+     *
+     * @throws Exception
+     */
     public void testGetValPos() throws Exception {
         System.out.println("getValPos");
 
@@ -165,6 +201,11 @@ public class SerializedOperationsTest extends TestCase {
         assertEquals(expResult, result);
     }
 
+    /**
+     * Test method: long getBit(LongBuffer bitmap, int i)
+     *
+     * @throws Exception
+     */
     public void testGetBit() throws Exception {
         System.out.println("getBit");
 
