@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct;
 
+import edu.berkeley.cs.succinct.util.CommonUtils;
 import junit.framework.TestCase;
 
 import java.io.*;
@@ -37,13 +38,14 @@ public class SuccinctCoreTest extends TestCase {
 
         int sum = 0;
         for(int i = 0; i < sCore.getOriginalSize(); i++) {
-            sum += sCore.lookupNPA(i);
+            long npaVal = sCore.lookupNPA(i);
+            long expected = sCore.lookupISA((sCore.lookupSA(i) + 1) % sCore.getOriginalSize());
+            assertEquals(npaVal, expected);
+            sum += npaVal;
             sum %= sCore.getOriginalSize();
         }
 
         assertEquals(sum, 0);
-
-        // TODO: Compare with pre-computed ISA
     }
 
     /**
@@ -55,14 +57,17 @@ public class SuccinctCoreTest extends TestCase {
         System.out.println("lookupSA");
 
         int sum = 0;
+        DataInputStream dIS = new DataInputStream(new FileInputStream(new File("data/test_file.sa")));
+        int[] testSA = CommonUtils.readArray(dIS);
+        dIS.close();
         for(int i = 0; i < sCore.getOriginalSize(); i++) {
-            sum += sCore.lookupSA(i);
+            long saVal = sCore.lookupSA(i);
+            assertEquals(saVal, testSA[i]);
+            assertEquals(sCore.lookupISA(saVal), i);
+            sum += saVal;
             sum %= sCore.getOriginalSize();
         }
-
         assertEquals(sum, 0);
-
-        // TODO: Compare with pre-computed ISA
     }
 
     /**
@@ -75,13 +80,12 @@ public class SuccinctCoreTest extends TestCase {
         
         int sum = 0;
         for(int i = 0; i < sCore.getOriginalSize(); i++) {
-            sum += sCore.lookupISA(i);
+            long isaVal = sCore.lookupISA(i);
+            assertEquals(sCore.lookupSA(isaVal), i);
+            sum += isaVal;
             sum %= sCore.getOriginalSize();
         }
-        
         assertEquals(sum, 0);
-        
-        // TODO: Compare with pre-computed ISA
     }
 
     /**

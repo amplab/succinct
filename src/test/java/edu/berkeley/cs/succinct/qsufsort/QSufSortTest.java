@@ -1,13 +1,14 @@
 package edu.berkeley.cs.succinct.qsufsort;
 
+import edu.berkeley.cs.succinct.util.CommonUtils;
 import junit.framework.TestCase;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 
 public class QSufSortTest extends TestCase {
 
     private QSufSort instance;
+    private int fileSize;
 
     /**
      * Set up test.
@@ -17,15 +18,15 @@ public class QSufSortTest extends TestCase {
     public void setUp() throws Exception {
         super.setUp();
         instance = new QSufSort();
-        File file = new File("data/test_file");
-        byte[] data = new byte[(int) file.length()];
-        try {
-            new FileInputStream(file).read(data);
-        } catch (Exception e) {
-            e.printStackTrace();
-            assertTrue("Could not read from data/test_file.", false);
-        }
+        File inputFile = new File("data/test_file");
+
+        byte[] fileData = new byte[(int) inputFile.length()];
+        DataInputStream dis = new DataInputStream(
+                new FileInputStream(inputFile));
+        dis.readFully(fileData);
+        byte[] data = (new String(fileData) + (char) 1).getBytes();
         instance.buildSuffixArray(data);
+        fileSize = (int) (inputFile.length() + 1);
     }
 
     /**
@@ -58,13 +59,15 @@ public class QSufSortTest extends TestCase {
         int[] SA = instance.getSA();
         
         long sum = 0;
-        for(int i = 0; i < SA.length; i++) {
+        DataInputStream dIS = new DataInputStream(new FileInputStream(new File("data/test_file.sa")));
+        int[] testSA = CommonUtils.readArray(dIS);
+        dIS.close();
+        for(int i = 0; i < fileSize; i++) {
+            assertEquals(SA[i], testSA[i]);
             sum += SA[i];
-            sum %= SA.length;
+            sum %= fileSize;
         }
         assertEquals(sum, 0L);
-
-        // TODO: Add precomputed SA check
     }
 
     /**
@@ -77,12 +80,14 @@ public class QSufSortTest extends TestCase {
         int[] ISA = instance.getISA();
         
         long sum = 0;
-        for(int i = 0; i < ISA.length; i++) {
+        DataInputStream dIS = new DataInputStream(new FileInputStream(new File("data/test_file.isa")));
+        int[] testISA = CommonUtils.readArray(dIS);
+        dIS.close();
+        for(int i = 0; i < fileSize; i++) {
+            assertEquals(ISA[i], testISA[i]);
             sum += ISA[i];
-            sum %= ISA.length;
+            sum %= fileSize;
         }
         assertEquals(sum, 0L);
-
-        // TODO: Add precomputed SAinv check
     }
 }

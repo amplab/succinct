@@ -1,9 +1,55 @@
 package edu.berkeley.cs.succinct.util;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 public class CommonUtils {
 
     public static final long two32 = 1L << 32;
-    
+
+    /**
+     * Writes a portion of an array to output stream.
+     *
+     * @param A Input array.
+     * @param offset Offset into array.
+     * @param length Length of sub-array.
+     * @param os DataOutputStream to write to.
+     */
+    public static void writeArray(int[] A, int offset, int length, DataOutputStream os) {
+        try {
+            os.writeInt(length);
+            for(int i = offset; i < offset + length; i++) {
+                os.writeInt(A[i]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * Reads an integer array from stream.
+     *
+     * @param is DataInputStream to read data from.
+     * @return Array read from stream.
+     */
+    public static int[] readArray(DataInputStream is) {
+        int[] A = null;
+
+        try {
+            int length = is.readInt();
+            A = new int[length];
+            for(int i = 0; i < length; i++) {
+                A[i] = is.readInt();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return A;
+    }
+
     public static class DictionaryUtils {
 
         /**
