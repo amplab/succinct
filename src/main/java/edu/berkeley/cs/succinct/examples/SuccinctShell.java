@@ -76,7 +76,7 @@ public class SuccinctShell {
                     System.err.println("[Extract]: Failed to parse length: must be an integer.");
                     continue;
                 }
-                System.out.println("Extract[" + offset + ", " + length + "] = " + succinctBuffer.extract(offset, length));
+                System.out.println("Extract[" + offset + ", " + length + "] = " + new String(succinctBuffer.extract(offset, length)));
             } else if (cmdArray[0].compareTo("regex") == 0) {
                 if(cmdArray.length != 2) {
                     System.err.println("Could not parse regex query.");
