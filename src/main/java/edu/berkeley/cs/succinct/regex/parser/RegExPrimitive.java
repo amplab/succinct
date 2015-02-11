@@ -5,9 +5,9 @@ public class RegExPrimitive extends RegEx {
     private String mgram;
 
     /**
-     * Constructor to initialize RegExPrimitive with multigram.
+     * Constructor to initialize RegExPrimitive with multi-gram.
      *
-     * @param mgram Input multigram.
+     * @param mgram Input multi-gram.
      */
     public RegExPrimitive(String mgram) {
         super(RegExType.Primitive);
@@ -15,9 +15,9 @@ public class RegExPrimitive extends RegEx {
     }
 
     /**
-     * Get multigram.
+     * Get multi-gram.
      *
-     * @return The multigram.
+     * @return The multi-gram.
      */
     public String getMgram() {
         return mgram;

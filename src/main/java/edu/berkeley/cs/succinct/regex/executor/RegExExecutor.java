@@ -133,6 +133,7 @@ public class RegExExecutor {
 
     /**
      * Computes the regex repetition using the results from a regex sub-expression.
+     *
      * @param a A set of (offset, length) pairs.
      * @param repeatType The type of repeat operation.
      * @return A set of (offset, length) pairs.
