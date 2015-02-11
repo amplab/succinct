@@ -1,13 +1,13 @@
 package edu.berkeley.cs.succinct.regex.executor;
 
 import edu.berkeley.cs.succinct.SuccinctBuffer;
-import edu.berkeley.cs.succinct.regex.parser.RegExPrimitive;
-import edu.berkeley.cs.succinct.regex.parser.RegExRepeatType;
+import edu.berkeley.cs.succinct.regex.parser.*;
 import junit.framework.TestCase;
 
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
@@ -34,13 +34,109 @@ public class RegExExecutorTest extends TestCase {
     }
 
     /**
+     * Helper method to check results for a regex query.
+     *
+     * @param regEx Input regular expression.
+     * @param exp Expression to check against.
+     * @return
+     */
+    private boolean checkResults(RegEx regEx, String exp) {
+        Map<Long, Integer> results;
+        
+        regExExecutor = new RegExExecutor(sBuf, regEx);
+        regExExecutor.execute();
+        results = regExExecutor.getFinalResults();
+        for(Long offset : results.keySet()) {
+            for(int i = 0; i < exp.length(); i++) {
+                if(fileData[offset.intValue() + i] != exp.charAt(i)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Helper method to check results for a union query.
+     *
+     * @param regEx Input regular expression.
+     * @param exp1 First expression to check against.
+     * @param exp2 Second expression to check against.
+     * @return
+     */
+    private boolean checkResultsUnion(RegEx regEx, String exp1, String exp2) {
+        Map<Long, Integer> results;
+
+        regExExecutor = new RegExExecutor(sBuf, regEx);
+        regExExecutor.execute();
+        results = regExExecutor.getFinalResults();
+        for(Long offset : results.keySet()) {
+            boolean flagFirst = true;
+            boolean flagSecond = true;
+            for(int i = 0; i < exp1.length(); i++) {
+                if(fileData[offset.intValue() + i] != exp1.charAt(i)) {
+                    flagFirst = false;
+                }
+            }
+
+            for(int i = 0; i < exp2.length(); i++) {
+                if(fileData[offset.intValue() + i] != exp2.charAt(i)) {
+                    flagSecond = false;
+                }
+            }
+            
+            if(!flagFirst && !flagSecond) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Helper method to check results for a regex repeat query.
+     *
+     * @param regEx Input regular expression.
+     * @param exp Expression to check against.
+     * @return
+     */
+    private boolean checkResultsRepeat(RegEx regEx, String exp) {
+        Map<Long, Integer> results;
+
+        regExExecutor = new RegExExecutor(sBuf, regEx);
+        regExExecutor.execute();
+        results = regExExecutor.getFinalResults();
+        for(Long offset : results.keySet()) {
+            for(int i = 0; i < results.get(offset); i++) {
+                if(fileData[offset.intValue() + i] != exp.charAt(i % exp.length())) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    /**
      * Test method: void execute()
      *
      * @throws Exception
      */
     public void testExecute() throws Exception {
         System.out.println("execute");
+
+        RegEx primitive1 = new RegExPrimitive("c");
+        RegEx primitive2 = new RegExPrimitive("out");
+        RegEx primitive3 = new RegExPrimitive("in");
+        RegEx union = new RegExUnion(primitive2, primitive3);
+        RegEx concat = new RegExConcat(primitive1, primitive2);
+        RegEx repeat = new RegExRepeat(primitive1, RegExRepeatType.OneOrMore);
         
+        // Check primitives
+        assertTrue(checkResults(primitive1, "c"));
+        assertTrue(checkResults(primitive2, "out"));
+        assertTrue(checkResults(primitive3, "in"));
+        
+        // Check operators
+        assertTrue(checkResultsUnion(union, "in", "out"));
+        assertTrue(checkResults(concat, "cout"));
+        assertTrue(checkResultsRepeat(repeat, "c"));
     }
 
     /**
