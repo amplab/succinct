@@ -38,7 +38,7 @@ public class RegExExecutorTest extends TestCase {
      *
      * @param regEx Input regular expression.
      * @param exp Expression to check against.
-     * @return
+     * @return The check result.
      */
     private boolean checkResults(RegEx regEx, String exp) {
         Map<Long, Integer> results;
@@ -62,7 +62,7 @@ public class RegExExecutorTest extends TestCase {
      * @param regEx Input regular expression.
      * @param exp1 First expression to check against.
      * @param exp2 Second expression to check against.
-     * @return
+     * @return The check result.
      */
     private boolean checkResultsUnion(RegEx regEx, String exp1, String exp2) {
         Map<Long, Integer> results;
@@ -95,7 +95,7 @@ public class RegExExecutorTest extends TestCase {
      *
      * @param regEx Input regular expression.
      * @param exp Expression to check against.
-     * @return
+     * @return The check result.
      */
     private boolean checkResultsRepeat(RegEx regEx, String exp) {
         Map<Long, Integer> results;
