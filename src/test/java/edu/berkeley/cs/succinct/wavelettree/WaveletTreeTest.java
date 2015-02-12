@@ -29,12 +29,12 @@ public class WaveletTreeTest extends TestCase {
         assertNull(instance1.getByteBuffer());
 
         ArrayList<Long> A = new ArrayList<Long>(), B = new ArrayList<Long>();
-        for(int i = 0; i < 1000; i++) {
-            A.add((long)i);
-            B.add((long)(1000 - i - 1));
+        for(long i = 0L; i < 256L; i++) {
+            A.add(i);
+            B.add(255L - i);
         }
         
-        WaveletTree instance2 = new WaveletTree(0L, 999L, A, B);
+        WaveletTree instance2 = new WaveletTree(0L, 255L, A, B);
         assertNotNull(instance2.getByteBuffer());
     }
 }

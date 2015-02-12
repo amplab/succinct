@@ -57,12 +57,12 @@ public class WaveletTree {
             m = (char) Math.min(m, endIdx - 1);
 
             long r;
-            ArrayList<Long> v1, v1_c, v0, v0_c;
+            ArrayList<Long> valuesRight, columnIdsRight, valuesLeft, columnIdsLeft;
 
-            v1 = new ArrayList<Long>();
-            v1_c = new ArrayList<Long>();
-            v0 = new ArrayList<Long>();
-            v0_c = new ArrayList<Long>();
+            valuesRight = new ArrayList<Long>();
+            columnIdsRight = new ArrayList<Long>();
+            valuesLeft = new ArrayList<Long>();
+            columnIdsLeft = new ArrayList<Long>();
             BitMap B = new BitMap(values.size());
 
             this.id = m;
@@ -79,29 +79,29 @@ public class WaveletTree {
                 if (columnIds.get((int) i) > m && columnIds.get((int) i) <= endIdx) {
                     r = D.getRank1(values.get((int) i).intValue()) - 1;
                     assert (r >= 0);
-                    v1.add(r);
-                    v1_c.add(columnIds.get((int) i));
+                    valuesRight.add(r);
+                    columnIdsRight.add(columnIds.get((int) i));
                 } else {
                     r = D.getRank0(values.get((int) i).intValue()) - 1;
                     assert (r >= 0);
-                    v0.add(r);
-                    v0_c.add(columnIds.get((int) i));
+                    valuesLeft.add(r);
+                    columnIdsLeft.add(columnIds.get((int) i));
                 }
             }
 
             if (startIdx == m)
                 this.left = null;
             else
-                this.left = new WaveletNode(startIdx, m, v0, v0_c);
-            v0.clear();
-            v0_c.clear();
+                this.left = new WaveletNode(startIdx, m, valuesLeft, columnIdsLeft);
+            valuesLeft.clear();
+            columnIdsLeft.clear();
 
             if (m + 1 == endIdx)
                 this.right = null;
             else
-                this.right = new WaveletNode(m + 1, endIdx, v1, v1_c);
-            v1.clear();
-            v1_c.clear();
+                this.right = new WaveletNode(m + 1, endIdx, valuesRight, columnIdsRight);
+            valuesRight.clear();
+            columnIdsRight.clear();
         }
     }
 
@@ -181,16 +181,16 @@ public class WaveletTree {
         buf.put((byte) node.id);
 
         // Write byte offset to left child, right child
-        long offset_left = 0, offset_right = 0;
+        long offsetLeft = 0, offsetRight = 0;
         if (node.left != null) {
-            offset_left = waveletWriteOffset + findOffsetLeft(node);
+            offsetLeft = waveletWriteOffset + findOffsetLeft(node);
         }
         if (node.right != null) {
-            offset_right = waveletWriteOffset + findOffsetRight(node);
+            offsetRight = waveletWriteOffset + findOffsetRight(node);
         }
 
-        buf.putLong(offset_left);
-        buf.putLong(offset_right);
+        buf.putLong(offsetLeft);
+        buf.putLong(offsetRight);
 
         buf.putLong(node.D.size);
         for (int i = 0; i < node.D.rankL3.length; i++) {

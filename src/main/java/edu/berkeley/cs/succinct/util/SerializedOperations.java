@@ -259,6 +259,9 @@ public class SerializedOperations {
             sp = (int) (ep * CommonUtils.two32 / 2048);
             ep = (int) (Math.min(((ep + 1) * CommonUtils.two32 / 2048),
                     Math.ceil((double) size / 2048.0)) - 1);
+            
+            assert (val <= CommonUtils.two32);
+            assert (pos >= 0);
 
             dictBuf.position(basePos + 2 * l3Size);
             basePos = dictBuf.position();
@@ -281,6 +284,8 @@ public class SerializedOperations {
             pos += GETPOSL2(posL12);
 
             assert (val <= 2048);
+            assert (pos >= 0);
+            
             r = GETRANKL1(rankL12, 1);
             if (sel + 512 < size && val > r) {
                 pos += GETPOSL1(posL12, 1);
@@ -303,6 +308,8 @@ public class SerializedOperations {
             dictBuf.position(basePos + 2 * l12Size);
 
             assert (val <= 512);
+            assert (pos >= 0);
+            
             dictBuf.get(); // TODO: Could remove this field altogether
 
             while (true) {
@@ -391,6 +398,9 @@ public class SerializedOperations {
             ep = (int) (Math.min(((ep + 1) * CommonUtils.two32 / 2048),
                     Math.ceil((double) size / 2048.0)) - 1);
 
+            assert (val <= CommonUtils.two32);
+            assert (pos >= 0);
+
             dictBuf.position(basePos + 2 * l3Size);
             basePos = dictBuf.position();
 
@@ -412,6 +422,8 @@ public class SerializedOperations {
             pos += GETPOSL2(posL12);
 
             assert (val <= 2048);
+            assert (pos >= 0);
+            
             r = (512 - GETRANKL1(rankL12, 1));
             if (sel + 512 < size && val > r) {
                 pos += GETPOSL1(posL12, 1);
@@ -434,6 +446,8 @@ public class SerializedOperations {
             dictBuf.position(basePos + 2 * l12Size);
 
             assert (val <= 512);
+            assert (pos >= 0);
+            
             dictBuf.get(); // TODO: Could remove this field altogether
 
             while (true) {
