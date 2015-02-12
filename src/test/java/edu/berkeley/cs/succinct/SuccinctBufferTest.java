@@ -1,9 +1,11 @@
 package edu.berkeley.cs.succinct;
 
-import edu.berkeley.cs.succinct.examples.SuccinctShell;
+import edu.berkeley.cs.succinct.regex.executor.RegExExecutor;
+import edu.berkeley.cs.succinct.regex.parser.RegEx;
 import junit.framework.TestCase;
 
 import java.io.*;
+import java.util.Map;
 
 public class SuccinctBufferTest extends TestCase {
 
@@ -104,6 +106,71 @@ public class SuccinctBufferTest extends TestCase {
     }
 
     /**
+     * Helper method to check results for a regex query.
+     *
+     * @param results Results to check.
+     * @param exp Expression to check against.
+     * @return The check result.
+     */
+    private boolean checkResults(Map<Long, Integer> results, String exp) {
+        for(Long offset : results.keySet()) {
+            for(int i = 0; i < exp.length(); i++) {
+                if(fileData[offset.intValue() + i] != exp.charAt(i)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Helper method to check results for a union query.
+     *
+     * @param results Results to check.
+     * @param exp1 First expression to check against.
+     * @param exp2 Second expression to check against.
+     * @return The check result.
+     */
+    private boolean checkResultsUnion(Map<Long, Integer> results, String exp1, String exp2) {
+        for(Long offset : results.keySet()) {
+            boolean flagFirst = true;
+            boolean flagSecond = true;
+            for(int i = 0; i < exp1.length(); i++) {
+                if(fileData[offset.intValue() + i] != exp1.charAt(i)) {
+                    flagFirst = false;
+                }
+            }
+
+            for(int i = 0; i < exp2.length(); i++) {
+                if(fileData[offset.intValue() + i] != exp2.charAt(i)) {
+                    flagSecond = false;
+                }
+            }
+
+            if(!flagFirst && !flagSecond) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Helper method to check results for a regex repeat query.
+     *
+     * @param results Results to check.
+     * @param exp Expression to check against.
+     * @return The check result.
+     */
+    private boolean checkResultsRepeat(Map<Long, Integer> results, String exp) {
+        for(Long offset : results.keySet()) {
+            for(int i = 0; i < results.get(offset); i++) {
+                if(fileData[offset.intValue() + i] != exp.charAt(i % exp.length())) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
      * Test method: Map<Long, Integer> regexSearch(String query)
      *
      * @throws Exception
@@ -111,7 +178,23 @@ public class SuccinctBufferTest extends TestCase {
     public void testRegexSearch() throws Exception {
         System.out.println("regexSearch");
         
-        // TODO: Add regex search tests
+        Map<Long, Integer> primitiveResults1 = sBuf.regexSearch("c");
+        assertTrue(checkResults(primitiveResults1, "c"));
+        
+        Map<Long, Integer> primitiveResults2 = sBuf.regexSearch("in");
+        assertTrue(checkResults(primitiveResults2, "in"));
+        
+        Map<Long, Integer> primitiveResults3 = sBuf.regexSearch("out");
+        assertTrue(checkResults(primitiveResults3, "out"));
+        
+        Map<Long, Integer> unionResults = sBuf.regexSearch("in|out");
+        assertTrue(checkResultsUnion(unionResults, "in", "out"));
+        
+        Map<Long, Integer> concatResults = sBuf.regexSearch("c(in|out)");
+        assertTrue(checkResultsUnion(concatResults, "cin", "cout"));
+        
+        Map<Long, Integer> repeatResults = sBuf.regexSearch("c+");
+        assertTrue(checkResults(repeatResults, "c"));
     }
     
     public void testSerializeDeserialize() throws Exception {
