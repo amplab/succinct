@@ -1,7 +1,5 @@
 package edu.berkeley.cs.succinct;
 
-import edu.berkeley.cs.succinct.regex.executor.RegExExecutor;
-import edu.berkeley.cs.succinct.regex.parser.RegEx;
 import junit.framework.TestCase;
 
 import java.io.*;
