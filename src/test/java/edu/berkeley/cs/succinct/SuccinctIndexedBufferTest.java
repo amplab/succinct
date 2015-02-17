@@ -38,7 +38,7 @@ public class SuccinctIndexedBufferTest extends TestCase {
         for(int i = 0; i < offsets.length; i++) {
             offsets[i] = positions.get(i);
         }
-        sIBuf = new SuccinctIndexedBuffer((new String(fileData) + (char) 1).getBytes(), offsets);
+        sIBuf = new SuccinctIndexedBuffer(fileData, offsets);
     }
 
     /**

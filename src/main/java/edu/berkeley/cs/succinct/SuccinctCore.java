@@ -20,14 +20,13 @@ import java.nio.LongBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class SuccinctCore implements Serializable {
 
     private static final long serialVersionUID = 1382615274437547247L;
+    
+    public static final byte EOF = 1;
 
     protected ByteBuffer metadata;
     protected ByteBuffer alphabetmap;
@@ -75,7 +74,13 @@ public class SuccinctCore implements Serializable {
 
         // Initializing Table data
         Tables.init();
+        
+        // Append the EOF byte
+        int end = input.length;
+        input = Arrays.copyOf(input, input.length + 1);
+        input[end] = EOF;
 
+        // Construct Succinct data-structures
         construct(input);
     }
 

@@ -18,11 +18,10 @@ public class SuccinctShell {
             System.err.println("Cant handle files > 2GB");
             System.exit(-1);
         }
-        byte[] fileData = new byte[(int) file.length() + 1];
+        byte[] fileData = new byte[(int) file.length()];
         System.out.println("File size: " + fileData.length + " bytes");
         DataInputStream dis = new DataInputStream(new FileInputStream(file));
         dis.readFully(fileData, 0, (int)file.length());
-        fileData[(int)file.length()] = 1;
 
         SuccinctBuffer succinctBuffer = new SuccinctBuffer(fileData);
         BufferedReader shellReader = new BufferedReader(new InputStreamReader(System.in));

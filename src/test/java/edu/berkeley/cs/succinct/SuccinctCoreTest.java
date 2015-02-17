@@ -23,8 +23,7 @@ public class SuccinctCoreTest extends TestCase {
         DataInputStream dis = new DataInputStream(
                 new FileInputStream(inputFile));
         dis.readFully(fileData);
-        sCore = new SuccinctCore(
-                (new String(fileData) + (char) 1).getBytes(), 3);
+        sCore = new SuccinctCore(fileData, 3);
 
     }
 

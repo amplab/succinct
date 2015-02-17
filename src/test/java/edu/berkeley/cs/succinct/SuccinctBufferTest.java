@@ -24,7 +24,7 @@ public class SuccinctBufferTest extends TestCase {
         DataInputStream dis = new DataInputStream(
                 new FileInputStream(inputFile));
         dis.readFully(fileData);
-        sBuf = new SuccinctBuffer((new String(fileData) + (char) 1).getBytes(), 3);
+        sBuf = new SuccinctBuffer(fileData, 3);
     }
 
     /**
