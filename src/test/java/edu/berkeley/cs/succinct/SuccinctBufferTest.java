@@ -54,7 +54,7 @@ public class SuccinctBufferTest extends TestCase {
     public void testExtractUntil() throws Exception {
         System.out.println("extractUntil");
         
-        byte[] buf = sBuf.extractUntil(0, '\n');
+        byte[] buf = sBuf.extractUntil(0, (byte) '\n');
         for(int i = 0; i < buf.length; i++) {
             assertEquals(buf[i], fileData[i]);
             assertFalse(buf[i] == '\n');

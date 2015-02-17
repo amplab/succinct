@@ -42,7 +42,7 @@ public class SuccinctIndexedBufferTest extends TestCase {
     }
 
     /**
-     * Test method: char getRecordDelim()
+     * Test method: byte getRecordDelim()
      *
      * @throws Exception
      */
@@ -62,7 +62,7 @@ public class SuccinctIndexedBufferTest extends TestCase {
 
         Long[] searchOffsets = sIBuf.recordSearchOffsets("int".getBytes());
         for(int i = 0; i < searchOffsets.length; i++) {
-            byte[] buf = sIBuf.extractUntil(searchOffsets[i].intValue(), '\n');
+            byte[] buf = sIBuf.extractUntil(searchOffsets[i].intValue(), (byte)'\n');
             assertTrue(new String(buf).contains("int"));
         }
     }

@@ -6,7 +6,7 @@ import java.util.Set;
 
 public class SuccinctIndexedBuffer extends SuccinctBuffer {
 
-    protected static char RECORD_DELIM = '\n';
+    protected static byte RECORD_DELIM = '\n';
     protected long[] offsets;
 
     /**
@@ -38,7 +38,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      *
      * @return The record delimiter.
      */
-    public static char getRecordDelim() {
+    public static byte getRecordDelim() {
         return RECORD_DELIM;
     }
 

@@ -93,7 +93,7 @@ public class SuccinctBuffer extends SuccinctCore {
      * @param delim Delimiter at which to stop extracting.
      * @return Extracted data.
      */
-    public byte[] extractUntil(int offset, char delim) {
+    public byte[] extractUntil(int offset, byte delim) {
 
         String strBuf = "";
         long s;
