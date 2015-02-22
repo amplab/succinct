@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct;
 
+import com.sun.rmi.rmid.ExecPermission;
 import junit.framework.TestCase;
 
 import java.io.DataInputStream;
@@ -106,6 +107,21 @@ public class SuccinctIndexedBufferTest extends TestCase {
             for(int j = 0; j < records[i].length; j++) {
                 assertEquals(records[i][j], fileData[((int) (offsets[i] + j))]);
             }
+        }
+    }
+
+    /**
+     * Test method: byte[][] recordSearchRegex(String query)
+     *
+     * @throws Exception
+     */
+    public void testRegexSearchRecords() throws Exception {
+        System.out.println("regexSearchRecords");
+        
+        // TODO: Add more tests
+        byte[][] records = sIBuf.recordSearchRegex("int");
+        for(int i = 0; i < records.length; i++) {
+            assertTrue(new String(records[i]).contains("int"));
         }
     }
 }

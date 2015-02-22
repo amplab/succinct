@@ -1,7 +1,10 @@
 package edu.berkeley.cs.succinct;
 
+import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
+
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class SuccinctIndexedBuffer extends SuccinctBuffer {
@@ -148,5 +151,27 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
                 records[i] = extractUntil((int) curOffset, RECORD_DELIM);
         }
         return records;
+    }
+
+    /**
+     * Search for all records that contain a particular regular expression.
+     *
+     * @param query The regular expression (UTF-8 encoded).
+     * @return The records that contain the regular search expression.
+     * @throws RegExParsingException
+     */
+    public byte[][] recordSearchRegex(String query) throws RegExParsingException {
+        Map<Long, Integer> regexOffsetResults = regexSearch(query);
+        Set<Long> offsetResults = new HashSet<Long>();
+        ArrayList<byte[]> results = new ArrayList<byte[]>();
+        for(Long offset: regexOffsetResults.keySet()) {
+            int offsetIdx = searchOffset(offset);
+            long recordOffset = offsets[offsetIdx];
+            if(!offsetResults.contains(recordOffset)) {
+                results.add(extractUntil(offset.intValue(), RECORD_DELIM));
+                offsetResults.add(offset);
+            }
+        }
+        return results.toArray(new byte[results.size()][]);
     }
 }
