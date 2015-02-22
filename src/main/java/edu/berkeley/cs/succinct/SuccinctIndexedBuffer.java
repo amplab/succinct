@@ -168,7 +168,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
             int offsetIdx = searchOffset(offset);
             long recordOffset = offsets[offsetIdx];
             if(!offsetResults.contains(recordOffset)) {
-                results.add(extractUntil(offset.intValue(), RECORD_DELIM));
+                results.add(extractUntil((int)recordOffset, RECORD_DELIM));
                 offsetResults.add(offset);
             }
         }
