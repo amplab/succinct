@@ -99,6 +99,11 @@
         </dependency>
     </dependencies>
     <distributionManagement>
+        <site>
+            <id>gh-pages</id>
+            <!-- This gets automatically pushed to the gh-pages branch. -->
+            <url>file:${project.basedir}/site</url>
+        </site>
         <repository>
             <id>internal.repo</id>
             <name>Temporary Staging Repository</name>
