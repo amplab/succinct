@@ -121,7 +121,6 @@ public class SuccinctCore implements Serializable {
         if(i > originalSize || i < 0) {
             throw new ArrayIndexOutOfBoundsException();
         }
-
         int colId, rowId, cellId, cellOff, contextSize, contextPos;
         long colOff, rowOff;
 
@@ -251,7 +250,7 @@ public class SuccinctCore implements Serializable {
         this.constructCSA(cSA);
 
         numContexts = contextMap.size();
-        metadata = ByteBuffer.allocate(52);
+        metadata = ByteBuffer.allocate(44);
         metadata.putLong(getOriginalSize());
         metadata.putLong(sampledSASize);
         metadata.putInt(alphaSize);
@@ -261,7 +260,7 @@ public class SuccinctCore implements Serializable {
         metadata.putInt(samplingBase);
         metadata.putInt(samplingRate);
         metadata.putInt(numContexts);
-        metadata.flip();
+        metadata.position(0);
 
     }
 
@@ -307,14 +306,14 @@ public class SuccinctCore implements Serializable {
             alphabetmap.putLong(cval.first);
             alphabetmap.putInt(cval.second);
         }
-        alphabetmap.flip();
+        alphabetmap.position(0);
 
         // Serialize S
         alphabet = ByteBuffer.allocate(alphabetArray.length);
         for (int j = 0; j < alphabetArray.length; j++) {
-            alphabet.put((byte) alphabetArray[j]);
+            alphabet.put(alphabetArray[j]);
         }
-        alphabet.flip();
+        alphabet.position(0);
 
     }
 
@@ -365,16 +364,16 @@ public class SuccinctCore implements Serializable {
         starts = new long[contextMap.size()];
 
         for (Map.Entry<Long, Long> currentContext : contextMap.entrySet()) {
-            sizes[k] = contextSizesMap.get((long) currentContext.getKey());
+            sizes[k] = contextSizesMap.get(currentContext.getKey());
             starts[k] = originalSize;
-            contextMap.put((Long) currentContext.getKey(), (long) k);
+            contextMap.put(currentContext.getKey(), (long) k);
             k++;
         }
 
         assert (k == contextMap.size());
         contextSizesMap.clear();
 
-        BitMap NonNullBitMap = new BitMap((int) (k * sigmaSize));
+        BitMap NonNullBitMap = new BitMap(k * sigmaSize);
         table = new ArrayList<ArrayList<ArrayList<Long>>>(k);
         cellOffsets = new ArrayList<ArrayList<Long>>();
         necCol = new ArrayList<ArrayList<Long>>();
@@ -448,7 +447,7 @@ public class SuccinctCore implements Serializable {
 
             assert (lOff / k < sigmaSize);
             // Push npa value to npa table: note indices. indexed by context
-            // value, and l_offs / k
+            // value, and lOffs / k
             table.get(contextVal).get((int) (lOff / k)).add(npaVal);
             starts[contextVal] = Math.min(starts[contextVal], npaVal);
             if (table.get(contextVal).get((int) (lOff / k)).size() == 1) {
@@ -511,7 +510,7 @@ public class SuccinctCore implements Serializable {
             }
         }
 
-        neccol.flip();
+        neccol.position(0);
 
         // Serialize necrow
         necrow = LongBuffer.allocate(necRowSize);
@@ -520,21 +519,21 @@ public class SuccinctCore implements Serializable {
                 necrow.put(necRow.get(i).get(j));
             }
         }
-        necrow.flip();
+        necrow.position(0);
 
         // Serialize rowoffsets
         rowoffsets = LongBuffer.allocate(rowOffsets.size());
         for (int i = 0; i < rowOffsets.size(); i++) {
             rowoffsets.put(rowOffsets.get(i));
         }
-        rowoffsets.flip();
+        rowoffsets.position(0);
 
         // Serialize coloffsets
         coloffsets = LongBuffer.allocate(colOffsets.size());
         for (int i = 0; i < colOffsets.size(); i++) {
             coloffsets.put(colOffsets.get(i));
         }
-        coloffsets.flip();
+        coloffsets.position(0);
 
         // Serialize celloffsets
         celloffsets = LongBuffer.allocate(cellOffsetsSize);
@@ -543,21 +542,21 @@ public class SuccinctCore implements Serializable {
                 celloffsets.put(cellOffsets.get(i).get(j));
             }
         }
-        celloffsets.flip();
+        celloffsets.position(0);
 
         // Serialize rowsizes
         rowsizes = IntBuffer.allocate(necRow.size());
         for (int i = 0; i < necRow.size(); i++) {
             rowsizes.put(necRow.get(i).size());
         }
-        rowsizes.flip();
+        rowsizes.position(0);
 
         // Serialize colsizes
         colsizes = IntBuffer.allocate(necCol.size());
         for (int i = 0; i < necCol.size(); i++) {
             colsizes.put(necCol.get(i).size());
         }
-        colsizes.flip();
+        colsizes.position(0);
 
         // Serialize roff
         int size = 0;
@@ -566,7 +565,7 @@ public class SuccinctCore implements Serializable {
             roff.put(size);
             size += necRow.get(i).size();
         }
-        roff.flip();
+        roff.position(0);
 
         // Serialize coff
         size = 0;
@@ -575,7 +574,7 @@ public class SuccinctCore implements Serializable {
             coff.put(size);
             size += necCol.get(i).size();
         }
-        coff.flip();
+        coff.position(0);
 
         // Serialize contexts
         contextmap = LongBuffer.allocate(2 * contextMap.size());
@@ -583,7 +582,7 @@ public class SuccinctCore implements Serializable {
             contextmap.put(c);
             contextmap.put(contextMap.get(c));
         }
-        contextmap.flip();
+        contextmap.position(0);
     }
 
     /**
@@ -692,7 +691,7 @@ public class SuccinctCore implements Serializable {
         for (int i = 0; i < DBPos.bitMap.data.length; i++) {
             dbpos.putLong(DBPos.bitMap.data[i]);
         }
-        dbpos.flip();
+        dbpos.position(0);
 
         return 0;
     }
@@ -704,6 +703,8 @@ public class SuccinctCore implements Serializable {
      * @throws IOException
      */
     private void writeObject(ObjectOutputStream oos) throws IOException {
+        resetBuffers();
+        
         WritableByteChannel dataChannel = Channels.newChannel(oos);
 
         dataChannel.write(metadata.order(ByteOrder.nativeOrder()));
@@ -781,6 +782,8 @@ public class SuccinctCore implements Serializable {
                         .write(wavelettree[i].order(ByteOrder.nativeOrder()));
             }
         }
+
+        resetBuffers();
     }
 
     /**
@@ -805,7 +808,7 @@ public class SuccinctCore implements Serializable {
         this.samplingRate = ois.readInt();
         this.numContexts = ois.readInt();
 
-        metadata = ByteBuffer.allocate(52);
+        metadata = ByteBuffer.allocate(44);
         metadata.putLong(getOriginalSize());
         metadata.putLong(sampledSASize);
         metadata.putInt(alphaSize);
@@ -815,12 +818,12 @@ public class SuccinctCore implements Serializable {
         metadata.putInt(samplingBase);
         metadata.putInt(samplingRate);
         metadata.putInt(numContexts);
-        metadata.flip();
+        metadata.position(0);
 
         int cmapSize = this.alphaSize;
         this.alphabetmap = ByteBuffer.allocate(cmapSize * (1 + 8 + 4));
         dataChannel.read(this.alphabetmap);
-        this.alphabetmap.flip();
+        this.alphabetmap.position(0);
 
         // Deserialize cmap
         alphabetMap = new HashMap<Byte, Pair<Long, Integer>>();
@@ -835,7 +838,7 @@ public class SuccinctCore implements Serializable {
         int contextsSize = this.numContexts;
         ByteBuffer contextBuf = ByteBuffer.allocate(contextsSize * 8 * 2);
         dataChannel.read(contextBuf);
-        contextBuf.flip();
+        contextBuf.position(0);
         this.contextmap = contextBuf.asLongBuffer();
 
         // Deserialize contexts
@@ -850,86 +853,86 @@ public class SuccinctCore implements Serializable {
         int slistSize = this.alphaSize;
         this.alphabet = ByteBuffer.allocate(slistSize);
         dataChannel.read(this.alphabet);
-        this.alphabet.flip();
+        this.alphabet.position(0);
 
         // Read dbpos
         int dbposSize = (int) ois.readLong();
         this.dbpos = ByteBuffer.allocate(dbposSize);
         dataChannel.read(this.dbpos);
-        this.dbpos.flip();
+        this.dbpos.position(0);
 
         // Read sa
-        int saSize = (int) ((sampledSASize * sampledSABits) / 64) + 1;
+        int saSize = (sampledSASize * sampledSABits) / 64 + 1;
         ByteBuffer saBuf = ByteBuffer.allocate(saSize * 8);
         dataChannel.read(saBuf);
-        saBuf.flip();
+        saBuf.position(0);
         this.sa = saBuf.asLongBuffer();
 
         // Read sainv
-        int isaSize = (int) ((sampledSASize * sampledSABits) / 64) + 1;
+        int isaSize = (sampledSASize * sampledSABits) / 64 + 1;
         ByteBuffer isaBuf = ByteBuffer.allocate(isaSize * 8);
         dataChannel.read(isaBuf);
-        isaBuf.flip();
+        isaBuf.position(0);
         this.isa = isaBuf.asLongBuffer();
 
         // Read neccol
         int neccolSize = (int) ois.readLong();
         ByteBuffer neccolBuf = ByteBuffer.allocate(neccolSize * 8);
         dataChannel.read(neccolBuf);
-        neccolBuf.flip();
+        neccolBuf.position(0);
         this.neccol = neccolBuf.asLongBuffer();
 
         // Read necrow
         int necrowSize = (int) ois.readLong();
         ByteBuffer necrowBuf = ByteBuffer.allocate(necrowSize * 8);
         dataChannel.read(necrowBuf);
-        necrowBuf.flip();
+        necrowBuf.position(0);
         this.necrow = necrowBuf.asLongBuffer();
 
         // Read rowoffsets
         int rowoffsetsSize = (int) ois.readLong();
         ByteBuffer rowoffsetsBuf = ByteBuffer.allocate(rowoffsetsSize * 8);
         dataChannel.read(rowoffsetsBuf);
-        rowoffsetsBuf.flip();
+        rowoffsetsBuf.position(0);
         this.rowoffsets = rowoffsetsBuf.asLongBuffer();
 
         // Read coloffsets
         int coloffsetsSize = (int) ois.readLong();
         ByteBuffer coloffsetsBuf = ByteBuffer.allocate(coloffsetsSize * 8);
         dataChannel.read(coloffsetsBuf);
-        coloffsetsBuf.flip();
+        coloffsetsBuf.position(0);
         this.coloffsets = coloffsetsBuf.asLongBuffer();
 
         // Read celloffsets
         int celloffsetsSize = (int) ois.readLong();
         ByteBuffer celloffsetsBuf = ByteBuffer.allocate(celloffsetsSize * 8);
         dataChannel.read(celloffsetsBuf);
-        celloffsetsBuf.flip();
+        celloffsetsBuf.position(0);
         this.celloffsets = celloffsetsBuf.asLongBuffer();
 
         // Read rowsizes
         int rowsizesSize = (int) ois.readLong();
         ByteBuffer rowsizesBuf = ByteBuffer.allocate(rowsizesSize * 4);
         dataChannel.read(rowsizesBuf);
-        rowsizesBuf.flip();
+        rowsizesBuf.position(0);
         this.rowsizes = rowsizesBuf.asIntBuffer();
 
         int colsizesSize = (int) ois.readLong();
         ByteBuffer colsizesBuf = ByteBuffer.allocate(colsizesSize * 4);
         dataChannel.read(colsizesBuf);
-        colsizesBuf.flip();
+        colsizesBuf.position(0);
         this.colsizes = colsizesBuf.asIntBuffer();
 
         int roffSize = (int) ois.readLong();
         ByteBuffer roffBuf = ByteBuffer.allocate(roffSize * 4);
         dataChannel.read(roffBuf);
-        roffBuf.flip();
+        roffBuf.position(0);
         this.roff = roffBuf.asIntBuffer();
 
         int coffSize = (int) ois.readLong();
         ByteBuffer coffBuf = ByteBuffer.allocate(coffSize * 4);
         dataChannel.read(coffBuf);
-        coffBuf.flip();
+        coffBuf.position(0);
         this.coff = coffBuf.asIntBuffer();
 
         wavelettree = new ByteBuffer[contextsSize];
@@ -940,7 +943,34 @@ public class SuccinctCore implements Serializable {
                 ByteBuffer wavelettreeBuf = ByteBuffer
                         .allocate((int) wavelettreeSize);
                 dataChannel.read(wavelettreeBuf);
-                wavelettree[i] = (ByteBuffer) wavelettreeBuf.flip();
+                wavelettree[i] = (ByteBuffer) wavelettreeBuf.position(0);
+            }
+        }
+    }
+
+    /**
+     * Reposition all byte buffers to their respective starting positions.
+     */
+    protected void resetBuffers() {
+        metadata.order(ByteOrder.BIG_ENDIAN).position(0);
+        alphabetmap.order(ByteOrder.BIG_ENDIAN).position(0);
+        contextmap.position(0);
+        alphabet.position(0);
+        dbpos.order(ByteOrder.BIG_ENDIAN).position(0);
+        sa.position(0);
+        isa.position(0);
+        neccol.position(0);
+        necrow.position(0);
+        rowoffsets.position(0);
+        coloffsets.position(0);
+        celloffsets.position(0);
+        rowsizes.position(0);
+        colsizes.position(0);
+        roff.position(0);
+        coff.position(0);
+        for(int i = 0; i < wavelettree.length; i++) {
+            if(wavelettree[i] != null) {
+                wavelettree[i].order(ByteOrder.BIG_ENDIAN).position(0);
             }
         }
     }

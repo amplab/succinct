@@ -1,11 +1,18 @@
 package edu.berkeley.cs.succinct;
 
+import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
+import java.util.*;
+import java.util.concurrent.SynchronousQueue;
 
 public class SuccinctIndexedBuffer extends SuccinctBuffer {
 
@@ -173,5 +180,265 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
             }
         }
         return results.toArray(new byte[results.size()][]);
+    }
+
+    /**
+     * Serialize SuccinctIndexedBuffer to OutputStream.
+     *
+     * @param oos ObjectOutputStream to write to.
+     * @throws IOException
+     */
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        resetBuffers();
+        
+        WritableByteChannel dataChannel = Channels.newChannel(oos);
+        
+        oos.writeObject(offsets);
+
+        dataChannel.write(metadata.order(ByteOrder.nativeOrder()));
+
+        oos.writeInt(this.contextLen);
+
+        dataChannel.write(alphabetmap.order(ByteOrder.nativeOrder()));
+
+        ByteBuffer bufContext = ByteBuffer.allocate(contextmap.capacity() * 8);
+        bufContext.asLongBuffer().put(contextmap);
+        dataChannel.write(bufContext.order(ByteOrder.nativeOrder()));
+
+        dataChannel.write(alphabet.order(ByteOrder.nativeOrder()));
+
+        oos.writeLong((long) dbpos.capacity());
+        dataChannel.write(dbpos.order(ByteOrder.nativeOrder()));
+
+        ByteBuffer bufSA = ByteBuffer.allocate(sa.capacity() * 8);
+        bufSA.asLongBuffer().put(sa);
+        dataChannel.write(bufSA.order(ByteOrder.nativeOrder()));
+
+        ByteBuffer bufISA = ByteBuffer.allocate(isa.capacity() * 8);
+        bufISA.asLongBuffer().put(isa);
+        dataChannel.write(bufISA.order(ByteOrder.nativeOrder()));
+
+        oos.writeLong((long) neccol.capacity());
+        ByteBuffer bufNecCol = ByteBuffer.allocate(neccol.capacity() * 8);
+        bufNecCol.asLongBuffer().put(neccol);
+        dataChannel.write(bufNecCol.order(ByteOrder.nativeOrder()));
+
+        oos.writeLong((long) necrow.capacity());
+        ByteBuffer bufNecRow = ByteBuffer.allocate(necrow.capacity() * 8);
+        bufNecRow.asLongBuffer().put(necrow);
+        dataChannel.write(bufNecRow.order(ByteOrder.nativeOrder()));
+
+        oos.writeLong((long) rowoffsets.capacity());
+        ByteBuffer bufRowOff = ByteBuffer.allocate(rowoffsets.capacity() * 8);
+        bufRowOff.asLongBuffer().put(rowoffsets);
+        dataChannel.write(bufRowOff.order(ByteOrder.nativeOrder()));
+
+        oos.writeLong((long) coloffsets.capacity());
+        ByteBuffer bufColOff = ByteBuffer.allocate(coloffsets.capacity() * 8);
+        bufColOff.asLongBuffer().put(coloffsets);
+        dataChannel.write(bufColOff.order(ByteOrder.nativeOrder()));
+
+        oos.writeLong((long) celloffsets.capacity());
+        ByteBuffer bufCellOff = ByteBuffer.allocate(celloffsets.capacity() * 8);
+        bufCellOff.asLongBuffer().put(celloffsets);
+        dataChannel.write(bufCellOff.order(ByteOrder.nativeOrder()));
+
+        oos.writeLong((long) rowsizes.capacity());
+        ByteBuffer bufRowSizes = ByteBuffer.allocate(rowsizes.capacity() * 4);
+        bufRowSizes.asIntBuffer().put(rowsizes);
+        dataChannel.write(bufRowSizes.order(ByteOrder.nativeOrder()));
+
+        oos.writeLong((long) colsizes.capacity());
+        ByteBuffer bufColSizes = ByteBuffer.allocate(colsizes.capacity() * 4);
+        bufColSizes.asIntBuffer().put(colsizes);
+        dataChannel.write(bufColSizes.order(ByteOrder.nativeOrder()));
+
+        oos.writeLong((long) roff.capacity());
+        ByteBuffer bufROff = ByteBuffer.allocate(roff.capacity() * 4);
+        bufROff.asIntBuffer().put(roff);
+        dataChannel.write(bufROff.order(ByteOrder.nativeOrder()));
+
+        oos.writeLong((long) coff.capacity());
+        ByteBuffer bufCoff = ByteBuffer.allocate(coff.capacity() * 4);
+        bufCoff.asIntBuffer().put(coff);
+        dataChannel.write(bufCoff.order(ByteOrder.nativeOrder()));
+
+        for (int i = 0; i < wavelettree.length; i++) {
+            long wavelettreeSize = (long) ((wavelettree[i] == null) ? 0
+                    : wavelettree[i].capacity());
+            oos.writeLong(wavelettreeSize);
+            if (wavelettreeSize != 0) {
+                dataChannel
+                        .write(wavelettree[i].order(ByteOrder.nativeOrder()));
+            }
+        }
+
+        resetBuffers();
+    }
+
+    /**
+     * Deserialize SuccinctIndexedBuffer from InputStream.
+     *
+     * @param ois ObjectInputStream to read from.
+     * @throws IOException
+     */
+    private void readObject(ObjectInputStream ois)
+            throws ClassNotFoundException, IOException {
+        Tables.init();
+
+        ReadableByteChannel dataChannel = Channels.newChannel(ois);
+
+        offsets = (long [])ois.readObject();
+
+        this.setOriginalSize((int) ois.readLong());
+        this.sampledSASize = (int) ois.readLong();
+        this.alphaSize = ois.readInt();
+        this.sigmaSize = ois.readInt();
+        this.bits = ois.readInt();
+        this.sampledSABits = ois.readInt();
+        this.samplingBase = ois.readInt();
+        this.samplingRate = ois.readInt();
+        this.numContexts = ois.readInt();
+
+        metadata = ByteBuffer.allocate(44);
+        metadata.putLong(getOriginalSize());
+        metadata.putLong(sampledSASize);
+        metadata.putInt(alphaSize);
+        metadata.putInt(sigmaSize);
+        metadata.putInt(bits);
+        metadata.putInt(sampledSABits);
+        metadata.putInt(samplingBase);
+        metadata.putInt(samplingRate);
+        metadata.putInt(numContexts);
+        metadata.position(0);
+
+        this.contextLen = ois.readInt();
+
+        int cmapSize = this.alphaSize;
+        this.alphabetmap = ByteBuffer.allocate(cmapSize * (1 + 8 + 4));
+        dataChannel.read(this.alphabetmap);
+        this.alphabetmap.position(0);
+
+        // Deserialize cmap
+        alphabetMap = new HashMap<Byte, Pair<Long, Integer>>();
+        for (int i = 0; i < this.alphaSize; i++) {
+            byte c = alphabetmap.get();
+            long v1 = alphabetmap.getLong();
+            int v2 = alphabetmap.getInt();
+            alphabetMap.put(c, new Pair<Long, Integer>(v1, v2));
+        }
+
+        // Read contexts
+        int contextsSize = this.numContexts;
+        ByteBuffer contextBuf = ByteBuffer.allocate(contextsSize * 8 * 2);
+        dataChannel.read(contextBuf);
+        contextBuf.position(0);
+        this.contextmap = contextBuf.asLongBuffer();
+
+        // Deserialize contexts
+        contextMap = new HashMap<Long, Long>();
+        for (int i = 0; i < this.numContexts; i++) {
+            long v1 = contextmap.get();
+            long v2 = contextmap.get();
+            contextMap.put(v1, v2);
+        }
+
+        // Read slist
+        int slistSize = this.alphaSize;
+        this.alphabet = ByteBuffer.allocate(slistSize);
+        dataChannel.read(this.alphabet);
+        this.alphabet.position(0);
+
+        // Read dbpos
+        int dbposSize = (int) ois.readLong();
+        this.dbpos = ByteBuffer.allocate(dbposSize);
+        dataChannel.read(this.dbpos);
+        this.dbpos.position(0);
+
+        // Read sa
+        int saSize = (sampledSASize * sampledSABits) / 64 + 1;
+        ByteBuffer saBuf = ByteBuffer.allocate(saSize * 8);
+        dataChannel.read(saBuf);
+        saBuf.position(0);
+        this.sa = saBuf.asLongBuffer();
+
+        // Read sainv
+        int isaSize = (sampledSASize * sampledSABits) / 64 + 1;
+        ByteBuffer isaBuf = ByteBuffer.allocate(isaSize * 8);
+        dataChannel.read(isaBuf);
+        isaBuf.position(0);
+        this.isa = isaBuf.asLongBuffer();
+
+        // Read neccol
+        int neccolSize = (int) ois.readLong();
+        ByteBuffer neccolBuf = ByteBuffer.allocate(neccolSize * 8);
+        dataChannel.read(neccolBuf);
+        neccolBuf.position(0);
+        this.neccol = neccolBuf.asLongBuffer();
+
+        // Read necrow
+        int necrowSize = (int) ois.readLong();
+        ByteBuffer necrowBuf = ByteBuffer.allocate(necrowSize * 8);
+        dataChannel.read(necrowBuf);
+        necrowBuf.position(0);
+        this.necrow = necrowBuf.asLongBuffer();
+
+        // Read rowoffsets
+        int rowoffsetsSize = (int) ois.readLong();
+        ByteBuffer rowoffsetsBuf = ByteBuffer.allocate(rowoffsetsSize * 8);
+        dataChannel.read(rowoffsetsBuf);
+        rowoffsetsBuf.position(0);
+        this.rowoffsets = rowoffsetsBuf.asLongBuffer();
+
+        // Read coloffsets
+        int coloffsetsSize = (int) ois.readLong();
+        ByteBuffer coloffsetsBuf = ByteBuffer.allocate(coloffsetsSize * 8);
+        dataChannel.read(coloffsetsBuf);
+        coloffsetsBuf.position(0);
+        this.coloffsets = coloffsetsBuf.asLongBuffer();
+
+        // Read celloffsets
+        int celloffsetsSize = (int) ois.readLong();
+        ByteBuffer celloffsetsBuf = ByteBuffer.allocate(celloffsetsSize * 8);
+        dataChannel.read(celloffsetsBuf);
+        celloffsetsBuf.position(0);
+        this.celloffsets = celloffsetsBuf.asLongBuffer();
+
+        // Read rowsizes
+        int rowsizesSize = (int) ois.readLong();
+        ByteBuffer rowsizesBuf = ByteBuffer.allocate(rowsizesSize * 4);
+        dataChannel.read(rowsizesBuf);
+        rowsizesBuf.position(0);
+        this.rowsizes = rowsizesBuf.asIntBuffer();
+
+        int colsizesSize = (int) ois.readLong();
+        ByteBuffer colsizesBuf = ByteBuffer.allocate(colsizesSize * 4);
+        dataChannel.read(colsizesBuf);
+        colsizesBuf.position(0);
+        this.colsizes = colsizesBuf.asIntBuffer();
+
+        int roffSize = (int) ois.readLong();
+        ByteBuffer roffBuf = ByteBuffer.allocate(roffSize * 4);
+        dataChannel.read(roffBuf);
+        roffBuf.position(0);
+        this.roff = roffBuf.asIntBuffer();
+
+        int coffSize = (int) ois.readLong();
+        ByteBuffer coffBuf = ByteBuffer.allocate(coffSize * 4);
+        dataChannel.read(coffBuf);
+        coffBuf.position(0);
+        this.coff = coffBuf.asIntBuffer();
+
+        wavelettree = new ByteBuffer[contextsSize];
+        for (int i = 0; i < contextsSize; i++) {
+            long wavelettreeSize = ois.readLong();
+            wavelettree[i] = null;
+            if (wavelettreeSize != 0) {
+                ByteBuffer wavelettreeBuf = ByteBuffer
+                        .allocate((int) wavelettreeSize);
+                dataChannel.read(wavelettreeBuf);
+                wavelettree[i] = (ByteBuffer) wavelettreeBuf.position(0);
+            }
+        }
     }
 }

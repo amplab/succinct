@@ -501,7 +501,6 @@ public class SerializedOperations {
          */
         public static long getValue(ByteBuffer wTree, int contextPos,
                                     int cellPos, int startIdx, int endIdx) {
-    
             char m = (char) wTree.get();
             int left = (int) wTree.getLong();
             int right = (int) wTree.getLong();
