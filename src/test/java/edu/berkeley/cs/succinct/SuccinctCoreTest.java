@@ -4,6 +4,7 @@ import edu.berkeley.cs.succinct.util.CommonUtils;
 import junit.framework.TestCase;
 
 import java.io.*;
+import java.util.Arrays;
 
 public class SuccinctCoreTest extends TestCase {
 
@@ -109,5 +110,11 @@ public class SuccinctCoreTest extends TestCase {
         ois.close();
         
         assertNotNull(sCoreRead);
+        assertEquals(sCoreRead.getOriginalSize(), sCore.getOriginalSize());
+        for(int i = 0; i < sCore.getOriginalSize(); i++) {
+            assertEquals(sCoreRead.lookupNPA(i), sCore.lookupNPA(i));
+            assertEquals(sCoreRead.lookupSA(i), sCore.lookupSA(i));
+            assertEquals(sCoreRead.lookupISA(i), sCore.lookupISA(i));
+        }
     }
 }

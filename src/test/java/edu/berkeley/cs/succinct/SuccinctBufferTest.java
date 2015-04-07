@@ -3,6 +3,7 @@ package edu.berkeley.cs.succinct;
 import junit.framework.TestCase;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.Map;
 
 public class SuccinctBufferTest extends TestCase {
@@ -211,5 +212,8 @@ public class SuccinctBufferTest extends TestCase {
         ois.close();
 
         assertNotNull(sBufRead);
+        assertEquals(sBufRead.getOriginalSize(), sBuf.getOriginalSize());
+        assertTrue(Arrays.equals(sBufRead.extract(0, sBufRead.getOriginalSize()),
+                                    sBuf.extract(0, sBuf.getOriginalSize())));
     }
 }
