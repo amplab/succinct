@@ -7,6 +7,7 @@
 .idea/
 succinct-java.eml
 succinct-java.iml
+succinct.iml
 
 # Mac
 .DS_Store
