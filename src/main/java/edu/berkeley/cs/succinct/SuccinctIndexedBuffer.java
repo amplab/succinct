@@ -130,6 +130,61 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         return results.toArray(new byte[results.size()][]);
     }
 
+    public byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd) {
+        Set<Long> offsetResults = new HashSet<Long>();
+        ArrayList<byte[]> results = new ArrayList<byte[]>();
+        Pair<Long, Long> rangeBegin, rangeEnd;
+        rangeBegin = getRange(queryBegin);
+        rangeEnd = getRange(queryEnd);
+
+        long sp = rangeBegin.first, ep = rangeEnd.second;
+        if (ep - sp + 1 <= 0) {
+            return new byte[0][0];
+        }
+
+        for (long i = 0; i < ep - sp + 1; i++) {
+            long saVal = lookupSA(sp + i);
+            int offsetIdx = searchOffset(saVal);
+            long offset = offsets[offsetIdx];
+            if(!offsetResults.contains(offset)) {
+                results.add(extractUntil((int) offset, RECORD_DELIM));
+                offsetResults.add(offset);
+            }
+
+        }
+
+        return results.toArray(new byte[results.size()][]);
+    }
+
+    public byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd, int minLength, int maxLength) {
+        Set<Long> offsetResults = new HashSet<Long>();
+        ArrayList<byte[]> results = new ArrayList<byte[]>();
+        Pair<Long, Long> rangeBegin, rangeEnd;
+        rangeBegin = getRange(queryBegin);
+        rangeEnd = getRange(queryEnd);
+
+        long sp = rangeBegin.first, ep = rangeEnd.second;
+        if (ep - sp + 1 <= 0) {
+            return new byte[0][0];
+        }
+
+        for (long i = 0; i < ep - sp + 1; i++) {
+            long saVal = lookupSA(sp + i);
+            int offsetIdx = searchOffset(saVal);
+            long offset = offsets[offsetIdx];
+            if(!offsetResults.contains(offset)) {
+                byte[] data = extractUntil((int) offset, RECORD_DELIM, minLength, maxLength);
+                if(data != null) {
+                    results.add(data);
+                    offsetResults.add(offset);
+                }
+            }
+
+        }
+
+        return results.toArray(new byte[results.size()][]);
+    }
+
     /**
      * Count of all records containing a particular query.
      *

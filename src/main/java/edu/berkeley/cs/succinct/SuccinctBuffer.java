@@ -112,6 +112,34 @@ public class SuccinctBuffer extends SuccinctCore {
     }
 
     /**
+     * Extract data from Succinct data structures at specified index until specified delimiter.
+     *
+     * @param offset Index into original input to start extracting at.
+     * @param delim Delimiter at which to stop extracting.
+     * @return Extracted data.
+     */
+    public byte[] extractUntil(int offset, byte delim, int minLength, int maxLength) {
+
+        String strBuf = "";
+        long s;
+
+        s = lookupISA(offset);
+        char nextChar;
+        int numChars = 0;
+        do {
+            nextChar = (char) alphabet.get(SerializedOperations.ArrayOps.getRank1(
+                    coloffsets, 0, sigmaSize, s) - 1);
+            if(nextChar == delim || nextChar == 1) break;
+            strBuf += nextChar;
+            numChars++;
+            if(numChars > maxLength) return null;
+            s = lookupNPA(s);
+        } while(true);
+
+        return (strBuf.length() < minLength) ? null : strBuf.getBytes();
+    }
+
+    /**
      * Binary Search for a value withing NPA.
      *
      * @param val Value to be searched.
