@@ -59,13 +59,11 @@ public class SuccinctIndexedBufferTest extends TestCase {
     public void testRecordSearchOffsets() throws Exception {
         System.out.println("recordSearchOffsets");
 
-        /*
         Long[] searchOffsets = sIBuf.recordSearchOffsets("int".getBytes());
         for(int i = 0; i < searchOffsets.length; i++) {
             byte[] buf = sIBuf.extractUntil(searchOffsets[i].intValue(), (byte)'\n');
             assertTrue(new String(buf).contains("int"));
         }
-        */
     }
 
     /**
@@ -76,12 +74,10 @@ public class SuccinctIndexedBufferTest extends TestCase {
     public void testRecordSearch() throws Exception {
         System.out.println("recordSearch");
 
-        /*
         byte[][] records = sIBuf.recordSearch("int".getBytes());
         for(int i = 0; i < records.length; i++) {
             assertTrue(new String(records[i]).contains("int"));
         }
-        */
     }
 
     /**
@@ -104,31 +100,82 @@ public class SuccinctIndexedBufferTest extends TestCase {
     public void testExtractRecords() throws Exception {
         System.out.println("extractRecords");
 
-        /*
         byte[][] records = sIBuf.extractRecords(0, 5);
         for(int i = 0; i < records.length; i++) {
             for(int j = 0; j < records[i].length; j++) {
                 assertEquals(records[i][j], fileData[((int) (offsets[i] + j))]);
             }
         }
-        */
     }
 
     /**
-     * Test method: byte[][] recordSearchRegex(String query)
+     * Test method: byte[][] recordSearchRegex(byte[] query)
      *
      * @throws Exception
      */
     public void testRegexSearchRecords() throws Exception {
         System.out.println("regexSearchRecords");
 
-        /*
         // TODO: Add more tests
         byte[][] records = sIBuf.recordSearchRegex("int");
         for(int i = 0; i < records.length; i++) {
             assertTrue(new String(records[i]).contains("int"));
         }
-        */
+    }
+
+    /**
+     * Test method: byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd)
+     *
+     * @throws Exception
+     */
+    public void testRecordRangeSearch() throws Exception {
+        System.out.println("recordRangeSearch");
+
+        byte[][] records = sIBuf.recordRangeSearch("aa".getBytes(), "ac".getBytes());
+        for(int i = 0; i < records.length; i++) {
+            String currentRecord = new String(records[i]);
+            assertTrue(currentRecord.contains("aa") || currentRecord.contains("ab") || currentRecord.contains("ac"));
+        }
+    }
+
+    /**
+     * Test method: byte[][] multiSearchUnion(byte[][] queries)
+     *
+     * @throws Exception
+     */
+    public void testMultiSearchUnion() throws Exception {
+        System.out.println("multiSearchUnion");
+
+        byte[][] queries = new byte[3][];
+        queries[0] = "int".getBytes();
+        queries[1] = "if".getBytes();
+        queries[2] = "include".getBytes();
+
+        byte[][] records = sIBuf.multiSearchUnion(queries);
+        for(int i = 0; i < records.length; i++) {
+            String currentRecord = new String(records[i]);
+            assertTrue(currentRecord.contains("int") || currentRecord.contains("if") || currentRecord.contains("include"));
+        }
+    }
+
+    /**
+     * Test method: byte[][] multiSearchIntersect(byte[][] queries)
+     *
+     * @throws Exception
+     */
+    public void testMultiSearchIntersect() throws Exception {
+        System.out.println("multiSearchIntersect");
+
+        byte[][] queries = new byte[3][];
+        queries[0] = "//".getBytes();
+        queries[1] = "Creates".getBytes();
+        queries[2] = "of".getBytes();
+
+        byte[][] records = sIBuf.multiSearchIntersect(queries);
+        for(int i = 0; i < records.length; i++) {
+            String currentRecord = new String(records[i]);
+            assertTrue(currentRecord.contains("//") && currentRecord.contains("Creates") && currentRecord.contains("of"));
+        }
     }
 
     /**
