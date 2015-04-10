@@ -112,34 +112,6 @@ public class SuccinctBuffer extends SuccinctCore {
     }
 
     /**
-     * Extract data from Succinct data structures at specified index until specified delimiter.
-     *
-     * @param offset Index into original input to start extracting at.
-     * @param delim Delimiter at which to stop extracting.
-     * @return Extracted data.
-     */
-    public byte[] extractUntil(int offset, byte delim, int minLength, int maxLength) {
-
-        String strBuf = "";
-        long s;
-
-        s = lookupISA(offset);
-        char nextChar;
-        int numChars = 0;
-        do {
-            nextChar = (char) alphabet.get(SerializedOperations.ArrayOps.getRank1(
-                    coloffsets, 0, sigmaSize, s) - 1);
-            if(nextChar == delim || nextChar == 1) break;
-            strBuf += nextChar;
-            numChars++;
-            if(numChars > maxLength) return null;
-            s = lookupNPA(s);
-        } while(true);
-
-        return (strBuf.length() < minLength) ? null : strBuf.getBytes();
-    }
-
-    /**
      * Binary Search for a value withing NPA.
      *
      * @param val Value to be searched.
@@ -178,20 +150,20 @@ public class SuccinctBuffer extends SuccinctCore {
      * @param buf Input query to be searched.
      * @return Range of indices into the SA.
      */
-    private Pair<Long, Long> getRangeSlow(byte[] buf) {
-        Pair<Long, Long> range = new Pair<Long, Long>(0L, -1L);
+    private Range<Long, Long> getRangeSlow(byte[] buf) {
+        Range<Long, Long> range = new Range<Long, Long>(0L, -1L);
         int m = buf.length;
-        long sp, ep, c1, c2;
+        long c1, c2;
 
         if (alphabetMap.containsKey(buf[m - 1])) {
-            sp = alphabetMap.get(buf[m - 1]).first;
-            ep = alphabetMap
+            range.first = alphabetMap.get(buf[m - 1]).first;
+            range.second = alphabetMap
                     .get((alphabet.get(alphabetMap.get(buf[m - 1]).second + 1))).first - 1;
         } else {
             return range;
         }
 
-        if (sp > ep) {
+        if (range.first > range.second) {
             return range;
         }
 
@@ -203,15 +175,12 @@ public class SuccinctBuffer extends SuccinctCore {
             } else {
                 return range;
             }
-            sp = binSearchNPA(sp, c1, c2, false);
-            ep = binSearchNPA(ep, c1, c2, true);
-            if (sp > ep) {
+            range.first = binSearchNPA(range.first, c1, c2, false);
+            range.second = binSearchNPA(range.second, c1, c2, true);
+            if (range.first > range.second) {
                 return range;
             }
         }
-
-        range.first = sp;
-        range.second = ep;
 
         return range;
     }
@@ -222,15 +191,15 @@ public class SuccinctBuffer extends SuccinctCore {
      * @param buf Input query to be searched.
      * @return Range of indices into the SA.
      */
-    protected Pair<Long, Long> getRange(byte[] buf) {
+    protected Range<Long, Long> getRange(byte[] buf) {
 
         int m = buf.length;
         if (m <= contextLen) {
             return getRangeSlow(buf);
         }
-        Pair<Long, Long> range = new Pair<Long, Long>(0L, -1L);
+        Range<Long, Long> range = new Range<Long, Long>(0L, -1L);
         int sigma_id;
-        long sp, ep, c1, c2;
+        long c1, c2;
         int start_off;
         long context_val, context_id;
 
@@ -241,6 +210,7 @@ public class SuccinctBuffer extends SuccinctCore {
             if (context_val == -1) {
                 return range;
             }
+
             if (!contextMap.containsKey(context_val)) {
                 return range;
             }
@@ -248,22 +218,22 @@ public class SuccinctBuffer extends SuccinctCore {
             context_id = contextMap.get(context_val);
             start_off = SerializedOperations.ArrayOps.getRank1(neccol,
                     coff.get(sigma_id), colsizes.get(sigma_id), context_id) - 1;
-            sp = coloffsets.get(sigma_id)
+            range.first = coloffsets.get(sigma_id)
                     + celloffsets.get(coff.get(sigma_id) + start_off);
             if (start_off + 1 < colsizes.get(sigma_id)) {
-                ep = coloffsets.get(sigma_id)
+                range.second = coloffsets.get(sigma_id)
                         + celloffsets.get(coff.get(sigma_id) + start_off + 1)
                         - 1;
             } else if (sigma_id + 1 < sigmaSize) {
-                ep = coloffsets.get(sigma_id + 1) - 1;
+                range.second = coloffsets.get(sigma_id + 1) - 1;
             } else {
-                ep = getOriginalSize() - 1;
+                range.second = Long.valueOf(getOriginalSize() - 1);
             }
         } else {
             return range;
         }
 
-        if (sp > ep) {
+        if (range.first > range.second) {
             return range;
         }
 
@@ -297,14 +267,12 @@ public class SuccinctBuffer extends SuccinctCore {
             } else {
                 return range;
             }
-            sp = binSearchNPA(sp, c1, c2, false);
-            ep = binSearchNPA(ep, c1, c2, true);
-            if (sp > ep) {
+            range.first = binSearchNPA(range.first, c1, c2, false);
+            range.second = binSearchNPA(range.second, c1, c2, true);
+            if (range.first > range.second) {
                 return range;
             }
         }
-        range.first = sp;
-        range.second = ep;
 
         return range;
     }
@@ -316,7 +284,7 @@ public class SuccinctBuffer extends SuccinctCore {
      * @return Count of occurrences.
      */
     public long count(byte[] query) {
-        Pair<Long, Long> range;
+        Range<Long, Long> range;
         range = getRange(query);
         return range.second - range.first + 1;
     }
@@ -329,7 +297,7 @@ public class SuccinctBuffer extends SuccinctCore {
      */
     public Long[] search(byte[] query) {
 
-        Pair<Long, Long> range;
+        Range<Long, Long> range;
         range = getRange(query);
 
         long sp = range.first, ep = range.second;

@@ -84,7 +84,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      */
     public Long[] recordSearchOffsets(byte[] query) {
         Set<Long> results = new HashSet<Long>();
-        Pair<Long, Long> range;
+        Range<Long, Long> range;
         range = getRange(query);
 
         long sp = range.first, ep = range.second;
@@ -108,7 +108,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
     public byte[][] recordSearch(byte[] query) {
         Set<Long> offsetResults = new HashSet<Long>();
         ArrayList<byte[]> results = new ArrayList<byte[]>();
-        Pair<Long, Long> range;
+        Range<Long, Long> range;
         range = getRange(query);
 
         long sp = range.first, ep = range.second;
@@ -130,10 +130,17 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         return results.toArray(new byte[results.size()][]);
     }
 
+    /**
+     * Performs a range search for all records that contains a substring between queryBegin and queryEnd.
+     *
+     * @param queryBegin The beginning of query range.
+     * @param queryEnd The end of query range.
+     * @return All records matching the query range.
+     */
     public byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd) {
         Set<Long> offsetResults = new HashSet<Long>();
         ArrayList<byte[]> results = new ArrayList<byte[]>();
-        Pair<Long, Long> rangeBegin, rangeEnd;
+        Range<Long, Long> rangeBegin, rangeEnd;
         rangeBegin = getRange(queryBegin);
         rangeEnd = getRange(queryEnd);
 
@@ -156,30 +163,136 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         return results.toArray(new byte[results.size()][]);
     }
 
-    public byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd, int minLength, int maxLength) {
-        Set<Long> offsetResults = new HashSet<Long>();
-        ArrayList<byte[]> results = new ArrayList<byte[]>();
-        Pair<Long, Long> rangeBegin, rangeEnd;
-        rangeBegin = getRange(queryBegin);
-        rangeEnd = getRange(queryEnd);
+    /**
+     * Get the union of multiple overlapping ranges.
+     *
+     * @param ranges List of ranges.
+     * @return The union of the list of ranges.
+     */
+    private ArrayList<Range<Long, Long>> unionRanges(ArrayList<Range<Long, Long>> ranges) {
+        if(ranges.size() <= 1)
+            return ranges;
 
-        long sp = rangeBegin.first, ep = rangeEnd.second;
-        if (ep - sp + 1 <= 0) {
-            return new byte[0][0];
+        Stack<Range<Long, Long>> rangeStack = new Stack<Range<Long, Long>>();
+
+        Collections.sort(ranges);
+        rangeStack.push(ranges.get(0));
+
+        for(int i = 0; i < ranges.size(); i++) {
+            Range<Long, Long> top = rangeStack.peek();
+            if(top.second < ranges.get(i).first) {
+                rangeStack.push(ranges.get(i));
+            } else if(top.second < ranges.get(i).second) {
+                top.second = ranges.get(i).second;
+                rangeStack.pop();
+                rangeStack.push(top);
+            }
         }
 
-        for (long i = 0; i < ep - sp + 1; i++) {
-            long saVal = lookupSA(sp + i);
-            int offsetIdx = searchOffset(saVal);
-            long offset = offsets[offsetIdx];
-            if(!offsetResults.contains(offset)) {
-                byte[] data = extractUntil((int) offset, RECORD_DELIM, minLength, maxLength);
-                if(data != null) {
-                    results.add(data);
+        return new ArrayList<Range<Long, Long>>(rangeStack);
+    }
+
+    /**
+     * Perform multiple searches and return the union of the results.
+     *
+     * @param queries The list of queries.
+     * @return The records matching the multi-search queries.
+     */
+    public byte[][] multiSearchUnion(byte[][] queries) {
+        Set<Long> offsetResults = new HashSet<Long>();
+        ArrayList<byte[]> results = new ArrayList<byte[]>();
+
+        // Get all ranges
+        ArrayList<Range<Long, Long>> ranges = new ArrayList<Range<Long, Long>>();
+        for (int qid = 0; qid < queries.length; qid++) {
+            Range<Long, Long> range = getRange(queries[qid]);
+            if (range.second - range.first + 1 > 0) {
+                ranges.add(range);
+            }
+        }
+
+        // Union of all ranges
+        ranges = unionRanges(ranges);
+
+        for (Range<Long, Long> range : ranges) {
+            long sp = range.first, ep = range.second;
+
+            for (long i = 0; i < ep - sp + 1; i++) {
+                long saVal = lookupSA(sp + i);
+                int offsetIdx = searchOffset(saVal);
+                long offset = offsets[offsetIdx];
+                if (!offsetResults.contains(offset)) {
+                    results.add(extractUntil((int) offset, RECORD_DELIM));
                     offsetResults.add(offset);
                 }
             }
+        }
 
+        return results.toArray(new byte[results.size()][]);
+    }
+
+    class RangeSizeComparator implements Comparator<Range<Long, Long>> {
+        @Override
+        public int compare(Range<Long, Long> r1, Range<Long, Long> r2) {
+            return (int)((r1.second - r1.first) - (r2.second - r2.first));
+        }
+    }
+
+    /**
+     * Perform multiple searches and return the intersection of the results.
+     *
+     * @param queries The list of queries.
+     * @return The records matching the multi-search queries.
+     */
+    public byte[][] multiSearchIntersect(byte[][] queries) {
+        Set<Long> offsetResults = new TreeSet<Long>();
+        ArrayList<byte[]> results = new ArrayList<byte[]>();
+
+        // Get all ranges
+        ArrayList<Range<Long, Long>> ranges = new ArrayList<Range<Long, Long>>();
+        for (int qid = 0; qid < queries.length; qid++) {
+            Range<Long, Long> range = getRange(queries[qid]);
+            if (range.second - range.first + 1 > 0) {
+                ranges.add(range);
+            } else {
+                return new byte[0][0];
+            }
+        }
+
+        Collections.sort(ranges, new RangeSizeComparator());
+
+        // Populate the set of offsets corresponding to the first range
+        Range<Long, Long> firstRange = ranges.get(0);
+        Map<Long, Long> counts = new HashMap<Long, Long>();
+        {
+            long sp = firstRange.first, ep = firstRange.second;
+            for (long i = 0; i < ep - sp + 1; i++) {
+                long saVal = lookupSA(sp + i);
+                int offsetIdx = searchOffset(saVal);
+                long offset = offsets[offsetIdx];
+                offsetResults.add(offset);
+                counts.put(offset, 1L);
+            }
+        }
+
+        ranges.remove(firstRange);
+        for(Range<Long, Long> range: ranges) {
+            long sp = range.first, ep = range.second;
+
+            for (long i = 0; i < ep - sp + 1; i++) {
+                long saVal = lookupSA(sp + i);
+                int offsetIdx = searchOffset(saVal);
+                long offset = offsets[offsetIdx];
+                if(offsetResults.contains(offset)) {
+                    counts.put(offset, counts.get(offset) + 1);
+                }
+            }
+        }
+
+        for(Long offset: offsetResults) {
+            if(counts.get(offset) == queries.length) {
+                results.add(extractUntil(offset.intValue(), RECORD_DELIM));
+            }
         }
 
         return results.toArray(new byte[results.size()][]);

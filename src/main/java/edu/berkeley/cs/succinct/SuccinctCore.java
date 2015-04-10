@@ -110,6 +110,29 @@ public class SuccinctCore implements Serializable {
         }
     }
 
+    class Range<T1 extends Comparable<T1>, T2 extends Comparable<T2>> extends Pair<T1, T2> implements Comparable {
+
+        /**
+         * Constructor to initialize pair
+         *
+         * @param first  First element.
+         * @param second Second element.
+         */
+        public Range(T1 first, T2 second) {
+            super(first, second);
+        }
+
+        @Override
+        public int compareTo(Object o) {
+            Pair<T1, T2> p = (Pair<T1, T2>)o;
+            if(this.first == p.first) {
+                return this.second.compareTo(p.second);
+            } else {
+                return this.first.compareTo(p.first);
+            }
+        }
+    }
+
     /**
      * Lookup NPA at specified index.
      *  
