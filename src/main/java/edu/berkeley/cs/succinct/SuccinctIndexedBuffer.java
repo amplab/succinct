@@ -299,6 +299,101 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
     }
 
     /**
+     * Defines the types of search queries that SuccinctIndexedBuffer can handle in a multiSearch.
+     */
+    public enum QueryType {
+        Search,
+        RangeSearch
+        /* TODO: Add more */
+    }
+
+    /**
+     * Perform multiple searches with different query types and return the intersection of the results.
+     *
+     * @param queryTypes The QueryType corresponding to each query
+     * @param queries The actual query parameters associated with each query
+     * @return The records matching the multi-search queries.
+     */
+    public byte[][] multiSearch(QueryType[] queryTypes, byte[][][] queries) {
+        assert(queryTypes.length == queries.length);
+        Set<Long> offsetResults = new TreeSet<Long>();
+        ArrayList<byte[]> results = new ArrayList<byte[]>();
+
+        // Get all ranges
+        ArrayList<Range<Long, Long>> ranges = new ArrayList<Range<Long, Long>>();
+        for (int qid = 0; qid < queries.length; qid++) {
+            Range<Long, Long> range;
+
+            switch (queryTypes[qid]) {
+                case Search:
+                {
+                    range = getRange(queries[qid][0]);
+                    break;
+                }
+                case RangeSearch:
+                {
+                    byte[] queryBegin = queries[qid][0];
+                    byte[] queryEnd = queries[qid][1];
+                    Range<Long, Long> rangeBegin, rangeEnd;
+                    rangeBegin = getRange(queryBegin);
+                    rangeEnd = getRange(queryEnd);
+                    range = new Range(rangeBegin.first, rangeEnd.second);
+                    break;
+                }
+                default:
+                {
+                    throw new UnsupportedOperationException("Unsupported QueryType");
+                }
+            }
+
+            if (range.second - range.first + 1 > 0) {
+                ranges.add(range);
+            } else {
+                return new byte[0][0];
+            }
+        }
+        int numRanges = ranges.size();
+
+        Collections.sort(ranges, new RangeSizeComparator());
+
+        // Populate the set of offsets corresponding to the first range
+        Range<Long, Long> firstRange = ranges.get(0);
+        Map<Long, Long> counts = new HashMap<Long, Long>();
+        {
+            long sp = firstRange.first, ep = firstRange.second;
+            for (long i = 0; i < ep - sp + 1; i++) {
+                long saVal = lookupSA(sp + i);
+                int offsetIdx = searchOffset(saVal);
+                long offset = offsets[offsetIdx];
+                offsetResults.add(offset);
+                counts.put(offset, 1L);
+            }
+        }
+
+        ranges.remove(firstRange);
+        for(Range<Long, Long> range: ranges) {
+            long sp = range.first, ep = range.second;
+
+            for (long i = 0; i < ep - sp + 1; i++) {
+                long saVal = lookupSA(sp + i);
+                int offsetIdx = searchOffset(saVal);
+                long offset = offsets[offsetIdx];
+                if(offsetResults.contains(offset)) {
+                    counts.put(offset, counts.get(offset) + 1);
+                }
+            }
+        }
+
+        for(Long offset: offsetResults) {
+            if(counts.get(offset) == numRanges) {
+                results.add(extractUntil(offset.intValue(), RECORD_DELIM));
+            }
+        }
+
+        return results.toArray(new byte[results.size()][]);
+    }
+
+    /**
      * Count of all records containing a particular query.
      *
      * @param query Input query.

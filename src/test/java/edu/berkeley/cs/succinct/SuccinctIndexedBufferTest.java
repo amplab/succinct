@@ -179,6 +179,28 @@ public class SuccinctIndexedBufferTest extends TestCase {
     }
 
     /**
+     * Test method: byte[][] multiSearch(Pair<QueryType, byte[][]>[] queries)
+     *
+     * @throws Exception
+     */
+    public void testMultiSearch() throws Exception {
+        System.out.println("multiSearch");
+
+        SuccinctIndexedBuffer.QueryType[] queryTypes = new SuccinctIndexedBuffer.QueryType[2];
+        byte[][][] queries = new byte[2][][];
+        queryTypes[0] = SuccinctIndexedBuffer.QueryType.RangeSearch;
+        queries[0] = new byte[][]{"/*".getBytes(), "//".getBytes()};
+        queryTypes[1] = SuccinctIndexedBuffer.QueryType.Search;
+        queries[1] = new byte[][]{"Build".getBytes()};
+
+        byte[][] records = sIBuf.multiSearch(queryTypes, queries);
+        for(int i = 0; i < records.length; i++) {
+            String currentRecord = new String(records[i]);
+            assertTrue((currentRecord.contains("/*") || currentRecord.contains("//")) && currentRecord.contains("Build"));
+        }
+    }
+
+    /**
      * Test method: void readObject(ObjectInputStream ois)
      * Test method: void writeObject(ObjectOutputStream oos)
      *
