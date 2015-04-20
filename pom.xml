@@ -2,64 +2,64 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    
-    <groupId>edu.berkeley.cs.succinct</groupId>
-    <artifactId>succinct-parent</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>Succinct Parent POM</name>
-    <url>http://succinct.cs.berkeley.edu/</url>
+  <modelVersion>4.0.0</modelVersion>
 
-    <developers>
-        <developer>
-            <id>anuragkh</id>
-            <name>Anurag Khandelwal</name>
-            <email>anuragk@berkeley.edu</email>
-            <url>http://www.cs.berkeley.edu/~anuragk</url>
-            <organization>University of California, Berkeley</organization>
-            <organizationUrl>http://cs.berkeley.edu</organizationUrl>
-        </developer>
-    </developers>
+  <groupId>edu.berkeley.cs.succinct</groupId>
+  <artifactId>succinct-parent</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>Succinct Parent POM</name>
+  <url>http://succinct.cs.berkeley.edu/</url>
 
-    <prerequisites>
-        <maven>3.0.4</maven>
-    </prerequisites>
+  <developers>
+    <developer>
+      <id>anuragkh</id>
+      <name>Anurag Khandelwal</name>
+      <email>anuragk@berkeley.edu</email>
+      <url>http://www.cs.berkeley.edu/~anuragk</url>
+      <organization>University of California, Berkeley</organization>
+      <organizationUrl>http://cs.berkeley.edu</organizationUrl>
+    </developer>
+  </developers>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+  <prerequisites>
+    <maven>3.0.4</maven>
+  </prerequisites>
 
-    <modules>
-        <module>core</module>
-        <module>spark</module>
-    </modules>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.3.1</version>
-                <executions>
-                    <execution>
-                        <id>enforce-versions</id>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <configuration>
-                        <rules>
-                            <requireMavenVersion>
-                                <version>3.0.4</version>
-                            </requireMavenVersion>
-                            <requireJavaVersion>
-                                <version>1.7</version>
-                            </requireJavaVersion>
-                        </rules>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+  <modules>
+    <module>core</module>
+    <module>spark</module>
+  </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.3.1</version>
+        <executions>
+          <execution>
+            <id>enforce-versions</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>3.0.4</version>
+                </requireMavenVersion>
+                <requireJavaVersion>
+                  <version>1.7</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
