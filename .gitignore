@@ -3,16 +3,14 @@
 .project
 .settings/
 
-#Intellij
+# Intellij
 .idea/
-succinct-java.eml
-succinct-java.iml
-succinct.iml
+*.eml
+*.iml
 
-# Mac
+# Mac OSX
 .DS_Store
 
-# Maven
-log/
-target/
-scratch/
+# Build Directories
+core/target/
+spark/target/
