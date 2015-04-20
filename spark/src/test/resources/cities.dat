@@ -1,0 +1,385 @@
+"Aberdeen",840,308840.963856,true
+"Abilene",911,66223.714410,false
+"Akron",277,264463.623717,true
+"Albany",364,488875.607620,true
+"Albuquerque",635,101571.078157,true
+"Alexandria",16,33331.734514,false
+"Allentown",156,52038.752064,false
+"Amarillo",998,111951.037036,true
+"Anaheim",612,188735.629175,false
+"Anchorage",493,284553.021944,true
+"Ann Arbor",526,308141.553821,false
+"Antioch",283,284689.249368,true
+"Apple Valley",69,499341.627482,false
+"Appleton",192,590426.233311,true
+"Arlington",64,9164.584251,true
+"Arvada",238,875713.950000,true
+"Asheville",266,202521.845408,true
+"Athens",512,354966.247475,true
+"Atlanta",437,867361.198017,false
+"Atlantic City",284,472646.316844,true
+"Augusta",687,73045.982063,false
+"Aurora",829,75636.688412,false
+"Austin",350,656777.967535,false
+"Bakersfield",657,377439.696701,true
+"Baltimore",398,557478.604253,false
+"Barnstable",482,205088.179660,false
+"Baton Rouge",147,564831.861018,false
+"Beaumont",619,220913.287827,false
+"Bel Air",447,42402.478502,true
+"Bellevue",556,70641.568592,false
+"Berkeley",103,62463.278698,true
+"Bethlehem",984,639958.819349,true
+"Billings",749,108446.200878,true
+"Birmingham",584,37246.005920,false
+"Bloomington",125,130210.025012,true
+"Boise",74,49908.263991,true
+"Boise City",176,191521.293032,false
+"Bonita Springs",656,618615.289353,true
+"Boston",93,70177.592997,false
+"Boulder",69,94432.046780,true
+"Bradenton",573,39243.976092,true
+"Bremerton",999,181843.400376,true
+"Bridgeport",997,47059.276346,false
+"Brighton",4,548203.535622,true
+"Brownsville",163,357623.629858,false
+"Bryan",359,320126.393342,false
+"Buffalo",687,52889.741646,true
+"Burbank",304,572487.159296,true
+"Burlington",747,22276.560030,false
+"Cambridge",833,808104.823430,true
+"Canton",979,671934.008142,true
+"Cape Coral",666,81534.486559,false
+"Carrollton",888,50023.982032,false
+"Cary",629,160537.942690,true
+"Cathedral City",328,17162.921392,true
+"Cedar Rapids",223,332524.019911,false
+"Champaign",280,392797.516537,false
+"Chandler",471,559546.168081,false
+"Charleston",336,368330.158006,false
+"Charlotte",344,498680.529550,false
+"Chattanooga",675,232751.040568,false
+"Chesapeake",712,113517.354729,true
+"Chicago",413,469048.877692,true
+"Chula Vista",347,112454.627266,true
+"Cincinnati",730,243141.057094,false
+"Clarke County",920,447235.264447,true
+"Clarksville",532,22830.897132,false
+"Clearwater",686,10431.004010,true
+"Cleveland",576,395409.005249,true
+"College Station",666,95061.988714,true
+"Colorado Springs",984,2960.880735,true
+"Columbia",188,418442.155054,false
+"Columbus",764,84688.204687,false
+"Concord",383,730179.605814,true
+"Coral Springs",861,161547.434064,true
+"Corona",297,823165.449702,true
+"Corpus Christi",498,93780.362030,false
+"Costa Mesa",864,228306.696947,true
+"Dallas",495,52512.194288,true
+"Daly City",727,83867.227665,false
+"Danbury",838,129067.143265,true
+"Davenport",498,16762.626769,false
+"Davidson County",324,846612.573915,false
+"Dayton",836,405852.180529,true
+"Daytona Beach",394,401151.002918,true
+"Deltona",151,7823.854766,false
+"Denton",363,95528.431495,false
+"Denver",427,545343.319529,true
+"Des Moines",658,371310.968814,false
+"Detroit",883,323916.146540,true
+"Downey",557,353719.502349,true
+"Duluth",244,237781.201744,true
+"Durham",984,303593.411852,true
+"El Monte",410,4236.418486,true
+"El Paso",293,99248.984955,false
+"Elizabeth",49,443027.423260,true
+"Elk Grove",210,410004.165674,false
+"Elkhart",99,115543.864253,true
+"Erie",809,6783.751744,true
+"Escondido",457,540420.592332,true
+"Eugene",119,341184.346694,false
+"Evansville",595,110126.030246,false
+"Fairfield",476,103544.361542,true
+"Fargo",618,139304.950831,true
+"Fayetteville",70,91298.874824,false
+"Fitchburg",481,186428.988268,true
+"Flint",357,302347.938383,true
+"Fontana",659,9353.175676,false
+"Fort Collins",625,257650.846341,true
+"Fort Lauderdale",198,67204.908461,false
+"Fort Smith",782,144145.869562,true
+"Fort Walton Beach",315,100254.222218,false
+"Fort Wayne",532,85933.226966,false
+"Fort Worth",380,116716.906176,false
+"Frederick",260,358817.297686,false
+"Fremont",685,565107.229917,false
+"Fresno",645,3200.302637,true
+"Fullerton",618,333245.635417,false
+"Gainesville",362,576457.262262,false
+"Garden Grove",152,2090.676506,true
+"Garland",187,433457.224427,false
+"Gastonia",1,1742.651736,false
+"Gilbert",655,155355.742735,false
+"Glendale",667,574261.209840,true
+"Grand Prairie",885,29269.495364,true
+"Grand Rapids",828,610906.152522,true
+"Grayslake",394,613518.329343,true
+"Green Bay",738,217379.770888,false
+"GreenBay",551,461489.281133,true
+"Greensboro",939,651022.533777,false
+"Greenville",657,931453.188340,false
+"Gulfport-Biloxi",874,375747.029594,false
+"Hagerstown",775,208890.126612,true
+"Hampton",470,132810.789409,false
+"Harlingen",666,274059.381036,false
+"Harrisburg",596,347692.885625,true
+"Hartford",579,23104.385759,false
+"Havre de Grace",832,58019.218217,true
+"Hayward",510,39495.784861,false
+"Hemet",637,65097.484828,true
+"Henderson",247,7100.762697,false
+"Hesperia",573,473689.795890,true
+"Hialeah",477,58439.307634,false
+"Hickory",640,132955.888991,true
+"High Point",630,681495.594324,false
+"Hollywood",438,810321.598990,false
+"Honolulu",899,255852.160985,true
+"Houma",219,453587.865904,true
+"Houston",884,177751.978969,true
+"Howell",780,693467.612849,true
+"Huntington",761,319734.999968,true
+"Huntington Beach",560,344959.134290,true
+"Huntsville",477,235465.503473,false
+"Independence",210,524921.913460,false
+"Indianapolis",373,128659.283460,true
+"Inglewood",676,35100.896582,false
+"Irvine",563,4588.237780,false
+"Irving",9,555533.230460,false
+"Jackson",887,161516.489796,false
+"Jacksonville",487,508160.090829,true
+"Jefferson",155,258388.022470,true
+"Jersey City",899,355730.255925,true
+"Johnson City",946,105894.890544,false
+"Joliet",718,170176.497339,false
+"Kailua",167,127088.989638,true
+"Kalamazoo",126,215474.491959,false
+"Kaneohe",160,55416.802050,true
+"Kansas City",915,61949.049312,false
+"Kennewick",393,216734.267379,true
+"Kenosha",244,516563.129642,false
+"Killeen",34,351479.020098,true
+"Kissimmee",356,35594.031692,false
+"Knoxville",200,463113.250461,false
+"Lacey",889,220840.690197,true
+"Lafayette",766,561297.232230,true
+"Lake Charles",904,235480.470435,false
+"Lakeland",809,111757.505580,false
+"Lakewood",101,38398.495833,false
+"Lancaster",589,51640.593259,true
+"Lansing",56,433974.271187,true
+"Laredo",587,98699.703711,false
+"Las Cruces",815,487595.446262,true
+"Las Vegas",729,59500.901373,true
+"Layton",538,15510.317200,false
+"Leominster",205,209566.437336,true
+"Lewisville",679,286012.955512,false
+"Lexington",703,71413.330448,true
+"Lincoln",258,11058.501887,true
+"Little Rock",852,193131.699899,false
+"Long Beach",526,212178.360544,true
+"Lorain",73,457703.808354,true
+"Los Angeles",531,787620.812014,true
+"Louisville",343,15806.972981,true
+"Lowell",5,142709.708273,true
+"Lubbock",820,237199.186864,false
+"Macon",190,446591.581618,true
+"Madison",84,174181.147514,true
+"Manchester",92,834128.046014,true
+"Marina",475,588790.374922,true
+"Marysville",578,547726.638389,true
+"McAllen",96,745452.483919,true
+"McHenry",274,193788.270551,true
+"Medford",746,48041.299866,true
+"Melbourne",760,94854.941770,true
+"Memphis",341,316119.386519,true
+"Merced",654,194549.396972,false
+"Mesa",81,51769.016497,false
+"Mesquite",114,512953.587532,true
+"Miami",668,165193.731123,true
+"Milwaukee",768,4671.610277,false
+"Minneapolis",399,95765.072236,true
+"Miramar",308,2357.429422,false
+"Mission Viejo",126,38889.017893,true
+"Mobile",785,623210.969701,false
+"Modesto",62,24868.770056,true
+"Monroe",927,42495.115189,false
+"Monterey",638,377772.582041,false
+"Montgomery",822,532359.977096,false
+"Moreno Valley",789,142902.679410,false
+"Murfreesboro",807,289437.275303,true
+"Murrieta",849,594022.607735,false
+"Muskegon",516,313829.050683,true
+"Myrtle Beach",671,22282.418474,true
+"Naperville",139,28197.859479,true
+"Naples",844,135315.876690,false
+"Nashua",312,93797.455060,true
+"Nashville",479,53989.449135,true
+"New Bedford",657,210156.123146,false
+"New Haven",778,133072.612458,false
+"New London",561,562932.535862,true
+"New Orleans",673,523976.033447,true
+"New York",773,16798.580769,false
+"New York City",763,220162.831952,false
+"Newark",880,30914.954596,true
+"Newburgh",443,245223.463247,false
+"Newport News",325,528271.904967,false
+"Norfolk",805,298969.519518,false
+"Normal",394,163216.803273,true
+"Norman",901,380867.554101,true
+"North Charleston",460,137922.157858,false
+"North Las Vegas",246,173690.413708,true
+"North Port",749,233291.118162,false
+"Norwalk",858,39105.559296,false
+"Norwich",2,260099.313968,false
+"Oakland",650,120601.263132,true
+"Ocala",959,87553.822436,false
+"Oceanside",207,533002.949109,true
+"Odessa",465,739331.602518,false
+"Ogden",405,162144.119778,false
+"Oklahoma City",673,112440.096190,true
+"Olathe",457,459202.341871,true
+"Olympia",541,1569.973496,true
+"Omaha",693,104966.747930,false
+"Ontario",219,179675.424380,false
+"Orange",343,4759.972178,true
+"Orem",879,514298.661871,true
+"Orlando",180,157705.856603,true
+"Overland Park",683,303702.878290,false
+"Oxnard",426,62076.056822,true
+"Palm Bay",109,138467.209151,false
+"Palm Springs",313,180309.488885,true
+"Palmdale",745,930031.199321,true
+"Panama City",20,47653.648267,true
+"Pasadena",39,77039.013401,false
+"Paterson",778,45861.020421,true
+"Pembroke Pines",408,276802.162990,false
+"Pensacola",563,162438.409341,false
+"Peoria",71,457369.512525,true
+"Philadelphia",358,853454.576552,true
+"Phoenix",900,167916.290818,false
+"Pittsburgh",928,73600.078793,false
+"Plano",508,889.756871,false
+"Pomona",627,196068.324224,true
+"Pompano Beach",721,305650.557668,true
+"Port Arthur",552,646698.150216,true
+"Port Orange",637,3709.123826,false
+"Port Saint Lucie",363,91880.387848,true
+"Port St. Lucie",801,54144.907745,false
+"Portland",380,4854.687822,false
+"Portsmouth",11,156617.338018,false
+"Poughkeepsie",148,625273.198364,true
+"Providence",275,85007.606908,false
+"Provo",222,51112.777017,true
+"Pueblo",545,395210.685779,false
+"Punta Gorda",386,166493.080583,false
+"Racine",247,330412.818803,false
+"Raleigh",367,318449.340133,true
+"Rancho Cucamonga",501,12492.027068,true
+"Reading",619,360801.921989,true
+"Redding",241,488915.083427,true
+"Reno",788,57444.625263,false
+"Richland",637,44322.734148,true
+"Richmond",138,88656.859048,false
+"Richmond County",777,1706.560182,true
+"Riverside",745,277874.241376,true
+"Roanoke",224,485973.462434,true
+"Rochester",235,308485.999545,true
+"Rockford",92,436211.496478,false
+"Roseville",640,57211.257267,true
+"Round Lake Beach",666,138662.962952,true
+"Sacramento",875,500339.426633,false
+"Saginaw",644,786709.035142,true
+"Saint Louis",515,205290.622224,true
+"Saint Paul",864,311841.382334,true
+"Saint Petersburg",950,186637.980526,false
+"Salem",787,478429.236202,true
+"Salinas",784,97927.341706,false
+"Salt Lake City",597,6454.589387,false
+"San Antonio",522,100292.740325,true
+"San Bernardino",775,515424.251508,false
+"San Buenaventura",247,6117.854334,false
+"San Diego",727,130437.767708,true
+"San Francisco",939,568764.912443,false
+"San Jose",305,99520.521968,false
+"Santa Ana",784,277337.233218,false
+"Santa Barbara",867,121185.999801,true
+"Santa Clara",932,546955.526576,true
+"Santa Clarita",906,5.353389,false
+"Santa Cruz",307,8454.047459,true
+"Santa Maria",647,341529.428849,false
+"Santa Rosa",267,136527.105717,true
+"Sarasota",80,310524.182667,true
+"Savannah",327,243011.767771,false
+"Scottsdale",127,59157.159771,false
+"Scranton",82,109431.106111,false
+"Seaside",256,111113.397044,false
+"Seattle",800,246638.788165,false
+"Sebastian",890,11099.446944,false
+"Shreveport",747,255417.087968,false
+"Simi Valley",817,272790.364967,true
+"Sioux City",379,319548.574561,true
+"Sioux Falls",40,525651.227574,true
+"South Bend",67,37830.089071,true
+"South Lyon",106,228015.248345,true
+"Spartanburg",668,173291.579596,false
+"Spokane",800,279953.808239,false
+"Springdale",740,167567.136981,false
+"Springfield",840,47464.464405,true
+"St. Louis",6,31965.831368,true
+"St. Paul",969,50139.184790,false
+"St. Petersburg",633,101554.708809,false
+"Stamford",538,161232.772189,false
+"Sterling Heights",736,1689.886564,false
+"Stockton",393,40602.147810,true
+"Sunnyvale",928,317763.414654,false
+"Syracuse",526,391158.400997,false
+"Tacoma",439,416143.026951,false
+"Tallahassee",14,333454.925846,false
+"Tampa",30,312355.456545,false
+"Temecula",55,26576.097552,true
+"Tempe",36,177707.465434,true
+"Thornton",20,232997.657247,false
+"Thousand Oaks",873,182898.518757,true
+"Toledo",650,659751.112818,true
+"Topeka",424,255366.232959,false
+"Torrance",261,81667.282796,false
+"Trenton",749,407971.988609,true
+"Tucson",508,379211.512386,true
+"Tulsa",174,902672.136094,true
+"Tuscaloosa",340,77555.416898,false
+"Tyler",792,528297.526824,true
+"Utica",568,290709.310378,false
+"Vallejo",59,13001.708499,true
+"Vancouver",973,318308.206628,false
+"Vero Beach",993,249722.371856,false
+"Victorville",109,5747.867784,false
+"Virginia Beach",50,10003.310520,true
+"Visalia",558,376348.318353,true
+"Waco",485,171840.455134,true
+"Warren",762,15568.436352,false
+"Washington",356,68614.244134,true
+"Waterbury",999,39081.359830,false
+"Waterloo",229,285781.409246,false
+"West Covina",702,336535.844890,false
+"West Valley City",561,14672.293153,true
+"Westminster",726,351421.821918,true
+"Wichita",963,70322.916587,false
+"Wilmington",590,171709.567408,false
+"Winston",793,190661.259498,true
+"Winter Haven",446,257440.435939,true
+"Worcester",906,4382.874832,false
+"Yakima",819,231277.949491,false
+"Yonkers",741,252678.795593,true
+"York",251,658982.316617,true
+"Youngstown",666,888805.701359,false

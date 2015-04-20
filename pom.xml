@@ -1,118 +1,65 @@
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    
     <groupId>edu.berkeley.cs.succinct</groupId>
-    <artifactId>succinct</artifactId>
+    <artifactId>succinct-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <name>Succinct</name>
-    <description>Succinct is a data representation scheme and associated algorithms that allow queries directly on
-        compressed data.
-    </description>
-    <url>succinct.cs.berkeley.edu</url>
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.1</version>
-                <configuration>
-                    <show>public</show>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
+    <packaging>pom</packaging>
+    <name>Succinct Parent POM</name>
+    <url>http://succinct.cs.berkeley.edu/</url>
+
+    <developers>
+        <developer>
+            <id>anuragkh</id>
+            <name>Anurag Khandelwal</name>
+            <email>anuragk@berkeley.edu</email>
+            <url>http://www.cs.berkeley.edu/~anuragk</url>
+            <organization>University of California, Berkeley</organization>
+            <organizationUrl>http://cs.berkeley.edu</organizationUrl>
+        </developer>
+    </developers>
+
+    <prerequisites>
+        <maven>3.0.4</maven>
+    </prerequisites>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <modules>
+        <module>core</module>
+        <module>spark</module>
+    </modules>
+
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <source>1.7</source>
-                        <target>1.7</target>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
             <plugin>
-                <!-- Build an executable JAR -->
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>edu.berkeley.cs.succinct.examples.SuccinctShell</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.8.1</version>
-                <configuration>
-                    <altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>com.github.github</groupId>
-                <artifactId>site-maven-plugin</artifactId>
-                <version>0.10</version>
-                <configuration>
-                    <message>Maven artifacts for ${project.version}</message>   <!-- git commit message -->
-                    <noJekyll>true</noJekyll>                                   <!-- disable webpage processing -->
-                    <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory> <!-- matches distribution management repository url above -->
-                    <branch>refs/heads/mvn-repo</branch>                        <!-- remote branch name -->
-                    <includes><include>**/*</include></includes>
-                    <repositoryName>succinct-java</repositoryName>              <!-- github repo name -->
-                    <repositoryOwner>anuragkh</repositoryOwner>                 <!-- github username  -->
-                </configuration>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.3.1</version>
                 <executions>
-                    <!-- run site-maven-plugin's 'site' target as part of the build's normal 'deploy' phase -->
                     <execution>
+                        <id>enforce-versions</id>
                         <goals>
-                            <goal>site</goal>
+                            <goal>enforce</goal>
                         </goals>
-                        <phase>deploy</phase>
+                        <configuration>
+                        <rules>
+                            <requireMavenVersion>
+                                <version>3.0.4</version>
+                            </requireMavenVersion>
+                            <requireJavaVersion>
+                                <version>1.7</version>
+                            </requireJavaVersion>
+                        </rules>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.1</version>
-                <configuration>
-                    <show>private</show>
-                    <nohelp>true</nohelp>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
-    <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>3.8.1</version>
-        </dependency>
-    </dependencies>
-    <distributionManagement>
-        <site>
-            <id>gh-pages</id>
-            <!-- This gets automatically pushed to the gh-pages branch. -->
-            <url>file:${project.basedir}/site</url>
-        </site>
-        <repository>
-            <id>internal.repo</id>
-            <name>Temporary Staging Repository</name>
-            <url>file://${project.build.directory}/mvn-repo</url>
-        </repository>
-    </distributionManagement>
-    <properties>
-        <!-- github server corresponds to entry in ~/.m2/settings.xml -->
-        <github.global.server>github</github.global.server>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
 </project>

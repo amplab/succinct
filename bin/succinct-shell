@@ -9,7 +9,7 @@
 #   SUCCINCT_SSH_OPTS Options passed to ssh when running remote commands.
 ##
 
-usage="Usage: succinct-shell  [filename]"
+usage="Usage: succinct-shell [filename]"
 
 # if no args specified, show usage
 if [ $# -le 0 ]; then
@@ -23,4 +23,4 @@ bin="`cd "$bin"; pwd`"
 . "$bin/succinct-config.sh"
 . "$SUCCINCT_PREFIX/bin/load-succinct-env.sh"
 
-java -jar $SUCCINCT_PREFIX/target/succinct-0.1.0-SNAPSHOT.jar $@
+java -cp $SUCCINCT_PREFIX/core/target/succinct-core-0.1.0-SNAPSHOT.jar edu.berkeley.cs.succinct.examples.SuccinctShell $@

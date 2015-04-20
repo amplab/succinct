@@ -1,4 +1,0 @@
-[submodule "site"]
-	path = site
-	url = https://github.com/anuragkh/succinct-java.git
-	branch = gh-pages
