@@ -1,6 +1,5 @@
 package edu.berkeley.cs.succinct.sql
 
-import edu.berkeley.cs.succinct.sql.util.Utils
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.StructType
@@ -26,7 +25,7 @@ case class SuccinctRelation(
     } else {
       val schemaPath = location.stripSuffix("/") + "/schema"
       val conf = sqlContext.sparkContext.hadoopConfiguration
-      Utils.readObjectFromFS[StructType](conf, schemaPath)
+      SuccinctUtils.readObjectFromFS[StructType](conf, schemaPath)
     }
   }
 

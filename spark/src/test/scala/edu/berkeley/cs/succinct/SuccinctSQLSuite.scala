@@ -153,13 +153,9 @@ class SuccinctSQLSuite extends FunSuite {
       .filter(loadedDF("Length") < 10)
       .collect()
     assert(isShort.length == 6)
-
-    println("==Printing filtered stuff==")
-    isShort.foreach(println)
-    println("==Finished printing filtered stuff==")
   }
 
-  test("test save and load") {
+  test("test load and save") {
     // Test if load works as expected
     val df = TestSQLContext.load(succinctTable, "edu.berkeley.cs.succinct.sql")
     assert(df.count == 1000)

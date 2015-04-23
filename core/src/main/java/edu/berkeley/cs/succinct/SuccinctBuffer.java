@@ -145,12 +145,12 @@ public class SuccinctBuffer extends SuccinctCore {
     }
 
     /**
-     * Get range of SA positions using Slow Backward search
+     * Get range of SA positions using Backward search
      *
      * @param buf Input query to be searched.
      * @return Range of indices into the SA.
      */
-    private Range<Long, Long> getRangeSlow(byte[] buf) {
+    public Range<Long, Long> getRange(byte[] buf) {
         Range<Long, Long> range = new Range<Long, Long>(0L, -1L);
         int m = buf.length;
         long c1, c2;
@@ -170,100 +170,7 @@ public class SuccinctBuffer extends SuccinctCore {
         for (int i = m - 2; i >= 0; i--) {
             if (alphabetMap.containsKey(buf[i])) {
                 c1 = alphabetMap.get(buf[i]).first;
-                c2 = alphabetMap
-                        .get((alphabet.get(alphabetMap.get(buf[i]).second + 1))).first - 1;
-            } else {
-                return range;
-            }
-            range.first = binSearchNPA(range.first, c1, c2, false);
-            range.second = binSearchNPA(range.second, c1, c2, true);
-            if (range.first > range.second) {
-                return range;
-            }
-        }
-
-        return range;
-    }
-
-    /**
-     * Get range of SA positions using Backward search
-     *
-     * @param buf Input query to be searched.
-     * @return Range of indices into the SA.
-     */
-    protected Range<Long, Long> getRange(byte[] buf) {
-
-        int m = buf.length;
-        if (m <= contextLen) {
-            return getRangeSlow(buf);
-        }
-        Range<Long, Long> range = new Range<Long, Long>(0L, -1L);
-        int sigma_id;
-        long c1, c2;
-        int start_off;
-        long context_val, context_id;
-
-        if (alphabetMap.containsKey(buf[m - contextLen - 1])) {
-            sigma_id = alphabetMap.get(buf[m - contextLen - 1]).second;
-            context_val = computeContextVal(buf, m - contextLen);
-
-            if (context_val == -1) {
-                return range;
-            }
-
-            if (!contextMap.containsKey(context_val)) {
-                return range;
-            }
-
-            context_id = contextMap.get(context_val);
-            start_off = SerializedOperations.ArrayOps.getRank1(neccol,
-                    coff.get(sigma_id), colsizes.get(sigma_id), context_id) - 1;
-            range.first = coloffsets.get(sigma_id)
-                    + celloffsets.get(coff.get(sigma_id) + start_off);
-            if (start_off + 1 < colsizes.get(sigma_id)) {
-                range.second = coloffsets.get(sigma_id)
-                        + celloffsets.get(coff.get(sigma_id) + start_off + 1)
-                        - 1;
-            } else if (sigma_id + 1 < sigmaSize) {
-                range.second = coloffsets.get(sigma_id + 1) - 1;
-            } else {
-                range.second = Long.valueOf(getOriginalSize() - 1);
-            }
-        } else {
-            return range;
-        }
-
-        if (range.first > range.second) {
-            return range;
-        }
-
-        for (int i = m - contextLen - 2; i >= 0; i--) {
-            if (alphabetMap.containsKey(buf[i])) {
-                sigma_id = alphabetMap.get(buf[i]).second;
-                context_val = computeContextVal(buf, i + 1);
-
-                if (context_val == -1) {
-                    return range;
-                }
-                if (!contextMap.containsKey(context_val)) {
-                    return range;
-                }
-
-                context_id = contextMap.get(context_val);
-                start_off = SerializedOperations.ArrayOps.getRank1(neccol,
-                        coff.get(sigma_id), colsizes.get(sigma_id), context_id) - 1;
-                c1 = coloffsets.get(sigma_id)
-                        + celloffsets.get(coff.get(sigma_id) + start_off);
-
-                if (start_off + 1 < colsizes.get(sigma_id)) {
-                    c2 = coloffsets.get(sigma_id)
-                            + celloffsets.get(coff.get(sigma_id) + start_off
-                                    + 1) - 1;
-                } else if (sigma_id + 1 < sigmaSize) {
-                    c2 = coloffsets.get(sigma_id + 1) - 1;
-                } else {
-                    c2 = getOriginalSize() - 1;
-                }
+                c2 = alphabetMap.get((alphabet.get(alphabetMap.get(buf[i]).second + 1))).first - 1;
             } else {
                 return range;
             }

@@ -1,24 +1,25 @@
 package edu.berkeley.cs.succinct.sql
 
-import edu.berkeley.cs.succinct.{SuccinctBuffer, SuccinctIndexedBuffer}
+import edu.berkeley.cs.succinct.SuccinctIndexedBuffer
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
-import org.apache.spark.sql.types.StructType
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
 
 class SuccinctPrunedTableRDD(
     val partitionsRDD: RDD[SuccinctIndexedBuffer],
-    val separators: Array[Byte],
-    val schema: StructType,
-    val requiredColumns: Array[String],
+    val succinctSerializer: SuccinctSerializer,
+    val reqColsCheck: Map[String, Boolean],
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends RDD[Row](partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
   /** Overrides [[RDD]]]'s compute to return a [[SuccinctTableIterator]]. */
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
-    new SuccinctPrunedTableIterator(firstParent[SuccinctBuffer].iterator(split, context).next(),
-      separators, schema, requiredColumns)
+    val succinctIterator = firstParent[SuccinctIndexedBuffer].iterator(split, context)
+    if(succinctIterator.hasNext)
+      new SuccinctPrunedTableIterator(succinctIterator.next(),
+        succinctSerializer, reqColsCheck)
+    else Iterator[Row]()
   }
 
   /** Set the name for the RDD; By default set to "SuccinctPrunedTableRDD". */

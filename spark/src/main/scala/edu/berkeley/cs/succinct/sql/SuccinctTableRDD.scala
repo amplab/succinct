@@ -2,8 +2,6 @@ package edu.berkeley.cs.succinct.sql
 
 import edu.berkeley.cs.succinct.SuccinctIndexedBuffer
 import edu.berkeley.cs.succinct.sql.impl.SuccinctTableRDDImpl
-import edu.berkeley.cs.succinct.sql.util.Utils
-import org.apache.hadoop.io.{BytesWritable, NullWritable}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.types._
@@ -15,7 +13,7 @@ import scala.collection.mutable.ArrayBuffer
 
 /**
  * Extends `RDD[Row]` to a [[SuccinctTableRDD]], which stores each partition as a [[SuccinctIndexedBuffer]].
- * [[SuccinctTableRDD]] exposes a table-like interface, allowing search and count operations on any 
+ * [[SuccinctTableRDD]] exposes a table interface, allowing search and count operations on any
  * column based on a matching pattern.
  *
  */
@@ -124,16 +122,15 @@ object SuccinctTableRDD {
     val minPath = path.stripSuffix("/") + "/min"
     val maxPath = path.stripSuffix("/") + "/max"
     val conf = sparkContext.hadoopConfiguration
-    val minPartitions: Int = 1
     val succinctPartitions: RDD[SuccinctIndexedBuffer] = 
-      sparkContext
-        .sequenceFile(dataPath, classOf[NullWritable], classOf[BytesWritable], minPartitions)
-        .map(x => Utils.deserialize[SuccinctIndexedBuffer](x._2.getBytes))
-    val succinctSchema: StructType = Utils.readObjectFromFS[StructType](conf, schemaPath)
-    val succinctSeparators: Array[Byte] = Utils.readObjectFromFS[Array[Byte]](conf, separatorsPath)
-    val minRow: Row = Utils.readObjectFromFS[Row](conf, minPath)
-    val maxRow: Row = Utils.readObjectFromFS[Row](conf, maxPath)
-    new SuccinctTableRDDImpl(succinctPartitions, succinctSeparators, succinctSchema, minRow, maxRow)
+      sparkContext.objectFile[SuccinctIndexedBuffer](dataPath)
+    val succinctSchema: StructType = SuccinctUtils.readObjectFromFS[StructType](conf, schemaPath)
+    val succinctSeparators: Array[Byte] = SuccinctUtils.readObjectFromFS[Array[Byte]](conf, separatorsPath)
+    val minRow: Row = SuccinctUtils.readObjectFromFS[Row](conf, minPath)
+    val maxRow: Row = SuccinctUtils.readObjectFromFS[Row](conf, maxPath)
+    val limits = getLimits(maxRow, minRow)
+    val succinctSerializer = new SuccinctSerializer(succinctSchema, succinctSeparators, limits)
+    new SuccinctTableRDDImpl(succinctPartitions, succinctSeparators, succinctSchema, minRow, maxRow, succinctSerializer)
   }
   
   /**
@@ -147,10 +144,12 @@ object SuccinctTableRDD {
   def apply(inputRDD: RDD[Row], separators: Array[Byte], schema: StructType): SuccinctTableRDD = {
     val minRow: Row = min(inputRDD, schema)
     val maxRow: Row = max(inputRDD, schema)
+    val limits = getLimits(maxRow, minRow)
+    val succinctSerializer = new SuccinctSerializer(schema, separators, limits)
     val succinctPartitions = inputRDD.mapPartitions{
-      partition => createSuccinctBuffer(partition, separators, schema)
+      partition => createSuccinctBuffer(partition, succinctSerializer)
     }
-    new SuccinctTableRDDImpl(succinctPartitions, separators, schema, minRow, maxRow)
+    new SuccinctTableRDDImpl(succinctPartitions, separators, schema, minRow, maxRow, succinctSerializer)
   }
 
   /**
@@ -167,10 +166,12 @@ object SuccinctTableRDD {
     val separators: Array[Byte] = range(11, 11 + separatorsSize).map(_.toByte)
     val minRow: Row = min(inputRDD, schema)
     val maxRow: Row = max(inputRDD, schema)
+    val limits = getLimits(maxRow, minRow)
+    val succinctSerializer = new SuccinctSerializer(schema, separators, limits)
     val succinctPartitions = inputRDD.mapPartitions {
-      partition => createSuccinctBuffer(partition, separators, schema)
+      partition => createSuccinctBuffer(partition, succinctSerializer)
     }
-    new SuccinctTableRDDImpl(succinctPartitions, separators, schema, minRow, maxRow)
+    new SuccinctTableRDDImpl(succinctPartitions, separators, schema, minRow, maxRow, succinctSerializer)
   }
 
   /**
@@ -188,19 +189,18 @@ object SuccinctTableRDD {
    * Creates a [[SuccinctIndexedBuffer]] from an Iterator over [[Row]] and the list of separators.
    *
    * @param dataIter The Iterator over data tuples.
-   * @param separators The list of separators.
+   * @param succinctSerializer The serializer/deserializer for Succinct's representation of records.
    * @return An Iterator over the [[SuccinctIndexedBuffer]].
    */
   private[succinct] def createSuccinctBuffer(
       dataIter: Iterator[Row],
-      separators: Array[Byte],
-      schema: StructType): Iterator[SuccinctIndexedBuffer] = {
+      succinctSerializer: SuccinctSerializer): Iterator[SuccinctIndexedBuffer] = {
 
     var offsets = new ArrayBuffer[Long]()
     val rawBufferBuilder = new StringBuilder
     var offset = 0
     while (dataIter.hasNext) {
-      val curTuple = SuccinctSerializer.serializeRow(dataIter.next, separators, schema)
+      val curTuple = succinctSerializer.serializeRow(dataIter.next)
       rawBufferBuilder.append(new String(curTuple))
       rawBufferBuilder.append(SuccinctIndexedBuffer.getRecordDelim.toChar)
       offsets += offset
@@ -208,6 +208,27 @@ object SuccinctTableRDD {
     }
     val ret = Iterator(new SuccinctIndexedBuffer(rawBufferBuilder.toString.getBytes, offsets.toArray))
     ret
+  }
+
+  private def getLength(data: Any): Int = {
+    data match {
+      case _: Boolean => 1
+      case _: Byte => data.toString.length
+      case _: Short => data.toString.length
+      case _: Int => data.toString.length
+      case _: Long => data.toString.length
+      case _: Float => "%.0f".format(data.asInstanceOf[Float]).length
+      case _: Double => "%.0f".format(data.asInstanceOf[Double]).length
+      case _: java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal].longValue.toString.length
+      case _: String => data.asInstanceOf[String].length
+      case other => throw new IllegalArgumentException(s"Unexpected type.")
+    }
+  }
+
+  private def getLimits(maximums: Row, minimums: Row): Seq[Int] = {
+    val maxLengths = maximums.toSeq.map(getLength)
+    val minLengths = minimums.toSeq.map(getLength)
+    maxLengths.zip(minLengths).map(x => if(x._1 > x._2) x._1 else x._2)
   }
 
   private[succinct] def min(inputRDD: RDD[Row], schema: StructType): Row = {

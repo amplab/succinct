@@ -9,20 +9,18 @@ import scala.collection.mutable.ListBuffer
 /**
  * Object that provides serialization/de-serialization methods for each tuple.
  */
-object SuccinctSerializer {
+class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Seq[Int]) extends Serializable {
 
   /**
    * Serializes a [[Row]] with input delimiters to create a single byte buffer.
    *
    * @param data The [[Row]] to be serialized.
-   * @param separators The list of separators.
    * @return The serialized [[Row]].
    */
-  private[succinct] def serializeRow(data: Row, separators: Array[Byte], schema: StructType): Array[Byte] = {
+  private[succinct] def serializeRow(data: Row): Array[Byte] = {
     assert(data.length == separators.length)
     assert(data.length == schema.length)
-    val dataMap = data.toSeq.zip(schema.fields)
-    separators.zip(dataMap.map(t => typeToString(t._1, t._2.dataType).getBytes))
+    separators.zip(Array.tabulate(data.length){ i => typeToString(i, data(i)).getBytes })
       .map(t => t._1 +: t._2)
       .flatMap(_.iterator)
   }
@@ -31,14 +29,9 @@ object SuccinctSerializer {
    * De-serializes a single byte buffer to give back the original [[Row]].
    *
    * @param data The serialized [[Row]].
-   * @param separators The list of separators.
-   * @param schema The schema for the [[Row]].
    * @return The de-serialized [[Row]].
    */
-  private[succinct] def deserializeRow(
-      data: Array[Byte],
-      separators: Array[Byte],
-      schema: StructType): Row = {
+  private[succinct] def deserializeRow(data: Array[Byte]): Row = {
     val fieldTypes = schema.fields.map(_.dataType)
     var i = 0
     var elemList = new ListBuffer[String]
@@ -68,16 +61,13 @@ object SuccinctSerializer {
    * De-serializes a single byte buffer to give back the [[Row]] with pruned columns.
    *
    * @param data The serialized [[Row]].
-   * @param separators The list of separators.
-   * @param schema The schema for the [[Row]].
    * @param requiredColumns Checks if a column is required or not.
    * @return The de-serialized [[Row]].
    */
   private[succinct] def deserializeRow(
       data: Array[Byte],
-      separators: Array[Byte],
-      schema: StructType,
       requiredColumns: Map[String, Boolean]): Row = {
+    if(data.length == 0 || !requiredColumns.map(_._2).reduce((a , b) => a | b)) return Row()
     val requiredFieldTypes = schema.fields.filter(field => requiredColumns(field.name)).map(_.dataType)
     val fieldNames = schema.fields.map(_.name)
     var i = 0
@@ -85,15 +75,14 @@ object SuccinctSerializer {
     var elemList = new ListBuffer[String]
     val elemBuilder = new StringBuilder
     val separatorsIter = separators.iterator
-    var nextSeparator = separatorsIter.next
+    var nextSeparator: Byte = if (separatorsIter.hasNext) separatorsIter.next
+                              else SuccinctIndexedBuffer.getRecordDelim
     while (i < data.length) {
       if (data(i) == nextSeparator) {
         if (i != 0 && requiredColumns(fieldNames(k - 1))) elemList += elemBuilder.toString
         elemBuilder.clear
-        if (separatorsIter.hasNext)
-          nextSeparator = separatorsIter.next
-        else
-          nextSeparator = SuccinctIndexedBuffer.getRecordDelim
+        nextSeparator = if (separatorsIter.hasNext) separatorsIter.next
+                        else SuccinctIndexedBuffer.getRecordDelim
         k += 1
       } else {
         elemBuilder.append(data(i).toChar)
@@ -127,16 +116,16 @@ object SuccinctSerializer {
     }
   }
 
-  private[succinct] def typeToString(elem: Any, dataType: DataType): String = {
+  private[succinct] def typeToString(elemIdx: Int, elem: Any): String = {
     if(elem == null) return "NULL"
-    dataType match {
+    schema(elemIdx).dataType match {
       case BooleanType => if(elem.asInstanceOf[Boolean]) "1" else "0"
-      case ByteType => "%03d".format(elem.asInstanceOf[java.lang.Byte])
-      case ShortType => "%05d".format(elem.asInstanceOf[java.lang.Short])
-      case IntegerType => "%010d".format(elem.asInstanceOf[java.lang.Integer])
-      case LongType => "%019d".format(elem.asInstanceOf[java.lang.Long])
-      case FloatType => "%014.3f".format(elem.asInstanceOf[java.lang.Float])
-      case DoubleType => "%014.3f".format(elem.asInstanceOf[java.lang.Double])
+      case ByteType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Byte])
+      case ShortType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Short])
+      case IntegerType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Integer])
+      case LongType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Long])
+      case FloatType => ("%0" + limits(elemIdx) + ".2f").format(elem.asInstanceOf[java.lang.Float])
+      case DoubleType => ("%0" + limits(elemIdx) + ".2f").format(elem.asInstanceOf[java.lang.Double])
       case dType:DecimalType => {
         var digsBeforeDec = 0
         var digsAfterDec = 0
@@ -151,7 +140,7 @@ object SuccinctSerializer {
         formatString.format(elem.asInstanceOf[java.math.BigDecimal].toString.toDouble)
       }
       case StringType => elem.asInstanceOf[String]
-      case other => throw new IllegalArgumentException(s"Unexpected type. $dataType")
+      case other => throw new IllegalArgumentException(s"Unexpected type. ${schema(elemIdx).dataType}")
     }
   }
 

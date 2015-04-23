@@ -1,12 +1,10 @@
 package edu.berkeley.cs.succinct.sql.impl
 
+import edu.berkeley.cs.succinct.SuccinctIndexedBuffer
 import edu.berkeley.cs.succinct.SuccinctIndexedBuffer.QueryType
-import edu.berkeley.cs.succinct.sql.util.Utils
 import edu.berkeley.cs.succinct.sql._
-import edu.berkeley.cs.succinct.{SuccinctBuffer, SuccinctIndexedBuffer}
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{Path, FileSystem}
-import org.apache.hadoop.io.NullWritable
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.sources._
@@ -30,12 +28,17 @@ class SuccinctTableRDDImpl private[succinct](
     val schema: StructType,
     val minimums: Row,
     val maximums: Row,
+    val succinctSerializer: SuccinctSerializer,
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctTableRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
   /** Overrides [[RDD]]]'s compute to return a [[SuccinctTableIterator]]. */
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
-    new SuccinctTableIterator(firstParent[SuccinctBuffer].iterator(split, context).next(), separators, schema)
+    val succinctIterator = firstParent[SuccinctIndexedBuffer].iterator(split, context)
+    if(succinctIterator.hasNext)
+      new SuccinctTableIterator(succinctIterator.next(), succinctSerializer)
+    else
+      Iterator[Row]()
   }
 
   /** Set the name for the RDD; By default set to "SuccinctTableRDD". */
@@ -111,38 +114,38 @@ class SuccinctTableRDDImpl private[succinct](
     val minPath = path.stripSuffix("/") + "/min"
     val maxPath = path.stripSuffix("/") + "/max"
     val conf = this.context.hadoopConfiguration
-    partitionsRDD.map(x => (NullWritable.get(), Utils.serialize(x))).saveAsSequenceFile(dataPath)
-    Utils.writeObjectToFS(conf, schemaPath, schema)
-    Utils.writeObjectToFS(conf, separatorsPath, separators)
-    Utils.writeObjectToFS(conf, minPath, minimums)
-    Utils.writeObjectToFS(conf, maxPath, maximums)
+    partitionsRDD.saveAsObjectFile(dataPath)
+    SuccinctUtils.writeObjectToFS(conf, schemaPath, schema)
+    SuccinctUtils.writeObjectToFS(conf, separatorsPath, separators)
+    SuccinctUtils.writeObjectToFS(conf, minPath, minimums)
+    SuccinctUtils.writeObjectToFS(conf, maxPath, maximums)
     val fs = FileSystem.get(new java.net.URI(path.stripSuffix("/")), new Configuration())
     fs.create(new Path(s"${path.stripSuffix("/")}/_SUCCESS")).close()
   }
 
   /** Implements search for [[SuccinctTableRDD]]. */
   override def search(attribute: String, query: Array[Byte]): RDD[Row] = {
-    new SearchResultsRDD(this, createQuery(attribute, query), separators, schema)
+    new SearchResultsRDD(this, createQuery(attribute, query), succinctSerializer)
   }
 
   /** Implements prefixSearch for [[SuccinctTableRDD]]. */
   override def prefixSearch(attribute: String, query: Array[Byte]): RDD[Row] = {
-    new SearchResultsRDD(this, createPrefixQuery(attribute, query), separators, schema)
+    new SearchResultsRDD(this, createPrefixQuery(attribute, query), succinctSerializer)
   }
 
   /** Implements suffixSearch for [[SuccinctTableRDD]]. */
   override def suffixSearch(attribute: String, query: Array[Byte]): RDD[Row] = {
-    new SearchResultsRDD(this, createSuffixQuery(attribute, query), separators, schema)
+    new SearchResultsRDD(this, createSuffixQuery(attribute, query), succinctSerializer)
   }
 
   /** Implements unboundedSearch for [[SuccinctTableRDD]]. */
   override def unboundedSearch(attribute: String, query: Array[Byte]): RDD[Row] = {
-    new SearchResultsRDD(this, query, separators, schema)
+    new SearchResultsRDD(this, query, succinctSerializer)
   }
 
   /** Implements rangeSearch for [[SuccinctTableRDD]]. */
   override def rangeSearch(attribute: String, queryBegin: Array[Byte], queryEnd: Array[Byte]): RDD[Row] = {
-    new RangeSearchResultsRDD(this, queryBegin, queryEnd, separators, schema)
+    new RangeSearchResultsRDD(this, queryBegin, queryEnd, succinctSerializer)
   }
 
   /**
@@ -223,32 +226,36 @@ class SuccinctTableRDDImpl private[succinct](
       case EqualTo(attribute, value) => (QueryType.Search, Array[Array[Byte]](createQuery(attribute, value.toString.getBytes)))
       case LessThanOrEqual(attribute, value) => {
         val attrIdx = getAttrIdx(attribute)
-        val minValue = SuccinctSerializer.typeToString(minimums.get(attrIdx), schema(attrIdx).dataType).getBytes
-        val maxValue = SuccinctSerializer.typeToString(value, schema(attrIdx).dataType).getBytes
+        val minValue = succinctSerializer.typeToString(attrIdx, minimums.get(attrIdx)).getBytes
+        val maxValue = succinctSerializer.typeToString(attrIdx, value).getBytes
+        println("[<=] Min Value = " + new String(minValue) + "; Max Value = " + new String(maxValue))
         val queryBegin = createQuery(attrIdx, minValue)
         val queryEnd = createQuery(attrIdx, maxValue)
         (QueryType.RangeSearch, Array[Array[Byte]](queryBegin, queryEnd))
       }
       case GreaterThanOrEqual(attribute, value) => {
         val attrIdx = getAttrIdx(attribute)
-        val minValue = SuccinctSerializer.typeToString(value, schema(attrIdx).dataType).getBytes
-        val maxValue = SuccinctSerializer.typeToString(maximums.get(attrIdx), schema(attrIdx).dataType).getBytes
+        val minValue = succinctSerializer.typeToString(attrIdx, value).getBytes
+        val maxValue = succinctSerializer.typeToString(attrIdx, maximums.get(attrIdx)).getBytes
+        println("[>=] Min Value = " + new String(minValue) + "; Max Value = " + new String(maxValue))
         val queryBegin = createQuery(attrIdx, minValue)
         val queryEnd = createQuery(attrIdx, maxValue)
         (QueryType.RangeSearch, Array[Array[Byte]](queryBegin, queryEnd))
       }
       case LessThan(attribute, value) => {
         val attrIdx = getAttrIdx(attribute)
-        val minValue = SuccinctSerializer.typeToString(minimums.get(attrIdx), schema(attrIdx).dataType).getBytes
-        val maxValue = SuccinctSerializer.typeToString(prevValue(value), schema(attrIdx).dataType).getBytes
+        val minValue = succinctSerializer.typeToString(attrIdx, minimums.get(attrIdx)).getBytes
+        val maxValue = succinctSerializer.typeToString(attrIdx, prevValue(value)).getBytes
+        println("[<] Min Value = " + new String(minValue) + "; Max Value = " + new String(maxValue))
         val queryBegin = createQuery(attrIdx, minValue)
         val queryEnd = createQuery(attrIdx, maxValue)
         (QueryType.RangeSearch, Array[Array[Byte]](queryBegin, queryEnd))
       }
       case GreaterThan(attribute, value) => {
         val attrIdx = getAttrIdx(attribute)
-        val minValue = SuccinctSerializer.typeToString(nextValue(value), schema(attrIdx).dataType).getBytes
-        val maxValue = SuccinctSerializer.typeToString(maximums.get(attrIdx), schema(attrIdx).dataType).getBytes
+        val minValue = succinctSerializer.typeToString(attrIdx, nextValue(value)).getBytes
+        val maxValue = succinctSerializer.typeToString(attrIdx, maximums.get(attrIdx)).getBytes
+        println("[>] Min Value = " + new String(minValue) + "; Max Value = " + new String(maxValue))
         val queryBegin = createQuery(attrIdx, minValue)
         val queryEnd = createQuery(attrIdx, maxValue)
         (QueryType.RangeSearch, Array[Array[Byte]](queryBegin, queryEnd))
@@ -258,17 +265,17 @@ class SuccinctTableRDDImpl private[succinct](
 
   /** Implements pruneAndFilter for [[SuccinctTableRDD]]. */
   override def pruneAndFilter(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
+    val reqColsCheck = schema.map(f => f.name -> requiredColumns.contains(f.name)).toMap
     if(filters.length == 0) {
       if(requiredColumns.length == schema.length) {
         return this
       }
-      return new SuccinctPrunedTableRDD(partitionsRDD, separators, schema,
-        requiredColumns, targetStorageLevel)
+      return new SuccinctPrunedTableRDD(partitionsRDD, succinctSerializer, reqColsCheck)
     }
     val queryList = filtersToQueries(filters)
     val queryTypes = queryList.map(_._1)
     val queries = queryList.map(_._2)
-    return new MultiSearchResultsRDD(this, queryTypes, queries, requiredColumns, separators, schema)
+    return new MultiSearchResultsRDD(this, queryTypes, queries, reqColsCheck, succinctSerializer)
   }
 
   /** Implements count for [[SuccinctTableRDD]]. */
