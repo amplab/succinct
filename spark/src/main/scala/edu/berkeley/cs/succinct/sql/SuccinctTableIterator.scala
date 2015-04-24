@@ -31,8 +31,7 @@ class SuccinctTableIterator private[succinct](sBuf: SuccinctIndexedBuffer, succi
   override def next(): Row = {
     val data = sBuf.extractUntil(curPos, SuccinctIndexedBuffer.getRecordDelim)
     curPos = curPos + data.length + 1
-    val row = succinctSerializer.deserializeRow(data)
-    row
+    succinctSerializer.deserializeRow(data)
   }
 
 }

@@ -130,12 +130,11 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
         var digsBeforeDec = 0
         var digsAfterDec = 0
         if(dType.scale > 0) {
-          digsBeforeDec = dType.precision - dType.scale
           digsAfterDec = dType.scale
         } else {
-          digsBeforeDec = 1
           digsAfterDec = dType.precision - dType.scale
         }
+        digsBeforeDec = limits(elemIdx)
         val formatString = s"%0${digsBeforeDec}.${digsAfterDec}f"
         formatString.format(elem.asInstanceOf[java.math.BigDecimal].toString.toDouble)
       }
