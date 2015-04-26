@@ -7,11 +7,14 @@ object WikiSearch {
 
   def main(args: Array[String]) = {
     val dataPath = args(0)
-    val sc = new SparkContext(new SparkConf().setAppName("wiki search"))
     val partitions = if (args.length > 1) args(1).toInt else 2
+
+    val conf = new SparkConf().setMaster("local[2]").setAppName("wiki search")
+    val sc = new SparkContext(conf)
+
     val wikiDataRDD = sc.textFile(dataPath, partitions)
       .map(_.getBytes)
-    val wikiSuccinctRDD = SuccinctRDD(wikiDataRDD).persist
+    val wikiSuccinctRDD = SuccinctRDD(wikiDataRDD).persist()
 
     // Operations with the term "berkeley"
     val berkeleyCount = wikiSuccinctRDD.count("berkeley".getBytes)

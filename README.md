@@ -16,3 +16,11 @@ Succinct is built using [Apache Maven](http://maven.apache.org/).
 To build Succinct and its example programs, run:
 
     mvn clean package
+
+Alternatively, one can also use `sbt` for building and development:
+
+    sbt/sbt gen-idea # can now import project into Intellij IDEA
+    sbt/sbt assembly # builds uber jars
+    sbt/sbt "~assembly" # incremental build
+    sbt/sbt "testOnly edu.berkeley.cs.succinct.sql.SuccinctSQLSuite"
+    sbt/sbt "project spark" "runMain edu.berkeley.cs.succinct.examples.WikiSearch <dataPath>"

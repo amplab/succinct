@@ -14,3 +14,12 @@
 # Build Directories
 core/target/
 spark/target/
+target/
+
+# vim tmps
+.*sw*
+
+# sbt
+project/project
+project/target
+.history
