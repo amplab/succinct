@@ -75,13 +75,13 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
     var elemList = new ListBuffer[String]
     val elemBuilder = new StringBuilder
     val separatorsIter = separators.iterator
-    var nextSeparator: Byte = if (separatorsIter.hasNext) separatorsIter.next
+    var nextSeparator: Byte = if (separatorsIter.hasNext) separatorsIter.next()
                               else SuccinctIndexedBuffer.getRecordDelim
     while (i < data.length) {
       if (data(i) == nextSeparator) {
         if (i != 0 && requiredColumns(fieldNames(k - 1))) elemList += elemBuilder.toString
-        elemBuilder.clear
-        nextSeparator = if (separatorsIter.hasNext) separatorsIter.next
+        elemBuilder.clear()
+        nextSeparator = if (separatorsIter.hasNext) separatorsIter.next()
                         else SuccinctIndexedBuffer.getRecordDelim
         k += 1
       } else {
@@ -110,36 +110,39 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
       case LongType => elem.toLong
       case FloatType => elem.toFloat
       case DoubleType => elem.toDouble
-      case _:DecimalType => new java.math.BigDecimal(elem)
+      case _: DecimalType => new java.math.BigDecimal(elem)
       case StringType => elem
       case other => throw new IllegalArgumentException(s"Unexpected type $dataType.")
     }
   }
 
   private[succinct] def typeToString(elemIdx: Int, elem: Any): String = {
-    if(elem == null) return "NULL"
-    schema(elemIdx).dataType match {
-      case BooleanType => if(elem.asInstanceOf[Boolean]) "1" else "0"
-      case ByteType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Byte])
-      case ShortType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Short])
-      case IntegerType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Integer])
-      case LongType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Long])
-      case FloatType => ("%0" + limits(elemIdx) + ".2f").format(elem.asInstanceOf[java.lang.Float])
-      case DoubleType => ("%0" + limits(elemIdx) + ".2f").format(elem.asInstanceOf[java.lang.Double])
-      case dType:DecimalType => {
-        var digsBeforeDec = 0
-        var digsAfterDec = 0
-        if(dType.scale > 0) {
-          digsAfterDec = dType.scale
-        } else {
-          digsAfterDec = dType.precision - dType.scale
+    if (elem == null) {
+      "NULL"
+    } else {
+      schema(elemIdx).dataType match {
+        case BooleanType => if (elem.asInstanceOf[Boolean]) "1" else "0"
+        case ByteType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Byte])
+        case ShortType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Short])
+        case IntegerType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Integer])
+        case LongType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Long])
+        case FloatType => ("%0" + limits(elemIdx) + ".2f").format(elem.asInstanceOf[java.lang.Float])
+        case DoubleType => ("%0" + limits(elemIdx) + ".2f").format(elem.asInstanceOf[java.lang.Double])
+        case dType: DecimalType => {
+          var digsBeforeDec = 0
+          var digsAfterDec = 0
+          if (dType.scale > 0) {
+            digsAfterDec = dType.scale
+          } else {
+            digsAfterDec = dType.precision - dType.scale
+          }
+          digsBeforeDec = limits(elemIdx)
+          val formatString = s"%0${digsBeforeDec}.${digsAfterDec}f"
+          formatString.format(elem.asInstanceOf[java.math.BigDecimal].toString.toDouble)
         }
-        digsBeforeDec = limits(elemIdx)
-        val formatString = s"%0${digsBeforeDec}.${digsAfterDec}f"
-        formatString.format(elem.asInstanceOf[java.math.BigDecimal].toString.toDouble)
+        case StringType => elem.asInstanceOf[String]
+        case other => throw new IllegalArgumentException(s"Unexpected type. ${schema(elemIdx).dataType}")
       }
-      case StringType => elem.asInstanceOf[String]
-      case other => throw new IllegalArgumentException(s"Unexpected type. ${schema(elemIdx).dataType}")
     }
   }
 

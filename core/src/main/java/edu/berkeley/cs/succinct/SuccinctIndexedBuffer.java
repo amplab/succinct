@@ -22,7 +22,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
     /**
      * Constructor to initialize SuccinctIndexedBuffer from input byte array, offsets corresponding to records, and
      * context length.
-     *  
+     *
      * @param input The input byte array.
      * @param offsets Offsets corresponding to records.
      * @param contextLen Context Length.
@@ -337,7 +337,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
                     Range<Long, Long> rangeBegin, rangeEnd;
                     rangeBegin = getRange(queryBegin);
                     rangeEnd = getRange(queryEnd);
-                    range = new Range(rangeBegin.first, rangeEnd.second);
+                    range = new Range<Long, Long>(rangeBegin.first, rangeEnd.second);
                     break;
                 }
                 default:
@@ -371,21 +371,21 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         }
 
         ranges.remove(firstRange);
-        for(Range<Long, Long> range: ranges) {
+        for (Range<Long, Long> range: ranges) {
             long sp = range.first, ep = range.second;
 
             for (long i = 0; i < ep - sp + 1; i++) {
                 long saVal = lookupSA(sp + i);
                 int offsetIdx = searchOffset(saVal);
                 long offset = offsets[offsetIdx];
-                if(offsetResults.contains(offset)) {
+                if (offsetResults.contains(offset)) {
                     counts.put(offset, counts.get(offset) + 1);
                 }
             }
         }
 
-        for(Long offset: offsetResults) {
-            if(counts.get(offset) == numRanges) {
+        for (Long offset: offsetResults) {
+            if (counts.get(offset) == numRanges) {
                 results.add(extractUntil(offset.intValue(), RECORD_DELIM));
             }
         }
@@ -453,9 +453,9 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      */
     private void writeObject(ObjectOutputStream oos) throws IOException {
         resetBuffers();
-        
+
         WritableByteChannel dataChannel = Channels.newChannel(oos);
-        
+
         oos.writeObject(offsets);
 
         dataChannel.write(metadata.order(ByteOrder.nativeOrder()));

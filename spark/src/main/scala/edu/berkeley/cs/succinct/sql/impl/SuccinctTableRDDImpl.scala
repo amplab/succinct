@@ -15,7 +15,7 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
 /**
  * Implements [[SuccinctTableRDD]]; provides implementations for the count and search methods.
  *
- * @constructor Creates a [[SuccinctTableRDD]] from an RDD of [[SuccinctIndexedBuffer]] partitions, 
+ * @constructor Creates a [[SuccinctTableRDD]] from an RDD of [[SuccinctIndexedBuffer]] partitions,
  *             the list of separators and the target storage level.
  * @param partitionsRDD The RDD of partitions (SuccinctIndexedBuffer).
  * @param separators The list of separators for distinguishing between attributes.
@@ -35,10 +35,11 @@ class SuccinctTableRDDImpl private[succinct](
   /** Overrides [[RDD]]]'s compute to return a [[SuccinctTableIterator]]. */
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
     val succinctIterator = firstParent[SuccinctIndexedBuffer].iterator(split, context)
-    if(succinctIterator.hasNext)
+    if (succinctIterator.hasNext) {
       new SuccinctTableIterator(succinctIterator.next(), succinctSerializer)
-    else
+    } else {
       Iterator[Row]()
+    }
   }
 
   /** Set the name for the RDD; By default set to "SuccinctTableRDD". */
@@ -85,7 +86,7 @@ class SuccinctTableRDDImpl private[succinct](
 
   /** Implements createQuery for [[SuccinctTableRDD]] */
   private def createQuery(attrIdx: Int, query: Array[Byte]): Array[Byte] = {
-    (getSeparator(attrIdx) +: query :+ getSeparator(attrIdx + 1))
+    getSeparator(attrIdx) +: query :+ getSeparator(attrIdx + 1)
   }
 
   /** Implements createQuery for [[SuccinctTableRDD]] */
@@ -155,18 +156,17 @@ class SuccinctTableRDDImpl private[succinct](
    * @return Returns true if the filter is supported;
    *         false otherwise.
    */
-  private def isFilterSupported(f: Filter): Boolean = {
-    f match {
-      case StringStartsWith(attribute, value) => true
-      case StringEndsWith(attribute, value) => true
-      case StringContains(attribute, value) => true
-      case EqualTo(attribute, value) => true
-      case LessThan(attribute, value) => true
-      case LessThanOrEqual(attribute, value) => true
-      case GreaterThan(attribute, value) => true
-      case GreaterThanOrEqual(attribute, value) => true
-      case _ => false
-    }
+  private def isFilterSupported(f: Filter): Boolean = f match {
+    case StringStartsWith(attribute, value) => true
+    case StringEndsWith(attribute, value) => true
+    case StringContains(attribute, value) => true
+    case EqualTo(attribute, value) => true
+    case LessThan(attribute, value) => true
+    case LessThanOrEqual(attribute, value) => true
+    case GreaterThan(attribute, value) => true
+    case GreaterThanOrEqual(attribute, value) => true
+    /** Not supported: In, IsNull, IsNotNull, And, Or, Not */
+    case _ => false
   }
 
   /**
@@ -219,21 +219,23 @@ class SuccinctTableRDDImpl private[succinct](
    * @return Array of queries.
    */
   private def filtersToQueries(filters: Array[Filter]): Array[(QueryType, Array[Array[Byte]])] = {
-    filters.filter(isFilterSupported).map(f => f match {
+    filters.filter(isFilterSupported).map {
       case StringStartsWith(attribute, value) => (QueryType.Search, Array[Array[Byte]](createPrefixQuery(attribute, value.getBytes)))
       case StringEndsWith(attribute, value) => (QueryType.Search, Array[Array[Byte]](createSuffixQuery(attribute, value.getBytes)))
       case StringContains(attribute, value) => (QueryType.Search, Array[Array[Byte]](value.getBytes))
       case EqualTo(attribute, value) => (QueryType.Search, Array[Array[Byte]](createQuery(attribute, value.toString.getBytes)))
-      case LessThanOrEqual(attribute, value) => {
+
+      case LessThanOrEqual(attribute, value) =>
         val attrIdx = getAttrIdx(attribute)
         val minValue = succinctSerializer.typeToString(attrIdx, minimums.get(attrIdx)).getBytes
         val maxValue = succinctSerializer.typeToString(attrIdx, value).getBytes
         println("[<=] Min Value = " + new String(minValue) + "; Max Value = " + new String(maxValue))
         val queryBegin = createQuery(attrIdx, minValue)
         val queryEnd = createQuery(attrIdx, maxValue)
+        println(s"queryBegin: '${new String(queryBegin)}'; queryEnd: '${new String(queryEnd)}'")
         (QueryType.RangeSearch, Array[Array[Byte]](queryBegin, queryEnd))
-      }
-      case GreaterThanOrEqual(attribute, value) => {
+
+      case GreaterThanOrEqual(attribute, value) =>
         val attrIdx = getAttrIdx(attribute)
         val minValue = succinctSerializer.typeToString(attrIdx, value).getBytes
         val maxValue = succinctSerializer.typeToString(attrIdx, maximums.get(attrIdx)).getBytes
@@ -241,8 +243,8 @@ class SuccinctTableRDDImpl private[succinct](
         val queryBegin = createQuery(attrIdx, minValue)
         val queryEnd = createQuery(attrIdx, maxValue)
         (QueryType.RangeSearch, Array[Array[Byte]](queryBegin, queryEnd))
-      }
-      case LessThan(attribute, value) => {
+
+      case LessThan(attribute, value) =>
         val attrIdx = getAttrIdx(attribute)
         val minValue = succinctSerializer.typeToString(attrIdx, minimums.get(attrIdx)).getBytes
         val maxValue = succinctSerializer.typeToString(attrIdx, prevValue(value)).getBytes
@@ -250,8 +252,8 @@ class SuccinctTableRDDImpl private[succinct](
         val queryBegin = createQuery(attrIdx, minValue)
         val queryEnd = createQuery(attrIdx, maxValue)
         (QueryType.RangeSearch, Array[Array[Byte]](queryBegin, queryEnd))
-      }
-      case GreaterThan(attribute, value) => {
+
+      case GreaterThan(attribute, value) =>
         val attrIdx = getAttrIdx(attribute)
         val minValue = succinctSerializer.typeToString(attrIdx, nextValue(value)).getBytes
         val maxValue = succinctSerializer.typeToString(attrIdx, maximums.get(attrIdx)).getBytes
@@ -259,15 +261,14 @@ class SuccinctTableRDDImpl private[succinct](
         val queryBegin = createQuery(attrIdx, minValue)
         val queryEnd = createQuery(attrIdx, maxValue)
         (QueryType.RangeSearch, Array[Array[Byte]](queryBegin, queryEnd))
-      }
-    })
+    }
   }
 
   /** Implements pruneAndFilter for [[SuccinctTableRDD]]. */
   override def pruneAndFilter(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
     val reqColsCheck = schema.map(f => f.name -> requiredColumns.contains(f.name)).toMap
-    if(filters.length == 0) {
-      if(requiredColumns.length == schema.length) {
+    if (filters.length == 0) {
+      if (requiredColumns.length == schema.length) {
         return this
       }
       return new SuccinctPrunedTableRDD(partitionsRDD, succinctSerializer, reqColsCheck)
@@ -275,7 +276,7 @@ class SuccinctTableRDDImpl private[succinct](
     val queryList = filtersToQueries(filters)
     val queryTypes = queryList.map(_._1)
     val queries = queryList.map(_._2)
-    return new MultiSearchResultsRDD(this, queryTypes, queries, reqColsCheck, succinctSerializer)
+    new MultiSearchResultsRDD(this, queryTypes, queries, reqColsCheck, succinctSerializer)
   }
 
   /** Implements count for [[SuccinctTableRDD]]. */

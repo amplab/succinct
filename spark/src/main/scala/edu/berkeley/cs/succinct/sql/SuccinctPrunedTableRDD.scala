@@ -16,10 +16,12 @@ class SuccinctPrunedTableRDD(
   /** Overrides [[RDD]]]'s compute to return a [[SuccinctTableIterator]]. */
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
     val succinctIterator = firstParent[SuccinctIndexedBuffer].iterator(split, context)
-    if(succinctIterator.hasNext)
+    if (succinctIterator.hasNext) {
       new SuccinctPrunedTableIterator(succinctIterator.next(),
         succinctSerializer, reqColsCheck)
-    else Iterator[Row]()
+    } else {
+      Iterator[Row]()
+    }
   }
 
   /** Set the name for the RDD; By default set to "SuccinctPrunedTableRDD". */
