@@ -30,7 +30,8 @@ object SuccinctBuild extends Build {
     parallelExecution in Test := false,
 
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "2.2.1" % "test"
+      "org.scalatest" %% "scalatest" % "2.2.1" % "test",
+      "com.novocode" % "junit-interface" % "0.11" % "test"
     ),
 
     resolvers ++= Seq(
