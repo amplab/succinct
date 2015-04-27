@@ -9,6 +9,8 @@ import org.apache.spark.sql.test.TestSQLContext._
 import org.apache.spark.sql.types._
 import org.scalatest.FunSuite
 
+import scala.util.Random
+
 private[succinct] object TestUtils {
 
   /**
@@ -61,6 +63,7 @@ class SuccinctSQLSuite extends FunSuite {
   val rawTable = getClass.getResource("/table.dat").getFile
   val succinctTable = getClass.getResource("/table.succinct").getFile
   val citiesTable = getClass.getResource("/cities.dat").getFile
+
   test("dsl test") {
     val results = TestSQLContext
       .succinctFile(succinctTable)
@@ -80,7 +83,7 @@ class SuccinctSQLSuite extends FunSuite {
 
     assert(sql("SELECT * FROM succinctTable").collect().size === 1000)
   }
-  
+
   test("Convert specific SparkSQL types to succinct") {
     val testSchema = StructType(Seq(
       StructField("Name", StringType, false),
@@ -148,11 +151,46 @@ class SuccinctSQLSuite extends FunSuite {
 //      .filter("Length = 666")
 //      .collect()
 //    assert(hasAirport.length == 5)
+  }
 
-    val isShort = loadedDF
-      .filter(loadedDF("Length") < 10)
-      .collect()
-    assert(isShort.length == 6)
+  test("filters") {
+    val testSchema = StructType(Seq(
+      StructField("Name", StringType, false),
+      StructField("Length", IntegerType, true),
+      StructField("Area", DoubleType, false),
+      StructField("Airport", BooleanType, true)))
+
+    val cityRDD = sparkContext.textFile(citiesTable)
+      .map(_.split(','))
+      .map(t => Row(t(0), t(1).toInt, t(2).toDouble, t(3).toBoolean))
+
+    val cityDataFrame = TestSQLContext.createDataFrame(cityRDD, testSchema)
+
+    val tempDir = Files.createTempDir()
+    val succinctDir = tempDir + "/succinct"
+    cityDataFrame.saveAsSuccinctFiles(succinctDir)
+
+    val loadedDF = TestSQLContext.succinctFile(succinctDir)
+
+    assert(cityDataFrame.filter(cityDataFrame("Length") <= 20).collect().length === 11)
+    // FIXME: got 4
+    assert(loadedDF.filter(loadedDF("Length") <= 20).collect().length === 11)
+
+    assert(loadedDF.filter(loadedDF("Length") < 20).collect().length === 9)
+
+    // FIXME: randomly fails.
+    val rand = new Random()
+    for (i <- 1 to 20) {
+      val randL = rand.nextInt(1000)
+      assert(loadedDF.filter(loadedDF("Length") < randL).count() ===
+        cityDataFrame.filter(cityDataFrame("Length") < randL).count())
+    }
+
+    // FIXME: got 0
+    assert(loadedDF.filter(loadedDF("Length") > 950).collect().length === 13)
+
+    // FIXME: got 7
+    assert(loadedDF.filter(loadedDF("Length") >= 950).collect().length === 14)
   }
 
   test("test load and save") {
@@ -167,4 +205,5 @@ class SuccinctSQLSuite extends FunSuite {
     val newDf = TestSQLContext.load(tempSaveDir, "edu.berkeley.cs.succinct.sql")
     assert(newDf.count == 1000)
   }
+
 }
