@@ -10,15 +10,18 @@ object SuccinctBuild extends Build {
     .aggregate(core, spark)
     .settings(assemblySettings: _*)
     .settings(commonSettings: _*)
+    .settings(TestSettings.settings: _*)
 
   lazy val core = project.in(file("core"))
     .settings(assemblySettings: _*)
     .settings(commonSettings: _*)
+    .settings(TestSettings.settings: _*)
     .settings(name := "succinct-core")
 
   lazy val spark = project.in(file("spark"))
     .settings(assemblySettings: _*)
     .settings(commonSettings: _*)
+    .settings(TestSettings.settings: _*)
     .settings(name := "succinct-spark")
     .dependsOn(core)
 
@@ -27,7 +30,6 @@ object SuccinctBuild extends Build {
     version := "0.1.0-SNAPSHOT",
     organization := "edu.berkeley.cs",
     scalaVersion := "2.10.4",
-    parallelExecution in Test := false,
 
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "2.2.1" % "test",
@@ -56,4 +58,12 @@ object SuccinctBuild extends Build {
     }
   )
 
+}
+
+object TestSettings {
+  lazy val settings = Seq(
+    fork := true,
+    javaOptions in Test += "-Dspark.driver.allowMultipleContexts=true",
+    parallelExecution in Test := false
+  )
 }
