@@ -25,7 +25,7 @@ import java.util.*;
 public class SuccinctCore implements Serializable {
 
     private static final long serialVersionUID = 1382615274437547247L;
-    
+
     public static final byte EOF = 1;
 
     protected ByteBuffer metadata;
@@ -63,7 +63,7 @@ public class SuccinctCore implements Serializable {
     protected Map<Long, Long> contextMap;
 
     /**
-     * 
+     *
      * Constructor to initialize SuccinctCore from input byte array and specified context length.
      * @param input Input byte array.
      * @param contextLen Context length.
@@ -74,7 +74,7 @@ public class SuccinctCore implements Serializable {
 
         // Initializing Table data
         Tables.init();
-        
+
         // Append the EOF byte
         int end = input.length;
         input = Arrays.copyOf(input, input.length + 1);
@@ -110,32 +110,41 @@ public class SuccinctCore implements Serializable {
         }
     }
 
-    class Range<T1 extends Comparable<T1>, T2 extends Comparable<T2>> extends Pair<T1, T2> implements Comparable {
+    class Range implements Comparable<Range> {
+        public long first, second;
 
         /**
-         * Constructor to initialize pair
+         * Initializes a numeric range, [first, second] (inclusive).
+         * Represents an invalid/empty range iff second < first.
          *
          * @param first  First element.
          * @param second Second element.
          */
-        public Range(T1 first, T2 second) {
-            super(first, second);
+        public Range(long first, long second) {
+            this.first = first;
+            this.second = second;
         }
 
         @Override
-        public int compareTo(Object o) {
-            Pair<T1, T2> p = (Pair<T1, T2>)o;
-            if(this.first == p.first) {
-                return this.second.compareTo(p.second);
+        public int compareTo(Range that) {
+            long diff1 = this.first - that.first;
+            long diff2 = this.second - that.second;
+            if (diff1 == 0) {
+                return diff2 < 0 ? -1 : (diff2 == 0 ? 0 : 1);
             } else {
-                return this.first.compareTo(p.first);
+                return diff1 < 0 ? -1 : 1;
             }
+        }
+
+        @Override
+        public String toString() {
+            return String.format("[%d, %d]", first, second);
         }
     }
 
     /**
      * Lookup NPA at specified index.
-     *  
+     *
      * @param i Index into NPA.
      * @return Value of NPA at specified index.
      */
@@ -186,7 +195,7 @@ public class SuccinctCore implements Serializable {
 
     /**
      * Lookup SA at specified index.
-     *  
+     *
      * @param i Index into SA.
      * @return Value of SA at specified index.
      */
@@ -289,7 +298,7 @@ public class SuccinctCore implements Serializable {
 
     /**
      * Construct auxiliary data structures.
-     *  
+     *
      * @param SA Suffix Array.
      * @param input Input byte array.
      */
@@ -630,7 +639,7 @@ public class SuccinctCore implements Serializable {
 
     /**
      * Get context value at specified index in bitmap representation of input.
-     *  
+     *
      * @param T Bitmap representation of input.
      * @param i Index into input.
      * @return Value of context at specified index.
@@ -727,7 +736,7 @@ public class SuccinctCore implements Serializable {
      */
     private void writeObject(ObjectOutputStream oos) throws IOException {
         resetBuffers();
-        
+
         WritableByteChannel dataChannel = Channels.newChannel(oos);
 
         dataChannel.write(metadata.order(ByteOrder.nativeOrder()));
@@ -1000,7 +1009,7 @@ public class SuccinctCore implements Serializable {
 
     /**
      * Get the original size.
-     *  
+     *
      * @return The originalSize.
      */
     public int getOriginalSize() {
