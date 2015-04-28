@@ -25,11 +25,10 @@ class RangeSearchResultsRDD(val succinctTableRDD: SuccinctTableRDD,
 
   /** Overrides the compute method in RDD to return an iterator over the search results. */
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
-    succinctTableRDD.getFirstParent
+    succinctTableRDD.getFirstParent()
       .iterator(split, context)
-      .next
+      .next()
       .recordRangeSearch(queryBegin, queryEnd)
-      .asInstanceOf[Array[Array[Byte]]]
       .iterator
       .map(succinctSerializer.deserializeRow)
   }
