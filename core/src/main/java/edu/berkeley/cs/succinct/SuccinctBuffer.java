@@ -157,13 +157,8 @@ public class SuccinctBuffer extends SuccinctCore {
 
         if (alphabetMap.containsKey(buf[m - 1])) {
             range.first = alphabetMap.get(buf[m - 1]).first;
-            range.second = alphabetMap
-                    .get((alphabet.get(alphabetMap.get(buf[m - 1]).second + 1))).first - 1;
+            range.second = alphabetMap.get((alphabet.get(alphabetMap.get(buf[m - 1]).second + 1))).first - 1;
         } else {
-            return range;
-        }
-
-        if (range.first > range.second) {
             return range;
         }
 
@@ -176,9 +171,6 @@ public class SuccinctBuffer extends SuccinctCore {
             }
             range.first = binSearchNPA(range.first, c1, c2, false);
             range.second = binSearchNPA(range.second, c1, c2, true);
-            if (range.first > range.second) {
-                return range;
-            }
         }
 
         return range;
