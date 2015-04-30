@@ -26,8 +26,6 @@ class MultiSearchResultsRDD(val succinctTableRDD: SuccinctTableRDD,
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends RDD[Row](succinctTableRDD.context, List(new OneToOneDependency(succinctTableRDD))) {
 
-  queries.foreach(x => x.foreach(y => println(new String(y))))
-
   /** Overrides the compute method in RDD to return an iterator over the search results. */
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
     succinctTableRDD.getFirstParent
