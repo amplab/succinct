@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.sql
 
-import java.io.{IOException, File}
+import java.io.{File, IOException}
 
 import com.google.common.io.Files
 import org.apache.spark.sql.Row
@@ -92,8 +92,8 @@ class SuccinctSQLSuite extends FunSuite {
       StructField("Airport", BooleanType, true)))
 
     val cityRDD = sparkContext.parallelize(Seq(
-      Row("San Francisco", 12, 44.5, true),
-      Row("Palo Alto", 12, 22.3, false),
+      Row("San Francisco", 12, 44.52, true),
+      Row("Palo Alto", 12, 22.33, false),
       Row("Munich", 8, 3.14, true)))
     val cityDataFrame = TestSQLContext.createDataFrame(cityRDD, testSchema)
 
@@ -107,22 +107,22 @@ class SuccinctSQLSuite extends FunSuite {
       .succinctFile(succinctDir)
       .select("Name")
       .collect()
-    assert(cities.map(_(0)).toSet == Set("San Francisco", "Palo Alto", "Munich"))
+    assert(cities.map(_(0)).toSet === Set("San Francisco", "Palo Alto", "Munich"))
 
     val lengths = TestSQLContext
       .succinctFile(succinctDir)
       .select("Length")
       .collect()
-    assert(lengths.map(_(0)).toSet == Set(12, 12, 8))
+    assert(lengths.map(_(0)).toSet === Set(12, 12, 8))
 
     val airports = TestSQLContext
       .succinctFile(succinctDir)
       .select("Airport")
       .collect()
-    assert(airports.map(_(0)).toSeq == Seq(true, false, true))
+    assert(airports.map(_(0)).toSeq === Seq(true, false, true))
   }
 
-  test("prune") {
+  test("prunes") {
     val testSchema = StructType(Seq(
       StructField("Name", StringType, false),
       StructField("Length", IntegerType, true),
@@ -142,10 +142,21 @@ class SuccinctSQLSuite extends FunSuite {
     val loadedDF = TestSQLContext
       .succinctFile(succinctDir)
 
-    val cities = loadedDF
-      .select("Name")
-      .collect()
-    assert(cities.length == 385)
+    def checkPrunes(columns: String*) = {
+      val expected = cityDataFrame.select(columns.map(cityDataFrame(_)): _*).collect()
+      val actual = loadedDF.select(columns.map(loadedDF(_)): _*).collect()
+      assert(actual.size === expected.size)
+      expected.foreach(row => assert(row.toSeq.length == columns.length))
+    }
+
+    checkPrunes("Name")
+    checkPrunes("Length")
+    checkPrunes("Area")
+    checkPrunes("Airport")
+    checkPrunes("Name", "Length")
+    checkPrunes("Area", "Airport")
+    checkPrunes("Name", "Area", "Airport")
+    checkPrunes("Name", "Length", "Area", "Airport")
 
   }
 
