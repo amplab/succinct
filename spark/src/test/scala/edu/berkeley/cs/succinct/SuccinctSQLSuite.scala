@@ -122,7 +122,7 @@ class SuccinctSQLSuite extends FunSuite {
     assert(airports.map(_(0)).toSeq == Seq(true, false, true))
   }
 
-  test("test prune and filter") {
+  test("prune") {
     val testSchema = StructType(Seq(
       StructField("Name", StringType, false),
       StructField("Length", IntegerType, true),
@@ -147,10 +147,6 @@ class SuccinctSQLSuite extends FunSuite {
       .collect()
     assert(cities.length == 385)
 
-//    val hasAirport = loadedDF
-//      .filter("Length = 666")
-//      .collect()
-//    assert(hasAirport.length == 5)
   }
 
   test("filters") {
@@ -187,8 +183,6 @@ class SuccinctSQLSuite extends FunSuite {
     val rand = new Random()
     checkFilters("Name", Seq("''", "'Z'", "'Las Vegas'", "'Aberdeen'", "'Bronxville'"))
     checkFilters("Length", Seq.fill(2)(rand.nextInt(1000)))
-    // FIXME: 373 did not equal 385 fails > 0.0 on column Area
-    // FIXME: 186 did not equal 385 fails > -1.0 on column Area
     checkFilters("Area", Seq(-1, 0.0, 999.2929, 1618.15, 9, 659))
     checkFilters("Airport", Seq(false, true))
   }

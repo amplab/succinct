@@ -231,15 +231,17 @@ class SuccinctTableRDDImpl private[succinct](
 
       case LessThanOrEqual(attribute, value) =>
         val attrIdx = getAttrIdx(attribute)
+        val mValue = SuccinctTableRDD.minValue(value, maximums.get(attrIdx))
         val minValue = succinctSerializer.typeToString(attrIdx, minimums.get(attrIdx)).getBytes
-        val maxValue = succinctSerializer.typeToString(attrIdx, value).getBytes
+        val maxValue = succinctSerializer.typeToString(attrIdx, mValue).getBytes
         val queryBegin = createQuery(attrIdx, minValue)
         val queryEnd = createQuery(attrIdx, maxValue)
         (QueryType.RangeSearch, Array[Array[Byte]](queryBegin, queryEnd))
 
       case GreaterThanOrEqual(attribute, value) =>
         val attrIdx = getAttrIdx(attribute)
-        val minValue = succinctSerializer.typeToString(attrIdx, value).getBytes
+        val mValue = SuccinctTableRDD.maxValue(value, minimums.get(attrIdx))
+        val minValue = succinctSerializer.typeToString(attrIdx, mValue).getBytes
         val maxValue = succinctSerializer.typeToString(attrIdx, maximums.get(attrIdx)).getBytes
         val queryBegin = createQuery(attrIdx, minValue)
         val queryEnd = createQuery(attrIdx, maxValue)
@@ -247,15 +249,17 @@ class SuccinctTableRDDImpl private[succinct](
 
       case LessThan(attribute, value) =>
         val attrIdx = getAttrIdx(attribute)
+        val mValue = SuccinctTableRDD.minValue(value, maximums.get(attrIdx))
         val minValue = succinctSerializer.typeToString(attrIdx, minimums.get(attrIdx)).getBytes
-        val maxValue = succinctSerializer.typeToString(attrIdx, prevValue(value)).getBytes
+        val maxValue = succinctSerializer.typeToString(attrIdx, prevValue(mValue)).getBytes
         val queryBegin = createQuery(attrIdx, minValue)
         val queryEnd = createQuery(attrIdx, maxValue)
         (QueryType.RangeSearch, Array[Array[Byte]](queryBegin, queryEnd))
 
       case GreaterThan(attribute, value) =>
         val attrIdx = getAttrIdx(attribute)
-        val minValue = succinctSerializer.typeToString(attrIdx, nextValue(value)).getBytes
+        val mValue = SuccinctTableRDD.maxValue(value, minimums.get(attrIdx))
+        val minValue = succinctSerializer.typeToString(attrIdx, nextValue(mValue)).getBytes
         val maxValue = succinctSerializer.typeToString(attrIdx, maximums.get(attrIdx)).getBytes
         val queryBegin = createQuery(attrIdx, minValue)
         val queryEnd = createQuery(attrIdx, maxValue)

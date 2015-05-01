@@ -217,8 +217,8 @@ object SuccinctTableRDD {
       case _: Short => data.toString.length
       case _: Int => data.toString.length
       case _: Long => data.toString.length
-      case _: Float => "%.0f".format(data.asInstanceOf[Float]).length
-      case _: Double => "%.0f".format(data.asInstanceOf[Double]).length
+      case _: Float => "%.2f".format(data.asInstanceOf[Float]).length
+      case _: Double => "%.2f".format(data.asInstanceOf[Double]).length
       case _: java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal].longValue.toString.length
       case _: String => data.asInstanceOf[String].length
       case other => throw new IllegalArgumentException(s"Unexpected type.")
