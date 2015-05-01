@@ -223,7 +223,11 @@ class SuccinctTableRDDImpl private[succinct](
       case StringStartsWith(attribute, value) => (QueryType.Search, Array[Array[Byte]](createPrefixQuery(attribute, value.getBytes)))
       case StringEndsWith(attribute, value) => (QueryType.Search, Array[Array[Byte]](createSuffixQuery(attribute, value.getBytes)))
       case StringContains(attribute, value) => (QueryType.Search, Array[Array[Byte]](value.getBytes))
-      case EqualTo(attribute, value) => (QueryType.Search, Array[Array[Byte]](createQuery(attribute, value.toString.getBytes)))
+
+      case EqualTo(attribute, value) =>
+        val attrIdx = getAttrIdx(attribute)
+        val query = succinctSerializer.typeToString(attrIdx, value).getBytes
+        (QueryType.Search, Array[Array[Byte]](createQuery(attribute, query)))
 
       case LessThanOrEqual(attribute, value) =>
         val attrIdx = getAttrIdx(attribute)
