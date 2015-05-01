@@ -169,28 +169,28 @@ class SuccinctSQLSuite extends FunSuite {
     val tempDir = Files.createTempDir()
     val succinctDir = tempDir + "/succinct"
     cityDataFrame.saveAsSuccinctFiles(succinctDir)
-
     val loadedDF = TestSQLContext.succinctFile(succinctDir)
 
-    assert(cityDataFrame.filter(cityDataFrame("Length") <= 20).collect().length === 11)
-    // FIXME: got 4
-    assert(loadedDF.filter(loadedDF("Length") <= 20).collect().length === 11)
-
-    assert(loadedDF.filter(loadedDF("Length") < 20).collect().length === 9)
-
-    // FIXME: randomly fails.
-    val rand = new Random()
-    for (i <- 1 to 20) {
-      val randL = rand.nextInt(1000)
-      assert(loadedDF.filter(loadedDF("Length") < randL).count() ===
-        cityDataFrame.filter(cityDataFrame("Length") < randL).count())
+    def checkFilters[T](column: String, makeThresholds: => Seq[T]) = {
+      def check(column: String, op: String, threshold: T) = {
+        val expected = cityDataFrame.filter(s"$column $op $threshold")
+        val actual = loadedDF.filter(s"$column $op $threshold")
+        assert(actual.count() === expected.count(), s"fails $op $threshold on column $column")
+      }
+      for (threshold <- makeThresholds) {
+        for (op <- Seq("<", "<=", ">", ">=", "=")) {
+          check(column, op, threshold)
+        }
+      }
     }
 
-    // FIXME: got 0
-    assert(loadedDF.filter(loadedDF("Length") > 950).collect().length === 13)
-
-    // FIXME: got 7
-    assert(loadedDF.filter(loadedDF("Length") >= 950).collect().length === 14)
+    val rand = new Random()
+    checkFilters("Name", Seq("''", "'Z'", "'Las Vegas'", "'Aberdeen'", "'Bronxville'"))
+    checkFilters("Length", Seq.fill(2)(rand.nextInt(1000)))
+    // FIXME: 373 did not equal 385 fails > 0.0 on column Area
+    // FIXME: 186 did not equal 385 fails > -1.0 on column Area
+    checkFilters("Area", Seq(-1, 0.0, 999.2929, 1618.15, 9, 659))
+    checkFilters("Airport", Seq(false, true))
   }
 
   test("test load and save") {
