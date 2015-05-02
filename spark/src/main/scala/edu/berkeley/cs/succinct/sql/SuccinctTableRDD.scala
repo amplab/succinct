@@ -206,7 +206,7 @@ object SuccinctTableRDD {
       offsets += offset
       offset += (curTuple.length + 1)
     }
-    val ret = Iterator(new SuccinctIndexedBuffer(rawBufferBuilder.toString.getBytes, offsets.toArray))
+    val ret = Iterator(new SuccinctIndexedBuffer(rawBufferBuilder.toString.getBytes, offsets.toArray, 2))
     ret
   }
 
