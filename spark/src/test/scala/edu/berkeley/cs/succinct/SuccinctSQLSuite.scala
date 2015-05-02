@@ -125,7 +125,7 @@ class SuccinctSQLSuite extends FunSuite {
       .succinctFile(succinctDir)
       .select("Airport")
       .collect()
-    assert(airports.map(_(0)).toSeq === Seq(true, false, true))
+    assert(airports.map(_(0)).toSet === Set(true, false, true))
   }
 
   test("prunes") {
