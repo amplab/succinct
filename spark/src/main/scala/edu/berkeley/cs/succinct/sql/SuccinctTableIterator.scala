@@ -1,6 +1,7 @@
 package edu.berkeley.cs.succinct.sql
 
 import edu.berkeley.cs.succinct.SuccinctIndexedBuffer
+
 import org.apache.spark.sql.Row
 
 /**
@@ -10,7 +11,9 @@ import org.apache.spark.sql.Row
  * @param sBuf The underlying SuccinctIndexedBuffer.
  * @param succinctSerializer The serializer/deserializer for Succinct's representation of records.
  */
-class SuccinctTableIterator private[succinct](sBuf: SuccinctIndexedBuffer, succinctSerializer: SuccinctSerializer)
+class SuccinctTableIterator private[succinct](
+    sBuf: SuccinctIndexedBuffer,
+    succinctSerializer: SuccinctSerializer)
   extends Iterator[Row] {
 
   var curPos: Int = 0

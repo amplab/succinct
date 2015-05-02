@@ -1,6 +1,7 @@
 package edu.berkeley.cs.succinct.sql
 
 import edu.berkeley.cs.succinct.SuccinctIndexedBuffer
+
 import org.apache.spark.sql.Row
 
 /**
@@ -35,8 +36,7 @@ class SuccinctPrunedTableIterator private[succinct](
   override def next(): Row = {
     val data = sBuf.extractUntil(curPos, SuccinctIndexedBuffer.getRecordDelim)
     curPos = curPos + data.length + 1
-    val row = succinctSerializer.deserializeRow(data, reqColsCheck)
-    row
+    succinctSerializer.deserializeRow(data, reqColsCheck)
   }
 
 }
