@@ -3,7 +3,7 @@ package edu.berkeley.cs.succinct.sql
 import java.io.{File, IOException}
 
 import com.google.common.io.Files
-import org.apache.spark.sql.Row
+import org.apache.spark.sql.{DataFrame, Row}
 import org.apache.spark.sql.test.TestSQLContext
 import org.apache.spark.sql.test.TestSQLContext._
 import org.apache.spark.sql.types._
@@ -62,7 +62,30 @@ private[succinct] object TestUtils {
 class SuccinctSQLSuite extends FunSuite {
   val rawTable = getClass.getResource("/table.dat").getFile
   val succinctTable = getClass.getResource("/table.succinct").getFile
+
   val citiesTable = getClass.getResource("/cities.dat").getFile
+  val testSchema = StructType(Seq(
+    StructField("Name", StringType, false),
+    StructField("Length", IntegerType, true),
+    StructField("Area", DoubleType, false),
+    StructField("Airport", BooleanType, true)))
+
+  def createTestDF(schema: StructType = testSchema): (DataFrame, DataFrame) = {
+    val bigDecimal = schema("Area").dataType.isInstanceOf[DecimalType]
+    val cityRDD = sparkContext.textFile(citiesTable)
+      .map(_.split(','))
+      .map { t =>
+        if (!bigDecimal) Row(t(0), t(1).toInt, t(2).toDouble, t(3).toBoolean)
+        else Row(t(0), t(1).toInt, BigDecimal(t(2)), t(3).toBoolean)
+      }
+    val df = TestSQLContext.createDataFrame(cityRDD, schema)
+
+    val tempDir = Files.createTempDir()
+    val succinctDir = tempDir + "/succinct"
+    df.saveAsSuccinctFiles(succinctDir)
+    val loadedDF = TestSQLContext.succinctFile(succinctDir)
+    (df, loadedDF) // (expected, actual: succinct loaded)
+  }
 
   test("dsl test") {
     val results = TestSQLContext
@@ -129,24 +152,7 @@ class SuccinctSQLSuite extends FunSuite {
   }
 
   test("prunes") {
-    val testSchema = StructType(Seq(
-      StructField("Name", StringType, false),
-      StructField("Length", IntegerType, true),
-      StructField("Area", DoubleType, false),
-      StructField("Airport", BooleanType, true)))
-
-    val cityRDD = sparkContext.textFile(citiesTable)
-      .map(_.split(','))
-      .map(t => Row(t(0), t(1).toInt, t(2).toDouble, t(3).toBoolean))
-
-    val cityDataFrame = TestSQLContext.createDataFrame(cityRDD, testSchema)
-
-    val tempDir = Files.createTempDir()
-    val succinctDir = tempDir + "/succinct"
-    cityDataFrame.saveAsSuccinctFiles(succinctDir)
-
-    val loadedDF = TestSQLContext
-      .succinctFile(succinctDir)
+    val (cityDataFrame, loadedDF) = createTestDF(testSchema)
 
     def checkPrunes(columns: String*) = {
       val expected = cityDataFrame.select(columns.map(cityDataFrame(_)): _*).collect()
@@ -163,32 +169,21 @@ class SuccinctSQLSuite extends FunSuite {
     checkPrunes("Area", "Airport")
     checkPrunes("Name", "Area", "Airport")
     checkPrunes("Name", "Length", "Area", "Airport")
-
   }
 
   test("filters") {
-    val testSchema = StructType(Seq(
-      StructField("Name", StringType, false),
-      StructField("Length", IntegerType, true),
-      StructField("Area", DoubleType, false),
-      StructField("Airport", BooleanType, true)))
-
-    val cityRDD = sparkContext.textFile(citiesTable)
-      .map(_.split(','))
-      .map(t => Row(t(0), t(1).toInt, t(2).toDouble, t(3).toBoolean))
-
-    val cityDataFrame = TestSQLContext.createDataFrame(cityRDD, testSchema)
-
-    val tempDir = Files.createTempDir()
-    val succinctDir = tempDir + "/succinct"
-    cityDataFrame.saveAsSuccinctFiles(succinctDir)
-    val loadedDF = TestSQLContext.succinctFile(succinctDir)
-
-    def checkFilters[T](column: String, makeThresholds: => Seq[T]) = {
+    def checkFilters[T](expectedDF: DataFrame, actualDF: DataFrame,
+                        column: String, makeThresholds: => Seq[T]) = {
       def check(column: String, op: String, threshold: T) = {
-        val expected = cityDataFrame.filter(s"$column $op $threshold")
-        val actual = loadedDF.filter(s"$column $op $threshold")
-        assert(actual.count() === expected.count(), s"fails $op $threshold on column $column")
+        try {
+          val expected = expectedDF.filter(s"$column $op $threshold")
+          val actual = actualDF.filter(s"$column $op $threshold")
+          assert(actual.count() === expected.count(), s"fails $op $threshold on column $column")
+        } catch {
+          case e: Exception =>
+            println(s"****query: '$column $op $threshold'")
+            throw e
+        }
       }
       for (threshold <- makeThresholds) {
         for (op <- Seq("<", "<=", ">", ">=", "=")) {
@@ -198,10 +193,30 @@ class SuccinctSQLSuite extends FunSuite {
     }
 
     val rand = new Random()
-    checkFilters("Name", Seq("''", "'Z'", "'Las Vegas'", "'Aberdeen'", "'Bronxville'"))
-    checkFilters("Length", Seq.fill(2)(rand.nextInt(1000)))
-    checkFilters("Area", Seq(-1, 0.0, 999.2929, 1618.15, 9, 659))
-    checkFilters("Airport", Seq(false, true))
+
+    // string, integer, double, boolean columns
+    val (cityDataFrame, loadedDF) = createTestDF(testSchema)
+
+    checkFilters(cityDataFrame, loadedDF, "Name",
+      Seq("''", "'Z'", "'Las Vegas'", "'Aberdeen'", "'Bronxville'"))
+    checkFilters(cityDataFrame, loadedDF, "Length",
+      Seq.fill(2)(rand.nextInt(1000)))
+    checkFilters(cityDataFrame, loadedDF, "Area",
+      Seq(-1, 0.0, 999.2929, 1618.15, 9, 659))
+    checkFilters(cityDataFrame, loadedDF, "Airport",
+      Seq(false, true))
+
+    // decimal column
+    val testSchema2 = StructType(Seq(
+      StructField("Name", StringType, false),
+      StructField("Length", IntegerType, true),
+      StructField("Area", DecimalType(None), false), // changed to DecimalType
+      StructField("Airport", BooleanType, true)))
+    val (cityDataFrame2, loadedDF2) = createTestDF(testSchema2)
+
+    // FIXME
+    checkFilters(cityDataFrame2, loadedDF2, "Area",
+      Seq(-1, 0.0, 999.2929, 1618.15, 9, 659) ++ Seq.fill(2)(rand.nextDouble() * 1000))
   }
 
   test("test load and save") {
