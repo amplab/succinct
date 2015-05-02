@@ -115,6 +115,12 @@ class SuccinctSQLSuite extends FunSuite {
       .collect()
     assert(lengths.map(_(0)).toSet === Set(12, 12, 8))
 
+    val areas = TestSQLContext
+      .succinctFile(succinctDir)
+      .select("Area")
+      .collect()
+    assert(areas.map(_(0)).toSet === Set(44.52, 22.33, 3.14))
+
     val airports = TestSQLContext
       .succinctFile(succinctDir)
       .select("Airport")
