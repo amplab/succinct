@@ -98,13 +98,13 @@ class SuccinctTableRDDImpl private[succinct](
   /** Implements createPrefixQuery for [[SuccinctTableRDD]] */
   private def createPrefixQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
     val attrIdx = schema.lastIndexOf(schema(attribute))
-    (getSeparator(attrIdx) +: query)
+    getSeparator(attrIdx) +: query
   }
 
   /** Implements createSuffixQuery for [[SuccinctTableRDD]] */
   private def createSuffixQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
     val attrIdx = schema.lastIndexOf(schema(attribute))
-    (query :+ getSeparator(attrIdx + 1))
+    query :+ getSeparator(attrIdx + 1)
   }
 
   /** Implements save for [[SuccinctTableRDD]] */
@@ -177,16 +177,16 @@ class SuccinctTableRDDImpl private[succinct](
    */
   private def prevValue(data: Any): Any = {
     data match {
-      case _:Boolean => !data.asInstanceOf[Boolean]
-      case _:Byte => data.asInstanceOf[Byte] - 1
-      case _:Short => data.asInstanceOf[Short] - 1
-      case _:Int => data.asInstanceOf[Int] - 1
-      case _:Long => data.asInstanceOf[Long] - 1
-      case _:Float => data.asInstanceOf[Float] - Float.MinPositiveValue
-      case _:Double => data.asInstanceOf[Double] - Double.MinPositiveValue
-      case _:java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal]
-      case _:BigDecimal => data.asInstanceOf[BigDecimal]
-      case _:String => data.asInstanceOf[String]
+      case _: Boolean => !data.asInstanceOf[Boolean]
+      case _: Byte => data.asInstanceOf[Byte] - 1
+      case _: Short => data.asInstanceOf[Short] - 1
+      case _: Int => data.asInstanceOf[Int] - 1
+      case _: Long => data.asInstanceOf[Long] - 1
+      case _: Float => data.asInstanceOf[Float] - Float.MinPositiveValue
+      case _: Double => data.asInstanceOf[Double] - Double.MinPositiveValue
+      case _: java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal]
+      case _: BigDecimal => data.asInstanceOf[BigDecimal]
+      case _: String => data.asInstanceOf[String]
       case other => throw new IllegalArgumentException(s"Unexpected type.")
     }
   }
@@ -220,9 +220,14 @@ class SuccinctTableRDDImpl private[succinct](
    */
   private def filtersToQueries(filters: Array[Filter]): Array[(QueryType, Array[Array[Byte]])] = {
     filters.filter(isFilterSupported).map {
-      case StringStartsWith(attribute, value) => (QueryType.Search, Array[Array[Byte]](createPrefixQuery(attribute, value.getBytes)))
-      case StringEndsWith(attribute, value) => (QueryType.Search, Array[Array[Byte]](createSuffixQuery(attribute, value.getBytes)))
-      case StringContains(attribute, value) => (QueryType.Search, Array[Array[Byte]](value.getBytes))
+      case StringStartsWith(attribute, value) =>
+        (QueryType.Search, Array[Array[Byte]](createPrefixQuery(attribute, value.getBytes)))
+
+      case StringEndsWith(attribute, value) =>
+        (QueryType.Search, Array[Array[Byte]](createSuffixQuery(attribute, value.getBytes)))
+
+      case StringContains(attribute, value) =>
+        (QueryType.Search, Array[Array[Byte]](value.getBytes))
 
       case EqualTo(attribute, value) =>
         val attrIdx = getAttrIdx(attribute)

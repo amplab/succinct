@@ -17,7 +17,7 @@ class SuccinctIterator private[succinct](sBuf: SuccinctBuffer) extends Iterator[
    * @return true if there are more records to iterate over;
    *         false otherwise.
    */
-  override def hasNext: Boolean = (curPos < sBuf.getOriginalSize() - 1)
+  override def hasNext: Boolean = curPos < sBuf.getOriginalSize - 1
 
   /**
    * Returns the next tuple.

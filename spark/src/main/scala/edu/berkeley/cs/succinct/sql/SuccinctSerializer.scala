@@ -37,13 +37,13 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
     var elemList = new ListBuffer[String]
     val elemBuilder = new StringBuilder
     val separatorsIter = separators.iterator
-    var nextSeparator = separatorsIter.next
+    var nextSeparator = separatorsIter.next()
     while (i < data.length) {
       if (data(i) == nextSeparator) {
         if (i != 0) elemList += elemBuilder.toString
-        elemBuilder.clear
+        elemBuilder.clear()
         if (separatorsIter.hasNext)
-          nextSeparator = separatorsIter.next
+          nextSeparator = separatorsIter.next()
         else
           nextSeparator = SuccinctIndexedBuffer.getRecordDelim
       } else {
@@ -67,7 +67,7 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
   private[succinct] def deserializeRow(
       data: Array[Byte],
       requiredColumns: Map[String, Boolean]): Row = {
-    if(data.length == 0 || !requiredColumns.map(_._2).reduce((a , b) => a | b)) return Row()
+    if (data.length == 0 || !requiredColumns.map(_._2).reduce((a , b) => a | b)) return Row()
     val requiredFieldTypes = schema.fields.filter(field => requiredColumns(field.name)).map(_.dataType)
     val fieldNames = schema.fields.map(_.name)
     var i = 0
@@ -101,7 +101,7 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
    * @return The type-converted data.
    */
   private[succinct] def stringToType(elem: String, dataType: DataType): Any = {
-    if(elem == "NULL") return null
+    if (elem == "NULL") return null
     dataType match {
       case BooleanType => elem.equals("1")
       case ByteType => elem.toByte
@@ -128,7 +128,7 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
         case LongType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Long])
         case FloatType => ("%0" + limits(elemIdx) + ".2f").format(elem.asInstanceOf[java.lang.Float])
         case DoubleType => ("%0" + limits(elemIdx) + ".2f").format(elem.asInstanceOf[java.lang.Double])
-        case dType: DecimalType => {
+        case dType: DecimalType =>
           var digsBeforeDec = 0
           var digsAfterDec = 0
           if (dType.scale > 0) {
@@ -139,7 +139,6 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
           digsBeforeDec = limits(elemIdx)
           val formatString = s"%0${digsBeforeDec}.${digsAfterDec}f"
           formatString.format(elem.asInstanceOf[java.math.BigDecimal].toString.toDouble)
-        }
         case StringType => elem.asInstanceOf[String]
         case other => throw new IllegalArgumentException(s"Unexpected type. ${schema(elemIdx).dataType}")
       }

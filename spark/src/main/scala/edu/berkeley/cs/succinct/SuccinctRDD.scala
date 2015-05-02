@@ -15,7 +15,7 @@ import scala.collection.mutable.ArrayBuffer
  */
 
 abstract class SuccinctRDD(@transient sc: SparkContext,
-    @transient deps: Seq[Dependency[_]]) 
+    @transient deps: Seq[Dependency[_]])
   extends RDD[Array[Byte]](sc, deps) {
 
   /**
@@ -30,7 +30,7 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
    *
    * @return The first parent of the RDD.
    */
-  protected[succinct] def getFirstParent(): RDD[SuccinctIndexedBuffer] = {
+  protected[succinct] def getFirstParent: RDD[SuccinctIndexedBuffer] = {
     firstParent[SuccinctIndexedBuffer]
   }
 
@@ -173,13 +173,13 @@ object SuccinctRDD {
     val rawBufferBuilder = new StringBuilder
     var offset = 0
     while (dataIter.hasNext) {
-      val curRecord = dataIter.next
+      val curRecord = dataIter.next()
       rawBufferBuilder.append(new String(curRecord))
       rawBufferBuilder.append(SuccinctIndexedBuffer.getRecordDelim.toChar)
       offsets += offset
       offset += (curRecord.length + 1)
     }
-    val ret = Iterator(new SuccinctIndexedBuffer(rawBufferBuilder.toString.getBytes, offsets.toArray))
+    val ret = Iterator(new SuccinctIndexedBuffer(rawBufferBuilder.toString().getBytes, offsets.toArray))
     ret
   }
 

@@ -24,7 +24,7 @@ class SearchRecordResultsRDD(val succinctRDD: SuccinctRDD,
 
     succinctRDD.getFirstParent
       .iterator(split, context)
-      .next
+      .next()
       .recordSearch(searchQuery)
       .toArray
       .asInstanceOf[Array[Array[Byte]]]

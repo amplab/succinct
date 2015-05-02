@@ -25,7 +25,7 @@ class SearchResultsRDD(val succinctTableRDD: SuccinctTableRDD,
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
     succinctTableRDD.getFirstParent
       .iterator(split, context)
-      .next
+      .next()
       .recordSearch(searchQuery)
       .asInstanceOf[Array[Array[Byte]]]
       .iterator

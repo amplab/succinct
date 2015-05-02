@@ -9,14 +9,13 @@ object TableSearch {
   def main(args: Array[String]) = {
     val dataPath = args(0)
     val sc = new SparkContext(new SparkConf().setAppName("table search"))
-    val sqlContext = new SQLContext(sc)
     val partitions = if (args.length > 1) args(1).toInt else 2
     val baseRDD = sc.textFile(dataPath, partitions)
       .map(_.split('|').toSeq)
     val firstRecord = baseRDD.first()
     val schema = StructType(firstRecord.map(StructField(_, StringType)))
     val tableRDD = baseRDD.filter(_ != firstRecord).map(Row.fromSeq(_))
-    val succinctTableRDD = SuccinctTableRDD(tableRDD, schema).persist
+    val succinctTableRDD = SuccinctTableRDD(tableRDD, schema).persist()
 
     // Search for "TRUCK" for attribute shipmode
     val attrName = "shipmode"

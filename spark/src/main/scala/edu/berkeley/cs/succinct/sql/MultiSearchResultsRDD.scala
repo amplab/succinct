@@ -9,7 +9,7 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
 /**
  * A container RDD for search results of a multi-search operation on [[SuccinctTableRDD]].
  *
- * @constructor Creates a [[MultiSearchResultsRDD]] from the underlying [[SuccinctTableRDD]], list of queries, 
+ * @constructor Creates a [[MultiSearchResultsRDD]] from the underlying [[SuccinctTableRDD]], list of queries,
  *             list of separators and the target storage level for the RDD.
  * @param succinctTableRDD The underlying SuccinctTableRDD.
  * @param queryTypes The types of the queries.
@@ -30,7 +30,7 @@ class MultiSearchResultsRDD(val succinctTableRDD: SuccinctTableRDD,
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
     succinctTableRDD.getFirstParent
       .iterator(split, context)
-      .next
+      .next()
       .multiSearch(queryTypes, queries)
       .asInstanceOf[Array[Array[Byte]]]
       .iterator

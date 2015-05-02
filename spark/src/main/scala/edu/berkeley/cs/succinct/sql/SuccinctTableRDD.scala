@@ -19,7 +19,7 @@ import scala.collection.mutable.ArrayBuffer
  */
 
 abstract class SuccinctTableRDD(@transient sc: SparkContext,
-    @transient deps: Seq[Dependency[_]]) 
+    @transient deps: Seq[Dependency[_]])
   extends RDD[Row](sc, deps) {
 
   private[succinct] def partitionsRDD: RDD[SuccinctIndexedBuffer]
@@ -36,7 +36,7 @@ abstract class SuccinctTableRDD(@transient sc: SparkContext,
    *
    * @return The first parent of the RDD.
    */
-  protected[succinct] def getFirstParent(): RDD[SuccinctIndexedBuffer] = {
+  protected[succinct] def getFirstParent: RDD[SuccinctIndexedBuffer] = {
     firstParent[SuccinctIndexedBuffer]
   }
 
@@ -114,7 +114,7 @@ abstract class SuccinctTableRDD(@transient sc: SparkContext,
 
 /** Factory for [[SuccinctTableRDD]] instances */
 object SuccinctTableRDD {
-  
+
   def apply(sparkContext: SparkContext, path: String): SuccinctTableRDD = {
     val dataPath = path.stripSuffix("/") + "/data"
     val schemaPath = path.stripSuffix("/") + "/schema"
@@ -122,7 +122,7 @@ object SuccinctTableRDD {
     val minPath = path.stripSuffix("/") + "/min"
     val maxPath = path.stripSuffix("/") + "/max"
     val conf = sparkContext.hadoopConfiguration
-    val succinctPartitions: RDD[SuccinctIndexedBuffer] = 
+    val succinctPartitions: RDD[SuccinctIndexedBuffer] =
       sparkContext.objectFile[SuccinctIndexedBuffer](dataPath)
     val succinctSchema: StructType = SuccinctUtils.readObjectFromFS[StructType](conf, schemaPath)
     val succinctSeparators: Array[Byte] = SuccinctUtils.readObjectFromFS[Array[Byte]](conf, separatorsPath)
@@ -132,7 +132,7 @@ object SuccinctTableRDD {
     val succinctSerializer = new SuccinctSerializer(succinctSchema, succinctSeparators, limits)
     new SuccinctTableRDDImpl(succinctPartitions, succinctSeparators, succinctSchema, minRow, maxRow, succinctSerializer)
   }
-  
+
   /**
    * Converts an inputRDD to a [[SuccinctTableRDD]], using a list of input separators
    *
@@ -177,7 +177,7 @@ object SuccinctTableRDD {
   /**
    * Converts a data frame to a [[SuccinctTableRDD]], using a list of separators that are assumed to be unused
    * in the input data (ASCII 11 onwards).
-   *  
+   *
    * @param dataFrame The input data frame.
    * @return The [[SuccinctTableRDD]].
    */
@@ -200,13 +200,13 @@ object SuccinctTableRDD {
     val rawBufferBuilder = new StringBuilder
     var offset = 0
     while (dataIter.hasNext) {
-      val curTuple = succinctSerializer.serializeRow(dataIter.next)
+      val curTuple = succinctSerializer.serializeRow(dataIter.next())
       rawBufferBuilder.append(new String(curTuple))
       rawBufferBuilder.append(SuccinctIndexedBuffer.getRecordDelim.toChar)
       offsets += offset
       offset += (curTuple.length + 1)
     }
-    val ret = Iterator(new SuccinctIndexedBuffer(rawBufferBuilder.toString.getBytes, offsets.toArray, 2))
+    val ret = Iterator(new SuccinctIndexedBuffer(rawBufferBuilder.toString().getBytes, offsets.toArray, 2))
     ret
   }
 
@@ -228,7 +228,7 @@ object SuccinctTableRDD {
   private def getLimits(maximums: Row, minimums: Row): Seq[Int] = {
     val maxLengths = maximums.toSeq.map(getLength)
     val minLengths = minimums.toSeq.map(getLength)
-    maxLengths.zip(minLengths).map(x => if(x._1 > x._2) x._1 else x._2)
+    maxLengths.zip(minLengths).map(x => if (x._1 > x._2) x._1 else x._2)
   }
 
   private[succinct] def min(inputRDD: RDD[Row], schema: StructType): Row = {
@@ -241,7 +241,7 @@ object SuccinctTableRDD {
       case FloatType => Float.MaxValue
       case DoubleType => Double.MaxValue
       case StringType => new String(Array[Byte](255.toByte))
-      case _:DecimalType => java.math.BigDecimal.valueOf(Double.MaxValue)
+      case _: DecimalType => java.math.BigDecimal.valueOf(Double.MaxValue)
       case other => throw new IllegalArgumentException(s"Unexpected type. $other")
     }).toSeq)
 
@@ -259,7 +259,7 @@ object SuccinctTableRDD {
       case FloatType => Float.MinValue
       case DoubleType => Double.MinValue
       case StringType => ""
-      case _:DecimalType => java.math.BigDecimal.valueOf(Double.MinValue)
+      case _: DecimalType => java.math.BigDecimal.valueOf(Double.MinValue)
       case other => throw new IllegalArgumentException(s"Unexpected type. $other")
     }).toSeq)
 
@@ -270,7 +270,7 @@ object SuccinctTableRDD {
   private[succinct] def min(a: Row, b: Row): Row = {
     assert(a.length == b.length)
     val resArr = new Array[Any](a.length)
-    for(i <- 0 to a.length - 1) {
+    for (i <- 0 to a.length - 1) {
       resArr(i) = minValue(a.get(i), b.get(i))
     }
     Row.fromSeq(resArr.toSeq)
@@ -279,45 +279,50 @@ object SuccinctTableRDD {
   private[succinct] def max(a: Row, b: Row): Row = {
     assert(a.length == b.length)
     val resArr = new Array[Any](a.length)
-    for(i <- 0 to a.length - 1) {
+    for (i <- 0 to a.length - 1) {
       resArr(i) = maxValue(a.get(i), b.get(i))
     }
     Row.fromSeq(resArr.toSeq)
   }
 
   private[succinct] def minValue(a: Any, b: Any): Any = {
-    if(a == null) return b
-    if(b == null) return a
+    if (a == null) return b
+    if (b == null) return a
     a match {
-      case _:Boolean => if(a.asInstanceOf[Boolean] < b.asInstanceOf[Boolean]) a else b
-      case _:Byte => if(a.asInstanceOf[Byte] < b.asInstanceOf[Byte]) a else b
-      case _:Short => if(a.asInstanceOf[Short] < b.asInstanceOf[Short]) a else b
-      case _:Int => if(a.asInstanceOf[Int] < b.asInstanceOf[Int]) a else b
-      case _:Long => if(a.asInstanceOf[Long] < b.asInstanceOf[Long]) a else b
-      case _:Float => if(a.asInstanceOf[Float] < b.asInstanceOf[Float]) a else b
-      case _:Double => if(a.asInstanceOf[Double] < b.asInstanceOf[Double]) a else b
-      case _:java.math.BigDecimal => if(a.asInstanceOf[java.math.BigDecimal].compareTo(b.asInstanceOf[java.math.BigDecimal]) < 0) a else b
-      case _:BigDecimal => if(a.asInstanceOf[BigDecimal] < b.asInstanceOf[BigDecimal]) a else b
-      case _:String => if(a.asInstanceOf[String] < b.asInstanceOf[String]) a else b
+      case _: Boolean => if (a.asInstanceOf[Boolean] < b.asInstanceOf[Boolean]) a else b
+      case _: Byte => if (a.asInstanceOf[Byte] < b.asInstanceOf[Byte]) a else b
+      case _: Short => if (a.asInstanceOf[Short] < b.asInstanceOf[Short]) a else b
+      case _: Int => if (a.asInstanceOf[Int] < b.asInstanceOf[Int]) a else b
+      case _: Long => if (a.asInstanceOf[Long] < b.asInstanceOf[Long]) a else b
+      case _: Float => if (a.asInstanceOf[Float] < b.asInstanceOf[Float]) a else b
+      case _: Double => if (a.asInstanceOf[Double] < b.asInstanceOf[Double]) a else b
+      case _: java.math.BigDecimal =>
+        if (a.asInstanceOf[java.math.BigDecimal].compareTo(b.asInstanceOf[java.math.BigDecimal]) < 0) a
+        else b
+      case _: BigDecimal => if (a.asInstanceOf[BigDecimal] < b.asInstanceOf[BigDecimal]) a else b
+      case _: String => if (a.asInstanceOf[String] < b.asInstanceOf[String]) a else b
       case other => throw new IllegalArgumentException(s"Unexpected type. $other")
     }
   }
 
   private[succinct] def maxValue(a: Any, b: Any): Any = {
-    if(a == null) return b
-    if(b == null) return a
+    if (a == null) return b
+    if (b == null) return a
     a match {
-      case _:Boolean => if(a.asInstanceOf[Boolean] > b.asInstanceOf[Boolean]) a else b
-      case _:Byte => if(a.asInstanceOf[Byte] > b.asInstanceOf[Byte]) a else b
-      case _:Short => if(a.asInstanceOf[Short] > b.asInstanceOf[Short]) a else b
-      case _:Int => if(a.asInstanceOf[Int] > b.asInstanceOf[Int]) a else b
-      case _:Long => if(a.asInstanceOf[Long] > b.asInstanceOf[Long]) a else b
-      case _:Float => if(a.asInstanceOf[Float] > b.asInstanceOf[Float]) a else b
-      case _:Double => if(a.asInstanceOf[Double] > b.asInstanceOf[Double]) a else b
-      case _:java.math.BigDecimal => if(a.asInstanceOf[java.math.BigDecimal].compareTo(b.asInstanceOf[java.math.BigDecimal]) > 0) a else b
-      case _:BigDecimal => if(a.asInstanceOf[BigDecimal] > b.asInstanceOf[BigDecimal]) a else b
-      case _:String => if(a.asInstanceOf[String] > b.asInstanceOf[String]) a else b
+      case _: Boolean => if (a.asInstanceOf[Boolean] > b.asInstanceOf[Boolean]) a else b
+      case _: Byte => if (a.asInstanceOf[Byte] > b.asInstanceOf[Byte]) a else b
+      case _: Short => if (a.asInstanceOf[Short] > b.asInstanceOf[Short]) a else b
+      case _: Int => if (a.asInstanceOf[Int] > b.asInstanceOf[Int]) a else b
+      case _: Long => if (a.asInstanceOf[Long] > b.asInstanceOf[Long]) a else b
+      case _: Float => if (a.asInstanceOf[Float] > b.asInstanceOf[Float]) a else b
+      case _: Double => if (a.asInstanceOf[Double] > b.asInstanceOf[Double]) a else b
+      case _: java.math.BigDecimal =>
+        if (a.asInstanceOf[java.math.BigDecimal].compareTo(b.asInstanceOf[java.math.BigDecimal]) > 0) a
+        else b
+      case _: BigDecimal => if (a.asInstanceOf[BigDecimal] > b.asInstanceOf[BigDecimal]) a else b
+      case _: String => if (a.asInstanceOf[String] > b.asInstanceOf[String]) a else b
       case other => throw new IllegalArgumentException(s"Unexpected type. $other")
     }
   }
+
 }

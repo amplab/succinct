@@ -14,8 +14,8 @@ import org.apache.spark.storage.StorageLevel
  * @param targetStorageLevel The storage level for the RDD.
  */
 class SuccinctRDDImpl private[succinct](
-                                         val partitionsRDD: RDD[SuccinctIndexedBuffer],
-                                         val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+    val partitionsRDD: RDD[SuccinctIndexedBuffer],
+    val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
   /** Set the name for the RDD; By default set to "SuccinctRDD" */

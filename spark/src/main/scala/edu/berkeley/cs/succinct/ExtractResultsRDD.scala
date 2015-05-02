@@ -25,7 +25,7 @@ class ExtractResultsRDD(val succinctRDD: SuccinctRDD,
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
     succinctRDD.getFirstParent
       .iterator(split, context)
-      .next
+      .next()
       .extractRecords(eOffset, eLen)
       .asInstanceOf[Array[Array[Byte]]]
       .iterator

@@ -20,13 +20,15 @@ class SuccinctTableRDDSuite extends FunSuite with LocalSparkContext {
     val schema = StructType(firstRecord.map(StructField(_, StringType)))
     val attrName = schema(attrIdx).name
     val tableRDD = baseRDD.filter(_ != firstRecord).map(Row.fromSeq(_))
-    val succinctTableRDD = SuccinctTableRDD(tableRDD, schema).persist
+    val succinctTableRDD = SuccinctTableRDD(tableRDD, schema).persist()
 
     // Compute expected values
-    val expectedSearchResults = baseRDD.filter(_(attrIdx).equalsIgnoreCase(query)).map(_.mkString("|")).collect.sorted
+    val expectedSearchResults = baseRDD.filter(_(attrIdx).equalsIgnoreCase(query)).map(_.mkString("|"))
+      .collect().sorted
 
     // Compute results
-    val searchResults = succinctTableRDD.search(attrName, query.getBytes).map(_.toSeq.map(_.toString).mkString("|")).collect.sorted
+    val searchResults = succinctTableRDD.search(attrName, query.getBytes).map(_.toSeq.map(_.toString).mkString("|"))
+      .collect().sorted
 
     assert(expectedSearchResults === searchResults)
   }
@@ -42,17 +44,17 @@ class SuccinctTableRDDSuite extends FunSuite with LocalSparkContext {
     val schema = StructType(firstRecord.map(StructField(_, StringType)))
     val attrName = schema(attrIdx).name
     val tableRDD = baseRDD.filter(_ != firstRecord).map(Row.fromSeq(_))
-    val succinctTableRDD = SuccinctTableRDD(tableRDD, schema).persist
+    val succinctTableRDD = SuccinctTableRDD(tableRDD, schema).persist()
 
     // Compute expected value
-    val expectedCount = baseRDD.filter(_(attrIdx).equalsIgnoreCase(query)).count
+    val expectedCount = baseRDD.filter(_(attrIdx).equalsIgnoreCase(query)).count()
 
     // Compute result
     val count = succinctTableRDD.count(attrName, query.getBytes)
 
     assert(count === expectedCount)
   }
-  
+
   test("Test save and retrieve") {
     sc = new SparkContext("local", "test")
 
@@ -61,15 +63,16 @@ class SuccinctTableRDDSuite extends FunSuite with LocalSparkContext {
     val firstRecord = baseRDD.first()
     val schema = StructType(firstRecord.map(StructField(_, StringType)))
     val tableRDD = baseRDD.filter(_ != firstRecord).map(Row.fromSeq(_))
-    val succinctTableRDD = SuccinctTableRDD(tableRDD, schema).persist
-    
+    val succinctTableRDD = SuccinctTableRDD(tableRDD, schema).persist()
+
     val tmpDir = Files.createTempDir()
     val succinctDir = tmpDir + "/succinct"
     succinctTableRDD.save(succinctDir)
-    
-    val originalEntries = succinctTableRDD.collect
-    val newEntries = SuccinctTableRDD(sc, succinctDir).collect
+
+    val originalEntries = succinctTableRDD.collect()
+    val newEntries = SuccinctTableRDD(sc, succinctDir).collect()
 
     assert(originalEntries === newEntries)
   }
+
 }

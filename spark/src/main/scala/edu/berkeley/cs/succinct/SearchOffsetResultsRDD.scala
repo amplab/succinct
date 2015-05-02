@@ -27,7 +27,7 @@ class SearchOffsetResultsRDD(val succinctRDD: SuccinctRDD,
 
     Iterator(succinctRDD.getFirstParent
       .iterator(split, context)
-      .next
+      .next()
       .recordSearchOffsets(searchQuery)
       .toArray
       .map(Long2long)

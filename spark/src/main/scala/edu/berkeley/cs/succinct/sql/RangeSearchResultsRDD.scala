@@ -27,7 +27,7 @@ class RangeSearchResultsRDD(val succinctTableRDD: SuccinctTableRDD,
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
     succinctTableRDD.getFirstParent
       .iterator(split, context)
-      .next
+      .next()
       .recordRangeSearch(queryBegin, queryEnd)
       .asInstanceOf[Array[Array[Byte]]]
       .iterator

@@ -11,7 +11,7 @@ class DefaultSource
   private def checkPath(parameters: Map[String, String]): String = {
     parameters.getOrElse("path", sys.error("'path' must be specified for Succinct data."))
   }
-  
+
   override def createRelation(
       sqlContext: SQLContext,
       parameters: Map[String, String]): BaseRelation = {
@@ -26,9 +26,9 @@ class DefaultSource
   }
 
   override def createRelation(
-      sqlContext: SQLContext, 
-      mode: SaveMode, 
-      parameters: Map[String, String], 
+      sqlContext: SQLContext,
+      mode: SaveMode,
+      parameters: Map[String, String],
       data: DataFrame): BaseRelation = {
     val path = parameters("path")
     val filesystemPath = new Path(path)
@@ -48,8 +48,8 @@ class DefaultSource
     } else {
       true
     }
-    
-    if(doSave) {
+
+    if (doSave) {
       data.saveAsSuccinctFiles(path)
     }
     createRelation(sqlContext, parameters, data.schema)

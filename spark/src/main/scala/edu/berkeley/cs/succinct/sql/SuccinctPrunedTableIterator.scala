@@ -25,7 +25,7 @@ class SuccinctPrunedTableIterator private[succinct](
    * @return true if there are more [[Row]]s to iterate over;
    *         false otherwise.
    */
-  override def hasNext: Boolean = (curPos < sBuf.getOriginalSize() - 2)
+  override def hasNext: Boolean = curPos < sBuf.getOriginalSize - 2
 
   /**
    * Returns the next [[Row]].

@@ -69,7 +69,7 @@ class SuccinctPrunedTableRDD(
    *
    * @return The first parent of the RDD.
    */
-  protected[succinct] def getFirstParent(): RDD[SuccinctIndexedBuffer] = {
+  protected[succinct] def getFirstParent: RDD[SuccinctIndexedBuffer] = {
     firstParent[SuccinctIndexedBuffer]
   }
 
