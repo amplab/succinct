@@ -141,7 +141,8 @@ public class SuccinctCore implements Serializable {
     public long lookupNPA(long i) {
 
         if(i > originalSize - 1 || i < 0) {
-            throw new ArrayIndexOutOfBoundsException();
+            throw new ArrayIndexOutOfBoundsException("NPA index out of bounds: i = "
+                    + i + " originalSize = " + originalSize);
         }
         int colId, rowId, cellId, cellOff, contextSize, contextPos;
         long colOff, rowOff;
@@ -192,7 +193,8 @@ public class SuccinctCore implements Serializable {
     public long lookupSA(long i) {
 
         if(i > originalSize - 1 || i < 0) {
-            throw new ArrayIndexOutOfBoundsException();
+            throw new ArrayIndexOutOfBoundsException("SA index out of bounds: i = "
+                    + i + " originalSize = " + originalSize);
         }
 
         long numHops = 0;
@@ -219,7 +221,8 @@ public class SuccinctCore implements Serializable {
     public long lookupISA(long i) {
 
         if(i > originalSize - 1 || i < 0) {
-            throw new ArrayIndexOutOfBoundsException();
+            throw new ArrayIndexOutOfBoundsException("ISA index out of bounds: i = "
+                    + i + " originalSize = " + originalSize);
         }
 
         int sampleIdx = (int) (i / samplingRate);
