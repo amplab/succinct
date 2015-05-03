@@ -15,6 +15,8 @@ import java.util.*;
 
 public class SuccinctIndexedBuffer extends SuccinctBuffer {
 
+    private static final long serialVersionUID = -8357331195541317163L;
+
     protected static byte RECORD_DELIM = '\n';
     protected long[] offsets;
 
@@ -41,7 +43,6 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         this(input, offsets, 3);
     }
 
-
     /**
      * Get the record delimiter.
      *
@@ -49,6 +50,31 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      */
     public static byte getRecordDelim() {
         return RECORD_DELIM;
+    }
+
+    /**
+     * Get the number of records.
+     *
+     * @return The number of records.
+     */
+    public int getNumRecords() {
+        return offsets.length;
+    }
+
+    /**
+     * Get the ith record.
+     *
+     * @param i The record index.
+     * @return The corresponding record.
+     */
+    public byte[] getRecord(int i) {
+        int length;
+        if(i == offsets.length - 1) {
+            length = (int)(getOriginalSize() - 2 - offsets[i]);
+        } else {
+            length = (int)(offsets[i + 1] - 1 - offsets[i]);
+        }
+        return extract((int)offsets[i], length);
     }
 
     /**

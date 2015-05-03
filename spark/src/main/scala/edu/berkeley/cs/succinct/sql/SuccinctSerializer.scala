@@ -89,9 +89,6 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
       }
       i += 1
     }
-    if(k == 0) {
-      throw new IllegalArgumentException(s"requiredCols=${requiredColumns};data=${new String(data)}")
-    }
     if (requiredColumns(fieldNames(k - 1))) elemList += elemBuilder.toString
     Row.fromSeq(elemList.zip(requiredFieldTypes).map(t => stringToType(t._1, t._2)).toSeq)
   }

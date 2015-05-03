@@ -17,7 +17,7 @@ class SuccinctPrunedTableIterator private[succinct](
     reqColsCheck: Map[String, Boolean])
   extends Iterator[Row] {
 
-  var curPos: Int = 0
+  var curRecordId: Int = 0
 
   /**
    * Returns true if there are more [[Row]]s to iterate over.
@@ -25,7 +25,7 @@ class SuccinctPrunedTableIterator private[succinct](
    * @return true if there are more [[Row]]s to iterate over;
    *         false otherwise.
    */
-  override def hasNext: Boolean = curPos < sBuf.getOriginalSize - 2
+  override def hasNext: Boolean = curRecordId < sBuf.getNumRecords
 
   /**
    * Returns the next [[Row]].
@@ -33,10 +33,9 @@ class SuccinctPrunedTableIterator private[succinct](
    * @return The next [[Row]].
    */
   override def next(): Row = {
-    val data = sBuf.extractUntil(curPos, SuccinctIndexedBuffer.getRecordDelim)
-    curPos = curPos + data.length + 1
-    val row = succinctSerializer.deserializeRow(data, reqColsCheck)
-    row
+    val data = sBuf.getRecord(curRecordId)
+    curRecordId += 1
+    succinctSerializer.deserializeRow(data, reqColsCheck)
   }
 
 }

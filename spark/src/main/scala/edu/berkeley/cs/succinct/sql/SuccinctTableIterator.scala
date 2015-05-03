@@ -13,7 +13,7 @@ import org.apache.spark.sql.Row
 class SuccinctTableIterator private[succinct](sBuf: SuccinctIndexedBuffer, succinctSerializer: SuccinctSerializer)
   extends Iterator[Row] {
 
-  var curPos: Int = 0
+  var curRecordId: Int = 0
 
   /**
    * Returns true if there are more [[Row]]s to iterate over.
@@ -21,7 +21,7 @@ class SuccinctTableIterator private[succinct](sBuf: SuccinctIndexedBuffer, succi
    * @return true if there are more [[Row]]s to iterate over;
    *         false otherwise.
    */
-  override def hasNext: Boolean = curPos < sBuf.getOriginalSize - 2
+  override def hasNext: Boolean = curRecordId < sBuf.getNumRecords
 
   /**
    * Returns the next [[Row]].
@@ -29,8 +29,8 @@ class SuccinctTableIterator private[succinct](sBuf: SuccinctIndexedBuffer, succi
    * @return The next [[Row]].
    */
   override def next(): Row = {
-    val data = sBuf.extractUntil(curPos, SuccinctIndexedBuffer.getRecordDelim)
-    curPos = curPos + data.length + 1
+    val data = sBuf.getRecord(curRecordId)
+    curRecordId += 1
     succinctSerializer.deserializeRow(data)
   }
 
