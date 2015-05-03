@@ -24,15 +24,15 @@ class SearchOffsetResultsRDD(val succinctRDD: SuccinctRDD,
    * (offsets into the partition).
      s*/
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Long]] = {
-
-    Iterator(succinctRDD.getFirstParent
-      .iterator(split, context)
-      .next()
-      .recordSearchOffsets(searchQuery)
-      .toArray
-      .map(Long2long)
-      .asInstanceOf[Array[Long]])
-
+    val resultsIterator = succinctRDD.getFirstParent.iterator(split, context)
+    if (resultsIterator.hasNext) {
+      Iterator(resultsIterator.next()
+        .recordSearchOffsets(searchQuery)
+        .map(Long2long)
+        .asInstanceOf[Array[Long]])
+    } else {
+      Iterator[Array[Long]]()
+    }
   }
 
   /**

@@ -28,13 +28,17 @@ class MultiSearchResultsRDD(val succinctTableRDD: SuccinctTableRDD,
 
   /** Overrides the compute method in RDD to return an iterator over the search results. */
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
-    succinctTableRDD.getFirstParent
-      .iterator(split, context)
-      .next()
-      .multiSearch(queryTypes, queries)
-      .asInstanceOf[Array[Array[Byte]]]
-      .map(succinctSerializer.deserializeRow(_, reqColsCheck))
-      .iterator
+    val resultsIterator = succinctTableRDD.getFirstParent.iterator(split, context)
+    if (resultsIterator.hasNext) {
+      resultsIterator.next()
+        .multiSearch(queryTypes, queries)
+        .asInstanceOf[Array[Array[Byte]]]
+        .map(succinctSerializer.deserializeRow(_, reqColsCheck))
+        .iterator
+    }
+    else {
+      Iterator[Row]()
+    }
   }
 
   /**

@@ -23,13 +23,15 @@ class ExtractResultsRDD(val succinctRDD: SuccinctRDD,
 
   /** Overrides the compute method of RDD to return an iterator over the extracted data. */
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
-    succinctRDD.getFirstParent
-      .iterator(split, context)
-      .next()
-      .extractRecords(eOffset, eLen)
-      .asInstanceOf[Array[Array[Byte]]]
-      .iterator
-
+    val resultsIterator = succinctRDD.getFirstParent.iterator(split, context)
+    if (resultsIterator.hasNext) {
+      resultsIterator.next()
+        .extractRecords(eOffset, eLen)
+        .asInstanceOf[Array[Array[Byte]]]
+        .iterator
+    } else {
+      Iterator[Array[Byte]]()
+    }
   }
 
   /**

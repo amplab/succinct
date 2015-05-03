@@ -21,15 +21,15 @@ class SearchRecordResultsRDD(val succinctRDD: SuccinctRDD,
 
   /** Overrides the compute method of RDD to return an iterator over the search results. */
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
-
-    succinctRDD.getFirstParent
-      .iterator(split, context)
-      .next()
-      .recordSearch(searchQuery)
-      .toArray
-      .asInstanceOf[Array[Array[Byte]]]
-      .iterator
-
+    val resultsIterator = succinctRDD.getFirstParent.iterator(split, context)
+    if (resultsIterator.hasNext) {
+      resultsIterator.next()
+        .recordSearch(searchQuery)
+        .asInstanceOf[Array[Array[Byte]]]
+        .iterator
+    } else {
+      Iterator[Array[Byte]]()
+    }
   }
 
   /**
