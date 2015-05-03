@@ -8,7 +8,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.sources._
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.types.{Decimal, StructType}
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
 
@@ -186,6 +186,7 @@ class SuccinctTableRDDImpl private[succinct](
       case _: Double => data.asInstanceOf[Double] - Double.MinPositiveValue
       case _: java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal]
       case _: BigDecimal => data.asInstanceOf[BigDecimal]
+      case _: Decimal => data.asInstanceOf[Decimal]
       case _: String => data.asInstanceOf[String]
       case other => throw new IllegalArgumentException(s"Unexpected type.")
     }
@@ -207,6 +208,7 @@ class SuccinctTableRDDImpl private[succinct](
       case _:Float => data.asInstanceOf[Float] + Float.MinPositiveValue
       case _:Double => data.asInstanceOf[Double] + Double.MinPositiveValue
       case _:java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal]
+      case _:Decimal => data.asInstanceOf[Decimal]
       case _:String => data.asInstanceOf[String]
       case other => throw new IllegalArgumentException(s"Unexpected type.")
     }

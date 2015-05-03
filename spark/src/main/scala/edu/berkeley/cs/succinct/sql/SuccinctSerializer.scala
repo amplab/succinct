@@ -110,7 +110,7 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
       case LongType => elem.toLong
       case FloatType => elem.toFloat
       case DoubleType => elem.toDouble
-      case _: DecimalType => new java.math.BigDecimal(elem)
+      case _: DecimalType => Decimal(new java.math.BigDecimal(elem))
       case StringType => elem
       case other => throw new IllegalArgumentException(s"Unexpected type $dataType.")
     }
@@ -138,7 +138,7 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
           }
           digsBeforeDec = limits(elemIdx)
           val formatString = s"%0${digsBeforeDec}.${digsAfterDec}f"
-          formatString.format(elem.asInstanceOf[java.math.BigDecimal].toString.toDouble)
+          formatString.format(elem.toString.toDouble)
         case StringType => elem.asInstanceOf[String]
         case other => throw new IllegalArgumentException(s"Unexpected type. ${schema(elemIdx).dataType}")
       }
