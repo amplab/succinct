@@ -32,7 +32,6 @@ public class SuccinctCore implements Serializable {
     protected ByteBuffer alphabetmap;
     protected LongBuffer contextmap;
     protected ByteBuffer alphabet;
-    protected ByteBuffer dbpos;
     protected LongBuffer sa;
     protected LongBuffer isa;
     protected LongBuffer neccol;
@@ -141,7 +140,7 @@ public class SuccinctCore implements Serializable {
      */
     public long lookupNPA(long i) {
 
-        if(i > originalSize || i < 0) {
+        if(i > originalSize - 1 || i < 0) {
             throw new ArrayIndexOutOfBoundsException();
         }
         int colId, rowId, cellId, cellOff, contextSize, contextPos;
@@ -192,25 +191,23 @@ public class SuccinctCore implements Serializable {
      */
     public long lookupSA(long i) {
 
-        if(i > originalSize || i < 0) {
+        if(i > originalSize - 1 || i < 0) {
             throw new ArrayIndexOutOfBoundsException();
         }
 
-        long value = 0, rank, sampledValue;
-        while (SerializedOperations.DictionaryOps.getRank1(dbpos, 0, (int) i)
-                - SerializedOperations.DictionaryOps.getRank1(dbpos, 0, (int) (i - 1)) == 0) {
+        long numHops = 0;
+        while (i % samplingRate != 0) {
             i = lookupNPA(i);
-            value++;
+            numHops++;
         }
-
-        rank = CommonUtils.modulo(
-                SerializedOperations.DictionaryOps.getRank1(dbpos, 0, (int) i) - 1,
-                getOriginalSize());
-        sampledValue = SerializedOperations.BMArrayOps.getVal(sa, (int) rank,
+        long sampledValue = SerializedOperations.BMArrayOps.getVal(sa, (int) (i / samplingRate),
                 sampledSABits);
 
-        return CommonUtils.modulo((samplingRate * sampledValue) - value,
-                getOriginalSize());
+        if(sampledValue < numHops) {
+            return originalSize - (numHops - sampledValue);
+        }
+
+        return sampledValue - numHops;
     }
 
     /**
@@ -221,20 +218,17 @@ public class SuccinctCore implements Serializable {
      */
     public long lookupISA(long i) {
 
-        if(i > originalSize || i < 0) {
+        if(i > originalSize - 1 || i < 0) {
             throw new ArrayIndexOutOfBoundsException();
         }
 
-        long sampledValue, pos;
-        long v = i % samplingRate;
-        sampledValue = SerializedOperations.BMArrayOps.getVal(isa,
-                (int) (i / samplingRate), sampledSABits);
-        pos = SerializedOperations.DictionaryOps.getSelect1(dbpos, 0, (int) sampledValue);
-        while (v != 0) {
+        int sampleIdx = (int) (i / samplingRate);
+        long pos = SerializedOperations.BMArrayOps.getVal(isa, sampleIdx, sampledSABits);
+        i -= (sampleIdx * samplingRate);
+        while (i != 0) {
             pos = lookupNPA(pos);
-            v--;
+            i--;
         }
-
         return pos;
     }
 
@@ -661,60 +655,28 @@ public class SuccinctCore implements Serializable {
 
         samplingRate = (1 << samplingBase);
         sampledSASize = (getOriginalSize() / samplingRate) + 1;
-        sampledSABits = CommonUtils.intLog2(sampledSASize + 1);
+        sampledSABits = CommonUtils.intLog2(originalSize + 1);
 
-        long saValue, sampedPos = 0;
-        BitMap cBPos = new BitMap(getOriginalSize());
+        long saValue;
 
         BMArray SA = new BMArray(sampledSASize, sampledSABits);
+        BMArray ISA = new BMArray(sampledSASize, sampledSABits);
 
         for (int i = 0; i < getOriginalSize(); i++) {
             saValue = cSA.getVal(i);
+            if (i % samplingRate == 0) {
+                SA.setVal(i / samplingRate, saValue);
+            }
             if (saValue % samplingRate == 0) {
-                SA.setVal((int) sampedPos++, saValue / samplingRate);
-                cBPos.setBit(i);
+                ISA.setVal((int)(saValue / samplingRate), i);
             }
         }
-
-        Dictionary DBPos = new Dictionary(cBPos);
-
-        BMArray ISA = new BMArray(sampledSASize, sampledSABits);
-
-        for (int i = 0; i < sampledSASize; i++) {
-            ISA.setVal((int) SA.getVal(i), i);
-        }
-
-        System.gc();
 
         // Serialize SA
         sa = LongBuffer.wrap(SA.data);
 
         // Serialize ISA
         isa = LongBuffer.wrap(ISA.data);
-
-        // Serialize BPos
-        int dbposSize = 8 * (1 + DBPos.rankL3.length + DBPos.rankL12.length
-                + DBPos.posL3.length + DBPos.posL12.length
-                + DBPos.bitMap.data.length + 1);
-        dbpos = ByteBuffer.allocate(dbposSize);
-        dbpos.putLong(DBPos.size);
-        for (int i = 0; i < DBPos.rankL3.length; i++) {
-            dbpos.putLong(DBPos.rankL3[i]);
-        }
-        for (int i = 0; i < DBPos.posL3.length; i++) {
-            dbpos.putLong(DBPos.posL3[i]);
-        }
-        for (int i = 0; i < DBPos.rankL12.length; i++) {
-            dbpos.putLong(DBPos.rankL12[i]);
-        }
-        for (int i = 0; i < DBPos.posL12.length; i++) {
-            dbpos.putLong(DBPos.posL12[i]);
-        }
-        dbpos.putLong(DBPos.bitMap.size);
-        for (int i = 0; i < DBPos.bitMap.data.length; i++) {
-            dbpos.putLong(DBPos.bitMap.data[i]);
-        }
-        dbpos.position(0);
 
         return 0;
     }
@@ -739,9 +701,6 @@ public class SuccinctCore implements Serializable {
         dataChannel.write(bufContext.order(ByteOrder.nativeOrder()));
 
         dataChannel.write(alphabet.order(ByteOrder.nativeOrder()));
-
-        oos.writeLong((long) dbpos.capacity());
-        dataChannel.write(dbpos.order(ByteOrder.nativeOrder()));
 
         ByteBuffer bufSA = ByteBuffer.allocate(sa.capacity() * 8);
         bufSA.asLongBuffer().put(sa);
@@ -878,12 +837,6 @@ public class SuccinctCore implements Serializable {
         dataChannel.read(this.alphabet);
         this.alphabet.position(0);
 
-        // Read dbpos
-        int dbposSize = (int) ois.readLong();
-        this.dbpos = ByteBuffer.allocate(dbposSize);
-        dataChannel.read(this.dbpos);
-        this.dbpos.position(0);
-
         // Read sa
         int saSize = (sampledSASize * sampledSABits) / 64 + 1;
         ByteBuffer saBuf = ByteBuffer.allocate(saSize * 8);
@@ -979,7 +932,6 @@ public class SuccinctCore implements Serializable {
         alphabetmap.order(ByteOrder.BIG_ENDIAN).position(0);
         contextmap.position(0);
         alphabet.position(0);
-        dbpos.order(ByteOrder.BIG_ENDIAN).position(0);
         sa.position(0);
         isa.position(0);
         neccol.position(0);

@@ -255,9 +255,6 @@ public class SuccinctBuffer extends SuccinctCore {
 
         dataChannel.write(alphabet.order(ByteOrder.nativeOrder()));
 
-        oos.writeLong((long) dbpos.capacity());
-        dataChannel.write(dbpos.order(ByteOrder.nativeOrder()));
-
         ByteBuffer bufSA = ByteBuffer.allocate(sa.capacity() * 8);
         bufSA.asLongBuffer().put(sa);
         dataChannel.write(bufSA.order(ByteOrder.nativeOrder()));
@@ -392,12 +389,6 @@ public class SuccinctBuffer extends SuccinctCore {
         this.alphabet = ByteBuffer.allocate(slistSize);
         dataChannel.read(this.alphabet);
         this.alphabet.position(0);
-
-        // Read dbpos
-        int dbposSize = (int) ois.readLong();
-        this.dbpos = ByteBuffer.allocate(dbposSize);
-        dataChannel.read(this.dbpos);
-        this.dbpos.position(0);
 
         // Read sa
         int saSize = (sampledSASize * sampledSABits) / 64 + 1;
