@@ -33,8 +33,8 @@ class MultiSearchResultsRDD(val succinctTableRDD: SuccinctTableRDD,
       .next()
       .multiSearch(queryTypes, queries)
       .asInstanceOf[Array[Array[Byte]]]
-      .iterator
       .map(succinctSerializer.deserializeRow(_, reqColsCheck))
+      .iterator
   }
 
   /**

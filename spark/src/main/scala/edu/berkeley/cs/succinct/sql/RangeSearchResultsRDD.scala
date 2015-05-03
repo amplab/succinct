@@ -30,8 +30,8 @@ class RangeSearchResultsRDD(val succinctTableRDD: SuccinctTableRDD,
       .next()
       .recordRangeSearch(queryBegin, queryEnd)
       .asInstanceOf[Array[Array[Byte]]]
-      .iterator
       .map(succinctSerializer.deserializeRow)
+      .iterator
   }
 
   /**
