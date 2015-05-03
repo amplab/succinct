@@ -1,6 +1,5 @@
 package edu.berkeley.cs.succinct;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 
