@@ -14,9 +14,7 @@ import scala.util.Random
 private[succinct] object TestUtils {
 
   /**
-   * This function deletes a file or a directory with everything that's in it. This function is
-   * copied from Spark with minor modifications made to it. See original source at:
-   * github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/util/Utils.scala
+   * This function deletes a file or a directory with everything that's in it.
    */
   def deleteRecursively(file: File) {
     def listFilesSafely(file: File): Seq[File] = {
@@ -57,6 +55,22 @@ private[succinct] object TestUtils {
       }
     }
   }
+
+  private[succinct] def castToType(elem: String, dataType: DataType): Any = {
+    if (elem == "NULL") return null
+    dataType match {
+      case BooleanType => elem.equals("1")
+      case ByteType => elem.toByte
+      case ShortType => elem.toShort
+      case IntegerType => elem.toInt
+      case LongType => elem.toLong
+      case FloatType => elem.toFloat
+      case DoubleType => elem.toDouble
+      case _: DecimalType => Decimal(new java.math.BigDecimal(elem))
+      case StringType => elem
+      case other => throw new IllegalArgumentException(s"Unexpected type $dataType.")
+    }
+  }
 }
 
 class SuccinctSQLSuite extends FunSuite {
@@ -71,12 +85,10 @@ class SuccinctSQLSuite extends FunSuite {
     StructField("Airport", BooleanType, true)))
 
   def createTestDF(schema: StructType = testSchema): (DataFrame, DataFrame) = {
-    val bigDecimal = schema("Area").dataType.isInstanceOf[DecimalType]
     val cityRDD = sparkContext.textFile(citiesTable)
       .map(_.split(','))
       .map { t =>
-        if (!bigDecimal) Row(t(0), t(1).toInt, t(2).toDouble, t(3).toBoolean)
-        else Row(t(0), t(1).toInt, BigDecimal(t(2)), t(3).toBoolean)
+        Row.fromSeq(Seq.tabulate(schema.size)(i => TestUtils.castToType(t(i), schema(i).dataType)))
       }
     val df = TestSQLContext.createDataFrame(cityRDD, schema)
 
@@ -202,21 +214,54 @@ class SuccinctSQLSuite extends FunSuite {
     checkFilters(cityDataFrame, loadedDF, "Length",
       Seq.fill(2)(rand.nextInt(1000)))
     checkFilters(cityDataFrame, loadedDF, "Area",
-      Seq(-1, 0.0, 999.2929, 1618.15, 9, 659))
+      Seq(-1, 0.0, 999.2929, 1618.15, 9, 659) ++ Seq.fill(2)(rand.nextDouble() * 1000))
     checkFilters(cityDataFrame, loadedDF, "Airport",
       Seq(false, true))
 
-    // decimal column
+    // parse Area as float column
     val testSchema2 = StructType(Seq(
+      StructField("Name", StringType, false),
+      StructField("Length", IntegerType, true),
+      StructField("Area", FloatType, false), // changed to FloatType
+      StructField("Airport", BooleanType, true)))
+    val (cityDataFrame2, loadedDF2) = createTestDF(testSchema2)
+
+    checkFilters(cityDataFrame2, loadedDF2, "Area",
+      Seq(-1, 0.0, 999.2929, 1618.15, 9, 659) ++ Seq.fill(2)(rand.nextFloat() * 1000))
+
+    // parse Area as decimal column
+    val testSchema3 = StructType(Seq(
       StructField("Name", StringType, false),
       StructField("Length", IntegerType, true),
       StructField("Area", DecimalType(None), false), // changed to DecimalType
       StructField("Airport", BooleanType, true)))
-    val (cityDataFrame2, loadedDF2) = createTestDF(testSchema2)
+    val (cityDataFrame3, loadedDF3) = createTestDF(testSchema3)
 
-    // FIXME
-    checkFilters(cityDataFrame2, loadedDF2, "Area",
+    checkFilters(cityDataFrame3, loadedDF3, "Area",
       Seq(-1, 0.0, 999.2929, 1618.15, 9, 659) ++ Seq.fill(2)(rand.nextDouble() * 1000))
+
+    // parse Length as short column
+    val testSchema4 = StructType(Seq(
+      StructField("Name", StringType, false),
+      StructField("Length", ShortType, true), // Changed to ShortType
+      StructField("Area", DoubleType, false),
+      StructField("Airport", BooleanType, true)))
+    val (cityDataFrame4, loadedDF4) = createTestDF(testSchema4)
+
+    checkFilters(cityDataFrame4, loadedDF4, "Length",
+      Seq.fill(2)(rand.nextInt(1000)))
+
+    // parse Length as long column
+    val testSchema5 = StructType(Seq(
+      StructField("Name", StringType, false),
+      StructField("Length", LongType, true), // Changed to ShortType
+      StructField("Area", DoubleType, false),
+      StructField("Airport", BooleanType, true)))
+    val (cityDataFrame5, loadedDF5) = createTestDF(testSchema5)
+
+    checkFilters(cityDataFrame5, loadedDF5, "Length",
+      Seq.fill(2)(rand.nextInt(1000)))
+
   }
 
   test("test load and save") {
