@@ -277,15 +277,15 @@ class SuccinctTableRDDImpl private[succinct](
   /** Implements pruneAndFilter for [[SuccinctTableRDD]]. */
   override def pruneAndFilter(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
     val reqColsCheck = schema.map(f => f.name -> requiredColumns.contains(f.name)).toMap
-    if (filters.length == 0) {
+    val queryList = filtersToQueries(filters)
+    val queryTypes = queryList.map(_._1)
+    val queries = queryList.map(_._2)
+    if (queries.length == 0) {
       if (requiredColumns.length == schema.length) {
         return this
       }
       return new SuccinctPrunedTableRDD(partitionsRDD, succinctSerializer, reqColsCheck)
     }
-    val queryList = filtersToQueries(filters)
-    val queryTypes = queryList.map(_._1)
-    val queries = queryList.map(_._2)
     new MultiSearchResultsRDD(this, queryTypes, queries, reqColsCheck, succinctSerializer)
   }
 
