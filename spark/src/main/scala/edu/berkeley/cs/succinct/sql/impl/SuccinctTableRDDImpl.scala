@@ -32,6 +32,8 @@ class SuccinctTableRDDImpl private[succinct](
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctTableRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
+  partitionsRDD.persist(targetStorageLevel)
+
   /** Overrides [[RDD]]]'s compute to return a [[SuccinctTableIterator]]. */
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
     val succinctIterator = firstParent[SuccinctIndexedBuffer].iterator(split, context)
