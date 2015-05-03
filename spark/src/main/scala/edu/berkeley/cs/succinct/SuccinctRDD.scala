@@ -36,7 +36,12 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
 
   /** Overrides the compute function to return a SuccinctIterator. */
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
-    new SuccinctIterator(firstParent[SuccinctBuffer].iterator(split, context).next())
+    val succinctIterator = firstParent[SuccinctBuffer].iterator(split, context)
+    if (succinctIterator.hasNext) {
+      new SuccinctIterator(succinctIterator.next())
+    } else {
+      Iterator[Array[Byte]]()
+    }
   }
 
   /**

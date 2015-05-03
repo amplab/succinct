@@ -18,8 +18,6 @@ class SuccinctRDDImpl private[succinct](
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
-  partitionsRDD.persist(targetStorageLevel)
-
   /** Set the name for the RDD; By default set to "SuccinctRDD" */
   override def setName(_name: String): this.type = {
     if (partitionsRDD.name != null) {

@@ -131,6 +131,7 @@ object SuccinctTableRDD {
     val limits = getLimits(maxRow, minRow)
     val succinctSerializer = new SuccinctSerializer(succinctSchema, succinctSeparators, limits)
     new SuccinctTableRDDImpl(succinctPartitions, succinctSeparators, succinctSchema, minRow, maxRow, succinctSerializer)
+      .cache()
   }
 
   /**
@@ -150,6 +151,7 @@ object SuccinctTableRDD {
       partition => createSuccinctBuffer(partition, succinctSerializer)
     }
     new SuccinctTableRDDImpl(succinctPartitions, separators, schema, minRow, maxRow, succinctSerializer)
+      .cache()
   }
 
   /**
@@ -172,6 +174,7 @@ object SuccinctTableRDD {
       partition => createSuccinctBuffer(partition, succinctSerializer)
     }
     new SuccinctTableRDDImpl(succinctPartitions, separators, schema, minRow, maxRow, succinctSerializer)
+      .cache()
   }
 
   /**
