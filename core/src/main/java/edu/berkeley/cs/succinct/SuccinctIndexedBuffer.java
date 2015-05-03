@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct;
 
+import com.sun.javaws.exceptions.InvalidArgumentException;
 import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 
@@ -12,7 +13,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.*;
-import java.util.concurrent.SynchronousQueue;
 
 public class SuccinctIndexedBuffer extends SuccinctBuffer {
 
@@ -318,6 +318,10 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         assert(queryTypes.length == queries.length);
         Set<Long> offsetResults = new TreeSet<Long>();
         ArrayList<byte[]> results = new ArrayList<byte[]>();
+
+        if(queries.length == 0) {
+            throw new IllegalArgumentException("multiSearch called with empty queries");
+        }
 
         // Get all ranges
         ArrayList<Range<Long, Long>> ranges = new ArrayList<Range<Long, Long>>();
