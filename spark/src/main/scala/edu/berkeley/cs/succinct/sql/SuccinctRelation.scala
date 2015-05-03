@@ -13,9 +13,9 @@ case class SuccinctRelation(
   private[succinct] var succinctSchema = getSchema
 
   override def schema: StructType = succinctSchema
+  val succinctTableRDD = SuccinctTableRDD(sqlContext.sparkContext, location).persist()
 
   override def buildScan(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
-    val succinctTableRDD = SuccinctTableRDD(sqlContext.sparkContext, location)
     succinctTableRDD.pruneAndFilter(requiredColumns, filters)
   }
 
