@@ -672,12 +672,10 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
 
         // Read coloffsets
         int coloffsetsSize = (int) ois.readLong();
-        System.out.println("Coloffsets size = " + coloffsetsSize);
         ByteBuffer coloffsetsBuf = ByteBuffer.allocate(coloffsetsSize * 8);
         dataChannel.read(coloffsetsBuf);
         coloffsetsBuf.position(0);
         this.coloffsets = ThreadSafeLongBuffer.fromLongBuffer(coloffsetsBuf.asLongBuffer());
-        System.out.println("Coloffsets Buf size = " + coloffsets.capacity());
 
         // Read celloffsets
         int celloffsetsSize = (int) ois.readLong();
