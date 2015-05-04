@@ -33,15 +33,15 @@ public class Dictionary {
         posL3 = new long[l3Size];
         rankL12 = new long[l2Size];
         posL12 = new long[l2Size];
-        long[] rank_l2 = new long[l2Size];
-        long[] pos_l2 = new long[l2Size];
-        long[] rank_l1 = new long[l1Size];
-        long[] pos_l1 = new long[l1Size];
+        long[] rankL2 = new long[l2Size];
+        long[] posL2 = new long[l2Size];
+        long[] rankL1 = new long[l1Size];
+        long[] posL1 = new long[l1Size];
         rankL3[0] = 0;
         posL3[0] = 0;
         rankL12[0] = 0;
         posL12[0] = 0;
-        int sum_l1 = 0, sum_pos_l1 = 0;
+        int sumL1 = 0, sumPosL1 = 0;
         int i;
         int flag = 0;
         int compSize = 0;
@@ -53,22 +53,22 @@ public class Dictionary {
                 posL3[(int) (i / two32)] = compSize;
             }
             if (i % 2048 == 0) {
-                rank_l2[i / 2048] = count - rankL3[(int) (i / two32)];
-                pos_l2[i / 2048] = compSize - posL3[(int) (i / two32)];
-                rankL12[i / 2048] = rank_l2[i / 2048] << 32;
-                posL12[i / 2048] = pos_l2[i / 2048] << 31;
+                rankL2[i / 2048] = count - rankL3[(int) (i / two32)];
+                posL2[i / 2048] = compSize - posL3[(int) (i / two32)];
+                rankL12[i / 2048] = rankL2[i / 2048] << 32;
+                posL12[i / 2048] = posL2[i / 2048] << 31;
                 flag = 0;
-                sum_l1 = 0;
-                sum_pos_l1 = 0;
+                sumL1 = 0;
+                sumPosL1 = 0;
             }
             if (i % 512 == 0) {
-                rank_l1[i / 512] = count - rank_l2[i / 2048] - sum_l1;
-                pos_l1[i / 512] = compSize - pos_l2[i / 2048] - sum_pos_l1;
-                sum_l1 += rank_l1[i / 512];
-                sum_pos_l1 += pos_l1[i / 512];
+                rankL1[i / 512] = count - rankL2[i / 2048] - sumL1;
+                posL1[i / 512] = compSize - posL2[i / 2048] - sumPosL1;
+                sumL1 += rankL1[i / 512];
+                sumPosL1 += posL1[i / 512];
                 if (flag != 0) {
-                    rankL12[i / 2048] |= (rank_l1[i / 512] << (32 - flag * 10));
-                    posL12[i / 2048] |= (pos_l1[i / 512] << (31 - flag * 10));
+                    rankL12[i / 2048] |= (rankL1[i / 512] << (32 - flag * 10));
+                    posL12[i / 2048] |= (posL1[i / 512] << (31 - flag * 10));
                 }
                 flag++;
             }
