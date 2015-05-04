@@ -2,7 +2,6 @@ package edu.berkeley.cs.succinct;
 
 import edu.berkeley.cs.succinct.bitmap.BMArray;
 import edu.berkeley.cs.succinct.bitmap.BitMap;
-import edu.berkeley.cs.succinct.dictionary.Dictionary;
 import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.qsufsort.QSufSort;
 import edu.berkeley.cs.succinct.util.CommonUtils;
