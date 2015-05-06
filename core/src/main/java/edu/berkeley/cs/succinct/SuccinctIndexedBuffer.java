@@ -15,7 +15,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
     private static final long serialVersionUID = -8357331195541317163L;
 
     protected transient static byte RECORD_DELIM = '\n';
-    protected transient long[] offsets;
+    protected transient int[] offsets;
 
     /**
      * Constructor to initialize SuccinctIndexedBuffer from input byte array, offsets corresponding to records, and
@@ -25,7 +25,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      * @param offsets Offsets corresponding to records.
      * @param contextLen Context Length.
      */
-    public SuccinctIndexedBuffer(byte[] input, long[] offsets, int contextLen) {
+    public SuccinctIndexedBuffer(byte[] input, int[] offsets, int contextLen) {
         super(input, contextLen);
         this.offsets = offsets;
     }
@@ -36,7 +36,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      * @param input The input byte array.
      * @param offsets Offsets corresponding to records.
      */
-    public SuccinctIndexedBuffer(byte[] input, long[] offsets) {
+    public SuccinctIndexedBuffer(byte[] input, int[] offsets) {
         this(input, offsets, 3);
     }
 
@@ -104,21 +104,21 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      * @param query Input query.
      * @return Offsets of all matching records.
      */
-    public Long[] recordSearchOffsets(byte[] query) {
-        Set<Long> results = new HashSet<Long>();
+    public Integer[] recordSearchOffsets(byte[] query) {
+        Set<Integer> results = new HashSet<Integer>();
         Range<Long, Long> range;
         range = getRange(query);
 
         long sp = range.first, ep = range.second;
         if (ep - sp + 1 <= 0) {
-            return new Long[0];
+            return new Integer[0];
         }
 
         for (long i = 0; i < ep - sp + 1; i++) {
             results.add(offsets[searchOffset(lookupSA(sp + i))]);
         }
 
-        return results.toArray(new Long[results.size()]);
+        return results.toArray(new Integer[results.size()]);
     }
 
     /**
@@ -480,7 +480,6 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
     private void writeObject(ObjectOutputStream oos) throws IOException {
         resetBuffers();
 
-        WritableByteChannel dataChannel = Channels.newChannel(oos);
         oos.writeObject(offsets);
         serializeCore(oos);
 
@@ -497,7 +496,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
             throws ClassNotFoundException, IOException {
         Tables.init();
 
-        offsets = (long [])ois.readObject();
+        offsets = (int [])ois.readObject();
 
         deserializeCore(ois);
     }

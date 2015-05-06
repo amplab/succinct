@@ -11,7 +11,7 @@ public class SuccinctIndexedBufferTest extends TestCase {
     private String testFileRaw = this.getClass().getResource("/test_file").getFile();
     private String testFileSuccinct = this.getClass().getResource("/test_file").getFile() + ".succinct";
     private SuccinctIndexedBuffer sIBuf;
-    private long[] offsets;
+    private int[] offsets;
     private byte[] fileData;
 
     /**
@@ -28,14 +28,14 @@ public class SuccinctIndexedBufferTest extends TestCase {
         DataInputStream dis = new DataInputStream(
                 new FileInputStream(inputFile));
         dis.readFully(fileData);
-        ArrayList<Long> positions = new ArrayList<Long>();
-        positions.add(0L);
+        ArrayList<Integer> positions = new ArrayList<Integer>();
+        positions.add(0);
         for(int i = 0; i < fileData.length; i++) {
             if(fileData[i] == '\n') {
-                positions.add(Long.valueOf(i + 1));
+                positions.add(i + 1);
             }
         }
-        offsets = new long[positions.size()];
+        offsets = new int[positions.size()];
         for(int i = 0; i < offsets.length; i++) {
             offsets[i] = positions.get(i);
         }
@@ -61,9 +61,9 @@ public class SuccinctIndexedBufferTest extends TestCase {
     public void testRecordSearchOffsets() throws Exception {
         System.out.println("recordSearchOffsets");
 
-        Long[] searchOffsets = sIBuf.recordSearchOffsets("int".getBytes());
+        Integer[] searchOffsets = sIBuf.recordSearchOffsets("int".getBytes());
         for(int i = 0; i < searchOffsets.length; i++) {
-            byte[] buf = sIBuf.extractUntil(searchOffsets[i].intValue(), (byte)'\n');
+            byte[] buf = sIBuf.extractUntil(searchOffsets[i], (byte)'\n');
             assertTrue(new String(buf).contains("int"));
         }
     }

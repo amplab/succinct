@@ -17,21 +17,21 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
 class SearchOffsetResultsRDD(val succinctRDD: SuccinctRDD,
     val searchQuery: Array[Byte],
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
-  extends RDD[Array[Long]](succinctRDD.context, List(new OneToOneDependency(succinctRDD))) {
+  extends RDD[Array[Int]](succinctRDD.context, List(new OneToOneDependency(succinctRDD))) {
 
   /**
    * Overrides the compute method of RDD to return an iterator over the search results
    * (offsets into the partition).
      s*/
-  override def compute(split: Partition, context: TaskContext): Iterator[Array[Long]] = {
+  override def compute(split: Partition, context: TaskContext): Iterator[Array[Int]] = {
     val resultsIterator = succinctRDD.getFirstParent.iterator(split, context)
     if (resultsIterator.hasNext) {
       Iterator(resultsIterator.next()
         .recordSearchOffsets(searchQuery)
-        .map(Long2long)
-        .asInstanceOf[Array[Long]])
+        .map(Integer2int)
+        .asInstanceOf[Array[Int]])
     } else {
-      Iterator[Array[Long]]()
+      Iterator[Array[Int]]()
     }
   }
 

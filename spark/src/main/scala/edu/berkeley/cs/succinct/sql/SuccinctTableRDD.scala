@@ -199,7 +199,7 @@ object SuccinctTableRDD {
       dataIter: Iterator[Row],
       succinctSerializer: SuccinctSerializer): Iterator[SuccinctIndexedBuffer] = {
 
-    var offsets = new ArrayBuffer[Long]()
+    var offsets = new ArrayBuffer[Int]()
     val rawBufferBuilder = new StringBuilder
     var offset = 0
     while (dataIter.hasNext) {

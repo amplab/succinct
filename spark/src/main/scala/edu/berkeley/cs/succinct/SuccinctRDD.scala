@@ -174,7 +174,7 @@ object SuccinctRDD {
    * @return An Iterator over the SuccinctIndexedBuffer.
    */
   private[succinct] def createSuccinctBuffer(dataIter: Iterator[Array[Byte]]): Iterator[SuccinctIndexedBuffer] = {
-    var offsets = new ArrayBuffer[Long]()
+    var offsets = new ArrayBuffer[Int]()
     val rawBufferBuilder = new StringBuilder
     var offset = 0
     while (dataIter.hasNext) {
