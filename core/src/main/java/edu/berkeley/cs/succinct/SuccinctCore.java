@@ -15,8 +15,6 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -26,40 +24,39 @@ public class SuccinctCore implements Serializable {
 
     private static final long serialVersionUID = 1382615274437547247L;
     
-    public static final byte EOF = 1;
+    public transient static final byte EOF = 1;
 
-    protected ThreadSafeByteBuffer metadata;
-    protected ThreadSafeByteBuffer alphabetmap;
-    protected ThreadSafeLongBuffer contextmap;
-    protected ThreadSafeByteBuffer alphabet;
-    protected ThreadSafeLongBuffer sa;
-    protected ThreadSafeLongBuffer isa;
-    protected ThreadSafeLongBuffer neccol;
-    protected ThreadSafeLongBuffer necrow;
-    protected ThreadSafeLongBuffer rowoffsets;
-    protected ThreadSafeLongBuffer coloffsets;
-    protected ThreadSafeLongBuffer celloffsets;
-    protected ThreadSafeIntBuffer rowsizes;
-    protected ThreadSafeIntBuffer colsizes;
-    protected ThreadSafeIntBuffer roff;
-    protected ThreadSafeIntBuffer coff;
-    protected ThreadSafeByteBuffer[] wavelettree;
+    protected transient ThreadSafeByteBuffer metadata;
+    protected transient ThreadSafeByteBuffer alphabetmap;
+    protected transient ThreadSafeLongBuffer contextmap;
+    protected transient ThreadSafeByteBuffer alphabet;
+    protected transient ThreadSafeLongBuffer sa;
+    protected transient ThreadSafeLongBuffer isa;
+    protected transient ThreadSafeLongBuffer neccol;
+    protected transient ThreadSafeLongBuffer necrow;
+    protected transient ThreadSafeLongBuffer rowoffsets;
+    protected transient ThreadSafeLongBuffer coloffsets;
+    protected transient ThreadSafeLongBuffer celloffsets;
+    protected transient ThreadSafeIntBuffer rowsizes;
+    protected transient ThreadSafeIntBuffer colsizes;
+    protected transient ThreadSafeIntBuffer roff;
+    protected transient ThreadSafeIntBuffer coff;
+    protected transient ThreadSafeByteBuffer[] wavelettree;
 
     // Metadata
-    private int originalSize;
-    protected int sampledSASize;
-    protected int alphaSize;
-    protected int sigmaSize;
-    protected int bits;
-    protected int sampledSABits;
-    protected int samplingBase;
-    protected int samplingRate;
-    protected int numContexts;
-    protected int contextLen;
+    private transient int originalSize;
+    protected transient int sampledSASize;
+    protected transient int alphaSize;
+    protected transient int sigmaSize;
+    protected transient int bits;
+    protected transient int sampledSABits;
+    protected transient int samplingBase;
+    protected transient int samplingRate;
+    protected transient int numContexts;
+    protected transient int contextLen;
 
-    // TODO: Can we perform queries on serialized versions of maps?
-    protected HashMap<Byte, Pair<Long, Integer>> alphabetMap;
-    protected Map<Long, Long> contextMap;
+    protected transient HashMap<Byte, Pair<Long, Integer>> alphabetMap;
+    protected transient Map<Long, Long> contextMap;
 
     /**
      * 
@@ -176,9 +173,9 @@ public class SuccinctCore implements Serializable {
         long cellValue = cellOff;
         if (wavelettree[rowId] != null) {
             cellValue = SerializedOperations.WaveletTreeOps.getValue(
-                    (ByteBuffer) wavelettree[rowId].position(0), contextPos,
+                    (ByteBuffer) wavelettree[rowId].rewind(), contextPos,
                     cellOff, 0, contextSize - 1);
-            wavelettree[rowId].position(0);
+            wavelettree[rowId].rewind();
         }
 
         return rowOff + cellValue;
@@ -280,7 +277,7 @@ public class SuccinctCore implements Serializable {
         metadata.putInt(samplingBase);
         metadata.putInt(samplingRate);
         metadata.putInt(numContexts);
-        metadata.position(0);
+        metadata.rewind();
 
     }
 
@@ -326,14 +323,14 @@ public class SuccinctCore implements Serializable {
             alphabetmap.putLong(cval.first);
             alphabetmap.putInt(cval.second);
         }
-        alphabetmap.position(0);
+        alphabetmap.rewind();
 
         // Serialize S
         alphabet = ThreadSafeByteBuffer.allocate(alphabetArray.length);
         for (int j = 0; j < alphabetArray.length; j++) {
             alphabet.put(alphabetArray[j]);
         }
-        alphabet.position(0);
+        alphabet.rewind();
 
     }
 
@@ -530,7 +527,7 @@ public class SuccinctCore implements Serializable {
             }
         }
 
-        neccol.position(0);
+        neccol.rewind();
 
         // Serialize necrow
         necrow = ThreadSafeLongBuffer.allocate(necRowSize);
@@ -539,21 +536,21 @@ public class SuccinctCore implements Serializable {
                 necrow.put(necRow.get(i).get(j));
             }
         }
-        necrow.position(0);
+        necrow.rewind();
 
         // Serialize rowoffsets
         rowoffsets = ThreadSafeLongBuffer.allocate(rowOffsets.size());
         for (int i = 0; i < rowOffsets.size(); i++) {
             rowoffsets.put(rowOffsets.get(i));
         }
-        rowoffsets.position(0);
+        rowoffsets.rewind();
 
         // Serialize coloffsets
         coloffsets = ThreadSafeLongBuffer.allocate(colOffsets.size());
         for (int i = 0; i < colOffsets.size(); i++) {
             coloffsets.put(colOffsets.get(i));
         }
-        coloffsets.position(0);
+        coloffsets.rewind();
 
         // Serialize celloffsets
         celloffsets = ThreadSafeLongBuffer.allocate(cellOffsetsSize);
@@ -562,21 +559,21 @@ public class SuccinctCore implements Serializable {
                 celloffsets.put(cellOffsets.get(i).get(j));
             }
         }
-        celloffsets.position(0);
+        celloffsets.rewind();
 
         // Serialize rowsizes
         rowsizes = ThreadSafeIntBuffer.allocate(necRow.size());
         for (int i = 0; i < necRow.size(); i++) {
             rowsizes.put(necRow.get(i).size());
         }
-        rowsizes.position(0);
+        rowsizes.rewind();
 
         // Serialize colsizes
         colsizes = ThreadSafeIntBuffer.allocate(necCol.size());
         for (int i = 0; i < necCol.size(); i++) {
             colsizes.put(necCol.get(i).size());
         }
-        colsizes.position(0);
+        colsizes.rewind();
 
         // Serialize roff
         int size = 0;
@@ -585,7 +582,7 @@ public class SuccinctCore implements Serializable {
             roff.put(size);
             size += necRow.get(i).size();
         }
-        roff.position(0);
+        roff.rewind();
 
         // Serialize coff
         size = 0;
@@ -594,7 +591,7 @@ public class SuccinctCore implements Serializable {
             coff.put(size);
             size += necCol.get(i).size();
         }
-        coff.position(0);
+        coff.rewind();
 
         // Serialize contexts
         contextmap = ThreadSafeLongBuffer.allocate(2 * contextMap.size());
@@ -602,7 +599,7 @@ public class SuccinctCore implements Serializable {
             contextmap.put(c);
             contextmap.put(contextMap.get(c));
         }
-        contextmap.position(0);
+        contextmap.rewind();
     }
 
     /**
@@ -692,75 +689,75 @@ public class SuccinctCore implements Serializable {
      */
     private void writeObject(ObjectOutputStream oos) throws IOException {
         resetBuffers();
-        
+
         WritableByteChannel dataChannel = Channels.newChannel(oos);
 
         dataChannel.write(metadata.order(ByteOrder.nativeOrder()));
 
         dataChannel.write(alphabetmap.order(ByteOrder.nativeOrder()));
 
-        ByteBuffer bufContext = ByteBuffer.allocate(contextmap.capacity() * 8);
+        ByteBuffer bufContext = ByteBuffer.allocate(contextmap.limit() * 8);
         bufContext.asLongBuffer().put(contextmap.buffer());
         dataChannel.write(bufContext.order(ByteOrder.nativeOrder()));
 
         dataChannel.write(alphabet.order(ByteOrder.nativeOrder()));
 
-        ByteBuffer bufSA = ByteBuffer.allocate(sa.capacity() * 8);
+        ByteBuffer bufSA = ByteBuffer.allocate(sa.limit() * 8);
         bufSA.asLongBuffer().put(sa.buffer());
         dataChannel.write(bufSA.order(ByteOrder.nativeOrder()));
 
-        ByteBuffer bufISA = ByteBuffer.allocate(isa.capacity() * 8);
+        ByteBuffer bufISA = ByteBuffer.allocate(isa.limit() * 8);
         bufISA.asLongBuffer().put(isa.buffer());
         dataChannel.write(bufISA.order(ByteOrder.nativeOrder()));
 
-        oos.writeLong((long) neccol.capacity());
-        ByteBuffer bufNecCol = ByteBuffer.allocate(neccol.capacity() * 8);
+        oos.writeLong((long) neccol.limit());
+        ByteBuffer bufNecCol = ByteBuffer.allocate(neccol.limit() * 8);
         bufNecCol.asLongBuffer().put(neccol.buffer());
         dataChannel.write(bufNecCol.order(ByteOrder.nativeOrder()));
 
-        oos.writeLong((long) necrow.capacity());
-        ByteBuffer bufNecRow = ByteBuffer.allocate(necrow.capacity() * 8);
+        oos.writeLong((long) necrow.limit());
+        ByteBuffer bufNecRow = ByteBuffer.allocate(necrow.limit() * 8);
         bufNecRow.asLongBuffer().put(necrow.buffer());
         dataChannel.write(bufNecRow.order(ByteOrder.nativeOrder()));
 
-        oos.writeLong((long) rowoffsets.capacity());
-        ByteBuffer bufRowOff = ByteBuffer.allocate(rowoffsets.capacity() * 8);
+        oos.writeLong((long) rowoffsets.limit());
+        ByteBuffer bufRowOff = ByteBuffer.allocate(rowoffsets.limit() * 8);
         bufRowOff.asLongBuffer().put(rowoffsets.buffer());
         dataChannel.write(bufRowOff.order(ByteOrder.nativeOrder()));
 
-        oos.writeLong((long) coloffsets.capacity());
-        ByteBuffer bufColOff = ByteBuffer.allocate(coloffsets.capacity() * 8);
+        oos.writeLong((long) coloffsets.limit());
+        ByteBuffer bufColOff = ByteBuffer.allocate(coloffsets.limit() * 8);
         bufColOff.asLongBuffer().put(coloffsets.buffer());
         dataChannel.write(bufColOff.order(ByteOrder.nativeOrder()));
 
-        oos.writeLong((long) celloffsets.capacity());
-        ByteBuffer bufCellOff = ByteBuffer.allocate(celloffsets.capacity() * 8);
+        oos.writeLong((long) celloffsets.limit());
+        ByteBuffer bufCellOff = ByteBuffer.allocate(celloffsets.limit() * 8);
         bufCellOff.asLongBuffer().put(celloffsets.buffer());
         dataChannel.write(bufCellOff.order(ByteOrder.nativeOrder()));
 
-        oos.writeLong((long) rowsizes.capacity());
-        ByteBuffer bufRowSizes = ByteBuffer.allocate(rowsizes.capacity() * 4);
+        oos.writeLong((long) rowsizes.limit());
+        ByteBuffer bufRowSizes = ByteBuffer.allocate(rowsizes.limit() * 4);
         bufRowSizes.asIntBuffer().put(rowsizes.buffer());
         dataChannel.write(bufRowSizes.order(ByteOrder.nativeOrder()));
 
-        oos.writeLong((long) colsizes.capacity());
-        ByteBuffer bufColSizes = ByteBuffer.allocate(colsizes.capacity() * 4);
+        oos.writeLong((long) colsizes.limit());
+        ByteBuffer bufColSizes = ByteBuffer.allocate(colsizes.limit() * 4);
         bufColSizes.asIntBuffer().put(colsizes.buffer());
         dataChannel.write(bufColSizes.order(ByteOrder.nativeOrder()));
 
-        oos.writeLong((long) roff.capacity());
-        ByteBuffer bufROff = ByteBuffer.allocate(roff.capacity() * 4);
+        oos.writeLong((long) roff.limit());
+        ByteBuffer bufROff = ByteBuffer.allocate(roff.limit() * 4);
         bufROff.asIntBuffer().put(roff.buffer());
         dataChannel.write(bufROff.order(ByteOrder.nativeOrder()));
 
-        oos.writeLong((long) coff.capacity());
-        ByteBuffer bufCoff = ByteBuffer.allocate(coff.capacity() * 4);
+        oos.writeLong((long) coff.limit());
+        ByteBuffer bufCoff = ByteBuffer.allocate(coff.limit() * 4);
         bufCoff.asIntBuffer().put(coff.buffer());
         dataChannel.write(bufCoff.order(ByteOrder.nativeOrder()));
 
         for (int i = 0; i < wavelettree.length; i++) {
             long wavelettreeSize = (long) ((wavelettree[i] == null) ? 0
-                    : wavelettree[i].capacity());
+                    : wavelettree[i].limit());
             oos.writeLong(wavelettreeSize);
             if (wavelettreeSize != 0) {
                 dataChannel
@@ -803,12 +800,12 @@ public class SuccinctCore implements Serializable {
         metadata.putInt(samplingBase);
         metadata.putInt(samplingRate);
         metadata.putInt(numContexts);
-        metadata.position(0);
+        metadata.rewind();
 
         int cmapSize = this.alphaSize;
         this.alphabetmap = ThreadSafeByteBuffer.allocate(cmapSize * (1 + 8 + 4));
         dataChannel.read(this.alphabetmap.buffer());
-        this.alphabetmap.position(0);
+        this.alphabetmap.rewind();
 
         // Deserialize cmap
         alphabetMap = new HashMap<Byte, Pair<Long, Integer>>();
@@ -823,7 +820,7 @@ public class SuccinctCore implements Serializable {
         int contextsSize = this.numContexts;
         ByteBuffer contextBuf = ByteBuffer.allocate(contextsSize * 8 * 2);
         dataChannel.read(contextBuf);
-        contextBuf.position(0);
+        contextBuf.rewind();
         this.contextmap = ThreadSafeLongBuffer.fromLongBuffer(contextBuf.asLongBuffer());
 
         // Deserialize contexts
@@ -838,80 +835,80 @@ public class SuccinctCore implements Serializable {
         int slistSize = this.alphaSize;
         this.alphabet = ThreadSafeByteBuffer.allocate(slistSize);
         dataChannel.read(this.alphabet.buffer());
-        this.alphabet.position(0);
+        this.alphabet.rewind();
 
         // Read sa
         int saSize = (sampledSASize * sampledSABits) / 64 + 1;
         ByteBuffer saBuf = ByteBuffer.allocate(saSize * 8);
         dataChannel.read(saBuf);
-        saBuf.position(0);
+        saBuf.rewind();
         this.sa = ThreadSafeLongBuffer.fromLongBuffer(saBuf.asLongBuffer());
 
         // Read sainv
         int isaSize = (sampledSASize * sampledSABits) / 64 + 1;
         ByteBuffer isaBuf = ByteBuffer.allocate(isaSize * 8);
         dataChannel.read(isaBuf);
-        isaBuf.position(0);
+        isaBuf.rewind();
         this.isa = ThreadSafeLongBuffer.fromLongBuffer(isaBuf.asLongBuffer());
 
         // Read neccol
         int neccolSize = (int) ois.readLong();
         ByteBuffer neccolBuf = ByteBuffer.allocate(neccolSize * 8);
         dataChannel.read(neccolBuf);
-        neccolBuf.position(0);
+        neccolBuf.rewind();
         this.neccol = ThreadSafeLongBuffer.fromLongBuffer(neccolBuf.asLongBuffer());
 
         // Read necrow
         int necrowSize = (int) ois.readLong();
         ByteBuffer necrowBuf = ByteBuffer.allocate(necrowSize * 8);
         dataChannel.read(necrowBuf);
-        necrowBuf.position(0);
+        necrowBuf.rewind();
         this.necrow = ThreadSafeLongBuffer.fromLongBuffer(necrowBuf.asLongBuffer());
 
         // Read rowoffsets
         int rowoffsetsSize = (int) ois.readLong();
         ByteBuffer rowoffsetsBuf = ByteBuffer.allocate(rowoffsetsSize * 8);
         dataChannel.read(rowoffsetsBuf);
-        rowoffsetsBuf.position(0);
+        rowoffsetsBuf.rewind();
         this.rowoffsets = ThreadSafeLongBuffer.fromLongBuffer(rowoffsetsBuf.asLongBuffer());
 
         // Read coloffsets
         int coloffsetsSize = (int) ois.readLong();
         ByteBuffer coloffsetsBuf = ByteBuffer.allocate(coloffsetsSize * 8);
         dataChannel.read(coloffsetsBuf);
-        coloffsetsBuf.position(0);
+        coloffsetsBuf.rewind();
         this.coloffsets = ThreadSafeLongBuffer.fromLongBuffer(coloffsetsBuf.asLongBuffer());
 
         // Read celloffsets
         int celloffsetsSize = (int) ois.readLong();
         ByteBuffer celloffsetsBuf = ByteBuffer.allocate(celloffsetsSize * 8);
         dataChannel.read(celloffsetsBuf);
-        celloffsetsBuf.position(0);
+        celloffsetsBuf.rewind();
         this.celloffsets = ThreadSafeLongBuffer.fromLongBuffer(celloffsetsBuf.asLongBuffer());
 
         // Read rowsizes
         int rowsizesSize = (int) ois.readLong();
         ByteBuffer rowsizesBuf = ByteBuffer.allocate(rowsizesSize * 4);
         dataChannel.read(rowsizesBuf);
-        rowsizesBuf.position(0);
+        rowsizesBuf.rewind();
         this.rowsizes = ThreadSafeIntBuffer.fromIntBuffer(rowsizesBuf.asIntBuffer());
 
         int colsizesSize = (int) ois.readLong();
         ByteBuffer colsizesBuf = ByteBuffer.allocate(colsizesSize * 4);
         dataChannel.read(colsizesBuf);
-        colsizesBuf.position(0);
+        colsizesBuf.rewind();
         this.colsizes = ThreadSafeIntBuffer.fromIntBuffer(colsizesBuf.asIntBuffer());
 
         int roffSize = (int) ois.readLong();
         ByteBuffer roffBuf = ByteBuffer.allocate(roffSize * 4);
         dataChannel.read(roffBuf);
-        roffBuf.position(0);
+        roffBuf.rewind();
         this.roff = ThreadSafeIntBuffer.fromIntBuffer(roffBuf.asIntBuffer());
 
         int coffSize = (int) ois.readLong();
         ByteBuffer coffBuf = ByteBuffer.allocate(coffSize * 4);
         dataChannel.read(coffBuf);
-        coffBuf.position(0);
+        coffBuf.rewind();
         this.coff = ThreadSafeIntBuffer.fromIntBuffer(coffBuf.asIntBuffer());
 
         wavelettree = new ThreadSafeByteBuffer[contextsSize];
@@ -922,7 +919,7 @@ public class SuccinctCore implements Serializable {
                 ByteBuffer wavelettreeBuf = ByteBuffer
                         .allocate((int) wavelettreeSize);
                 dataChannel.read(wavelettreeBuf);
-                wavelettree[i] = ThreadSafeByteBuffer.fromByteBuffer((ByteBuffer) wavelettreeBuf.position(0));
+                wavelettree[i] = ThreadSafeByteBuffer.fromByteBuffer((ByteBuffer) wavelettreeBuf.rewind());
             }
         }
     }
@@ -931,24 +928,24 @@ public class SuccinctCore implements Serializable {
      * Reposition all byte buffers to their respective starting positions.
      */
     protected void resetBuffers() {
-        metadata.order(ByteOrder.BIG_ENDIAN).position(0);
-        alphabetmap.order(ByteOrder.BIG_ENDIAN).position(0);
-        contextmap.position(0);
-        alphabet.position(0);
-        sa.position(0);
-        isa.position(0);
-        neccol.position(0);
-        necrow.position(0);
-        rowoffsets.position(0);
-        coloffsets.position(0);
-        celloffsets.position(0);
-        rowsizes.position(0);
-        colsizes.position(0);
-        roff.position(0);
-        coff.position(0);
+        metadata.order(ByteOrder.BIG_ENDIAN).rewind();
+        alphabetmap.order(ByteOrder.BIG_ENDIAN).rewind();
+        contextmap.rewind();
+        alphabet.rewind();
+        sa.rewind();
+        isa.rewind();
+        neccol.rewind();
+        necrow.rewind();
+        rowoffsets.rewind();
+        coloffsets.rewind();
+        celloffsets.rewind();
+        rowsizes.rewind();
+        colsizes.rewind();
+        roff.rewind();
+        coff.rewind();
         for(int i = 0; i < wavelettree.length; i++) {
             if(wavelettree[i] != null) {
-                wavelettree[i].order(ByteOrder.BIG_ENDIAN).position(0);
+                wavelettree[i].order(ByteOrder.BIG_ENDIAN).rewind();
             }
         }
     }

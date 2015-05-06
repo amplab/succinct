@@ -220,7 +220,19 @@ public class ThreadSafeByteBuffer {
         return buf.get().capacity();
     }
 
+    public int limit() {
+        return buf.get().limit();
+    }
+
+    public Buffer limit(int newLimit) {
+        return buf.get().limit(newLimit);
+    }
+
     public ByteBuffer order(ByteOrder order) {
         return buf.get().order(order);
+    }
+
+    public Buffer rewind() {
+        return buf.get().rewind();
     }
 }

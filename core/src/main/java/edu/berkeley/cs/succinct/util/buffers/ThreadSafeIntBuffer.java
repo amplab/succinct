@@ -1,8 +1,6 @@
 package edu.berkeley.cs.succinct.util.buffers;
 
-import java.nio.Buffer;
-import java.nio.ByteOrder;
-import java.nio.IntBuffer;
+import java.nio.*;
 
 public class ThreadSafeIntBuffer {
 
@@ -10,7 +8,7 @@ public class ThreadSafeIntBuffer {
         private IntBuffer _src;
 
         public IntBufferLocal(IntBuffer src) {
-            _src = src;
+            _src = (IntBuffer) src.rewind();
         }
 
         @Override
@@ -104,5 +102,17 @@ public class ThreadSafeIntBuffer {
 
     public int capacity() {
         return buf.get().capacity();
+    }
+
+    public int limit() {
+        return buf.get().limit();
+    }
+
+    public Buffer limit(int newLimit) {
+        return buf.get().limit(newLimit);
+    }
+
+    public Buffer rewind() {
+        return buf.get().rewind();
     }
 }

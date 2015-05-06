@@ -18,8 +18,8 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
 
     private static final long serialVersionUID = -8357331195541317163L;
 
-    protected static byte RECORD_DELIM = '\n';
-    protected long[] offsets;
+    protected transient static byte RECORD_DELIM = '\n';
+    protected transient long[] offsets;
 
     /**
      * Constructor to initialize SuccinctIndexedBuffer from input byte array, offsets corresponding to records, and
