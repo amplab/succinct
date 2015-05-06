@@ -46,17 +46,17 @@ public class SuccinctBuffer extends SuccinctCore {
 
     /**
      * Compute context value at an index in a byte array.
-     *  
+     *
      * @param buf Input byte buffer.
      * @param i Index in the byte buffer.
      * @return Value of context at specified index.
      */
     private long computeContextVal(byte[] buf, int i) {
         long val = 0;
-        long max = i + contextLen;
+        long max = i + getContextLen();
         for (int t = i; t < max; t++) {
             if (alphabetMap.containsKey(buf[t])) {
-                val = val * sigmaSize + alphabetMap.get(buf[t]).second;
+                val = val * getSigmaSize() + alphabetMap.get(buf[t]).second;
             } else {
                 return -1;
             }
@@ -80,7 +80,7 @@ public class SuccinctBuffer extends SuccinctCore {
         s = lookupISA(offset);
         for (int k = 0; k < len; k++) {
             buf[k] = alphabet.get(SerializedOperations.ArrayOps.getRank1(
-                    coloffsets.buffer(), 0, sigmaSize, s) - 1);
+                    coloffsets.buffer(), 0, getSigmaSize(), s) - 1);
             s = lookupNPA(s);
         }
 
@@ -103,7 +103,7 @@ public class SuccinctBuffer extends SuccinctCore {
         char nextChar;
         do {
             nextChar = (char) alphabet.get(SerializedOperations.ArrayOps.getRank1(
-                    coloffsets.buffer(), 0, sigmaSize, s) - 1);
+                    coloffsets.buffer(), 0, getSigmaSize(), s) - 1);
             if(nextChar == delim || nextChar == 1) break;
             strBuf += nextChar;
             s = lookupNPA(s);
@@ -243,82 +243,7 @@ public class SuccinctBuffer extends SuccinctCore {
      */
     private void writeObject(ObjectOutputStream oos) throws IOException {
         resetBuffers();
-
-        WritableByteChannel dataChannel = Channels.newChannel(oos);
-
-        dataChannel.write(metadata.order(ByteOrder.nativeOrder()));
-
-        dataChannel.write(alphabetmap.order(ByteOrder.nativeOrder()));
-
-        ByteBuffer bufContext = ByteBuffer.allocate(contextmap.capacity() * 8);
-        bufContext.asLongBuffer().put(contextmap.buffer());
-        dataChannel.write(bufContext.order(ByteOrder.nativeOrder()));
-
-        dataChannel.write(alphabet.order(ByteOrder.nativeOrder()));
-
-        ByteBuffer bufSA = ByteBuffer.allocate(sa.capacity() * 8);
-        bufSA.asLongBuffer().put(sa.buffer());
-        dataChannel.write(bufSA.order(ByteOrder.nativeOrder()));
-
-        ByteBuffer bufISA = ByteBuffer.allocate(isa.capacity() * 8);
-        bufISA.asLongBuffer().put(isa.buffer());
-        dataChannel.write(bufISA.order(ByteOrder.nativeOrder()));
-
-        oos.writeLong((long) neccol.capacity());
-        ByteBuffer bufNecCol = ByteBuffer.allocate(neccol.capacity() * 8);
-        bufNecCol.asLongBuffer().put(neccol.buffer());
-        dataChannel.write(bufNecCol.order(ByteOrder.nativeOrder()));
-
-        oos.writeLong((long) necrow.capacity());
-        ByteBuffer bufNecRow = ByteBuffer.allocate(necrow.capacity() * 8);
-        bufNecRow.asLongBuffer().put(necrow.buffer());
-        dataChannel.write(bufNecRow.order(ByteOrder.nativeOrder()));
-
-        oos.writeLong((long) rowoffsets.capacity());
-        ByteBuffer bufRowOff = ByteBuffer.allocate(rowoffsets.capacity() * 8);
-        bufRowOff.asLongBuffer().put(rowoffsets.buffer());
-        dataChannel.write(bufRowOff.order(ByteOrder.nativeOrder()));
-
-        oos.writeLong((long) coloffsets.capacity());
-        ByteBuffer bufColOff = ByteBuffer.allocate(coloffsets.capacity() * 8);
-        bufColOff.asLongBuffer().put(coloffsets.buffer());
-        dataChannel.write(bufColOff.order(ByteOrder.nativeOrder()));
-
-        oos.writeLong((long) celloffsets.capacity());
-        ByteBuffer bufCellOff = ByteBuffer.allocate(celloffsets.capacity() * 8);
-        bufCellOff.asLongBuffer().put(celloffsets.buffer());
-        dataChannel.write(bufCellOff.order(ByteOrder.nativeOrder()));
-
-        oos.writeLong((long) rowsizes.capacity());
-        ByteBuffer bufRowSizes = ByteBuffer.allocate(rowsizes.capacity() * 4);
-        bufRowSizes.asIntBuffer().put(rowsizes.buffer());
-        dataChannel.write(bufRowSizes.order(ByteOrder.nativeOrder()));
-
-        oos.writeLong((long) colsizes.capacity());
-        ByteBuffer bufColSizes = ByteBuffer.allocate(colsizes.capacity() * 4);
-        bufColSizes.asIntBuffer().put(colsizes.buffer());
-        dataChannel.write(bufColSizes.order(ByteOrder.nativeOrder()));
-
-        oos.writeLong((long) roff.capacity());
-        ByteBuffer bufROff = ByteBuffer.allocate(roff.capacity() * 4);
-        bufROff.asIntBuffer().put(roff.buffer());
-        dataChannel.write(bufROff.order(ByteOrder.nativeOrder()));
-
-        oos.writeLong((long) coff.capacity());
-        ByteBuffer bufCoff = ByteBuffer.allocate(coff.capacity() * 4);
-        bufCoff.asIntBuffer().put(coff.buffer());
-        dataChannel.write(bufCoff.order(ByteOrder.nativeOrder()));
-
-        for (int i = 0; i < wavelettree.length; i++) {
-            long wavelettreeSize = (long) ((wavelettree[i] == null) ? 0
-                    : wavelettree[i].capacity());
-            oos.writeLong(wavelettreeSize);
-            if (wavelettreeSize != 0) {
-                dataChannel
-                        .write(wavelettree[i].order(ByteOrder.nativeOrder()));
-            }
-        }
-
+        serializeCore(oos);
         resetBuffers();
     }
 
@@ -330,151 +255,7 @@ public class SuccinctBuffer extends SuccinctCore {
      */
     private void readObject(ObjectInputStream ois)
             throws ClassNotFoundException, IOException {
-
         Tables.init();
-
-        ReadableByteChannel dataChannel = Channels.newChannel(ois);
-        this.setOriginalSize((int) ois.readLong());
-        this.sampledSASize = (int) ois.readLong();
-        this.alphaSize = ois.readInt();
-        this.sigmaSize = ois.readInt();
-        this.bits = ois.readInt();
-        this.sampledSABits = ois.readInt();
-        this.samplingBase = ois.readInt();
-        this.samplingRate = ois.readInt();
-        this.numContexts = ois.readInt();
-
-        metadata = ThreadSafeByteBuffer.allocate(44);
-        metadata.putLong(getOriginalSize());
-        metadata.putLong(sampledSASize);
-        metadata.putInt(alphaSize);
-        metadata.putInt(sigmaSize);
-        metadata.putInt(bits);
-        metadata.putInt(sampledSABits);
-        metadata.putInt(samplingBase);
-        metadata.putInt(samplingRate);
-        metadata.putInt(numContexts);
-        metadata.position(0);
-
-        int cmapSize = this.alphaSize;
-        this.alphabetmap = ThreadSafeByteBuffer.allocate(cmapSize * (1 + 8 + 4));
-        dataChannel.read(this.alphabetmap.buffer());
-        this.alphabetmap.position(0);
-
-        // Deserialize cmap
-        alphabetMap = new HashMap<Byte, Pair<Long, Integer>>();
-        for (int i = 0; i < this.alphaSize; i++) {
-            byte c = alphabetmap.get();
-            long v1 = alphabetmap.getLong();
-            int v2 = alphabetmap.getInt();
-            alphabetMap.put(c, new Pair<Long, Integer>(v1, v2));
-        }
-
-        // Read contexts
-        int contextsSize = this.numContexts;
-        ByteBuffer contextBuf = ByteBuffer.allocate(contextsSize * 8 * 2);
-        dataChannel.read(contextBuf);
-        contextBuf.position(0);
-        this.contextmap = ThreadSafeLongBuffer.fromLongBuffer(contextBuf.asLongBuffer());
-
-        // Deserialize contexts
-        contextMap = new HashMap<Long, Long>();
-        for (int i = 0; i < this.numContexts; i++) {
-            long v1 = contextmap.get();
-            long v2 = contextmap.get();
-            contextMap.put(v1, v2);
-        }
-
-        // Read slist
-        int slistSize = this.alphaSize;
-        this.alphabet = ThreadSafeByteBuffer.allocate(slistSize);
-        dataChannel.read(this.alphabet.buffer());
-        this.alphabet.position(0);
-
-        // Read sa
-        int saSize = (sampledSASize * sampledSABits) / 64 + 1;
-        ByteBuffer saBuf = ByteBuffer.allocate(saSize * 8);
-        dataChannel.read(saBuf);
-        saBuf.position(0);
-        this.sa = ThreadSafeLongBuffer.fromLongBuffer(saBuf.asLongBuffer());
-
-        // Read sainv
-        int isaSize = (sampledSASize * sampledSABits) / 64 + 1;
-        ByteBuffer isaBuf = ByteBuffer.allocate(isaSize * 8);
-        dataChannel.read(isaBuf);
-        isaBuf.position(0);
-        this.isa = ThreadSafeLongBuffer.fromLongBuffer(isaBuf.asLongBuffer());
-
-        // Read neccol
-        int neccolSize = (int) ois.readLong();
-        ByteBuffer neccolBuf = ByteBuffer.allocate(neccolSize * 8);
-        dataChannel.read(neccolBuf);
-        neccolBuf.position(0);
-        this.neccol = ThreadSafeLongBuffer.fromLongBuffer(neccolBuf.asLongBuffer());
-
-        // Read necrow
-        int necrowSize = (int) ois.readLong();
-        ByteBuffer necrowBuf = ByteBuffer.allocate(necrowSize * 8);
-        dataChannel.read(necrowBuf);
-        necrowBuf.position(0);
-        this.necrow = ThreadSafeLongBuffer.fromLongBuffer(necrowBuf.asLongBuffer());
-
-        // Read rowoffsets
-        int rowoffsetsSize = (int) ois.readLong();
-        ByteBuffer rowoffsetsBuf = ByteBuffer.allocate(rowoffsetsSize * 8);
-        dataChannel.read(rowoffsetsBuf);
-        rowoffsetsBuf.position(0);
-        this.rowoffsets = ThreadSafeLongBuffer.fromLongBuffer(rowoffsetsBuf.asLongBuffer());
-
-        // Read coloffsets
-        int coloffsetsSize = (int) ois.readLong();
-        ByteBuffer coloffsetsBuf = ByteBuffer.allocate(coloffsetsSize * 8);
-        dataChannel.read(coloffsetsBuf);
-        coloffsetsBuf.position(0);
-        this.coloffsets = ThreadSafeLongBuffer.fromLongBuffer(coloffsetsBuf.asLongBuffer());
-
-        // Read celloffsets
-        int celloffsetsSize = (int) ois.readLong();
-        ByteBuffer celloffsetsBuf = ByteBuffer.allocate(celloffsetsSize * 8);
-        dataChannel.read(celloffsetsBuf);
-        celloffsetsBuf.position(0);
-        this.celloffsets = ThreadSafeLongBuffer.fromLongBuffer(celloffsetsBuf.asLongBuffer());
-
-        // Read rowsizes
-        int rowsizesSize = (int) ois.readLong();
-        ByteBuffer rowsizesBuf = ByteBuffer.allocate(rowsizesSize * 4);
-        dataChannel.read(rowsizesBuf);
-        rowsizesBuf.position(0);
-        this.rowsizes = ThreadSafeIntBuffer.fromIntBuffer(rowsizesBuf.asIntBuffer());
-
-        int colsizesSize = (int) ois.readLong();
-        ByteBuffer colsizesBuf = ByteBuffer.allocate(colsizesSize * 4);
-        dataChannel.read(colsizesBuf);
-        colsizesBuf.position(0);
-        this.colsizes = ThreadSafeIntBuffer.fromIntBuffer(colsizesBuf.asIntBuffer());
-
-        int roffSize = (int) ois.readLong();
-        ByteBuffer roffBuf = ByteBuffer.allocate(roffSize * 4);
-        dataChannel.read(roffBuf);
-        roffBuf.position(0);
-        this.roff = ThreadSafeIntBuffer.fromIntBuffer(roffBuf.asIntBuffer());
-
-        int coffSize = (int) ois.readLong();
-        ByteBuffer coffBuf = ByteBuffer.allocate(coffSize * 4);
-        dataChannel.read(coffBuf);
-        coffBuf.position(0);
-        this.coff = ThreadSafeIntBuffer.fromIntBuffer(coffBuf.asIntBuffer());
-
-        wavelettree = new ThreadSafeByteBuffer[contextsSize];
-        for (int i = 0; i < contextsSize; i++) {
-            long wavelettreeSize = ois.readLong();
-            wavelettree[i] = null;
-            if (wavelettreeSize != 0) {
-                ByteBuffer wavelettreeBuf = ByteBuffer
-                        .allocate((int) wavelettreeSize);
-                dataChannel.read(wavelettreeBuf);
-                wavelettree[i] = ThreadSafeByteBuffer.fromByteBuffer((ByteBuffer) wavelettreeBuf.position(0));
-            }
-        }
+        deserializeCore(ois);
     }
 }

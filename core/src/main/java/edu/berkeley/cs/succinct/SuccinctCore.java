@@ -45,15 +45,15 @@ public class SuccinctCore implements Serializable {
 
     // Metadata
     private transient int originalSize;
-    protected transient int sampledSASize;
-    protected transient int alphaSize;
-    protected transient int sigmaSize;
-    protected transient int bits;
-    protected transient int sampledSABits;
-    protected transient int samplingBase;
-    protected transient int samplingRate;
-    protected transient int numContexts;
-    protected transient int contextLen;
+    private transient int sampledSASize;
+    private transient int alphaSize;
+    private transient int sigmaSize;
+    private transient int bits;
+    private transient int sampledSABits;
+    private transient int samplingBase;
+    private transient int samplingRate;
+    private transient int numContexts;
+    private transient int contextLen;
 
     protected transient HashMap<Byte, Pair<Long, Integer>> alphabetMap;
     protected transient Map<Long, Long> contextMap;
@@ -66,7 +66,7 @@ public class SuccinctCore implements Serializable {
      */
     public SuccinctCore(byte[] input, int contextLen) {
 
-        this.contextLen = contextLen;
+        this.setContextLen(contextLen);
 
         // Initializing Table data
         Tables.init();
@@ -78,6 +78,96 @@ public class SuccinctCore implements Serializable {
 
         // Construct Succinct data-structures
         construct(input);
+    }
+
+    /**
+     * Get the original size.
+     *
+     * @return The originalSize.
+     */
+    public int getOriginalSize() {
+        return originalSize;
+    }
+
+    /**
+     * Set the original size.
+     *
+     * @param originalSize The originalSize to set.
+     */
+    public void setOriginalSize(int originalSize) {
+        this.originalSize = originalSize;
+    }
+
+    public int getSampledSASize() {
+        return sampledSASize;
+    }
+
+    public void setSampledSASize(int sampledSASize) {
+        this.sampledSASize = sampledSASize;
+    }
+
+    public int getAlphaSize() {
+        return alphaSize;
+    }
+
+    public void setAlphaSize(int alphaSize) {
+        this.alphaSize = alphaSize;
+    }
+
+    public int getSigmaSize() {
+        return sigmaSize;
+    }
+
+    public void setSigmaSize(int sigmaSize) {
+        this.sigmaSize = sigmaSize;
+    }
+
+    public int getBits() {
+        return bits;
+    }
+
+    public void setBits(int bits) {
+        this.bits = bits;
+    }
+
+    public int getSampledSABits() {
+        return sampledSABits;
+    }
+
+    public void setSampledSABits(int sampledSABits) {
+        this.sampledSABits = sampledSABits;
+    }
+
+    public int getSamplingBase() {
+        return samplingBase;
+    }
+
+    public void setSamplingBase(int samplingBase) {
+        this.samplingBase = samplingBase;
+    }
+
+    public int getSamplingRate() {
+        return samplingRate;
+    }
+
+    public void setSamplingRate(int samplingRate) {
+        this.samplingRate = samplingRate;
+    }
+
+    public int getNumContexts() {
+        return numContexts;
+    }
+
+    public void setNumContexts(int numContexts) {
+        this.numContexts = numContexts;
+    }
+
+    public int getContextLen() {
+        return contextLen;
+    }
+
+    public void setContextLen(int contextLen) {
+        this.contextLen = contextLen;
     }
 
     public static class Pair<T1, T2> {
@@ -137,15 +227,15 @@ public class SuccinctCore implements Serializable {
      */
     public long lookupNPA(long i) {
 
-        if(i > originalSize - 1 || i < 0) {
+        if(i > getOriginalSize() - 1 || i < 0) {
             throw new ArrayIndexOutOfBoundsException("NPA index out of bounds: i = "
-                    + i + " originalSize = " + originalSize);
+                    + i + " originalSize = " + getOriginalSize());
         }
         int colId, rowId, cellId, cellOff, contextSize, contextPos;
         long colOff, rowOff;
 
         // Search columnoffset
-        colId = SerializedOperations.ArrayOps.getRank1(coloffsets.buffer(), 0, sigmaSize, i) - 1;
+        colId = SerializedOperations.ArrayOps.getRank1(coloffsets.buffer(), 0, getSigmaSize(), i) - 1;
 
         // Get columnoffset
         colOff = coloffsets.get(colId);
@@ -189,21 +279,21 @@ public class SuccinctCore implements Serializable {
      */
     public long lookupSA(long i) {
 
-        if(i > originalSize - 1 || i < 0) {
+        if(i > getOriginalSize() - 1 || i < 0) {
             throw new ArrayIndexOutOfBoundsException("SA index out of bounds: i = "
-                    + i + " originalSize = " + originalSize);
+                    + i + " originalSize = " + getOriginalSize());
         }
 
         long numHops = 0;
-        while (i % samplingRate != 0) {
+        while (i % getSamplingRate() != 0) {
             i = lookupNPA(i);
             numHops++;
         }
-        long sampledValue = SerializedOperations.BMArrayOps.getVal(sa.buffer(), (int) (i / samplingRate),
-                sampledSABits);
+        long sampledValue = SerializedOperations.BMArrayOps.getVal(sa.buffer(), (int) (i / getSamplingRate()),
+                getSampledSABits());
 
         if(sampledValue < numHops) {
-            return originalSize - (numHops - sampledValue);
+            return getOriginalSize() - (numHops - sampledValue);
         }
 
         return sampledValue - numHops;
@@ -217,14 +307,14 @@ public class SuccinctCore implements Serializable {
      */
     public long lookupISA(long i) {
 
-        if(i > originalSize - 1 || i < 0) {
+        if(i > getOriginalSize() - 1 || i < 0) {
             throw new ArrayIndexOutOfBoundsException("ISA index out of bounds: i = "
-                    + i + " originalSize = " + originalSize);
+                    + i + " originalSize = " + getOriginalSize());
         }
 
-        int sampleIdx = (int) (i / samplingRate);
-        long pos = SerializedOperations.BMArrayOps.getVal(isa.buffer(), sampleIdx, sampledSABits);
-        i -= (sampleIdx * samplingRate);
+        int sampleIdx = (int) (i / getSamplingRate());
+        long pos = SerializedOperations.BMArrayOps.getVal(isa.buffer(), sampleIdx, getSampledSABits());
+        i -= (sampleIdx * getSamplingRate());
         while (i != 0) {
             pos = lookupNPA(pos);
             i--;
@@ -241,9 +331,9 @@ public class SuccinctCore implements Serializable {
 
         // Collect metadata
         setOriginalSize(input.length);
-        bits = CommonUtils.intLog2(getOriginalSize() + 1);
-        samplingBase = 5; // Hard coded
-        samplingRate = (1 << samplingBase);
+        setBits(CommonUtils.intLog2(getOriginalSize() + 1));
+        setSamplingBase(5); // Hard coded
+        setSamplingRate((1 << getSamplingBase()));
 
         // Construct SA, ISA
         QSufSort qsuf = new QSufSort();
@@ -254,29 +344,29 @@ public class SuccinctCore implements Serializable {
 
         this.constructAux(cSA, input);
 
-        sigmaSize = 0; // TODO: Combine sigmaSize and alphaSize
-        int alphaBits = CommonUtils.intLog2(alphaSize + 1);
+        setSigmaSize(0); // TODO: Combine sigmaSize and alphaSize
+        int alphaBits = CommonUtils.intLog2(getAlphaSize() + 1);
         BMArray textBitMap = new BMArray(getOriginalSize(), alphaBits);
         for (int i = 0; i < getOriginalSize(); i++) {
             textBitMap.setVal(i, alphabetMap.get(input[i]).second);
-            sigmaSize = Math.max(alphabetMap.get(input[i]).second, sigmaSize);
+            setSigmaSize(Math.max(alphabetMap.get(input[i]).second, getSigmaSize()));
         }
-        sigmaSize++;
+        setSigmaSize(getSigmaSize() + 1);
 
         this.constructNPA(textBitMap, cSA, cISA);
         this.constructCSA(cSA);
 
-        numContexts = contextMap.size();
-        metadata = ThreadSafeByteBuffer.allocate(44);
-        metadata.putLong(getOriginalSize());
-        metadata.putLong(sampledSASize);
-        metadata.putInt(alphaSize);
-        metadata.putInt(sigmaSize);
-        metadata.putInt(bits);
-        metadata.putInt(sampledSABits);
-        metadata.putInt(samplingBase);
-        metadata.putInt(samplingRate);
-        metadata.putInt(numContexts);
+        setNumContexts(contextMap.size());
+        metadata = ThreadSafeByteBuffer.allocate(36);
+        metadata.putInt(getOriginalSize());
+        metadata.putInt(getSampledSASize());
+        metadata.putInt(getAlphaSize());
+        metadata.putInt(getSigmaSize());
+        metadata.putInt(getBits());
+        metadata.putInt(getSampledSABits());
+        metadata.putInt(getSamplingBase());
+        metadata.putInt(getSamplingRate());
+        metadata.putInt(getNumContexts());
         metadata.rewind();
 
     }
@@ -292,22 +382,22 @@ public class SuccinctCore implements Serializable {
         ArrayList<Long> CinvIndex = new ArrayList<Long>();
         byte[] alphabetArray;
         alphabetMap = new HashMap<Byte, Pair<Long, Integer>>();
-        alphaSize = 1;
+        setAlphaSize(1);
 
         for (long i = 1; i < input.length; ++i) {
             if (input[(int) SA.getVal((int) i)] != input[(int) SA.getVal((int) (i - 1))]) {
                 CinvIndex.add(i);
-                alphaSize++;
+                setAlphaSize(getAlphaSize() + 1);
             }
         }
-        alphaSize++;
+        setAlphaSize(getAlphaSize() + 1);
 
-        alphabetArray = new byte[alphaSize];
+        alphabetArray = new byte[getAlphaSize()];
 
         alphabetArray[0] = input[(int) SA.getVal(0)];
         alphabetMap.put(alphabetArray[0], new Pair<Long, Integer>(0L, 0));
         long i;
-        for (i = 1; i < alphaSize - 1; i++) {
+        for (i = 1; i < getAlphaSize() - 1; i++) {
             long sel = CinvIndex.get((int) i - 1);
             alphabetArray[(int) i] = input[(int) SA.getVal((int) sel)];
             alphabetMap.put(alphabetArray[(int) i], new Pair<Long, Integer>(sel, (int) i));
@@ -365,7 +455,7 @@ public class SuccinctCore implements Serializable {
         long last_i = 0;
 
         contextMap = new TreeMap<Long, Long>();
-        for (long i = 0; i < originalSize; i++) {
+        for (long i = 0; i < getOriginalSize(); i++) {
             long contextValue = getContextVal(T, i);
             contextMap.put(contextValue, 0L);
             if (!contextSizesMap.containsKey(contextValue)) {
@@ -382,7 +472,7 @@ public class SuccinctCore implements Serializable {
 
         for (Map.Entry<Long, Long> currentContext : contextMap.entrySet()) {
             sizes[k] = contextSizesMap.get(currentContext.getKey());
-            starts[k] = originalSize;
+            starts[k] = getOriginalSize();
             contextMap.put(currentContext.getKey(), (long) k);
             k++;
         }
@@ -390,7 +480,7 @@ public class SuccinctCore implements Serializable {
         assert (k == contextMap.size());
         contextSizesMap.clear();
 
-        BitMap NonNullBitMap = new BitMap(k * sigmaSize);
+        BitMap NonNullBitMap = new BitMap(k * getSigmaSize());
         table = new ArrayList<ArrayList<ArrayList<Long>>>(k);
         cellOffsets = new ArrayList<ArrayList<Long>>();
         necCol = new ArrayList<ArrayList<Long>>();
@@ -400,23 +490,23 @@ public class SuccinctCore implements Serializable {
         wavelettree = new ThreadSafeByteBuffer[k];
 
         for (int i = 0; i < k; i++) {
-            table.add(new ArrayList<ArrayList<Long>>(sigmaSize));
-            for (int j = 0; j < sigmaSize; j++) {
+            table.add(new ArrayList<ArrayList<Long>>(getSigmaSize()));
+            for (int j = 0; j < getSigmaSize(); j++) {
                 ArrayList<Long> tableCell = new ArrayList<Long>();
                 table.get(i).add(tableCell);
             }
             necRow.add(new ArrayList<Long>());
         }
 
-        for (int i = 0; i < sigmaSize; i++) {
+        for (int i = 0; i < getSigmaSize(); i++) {
             necCol.add(new ArrayList<Long>());
             cellOffsets.add(new ArrayList<Long>());
         }
 
         k1 = SA.getVal(0);
-        contextId = (int) getContextVal(T, (k1 + 1) % originalSize);
+        contextId = (int) getContextVal(T, (k1 + 1) % getOriginalSize());
         contextVal = contextMap.get((long) contextId).intValue();
-        npaVal = ISA.getVal((int) ((SA.getVal(0) + 1) % originalSize));
+        npaVal = ISA.getVal((int) ((SA.getVal(0) + 1) % getOriginalSize()));
         table.get(contextVal).get((int) (lOff / k)).add(npaVal);
         starts[contextVal] = Math.min(starts[contextVal], npaVal);
         c_sizes[contextVal]++;
@@ -428,11 +518,11 @@ public class SuccinctCore implements Serializable {
         cellOffsets.get(0).add(0L);
         cellOffsetsSize++;
 
-        for (long i = 1; i < originalSize; i++) {
+        for (long i = 1; i < getOriginalSize(); i++) {
             k1 = SA.getVal((int) i);
             k2 = SA.getVal((int) i - 1);
 
-            contextId = (int) getContextVal(T, (k1 + 1) % originalSize);
+            contextId = (int) getContextVal(T, (k1 + 1) % getOriginalSize());
             contextVal = contextMap.get((long) contextId).intValue();
 
             // context value cannot exceed k, the number of contexts
@@ -446,7 +536,7 @@ public class SuccinctCore implements Serializable {
                 last_i = i;
                 cellOffsets.get((int) (lOff / k)).add(i - last_i);
                 cellOffsetsSize++;
-            } else if (!compareT(T, (k1 + 1) % originalSize, (k2 + 1) % originalSize, contextLen)) {
+            } else if (!compareT(T, (k1 + 1) % getOriginalSize(), (k2 + 1) % getOriginalSize(), getContextLen())) {
                 // Context has changed; mark in cellOffsets
                 cellOffsets.get((int) (lOff / k)).add(i - last_i);
                 cellOffsetsSize++;
@@ -460,9 +550,9 @@ public class SuccinctCore implements Serializable {
             }
 
             // Obtain actual npa value
-            npaVal = ISA.getVal((int) ((SA.getVal((int) i) + 1) % originalSize));
+            npaVal = ISA.getVal((int) ((SA.getVal((int) i) + 1) % getOriginalSize()));
 
-            assert (lOff / k < sigmaSize);
+            assert (lOff / k < getSigmaSize());
             // Push npa value to npa table: note indices. indexed by context
             // value, and lOffs / k
             table.get(contextVal).get((int) (lOff / k)).add(npaVal);
@@ -474,7 +564,7 @@ public class SuccinctCore implements Serializable {
 
         for (int i = 0; i < k; i++) {
             flag = false;
-            for (int j = 0; j < sigmaSize; j++) {
+            for (int j = 0; j < getSigmaSize(); j++) {
                 if (!flag && NonNullBitMap.getBit(i + j * k) == 1) {
                     rowOffsets.add(p);
                     p += table.get(i).get(j).size();
@@ -632,14 +722,14 @@ public class SuccinctCore implements Serializable {
     private long getContextVal(BMArray T, long i) {
 
         long val = 0;
-        long max = Math.min(i + contextLen, originalSize);
+        long max = Math.min(i + getContextLen(), getOriginalSize());
         for (long p = i; p < max; p++) {
-            val = val * sigmaSize + T.getVal((int) p);
+            val = val * getSigmaSize() + T.getVal((int) p);
         }
 
-        if (max < i + contextLen) {
-            for (long p = 0; p < (i + contextLen) % originalSize; p++) {
-                val = val * sigmaSize + T.getVal((int) p);
+        if (max < i + getContextLen()) {
+            for (long p = 0; p < (i + getContextLen()) % getOriginalSize(); p++) {
+                val = val * getSigmaSize() + T.getVal((int) p);
             }
         }
 
@@ -653,22 +743,22 @@ public class SuccinctCore implements Serializable {
      */
     private int constructCSA(BMArray cSA) {
 
-        samplingRate = (1 << samplingBase);
-        sampledSASize = (getOriginalSize() / samplingRate) + 1;
-        sampledSABits = CommonUtils.intLog2(originalSize + 1);
+        setSamplingRate((1 << getSamplingBase()));
+        setSampledSASize((getOriginalSize() / getSamplingRate()) + 1);
+        setSampledSABits(CommonUtils.intLog2(getOriginalSize() + 1));
 
         long saValue;
 
-        BMArray SA = new BMArray(sampledSASize, sampledSABits);
-        BMArray ISA = new BMArray(sampledSASize, sampledSABits);
+        BMArray SA = new BMArray(getSampledSASize(), getSampledSABits());
+        BMArray ISA = new BMArray(getSampledSASize(), getSampledSABits());
 
         for (int i = 0; i < getOriginalSize(); i++) {
             saValue = cSA.getVal(i);
-            if (i % samplingRate == 0) {
-                SA.setVal(i / samplingRate, saValue);
+            if (i % getSamplingRate() == 0) {
+                SA.setVal(i / getSamplingRate(), saValue);
             }
-            if (saValue % samplingRate == 0) {
-                ISA.setVal((int)(saValue / samplingRate), i);
+            if (saValue % getSamplingRate() == 0) {
+                ISA.setVal((int)(saValue / getSamplingRate()), i);
             }
         }
 
@@ -681,15 +771,7 @@ public class SuccinctCore implements Serializable {
         return 0;
     }
 
-    /**
-     * Serialize SuccinctCore to OutputStream.
-     *
-     * @param oos ObjectOutputStream to write to.
-     * @throws IOException
-     */
-    private void writeObject(ObjectOutputStream oos) throws IOException {
-        resetBuffers();
-
+    protected void serializeCore(ObjectOutputStream oos) throws IOException {
         WritableByteChannel dataChannel = Channels.newChannel(oos);
 
         dataChannel.write(metadata.order(ByteOrder.nativeOrder()));
@@ -764,52 +846,40 @@ public class SuccinctCore implements Serializable {
                         .write(wavelettree[i].order(ByteOrder.nativeOrder()));
             }
         }
-
-        resetBuffers();
     }
 
-    /**
-     * Deserialize SuccinctCore from InputStream.
-     *
-     * @param ois ObjectInputStream to read from.
-     * @throws IOException
-     */
-    private void readObject(ObjectInputStream ois)
-            throws ClassNotFoundException, IOException {
-
-        Tables.init();
-
+    protected void deserializeCore(ObjectInputStream ois) throws IOException {
         ReadableByteChannel dataChannel = Channels.newChannel(ois);
-        this.setOriginalSize((int) ois.readLong());
-        this.sampledSASize = (int) ois.readLong();
-        this.alphaSize = ois.readInt();
-        this.sigmaSize = ois.readInt();
-        this.bits = ois.readInt();
-        this.sampledSABits = ois.readInt();
-        this.samplingBase = ois.readInt();
-        this.samplingRate = ois.readInt();
-        this.numContexts = ois.readInt();
+        this.setOriginalSize(ois.readInt());
+        this.setSampledSASize(ois.readInt());
+        this.setAlphaSize(ois.readInt());
+        this.setSigmaSize(ois.readInt());
+        this.setBits(ois.readInt());
+        this.setSampledSABits(ois.readInt());
+        this.setSamplingBase(ois.readInt());
+        this.setSamplingRate(ois.readInt());
+        this.setNumContexts(ois.readInt());
 
-        metadata = ThreadSafeByteBuffer.allocate(44);
-        metadata.putLong(getOriginalSize());
-        metadata.putLong(sampledSASize);
-        metadata.putInt(alphaSize);
-        metadata.putInt(sigmaSize);
-        metadata.putInt(bits);
-        metadata.putInt(sampledSABits);
-        metadata.putInt(samplingBase);
-        metadata.putInt(samplingRate);
-        metadata.putInt(numContexts);
+        metadata = ThreadSafeByteBuffer.allocate(36);
+        metadata.putInt(getOriginalSize());
+        metadata.putInt(getSampledSASize());
+        metadata.putInt(getAlphaSize());
+        metadata.putInt(getSigmaSize());
+        metadata.putInt(getBits());
+        metadata.putInt(getSampledSABits());
+        metadata.putInt(getSamplingBase());
+        metadata.putInt(getSamplingRate());
+        metadata.putInt(getNumContexts());
         metadata.rewind();
 
-        int cmapSize = this.alphaSize;
+        int cmapSize = this.getAlphaSize();
         this.alphabetmap = ThreadSafeByteBuffer.allocate(cmapSize * (1 + 8 + 4));
         dataChannel.read(this.alphabetmap.buffer());
         this.alphabetmap.rewind();
 
         // Deserialize cmap
         alphabetMap = new HashMap<Byte, Pair<Long, Integer>>();
-        for (int i = 0; i < this.alphaSize; i++) {
+        for (int i = 0; i < this.getAlphaSize(); i++) {
             byte c = alphabetmap.get();
             long v1 = alphabetmap.getLong();
             int v2 = alphabetmap.getInt();
@@ -817,7 +887,7 @@ public class SuccinctCore implements Serializable {
         }
 
         // Read contexts
-        int contextsSize = this.numContexts;
+        int contextsSize = this.getNumContexts();
         ByteBuffer contextBuf = ByteBuffer.allocate(contextsSize * 8 * 2);
         dataChannel.read(contextBuf);
         contextBuf.rewind();
@@ -825,27 +895,27 @@ public class SuccinctCore implements Serializable {
 
         // Deserialize contexts
         contextMap = new HashMap<Long, Long>();
-        for (int i = 0; i < this.numContexts; i++) {
+        for (int i = 0; i < this.getNumContexts(); i++) {
             long v1 = contextmap.get();
             long v2 = contextmap.get();
             contextMap.put(v1, v2);
         }
 
         // Read slist
-        int slistSize = this.alphaSize;
+        int slistSize = this.getAlphaSize();
         this.alphabet = ThreadSafeByteBuffer.allocate(slistSize);
         dataChannel.read(this.alphabet.buffer());
         this.alphabet.rewind();
 
         // Read sa
-        int saSize = (sampledSASize * sampledSABits) / 64 + 1;
+        int saSize = (getSampledSASize() * getSampledSABits()) / 64 + 1;
         ByteBuffer saBuf = ByteBuffer.allocate(saSize * 8);
         dataChannel.read(saBuf);
         saBuf.rewind();
         this.sa = ThreadSafeLongBuffer.fromLongBuffer(saBuf.asLongBuffer());
 
         // Read sainv
-        int isaSize = (sampledSASize * sampledSABits) / 64 + 1;
+        int isaSize = (getSampledSASize() * getSampledSABits()) / 64 + 1;
         ByteBuffer isaBuf = ByteBuffer.allocate(isaSize * 8);
         dataChannel.read(isaBuf);
         isaBuf.rewind();
@@ -925,6 +995,31 @@ public class SuccinctCore implements Serializable {
     }
 
     /**
+     * Serialize SuccinctCore to OutputStream.
+     *
+     * @param oos ObjectOutputStream to write to.
+     * @throws IOException
+     */
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        resetBuffers();
+        serializeCore(oos);
+        resetBuffers();
+    }
+
+    /**
+     * Deserialize SuccinctCore from InputStream.
+     *
+     * @param ois ObjectInputStream to read from.
+     * @throws IOException
+     */
+    private void readObject(ObjectInputStream ois)
+            throws ClassNotFoundException, IOException {
+
+        Tables.init();
+        deserializeCore(ois);
+    }
+
+    /**
      * Reposition all byte buffers to their respective starting positions.
      */
     protected void resetBuffers() {
@@ -948,23 +1043,5 @@ public class SuccinctCore implements Serializable {
                 wavelettree[i].order(ByteOrder.BIG_ENDIAN).rewind();
             }
         }
-    }
-
-    /**
-     * Get the original size.
-     *  
-     * @return The originalSize.
-     */
-    public int getOriginalSize() {
-        return originalSize;
-    }
-
-    /**
-     * Set the original size.
-     *
-     * @param originalSize The originalSize to set.
-     */
-    public void setOriginalSize(int originalSize) {
-        this.originalSize = originalSize;
     }
 }
