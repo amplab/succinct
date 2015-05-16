@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct
 
+import com.google.common.io.Files
 import org.apache.spark.SparkContext
 import org.scalatest.FunSuite
 
@@ -137,5 +138,36 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     
     assert(searchRecords.size == expectedSearchRecords.size)
     assert(searchRecords === expectedSearchRecords)
+  }
+
+  test("Test rdd count") {
+    sc = new SparkContext("local", "test")
+
+    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
+    val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
+
+    // Compute expected values
+    val expectedCount = textRDD.count
+
+    // Compute results
+    val count = succinctRDD.count
+
+    assert(count === expectedCount)
+  }
+
+  test("Test save and load") {
+    sc = new SparkContext("local", "test")
+
+    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
+    val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes)).persist()
+
+    val tmpDir = Files.createTempDir()
+    val succinctDir = tmpDir + "/succinct"
+    succinctRDD.save(succinctDir)
+
+    val originalEntries = succinctRDD.collect()
+    val newEntries = SuccinctRDD(sc, succinctDir).collect()
+
+    assert(originalEntries === newEntries)
   }
 }

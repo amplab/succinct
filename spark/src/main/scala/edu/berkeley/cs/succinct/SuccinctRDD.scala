@@ -34,6 +34,13 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
     firstParent[SuccinctIndexedBuffer]
   }
 
+  /**
+   * Returns the array of partitions.
+   *
+   * @return The array of partitions.
+   */
+  override protected def getPartitions: Array[Partition] = partitionsRDD.partitions
+
   /** Overrides the compute function to return a SuccinctIterator. */
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
     val succinctIterator = firstParent[SuccinctBuffer].iterator(split, context)
@@ -146,11 +153,23 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
   }
 
   /**
-   * Returns the array of partitions.
+   * Count the number of records in the SuccinctRDD.
    *
-   * @return The array of partitions.
+   * @return The number of records in the SuccinctRDD.
    */
-  override protected def getPartitions: Array[Partition] = partitionsRDD.partitions
+  override def count(): Long = {
+    partitionsRDD.map(buf => buf.getNumRecords).aggregate(0L)(_ + _, _ + _)
+  }
+
+  /**
+   * Saves the SuccinctRDD at the specified path.
+   *
+   * @param path The path where the SuccinctRDD should be stored.
+   */
+  def save(path: String): Unit = {
+    partitionsRDD.saveAsObjectFile(path)
+  }
+
 }
 
 /** Factory for [[SuccinctRDD]] instances */
@@ -164,6 +183,18 @@ object SuccinctRDD {
    */
   def apply(inputRDD: RDD[Array[Byte]]): SuccinctRDD = {
     val succinctPartitions = inputRDD.mapPartitions(createSuccinctBuffer)
+    new SuccinctRDDImpl(succinctPartitions)
+  }
+
+  /**
+   * Reads a SuccinctRDD from disk.
+   *
+   * @param sc The spark context
+   * @param path The path to read the SuccinctRDD from.
+   * @return The SuccinctRDD.
+   */
+  def apply(sc: SparkContext, path: String): SuccinctRDD = {
+    val succinctPartitions = sc.objectFile[SuccinctIndexedBuffer](path)
     new SuccinctRDDImpl(succinctPartitions)
   }
 
