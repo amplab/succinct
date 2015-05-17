@@ -3,7 +3,7 @@ Succinct-Spark
 
 [Spark](http://spark.apache.org/) and 
 [Spark SQL](http://spark.apache.org/docs/latest/sql-programming-guide.html) 
-integration for [Succinct](http://succinct.cs.berkeley.edu/). 
+interfaces for [Succinct](http://succinct.cs.berkeley.edu/). 
 This library facilitates compressing RDDs in Spark and DataFrames in Spark SQL
 and enables queries directly on the compressed representation.
 
