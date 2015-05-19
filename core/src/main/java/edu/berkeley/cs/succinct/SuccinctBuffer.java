@@ -27,7 +27,7 @@ public class SuccinctBuffer extends SuccinctCore {
 
     /**
      * Constructor to create SuccinctBuffer from byte array and context length.
-     *  
+     *
      * @param input Input byte array.
      * @param contextLen Context length.
      */
@@ -37,7 +37,7 @@ public class SuccinctBuffer extends SuccinctCore {
 
     /**
      * Constructor to create SuccinctBuffer from byte array.
-     *  
+     *
      * @param input Input byte array.
      */
     public SuccinctBuffer(byte[] input) {
@@ -151,8 +151,8 @@ public class SuccinctBuffer extends SuccinctCore {
      * @param buf Input query to be searched.
      * @return Range of indices into the SA.
      */
-    public Range<Long, Long> getRange(byte[] buf) {
-        Range<Long, Long> range = new Range<Long, Long>(0L, -1L);
+    public Range getRange(byte[] buf) {
+        Range range = new Range(0L, -1L);
         int m = buf.length;
         long c1, c2;
 
@@ -184,8 +184,7 @@ public class SuccinctBuffer extends SuccinctCore {
      * @return Count of occurrences.
      */
     public long count(byte[] query) {
-        Range<Long, Long> range;
-        range = getRange(query);
+        Range range = getRange(query);
         return range.second - range.first + 1;
     }
 
@@ -196,10 +195,7 @@ public class SuccinctBuffer extends SuccinctCore {
      * @return All locations of pattern occurrences in original input.
      */
     public Long[] search(byte[] query) {
-
-        Range<Long, Long> range;
-        range = getRange(query);
-
+        Range range = getRange(query);
         long sp = range.first, ep = range.second;
         if (ep - sp + 1 <= 0) {
             return new Long[0];

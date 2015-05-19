@@ -106,8 +106,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      */
     public Integer[] recordSearchOffsets(byte[] query) {
         Set<Integer> results = new HashSet<Integer>();
-        Range<Long, Long> range;
-        range = getRange(query);
+        Range range = getRange(query);
 
         long sp = range.first, ep = range.second;
         if (ep - sp + 1 <= 0) {
@@ -130,8 +129,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
     public byte[][] recordSearch(byte[] query) {
         Set<Long> offsetResults = new HashSet<Long>();
         ArrayList<byte[]> results = new ArrayList<byte[]>();
-        Range<Long, Long> range;
-        range = getRange(query);
+        Range range = getRange(query);
 
         long sp = range.first, ep = range.second;
         if (ep - sp + 1 <= 0) {
@@ -162,9 +160,8 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
     public byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd) {
         Set<Long> offsetResults = new HashSet<Long>();
         ArrayList<byte[]> results = new ArrayList<byte[]>();
-        Range<Long, Long> rangeBegin, rangeEnd;
-        rangeBegin = getRange(queryBegin);
-        rangeEnd = getRange(queryEnd);
+        Range rangeBegin = getRange(queryBegin);
+        Range rangeEnd = getRange(queryEnd);
 
         long sp = rangeBegin.first, ep = rangeEnd.second;
         if (ep - sp + 1 <= 0) {
@@ -191,17 +188,17 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      * @param ranges List of ranges.
      * @return The union of the list of ranges.
      */
-    private ArrayList<Range<Long, Long>> unionRanges(ArrayList<Range<Long, Long>> ranges) {
+    private ArrayList<Range> unionRanges(ArrayList<Range> ranges) {
         if(ranges.size() <= 1)
             return ranges;
 
-        Stack<Range<Long, Long>> rangeStack = new Stack<Range<Long, Long>>();
+        Stack<Range> rangeStack = new Stack<Range>();
 
         Collections.sort(ranges);
         rangeStack.push(ranges.get(0));
 
         for(int i = 0; i < ranges.size(); i++) {
-            Range<Long, Long> top = rangeStack.peek();
+            Range top = rangeStack.peek();
             if(top.second < ranges.get(i).first) {
                 rangeStack.push(ranges.get(i));
             } else if(top.second < ranges.get(i).second) {
@@ -211,7 +208,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
             }
         }
 
-        return new ArrayList<Range<Long, Long>>(rangeStack);
+        return new ArrayList<Range>(rangeStack);
     }
 
     /**
@@ -225,9 +222,9 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         ArrayList<byte[]> results = new ArrayList<byte[]>();
 
         // Get all ranges
-        ArrayList<Range<Long, Long>> ranges = new ArrayList<Range<Long, Long>>();
+        ArrayList<Range> ranges = new ArrayList<Range>();
         for (int qid = 0; qid < queries.length; qid++) {
-            Range<Long, Long> range = getRange(queries[qid]);
+            Range range = getRange(queries[qid]);
             if (range.second - range.first + 1 > 0) {
                 ranges.add(range);
             }
@@ -236,7 +233,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         // Union of all ranges
         ranges = unionRanges(ranges);
 
-        for (Range<Long, Long> range : ranges) {
+        for (Range range : ranges) {
             long sp = range.first, ep = range.second;
 
             for (long i = 0; i < ep - sp + 1; i++) {
@@ -253,9 +250,9 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         return results.toArray(new byte[results.size()][]);
     }
 
-    class RangeSizeComparator implements Comparator<Range<Long, Long>> {
+    class RangeSizeComparator implements Comparator<Range> {
         @Override
-        public int compare(Range<Long, Long> r1, Range<Long, Long> r2) {
+        public int compare(Range r1, Range r2) {
             return (int)((r1.second - r1.first) - (r2.second - r2.first));
         }
     }
@@ -271,9 +268,9 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         ArrayList<byte[]> results = new ArrayList<byte[]>();
 
         // Get all ranges
-        ArrayList<Range<Long, Long>> ranges = new ArrayList<Range<Long, Long>>();
+        ArrayList<Range> ranges = new ArrayList<Range>();
         for (int qid = 0; qid < queries.length; qid++) {
-            Range<Long, Long> range = getRange(queries[qid]);
+            Range range = getRange(queries[qid]);
             if (range.second - range.first + 1 > 0) {
                 ranges.add(range);
             } else {
@@ -284,7 +281,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         Collections.sort(ranges, new RangeSizeComparator());
 
         // Populate the set of offsets corresponding to the first range
-        Range<Long, Long> firstRange = ranges.get(0);
+        Range firstRange = ranges.get(0);
         Map<Long, Long> counts = new HashMap<Long, Long>();
         {
             long sp = firstRange.first, ep = firstRange.second;
@@ -298,7 +295,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         }
 
         ranges.remove(firstRange);
-        for(Range<Long, Long> range: ranges) {
+        for(Range range: ranges) {
             long sp = range.first, ep = range.second;
 
             for (long i = 0; i < ep - sp + 1; i++) {
@@ -346,9 +343,9 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         }
 
         // Get all ranges
-        ArrayList<Range<Long, Long>> ranges = new ArrayList<Range<Long, Long>>();
+        ArrayList<Range> ranges = new ArrayList<Range>();
         for (int qid = 0; qid < queries.length; qid++) {
-            Range<Long, Long> range;
+            Range range;
 
             switch (queryTypes[qid]) {
                 case Search:
@@ -360,10 +357,10 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
                 {
                     byte[] queryBegin = queries[qid][0];
                     byte[] queryEnd = queries[qid][1];
-                    Range<Long, Long> rangeBegin, rangeEnd;
+                    Range rangeBegin, rangeEnd;
                     rangeBegin = getRange(queryBegin);
                     rangeEnd = getRange(queryEnd);
-                    range = new Range<Long, Long>(rangeBegin.first, rangeEnd.second);
+                    range = new Range(rangeBegin.first, rangeEnd.second);
                     break;
                 }
                 default:
@@ -383,7 +380,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         Collections.sort(ranges, new RangeSizeComparator());
 
         // Populate the set of offsets corresponding to the first range
-        Range<Long, Long> firstRange = ranges.get(0);
+        Range firstRange = ranges.get(0);
         Map<Long, Long> counts = new HashMap<Long, Long>();
         {
             long sp = firstRange.first, ep = firstRange.second;
@@ -397,7 +394,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         }
 
         ranges.remove(firstRange);
-        for (Range<Long, Long> range: ranges) {
+        for (Range range: ranges) {
             long sp = range.first, ep = range.second;
 
             for (long i = 0; i < ep - sp + 1; i++) {
