@@ -11,9 +11,9 @@ and enables queries directly on the compressed representation.
 
 This library requires Succinct 0.1.0+ and Spark 1.3+.
 
-### Dependency Information
+## Dependency Information
 
-#### Apache Maven
+### Apache Maven
 
 To build your application with Succinct-Spark, you can link against this library
 using Maven by adding the following dependency information to your pom.xml file:
@@ -26,7 +26,7 @@ using Maven by adding the following dependency information to your pom.xml file:
 </dependency>
 ```
 
-#### SBT
+### SBT
 
 Add the dependency to your SBT project by adding the following to `build.sbt` 
 (see the [Spark Packages listing](http://spark-packages.org/package/amplab/succinct-spark)

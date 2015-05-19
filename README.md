@@ -1,14 +1,12 @@
 Succinct
 ========
 
-Succinct is a Distributed-Data Store that enables queries directly on a
-compressed representation of data. This repository maintains the Java
-implementations of Succinct's core algorithms, and applications that exploit
-them, such as a [Spark](http://spark.apache.org/) binding for Succinct.
+[Succinct](http://succinct.cs.berkeley.edu) is a data store that enables queries
+directly on a compressed representation of data. This repository maintains the 
+Java implementations of Succinct's core algorithms, and applications that 
+exploit them, such as a [Spark](http://spark.apache.org/) binding for Succinct.
 
 The master branch is in version 0.1.0-SNAPSHOT.
-
-<http://succinct.cs.berkeley.edu>
 
 ## Building Succinct
 
