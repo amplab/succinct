@@ -32,10 +32,14 @@ SuccinctBuffer
 SuccinctIndexedBuffer
 ```
 
+### SuccinctCore
+
 `SuccinctCore` exposes the basic construction primitive for all internal 
 internal data-structures, along with accessors to the core data-structures 
 (e.g., NPA, SA and ISA, which are termed as NextCharIdx, Input2AOS and AOS2Input
 in the [paper](https://www.usenix.org/conference/nsdi15/technical-sessions/presentation/agarwal)).
+
+### SuccinctBuffer
 
 `SuccinctBuffer` builds on top of `SuccinctCore` and implements algorithms for
 three basic functionalities:
@@ -50,6 +54,8 @@ These primitives allow random access (`extract`) and search (`count`, `search`)
 directly on the compressed representation of flat-file (i.e., unstructured) 
 data. Look at this [example](src/main/java/edu/berkeley/cs/succinct/examples/SuccinctShell.java)
 to see how `SuccinctBuffer` can be used.
+
+### SuccinctIndexedBuffer
 
 Finally, `SuccinctIndexedBuffer` uses the functionality of both `SuccinctCore`
 and `SuccinctBuffer` to implement a record buffer, i.e., a collection of records.
