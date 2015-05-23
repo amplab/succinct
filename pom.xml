@@ -6,7 +6,7 @@
 
   <groupId>edu.berkeley.cs.succinct</groupId>
   <artifactId>succinct-parent</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
   <packaging>pom</packaging>
   <name>Succinct Parent POM</name>
   <url>http://succinct.cs.berkeley.edu/</url>
