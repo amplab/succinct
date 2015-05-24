@@ -5,13 +5,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>edu.berkeley.cs.succinct</groupId>
+    <groupId>amplab</groupId>
     <artifactId>succinct-parent</artifactId>
     <version>0.1.0</version>
   </parent>
 
   <groupId>edu.berkeley.cs.succinct</groupId>
   <artifactId>succinct-core</artifactId>
+  <version>0.1.0</version>
   <packaging>jar</packaging>
   <name>Succinct-Core</name>
   <url>http://succinct.cs.berkeley.edu/</url>
