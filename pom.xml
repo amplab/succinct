@@ -5,10 +5,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>amplab</groupId>
-  <artifactId>succinct-parent</artifactId>
+  <artifactId>succinct</artifactId>
   <version>0.1.0</version>
   <packaging>pom</packaging>
-  <name>Succinct Parent POM</name>
+  <name>Succinct</name>
   <url>http://succinct.cs.berkeley.edu/</url>
 
   <developers>
@@ -36,8 +36,11 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <scala.version>2.10.4</scala.version>
+    <scala.binary.version>2.10</scala.binary.version>
+    <scalatest.version>2.2.1</scalatest.version>
   </properties>
-
+  
   <modules>
     <module>core</module>
     <module>spark</module>
@@ -70,4 +73,28 @@
       </plugin>
     </plugins>
   </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scalatest</groupId>
+      <artifactId>scalatest_2.10</artifactId>
+      <version>${scalatest.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-sql_2.10</artifactId>
+      <version>1.3.1</version>
+    </dependency>
+  </dependencies>
 </project>
