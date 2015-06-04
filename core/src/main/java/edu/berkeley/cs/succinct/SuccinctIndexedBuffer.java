@@ -6,8 +6,6 @@ import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.util.*;
 
 public class SuccinctIndexedBuffer extends SuccinctBuffer {
