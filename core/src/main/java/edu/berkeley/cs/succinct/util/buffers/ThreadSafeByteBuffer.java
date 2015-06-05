@@ -232,6 +232,10 @@ public class ThreadSafeByteBuffer {
         return buf.get().order(order);
     }
 
+    public ByteOrder order() {
+        return buf.get().order();
+    }
+
     public Buffer rewind() {
         return buf.get().rewind();
     }

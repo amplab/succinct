@@ -8,7 +8,7 @@ import java.nio.LongBuffer;
 import static edu.berkeley.cs.succinct.util.CommonUtils.DictionaryUtils.*;
 
 public class SerializedOperations {
-    
+
     public static class ArrayOps {
 
         /**
@@ -51,7 +51,7 @@ public class SerializedOperations {
         public static long getBit(LongBuffer bitmap, int i) {
             return ((bitmap.get(bitmap.position() + (i / 64)) >>> (63L - i)) & 1L);
         }
-        
+
         /**
          * Get value at specified index of serialized bitmap.
          *
@@ -62,12 +62,12 @@ public class SerializedOperations {
          */
         public static long getValPos(LongBuffer bitmap, int pos, int bits) {
             assert (pos >= 0);
-    
+
             int basePos = bitmap.position();
             long val;
             long s = (long) pos;
             long e = s + (bits - 1);
-    
+
             if ((s / 64) == (e / 64)) {
                 val = bitmap.get(basePos + (int) (s / 64L)) << (s % 64);
                 val = val >>> (63 - e % 64 + s % 64);
@@ -94,11 +94,11 @@ public class SerializedOperations {
          */
         public static long getVal(LongBuffer B, int i, int bits) {
             assert (i >= 0);
-    
+
             long val;
             long s = (long) (i) * bits;
             long e = s + (bits - 1);
-    
+
             if ((s / 64) == (e / 64)) {
                 val = B.get((int) (s / 64L)) << (s % 64);
                 val = val >>> (63 - e % 64 + s % 64);
@@ -108,13 +108,13 @@ public class SerializedOperations {
                 val1 = val1 >>> (s % 64 - (e % 64 + 1));
                 val = val1 | val2;
             }
-    
+
             return val;
         }
     }
 
     public static class DictionaryOps {
-        
+
         /**
          * Get rank1 at specified index of serialized dictionary.
          *
@@ -259,7 +259,7 @@ public class SerializedOperations {
             sp = (int) (ep * CommonUtils.two32 / 2048);
             ep = (int) (Math.min(((ep + 1) * CommonUtils.two32 / 2048),
                     Math.ceil((double) size / 2048.0)) - 1);
-            
+
             assert (val <= CommonUtils.two32);
             assert (pos >= 0);
 
@@ -285,7 +285,7 @@ public class SerializedOperations {
 
             assert (val <= 2048);
             assert (pos >= 0);
-            
+
             r = GETRANKL1(rankL12, 1);
             if (sel + 512 < size && val > r) {
                 pos += GETPOSL1(posL12, 1);
@@ -309,7 +309,7 @@ public class SerializedOperations {
 
             assert (val <= 512);
             assert (pos >= 0);
-            
+
             dictBuf.get(); // TODO: Could remove this field altogether
 
             while (true) {
@@ -423,7 +423,7 @@ public class SerializedOperations {
 
             assert (val <= 2048);
             assert (pos >= 0);
-            
+
             r = (512 - GETRANKL1(rankL12, 1));
             if (sel + 512 < size && val > r) {
                 pos += GETPOSL1(posL12, 1);
@@ -447,7 +447,7 @@ public class SerializedOperations {
 
             assert (val <= 512);
             assert (pos >= 0);
-            
+
             dictBuf.get(); // TODO: Could remove this field altogether
 
             while (true) {
@@ -486,9 +486,9 @@ public class SerializedOperations {
             return sel;
         }
     }
-    
+
     public static class WaveletTreeOps {
-        
+
         /**
          * Get value encoded in wavelet tree.
          *
@@ -506,7 +506,7 @@ public class SerializedOperations {
             int right = (int) wTree.getLong();
             int dictPos = wTree.position();
             long p, v;
-    
+
             if (contextPos > m && contextPos <= endIdx) {
                 if (right == 0) {
                     return DictionaryOps.getSelect1(wTree, dictPos, cellPos);
@@ -522,7 +522,7 @@ public class SerializedOperations {
                         cellPos, startIdx, m);
                 v = DictionaryOps.getSelect0(wTree, dictPos, (int) p);
             }
-    
+
             return v;
         }
     }

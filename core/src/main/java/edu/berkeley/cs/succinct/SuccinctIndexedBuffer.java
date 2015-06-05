@@ -1,6 +1,5 @@
 package edu.berkeley.cs.succinct;
 
-import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 
 import java.io.IOException;
@@ -69,7 +68,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         } else {
             length = (int)(offsets[i + 1] - 1 - offsets[i]);
         }
-        return extract((int)offsets[i], length);
+        return extract((int) offsets[i], length);
     }
 
     /**
@@ -473,12 +472,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      * @throws IOException
      */
     private void writeObject(ObjectOutputStream oos) throws IOException {
-        resetBuffers();
-
         oos.writeObject(offsets);
-        serializeCore(oos);
-
-        resetBuffers();
     }
 
     /**
@@ -489,10 +483,6 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      */
     private void readObject(ObjectInputStream ois)
             throws ClassNotFoundException, IOException {
-        Tables.init();
-
         offsets = (int [])ois.readObject();
-
-        deserializeCore(ois);
     }
 }

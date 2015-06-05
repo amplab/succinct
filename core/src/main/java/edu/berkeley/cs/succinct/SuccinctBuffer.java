@@ -1,6 +1,5 @@
 package edu.berkeley.cs.succinct;
 
-import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.executor.RegExExecutor;
 import edu.berkeley.cs.succinct.regex.parser.RegEx;
 import edu.berkeley.cs.succinct.regex.parser.RegExParser;
@@ -9,9 +8,6 @@ import edu.berkeley.cs.succinct.regex.planner.NaiveRegExPlanner;
 import edu.berkeley.cs.succinct.regex.planner.RegExPlanner;
 import edu.berkeley.cs.succinct.util.SerializedOperations;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Map;
 
 public class SuccinctBuffer extends SuccinctCore {
@@ -35,27 +31,6 @@ public class SuccinctBuffer extends SuccinctCore {
      */
     public SuccinctBuffer(byte[] input) {
         this(input, 3);
-    }
-
-    /**
-     * Compute context value at an index in a byte array.
-     *
-     * @param buf Input byte buffer.
-     * @param i Index in the byte buffer.
-     * @return Value of context at specified index.
-     */
-    private long computeContextVal(byte[] buf, int i) {
-        long val = 0;
-        long max = i + getContextLen();
-        for (int t = i; t < max; t++) {
-            if (alphabetMap.containsKey(buf[t])) {
-                val = val * getSigmaSize() + alphabetMap.get(buf[t]).second;
-            } else {
-                return -1;
-            }
-        }
-
-        return val;
     }
 
     /**
@@ -222,29 +197,5 @@ public class SuccinctBuffer extends SuccinctCore {
         regExExecutor.execute();
 
         return regExExecutor.getFinalResults();
-    }
-
-    /**
-     * Serialize SuccinctBuffer to OutputStream.
-     *
-     * @param oos ObjectOutputStream to write to.
-     * @throws IOException
-     */
-    private void writeObject(ObjectOutputStream oos) throws IOException {
-        resetBuffers();
-        serializeCore(oos);
-        resetBuffers();
-    }
-
-    /**
-     * Deserialize SuccinctBuffer from InputStream.
-     *
-     * @param ois ObjectInputStream to read from.
-     * @throws IOException
-     */
-    private void readObject(ObjectInputStream ois)
-            throws ClassNotFoundException, IOException {
-        Tables.init();
-        deserializeCore(ois);
     }
 }

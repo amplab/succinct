@@ -4,12 +4,12 @@ import edu.berkeley.cs.succinct.util.CommonUtils;
 import junit.framework.TestCase;
 
 import java.io.*;
-import java.util.Arrays;
 
 public class SuccinctCoreTest extends TestCase {
 
     private String testFileRaw = this.getClass().getResource("/test_file").getFile();
     private String testFileSuccinct = this.getClass().getResource("/test_file").getFile() + ".succinct";
+    private String testFileSuccinctMin = this.getClass().getResource("/test_file").getFile() + ".min.succinct";
     private String testFileSA = this.getClass().getResource("/test_file.sa").getFile();
     private SuccinctCore sCore;
 
@@ -53,7 +53,7 @@ public class SuccinctCoreTest extends TestCase {
 
     /**
      * Test method: long lookupSA(long i)
-     *  
+     *
      * @throws Exception
      */
     public void testLookupSA() throws Exception {
@@ -80,7 +80,7 @@ public class SuccinctCoreTest extends TestCase {
      */
     public void testLookupISA() throws Exception {
         System.out.println("lookupISA");
-        
+
         int sum = 0;
         for(int i = 0; i < sCore.getOriginalSize(); i++) {
             long isaVal = sCore.lookupISA(i);
@@ -94,7 +94,7 @@ public class SuccinctCoreTest extends TestCase {
     /**
      * Test method: void readObject(ObjectInputStream ois)
      * Test method: void writeObject(ObjectOutputStream oos)
-     *  
+     *
      * @throws Exception
      */
     public void testSerializeDeserialize() throws Exception {
@@ -105,13 +105,27 @@ public class SuccinctCoreTest extends TestCase {
         ObjectOutputStream oos = new ObjectOutputStream(fOut);
         oos.writeObject(sCore);
         oos.close();
-        
+
         // Deserialize data
         FileInputStream fIn = new FileInputStream(testFileSuccinct);
         ObjectInputStream ois = new ObjectInputStream(fIn);
         SuccinctCore sCoreRead = (SuccinctCore) ois.readObject();
         ois.close();
-        
+
+        assertNotNull(sCoreRead);
+        assertEquals(sCoreRead.getOriginalSize(), sCore.getOriginalSize());
+        for(int i = 0; i < sCore.getOriginalSize(); i++) {
+            assertEquals(sCoreRead.lookupNPA(i), sCore.lookupNPA(i));
+            assertEquals(sCoreRead.lookupSA(i), sCore.lookupSA(i));
+            assertEquals(sCoreRead.lookupISA(i), sCore.lookupISA(i));
+        }
+    }
+
+    public void testReadWrite() throws Exception {
+        System.out.println("readWrite");
+
+        sCore.writeToFile(testFileSuccinctMin);
+        SuccinctCore sCoreRead = new SuccinctCore(testFileSuccinctMin, SuccinctCore.StorageMode.MEMORY_MAPPED);
         assertNotNull(sCoreRead);
         assertEquals(sCoreRead.getOriginalSize(), sCore.getOriginalSize());
         for(int i = 0; i < sCore.getOriginalSize(); i++) {

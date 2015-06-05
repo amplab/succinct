@@ -11,7 +11,7 @@ public class SuccinctBufferTest extends TestCase {
     private SuccinctBuffer sBuf;
     private byte[] fileData;
     private String testFileRaw = this.getClass().getResource("/test_file").getFile();
-    private String testFileSuccinct = this.getClass().getResource("/test_file").getFile() + ".succinct";
+    private String testFileSuccinct = this.getClass().getResource("/test_file").getFile() + ".buf.succinct";
 
     /**
      * Set up test.
@@ -37,12 +37,12 @@ public class SuccinctBufferTest extends TestCase {
      */
     public void testExtract() throws Exception {
         System.out.println("extract");
-        
+
         byte[] buf1 = sBuf.extract(0, 100);
         for(int i = 0; i < 100; i++) {
             assertEquals(buf1[i], fileData[i]);
         }
-        
+
         byte[] buf2 = sBuf.extract(fileData.length - 101, 100);
         for(int i = 0; i < 100; i++) {
             assertEquals(buf2[i], fileData[fileData.length - 101 + i]);
@@ -51,12 +51,12 @@ public class SuccinctBufferTest extends TestCase {
 
     /**
      * Test method: byte[] extractUntil(int offset, char delim)
-     *  
+     *
      * @throws Exception
      */
     public void testExtractUntil() throws Exception {
         System.out.println("extractUntil");
-        
+
         byte[] buf = sBuf.extractUntil(0, (byte) '\n');
         for(int i = 0; i < buf.length; i++) {
             assertEquals(buf[i], fileData[i]);
@@ -72,10 +72,10 @@ public class SuccinctBufferTest extends TestCase {
      */
     public void testCount() throws Exception {
         System.out.println("count");
-        
+
         long count1 = sBuf.count("int".getBytes());
         assertEquals(count1, 43);
-        
+
         long count2 = sBuf.count("include".getBytes());
         assertEquals(count2, 9);
     }
@@ -87,7 +87,7 @@ public class SuccinctBufferTest extends TestCase {
      */
     public void testSearch() throws Exception {
         System.out.println("count");
-        
+
         byte[] query1 = "int".getBytes();
         Long[] positions1 = sBuf.search(query1);
         for(int i = 0; i < positions1.length; i++) {
@@ -95,7 +95,7 @@ public class SuccinctBufferTest extends TestCase {
                 assertEquals(query1[j], fileData[((int) (positions1[i] + j))]);
             }
         }
-        
+
         byte[] query2 = "include".getBytes();
         Long[] positions2 = sBuf.search(query2);
         for(int i = 0; i < positions2.length; i++) {
@@ -103,7 +103,7 @@ public class SuccinctBufferTest extends TestCase {
                 assertEquals(query2[j], fileData[((int) (positions2[i] + j))]);
             }
         }
-        
+
     }
 
     /**
@@ -178,26 +178,26 @@ public class SuccinctBufferTest extends TestCase {
      */
     public void testRegexSearch() throws Exception {
         System.out.println("regexSearch");
-        
+
         Map<Long, Integer> primitiveResults1 = sBuf.regexSearch("c");
         assertTrue(checkResults(primitiveResults1, "c"));
-        
+
         Map<Long, Integer> primitiveResults2 = sBuf.regexSearch("in");
         assertTrue(checkResults(primitiveResults2, "in"));
-        
+
         Map<Long, Integer> primitiveResults3 = sBuf.regexSearch("out");
         assertTrue(checkResults(primitiveResults3, "out"));
-        
+
         Map<Long, Integer> unionResults = sBuf.regexSearch("in|out");
         assertTrue(checkResultsUnion(unionResults, "in", "out"));
-        
+
         Map<Long, Integer> concatResults = sBuf.regexSearch("c(in|out)");
         assertTrue(checkResultsUnion(concatResults, "cin", "cout"));
-        
+
         Map<Long, Integer> repeatResults = sBuf.regexSearch("c+");
         assertTrue(checkResults(repeatResults, "c"));
     }
-    
+
     public void testSerializeDeserialize() throws Exception {
         System.out.println("serializeDeserialize");
 

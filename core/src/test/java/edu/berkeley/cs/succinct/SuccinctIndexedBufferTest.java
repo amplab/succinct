@@ -9,7 +9,7 @@ import java.util.Arrays;
 public class SuccinctIndexedBufferTest extends TestCase {
 
     private String testFileRaw = this.getClass().getResource("/test_file").getFile();
-    private String testFileSuccinct = this.getClass().getResource("/test_file").getFile() + ".succinct";
+    private String testFileSuccinct = this.getClass().getResource("/test_file").getFile() + ".idx.succinct";
     private SuccinctIndexedBuffer sIBuf;
     private int[] offsets;
     private byte[] fileData;
@@ -49,7 +49,7 @@ public class SuccinctIndexedBufferTest extends TestCase {
      */
     public void testGetRecordDelim() throws Exception {
         System.out.println("getRecordDelim");
-        
+
         assertEquals(SuccinctIndexedBuffer.getRecordDelim(), '\n');
     }
 
@@ -84,7 +84,7 @@ public class SuccinctIndexedBufferTest extends TestCase {
 
     /**
      * Test method: long recordCount(byte[] query)
-     *  
+     *
      * @throws Exception
      */
     public void testRecordCount() throws Exception {
@@ -96,7 +96,7 @@ public class SuccinctIndexedBufferTest extends TestCase {
 
     /**
      * Test method: byte[][] extractRecords(int offset, int len)
-     *  
+     *
      * @throws Exception
      */
     public void testExtractRecords() throws Exception {
