@@ -34,6 +34,16 @@ public class SuccinctBuffer extends SuccinctCore {
     }
 
     /**
+     * Constructor to load the data from persisted Succinct data-structures.
+     *
+     * @param path Path to load data from.
+     * @param storageMode Mode in which data is stored (In-memory or Memory-mapped)
+     */
+    public SuccinctBuffer(String path, StorageMode storageMode) {
+        super(path, storageMode);
+    }
+
+    /**
      * Extract data of specified length from Succinct data structures at specified index.
      *
      * @param offset Index into original input to start extracting at.

@@ -2,9 +2,11 @@ package edu.berkeley.cs.succinct;
 
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.channels.FileChannel;
 import java.util.*;
 
 public class SuccinctIndexedBuffer extends SuccinctBuffer {
@@ -35,6 +37,16 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      */
     public SuccinctIndexedBuffer(byte[] input, int[] offsets) {
         this(input, offsets, 3);
+    }
+
+    /**
+     * Constructor to load the data from persisted Succinct data-structures.
+     *
+     * @param path Path to load data from.
+     * @param storageMode Mode in which data is stored (In-memory or Memory-mapped)
+     */
+    public SuccinctIndexedBuffer(String path, StorageMode storageMode) {
+        super(path, storageMode);
     }
 
     /**
@@ -463,6 +475,38 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
             }
         }
         return results.toArray(new byte[results.size()][]);
+    }
+
+    public void writeToFile(String path) throws IOException {
+        FileOutputStream fos = new FileOutputStream(path);
+        DataOutputStream os = new DataOutputStream(fos);
+        writeToStream(os);
+        os.writeInt(offsets.length);
+        for(int i = 0; i < offsets.length; i++) {
+            os.writeInt(offsets[i]);
+        }
+    }
+
+    public void readFromFile(String path) throws IOException {
+        FileInputStream fis = new FileInputStream(path);
+        DataInputStream is = new DataInputStream(fis);
+        readFromStream(is);
+        int len = is.readInt();
+        offsets = new int[len];
+        for(int i = 0; i < len; i++) {
+            offsets[i] = is.readInt();
+        }
+    }
+
+    public void memoryMap(String path) throws IOException {
+        File file = new File(path);
+        long size = file.length();
+        FileChannel fileChannel = new RandomAccessFile(file, "r").getChannel();
+
+        ByteBuffer buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size);
+        readFromBuffer(buf);
+        offsets = new int[buf.getInt()];
+        buf.asIntBuffer().get(offsets);
     }
 
     /**

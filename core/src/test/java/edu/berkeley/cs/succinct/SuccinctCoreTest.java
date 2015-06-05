@@ -121,8 +121,34 @@ public class SuccinctCoreTest extends TestCase {
         }
     }
 
-    public void testReadWrite() throws Exception {
-        System.out.println("readWrite");
+    /**
+     * Test method: void writeToFile(String path)
+     * Test method: void memoryMap(String path)
+     *
+     * @throws Exception
+     */
+    public void testMemoryMap() throws Exception {
+        System.out.println("memoryMap");
+
+        sCore.writeToFile(testFileSuccinctMin);
+        SuccinctCore sCoreRead = new SuccinctCore(testFileSuccinctMin, SuccinctCore.StorageMode.MEMORY_MAPPED);
+        assertNotNull(sCoreRead);
+        assertEquals(sCoreRead.getOriginalSize(), sCore.getOriginalSize());
+        for(int i = 0; i < sCore.getOriginalSize(); i++) {
+            assertEquals(sCoreRead.lookupNPA(i), sCore.lookupNPA(i));
+            assertEquals(sCoreRead.lookupSA(i), sCore.lookupSA(i));
+            assertEquals(sCoreRead.lookupISA(i), sCore.lookupISA(i));
+        }
+    }
+
+    /**
+     * Test method: void writeToFile(String path)
+     * Test method: void readFromFile(String path)
+     *
+     * @throws Exception
+     */
+    public void testReadFromFile() throws Exception {
+        System.out.println("readFromFile");
 
         sCore.writeToFile(testFileSuccinctMin);
         SuccinctCore sCoreRead = new SuccinctCore(testFileSuccinctMin, SuccinctCore.StorageMode.MEMORY_MAPPED);

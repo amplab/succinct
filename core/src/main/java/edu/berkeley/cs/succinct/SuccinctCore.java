@@ -10,7 +10,6 @@ import edu.berkeley.cs.succinct.util.buffers.ThreadSafeByteBuffer;
 import edu.berkeley.cs.succinct.util.buffers.ThreadSafeIntBuffer;
 import edu.berkeley.cs.succinct.util.buffers.ThreadSafeLongBuffer;
 import edu.berkeley.cs.succinct.wavelettree.WaveletTree;
-import org.apache.hadoop.hdfs.server.common.Storage;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -56,15 +55,14 @@ public class SuccinctCore implements Serializable {
     private transient int numContexts;
     private transient int contextLen;
 
-    public enum StorageMode {
-        MEMORY,
-        MEMORY_MAPPED
-    }
-
-    protected transient StorageMode storageMode;
-
     protected transient HashMap<Byte, Pair<Long, Integer>> alphabetMap;
     protected transient Map<Long, Long> contextMap;
+
+    public enum StorageMode {
+        MEMORY_ONLY,
+        MEMORY_MAPPED
+    }
+    protected transient StorageMode storageMode;
 
     /**
      *
@@ -88,11 +86,17 @@ public class SuccinctCore implements Serializable {
         construct(input);
     }
 
+    /**
+     * Constructor to load the data from persisted Succinct data-structures.
+     *
+     * @param path Path to load data from.
+     * @param storageMode Mode in which data is stored (In-memory or Memory-mapped)
+     */
     public SuccinctCore(String path, StorageMode storageMode) {
         this.storageMode = storageMode;
         try {
             Tables.init();
-            if(storageMode == StorageMode.MEMORY) {
+            if(storageMode == StorageMode.MEMORY_ONLY) {
                 readFromFile(path);
             } else {
                 memoryMap(path);
@@ -1132,13 +1136,10 @@ public class SuccinctCore implements Serializable {
         }
     }
 
-    public void memoryMap(String path) throws IOException {
-        File file = new File(path);
-        long size = file.length();
-        FileChannel fileChannel = new RandomAccessFile(file, "r").getChannel();
-
-        ByteBuffer buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size);
-        readFromBuffer(buf);
+    public void writeToFile(String path) throws IOException {
+        FileOutputStream fos = new FileOutputStream(path);
+        DataOutputStream os = new DataOutputStream(fos);
+        writeToStream(os);
     }
 
     public void readFromFile(String path) throws IOException {
@@ -1147,10 +1148,13 @@ public class SuccinctCore implements Serializable {
         readFromStream(is);
     }
 
-    public void writeToFile(String path) throws IOException {
-        FileOutputStream fos = new FileOutputStream(path);
-        DataOutputStream os = new DataOutputStream(fos);
-        writeToStream(os);
+    public void memoryMap(String path) throws IOException {
+        File file = new File(path);
+        long size = file.length();
+        FileChannel fileChannel = new RandomAccessFile(file, "r").getChannel();
+
+        ByteBuffer buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size);
+        readFromBuffer(buf);
     }
 
     protected byte[] toByteArray() throws IOException {

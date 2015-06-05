@@ -10,6 +10,7 @@ public class SuccinctIndexedBufferTest extends TestCase {
 
     private String testFileRaw = this.getClass().getResource("/test_file").getFile();
     private String testFileSuccinct = this.getClass().getResource("/test_file").getFile() + ".idx.succinct";
+    private String testFileSuccinctMin = this.getClass().getResource("/test_file").getFile() + ".idx.min.succinct";
     private SuccinctIndexedBuffer sIBuf;
     private int[] offsets;
     private byte[] fileData;
@@ -227,5 +228,43 @@ public class SuccinctIndexedBufferTest extends TestCase {
         assertEquals(sIBufRead.getOriginalSize(), sIBuf.getOriginalSize());
         assertTrue(Arrays.equals(sIBufRead.extract(0, sIBufRead.getOriginalSize()),
                                 sIBuf.extract(0, sIBuf.getOriginalSize())));
+    }
+
+    /**
+     * Test method: void writeToFile(String path)
+     * Test method: void memoryMap(String path)
+     *
+     * @throws Exception
+     */
+    public void testMemoryMap() throws Exception {
+        System.out.println("memoryMap");
+
+        sIBuf.writeToFile(testFileSuccinctMin);
+        SuccinctIndexedBuffer sIBufRead = new SuccinctIndexedBuffer(testFileSuccinctMin, SuccinctCore.StorageMode.MEMORY_MAPPED);
+
+        assertNotNull(sIBufRead);
+        assertEquals(sIBufRead.getOriginalSize(), sIBuf.getOriginalSize());
+        assertTrue(Arrays.equals(sIBufRead.extract(0, sIBufRead.getOriginalSize()),
+                sIBuf.extract(0, sIBuf.getOriginalSize())));
+        assertTrue(Arrays.equals(sIBufRead.offsets, sIBuf.offsets));
+    }
+
+    /**
+     * Test method: void writeToFile(String path)
+     * Test method: void readFromFile(String path)
+     *
+     * @throws Exception
+     */
+    public void testReadFromFile() throws Exception {
+        System.out.println("readFromFile");
+
+        sIBuf.writeToFile(testFileSuccinctMin);
+        SuccinctIndexedBuffer sIBufRead = new SuccinctIndexedBuffer(testFileSuccinctMin, SuccinctCore.StorageMode.MEMORY_ONLY);
+
+        assertNotNull(sIBufRead);
+        assertEquals(sIBufRead.getOriginalSize(), sIBuf.getOriginalSize());
+        assertTrue(Arrays.equals(sIBufRead.extract(0, sIBufRead.getOriginalSize()),
+                sIBuf.extract(0, sIBuf.getOriginalSize())));
+        assertTrue(Arrays.equals(sIBufRead.offsets, sIBuf.offsets));
     }
 }
