@@ -10,7 +10,6 @@ import edu.berkeley.cs.succinct.util.buffers.ThreadSafeByteBuffer;
 import edu.berkeley.cs.succinct.util.buffers.ThreadSafeIntBuffer;
 import edu.berkeley.cs.succinct.util.buffers.ThreadSafeLongBuffer;
 import edu.berkeley.cs.succinct.wavelettree.WaveletTree;
-import org.apache.hadoop.hdfs.server.common.Storage;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -23,10 +22,13 @@ import java.util.*;
 
 public class SuccinctCore implements Serializable {
 
+    // To maintain versioning
     private static final long serialVersionUID = 1382615274437547247L;
 
+    // End of File marker
     public transient static final byte EOF = 1;
 
+    // Serialized data structures
     protected transient ThreadSafeByteBuffer metadata;
     protected transient ThreadSafeByteBuffer alphabetmap;
     protected transient ThreadSafeLongBuffer contextmap;
@@ -56,8 +58,16 @@ public class SuccinctCore implements Serializable {
     private transient int numContexts;
     private transient int contextLen;
 
+    // Deserialized data-structures
     protected transient HashMap<Byte, Pair<Long, Integer>> alphabetMap;
     protected transient Map<Long, Long> contextMap;
+
+    /**
+     * Default constructor.
+     */
+    public SuccinctCore() {
+        Tables.init();
+    }
 
     public enum StorageMode {
         MEMORY_ONLY,
@@ -108,6 +118,30 @@ public class SuccinctCore implements Serializable {
     }
 
     /**
+     * Constructor to load the data from a DataInputStream.
+     *
+     * @param is Input stream to load the data from
+     */
+    public SuccinctCore(DataInputStream is) {
+        try {
+            Tables.init();
+            readFromStream(is);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Constructor to load the data from a ByteBuffer.
+     *
+     * @param buf Input buffer to load the data from
+     */
+    public SuccinctCore(ByteBuffer buf) {
+        Tables.init();
+        mapFromBuffer(buf);
+    }
+
+    /**
      * Get the original size.
      *
      * @return The originalSize.
@@ -125,74 +159,164 @@ public class SuccinctCore implements Serializable {
         this.originalSize = originalSize;
     }
 
+    /**
+     * Get the sampled SA size.
+     *
+     * @return The sampledSASize.
+     */
     public int getSampledSASize() {
         return sampledSASize;
     }
 
+    /**
+     * Set the sampled SA size.
+     *
+     * @param sampledSASize The sampledSASize to set.
+     */
     public void setSampledSASize(int sampledSASize) {
         this.sampledSASize = sampledSASize;
     }
 
+    /**
+     * Get the alpha size.
+     *
+     * @return The alphaSize.
+     */
     public int getAlphaSize() {
         return alphaSize;
     }
 
+    /**
+     * Set the alpha size.
+     *
+     * @param alphaSize The alphaSize to set.
+     */
     public void setAlphaSize(int alphaSize) {
         this.alphaSize = alphaSize;
     }
 
+    /**
+     * Get the sigma size.
+     *
+     * @return The sigmaSize.
+     */
     public int getSigmaSize() {
         return sigmaSize;
     }
 
+    /**
+     * Set the sigma size.
+     *
+     * @param sigmaSize The sigmaSize to set.
+     */
     public void setSigmaSize(int sigmaSize) {
         this.sigmaSize = sigmaSize;
     }
 
+    /**
+     * Get the bits.
+     *
+     * @return The bits.
+     */
     public int getBits() {
         return bits;
     }
 
+    /**
+     * Set the bits.
+     *
+     * @param bits The bits to set.
+     */
     public void setBits(int bits) {
         this.bits = bits;
     }
 
+    /**
+     * Get the sampled SA bits.
+     *
+     * @return The sampledSABits.
+     */
     public int getSampledSABits() {
         return sampledSABits;
     }
 
+    /**
+     * Set the sampled SA bits.
+     *
+     * @param sampledSABits The sampledSABits to set.
+     */
     public void setSampledSABits(int sampledSABits) {
         this.sampledSABits = sampledSABits;
     }
 
+    /**
+     * Get the sampling base.
+     *
+     * @return The samplingBase.
+     */
     public int getSamplingBase() {
         return samplingBase;
     }
 
+    /**
+     * Set the sampling base.
+     *
+     * @param samplingBase The samplingBase to set.
+     */
     public void setSamplingBase(int samplingBase) {
         this.samplingBase = samplingBase;
     }
 
+    /**
+     * Get the sampling rate.
+     *
+     * @return The samplingRate.
+     */
     public int getSamplingRate() {
         return samplingRate;
     }
 
+    /**
+     * Set the sampling rate.
+     *
+     * @param samplingRate The samplingRate to set.
+     */
     public void setSamplingRate(int samplingRate) {
         this.samplingRate = samplingRate;
     }
 
+    /**
+     * Get the number of contexts.
+     *
+     * @return The numContexts.
+     */
     public int getNumContexts() {
         return numContexts;
     }
 
+    /**
+     * Set the number of contexts.
+     *
+     * @param numContexts The numContexts to set.
+     */
     public void setNumContexts(int numContexts) {
         this.numContexts = numContexts;
     }
 
+    /**
+     * Get the context length.
+     *
+     * @return The contextLength.
+     */
     public int getContextLen() {
         return contextLen;
     }
 
+    /**
+     * Set the context length.
+     *
+     * @param contextLen The contextLen to set.
+     */
     public void setContextLen(int contextLen) {
         this.contextLen = contextLen;
     }
@@ -1063,7 +1187,7 @@ public class SuccinctCore implements Serializable {
      *
      * @param buf ByteBuffer to read Succinct data structures from.
      */
-    public void readFromBuffer(ByteBuffer buf) {
+    public void mapFromBuffer(ByteBuffer buf) {
         buf.rewind();
 
         metadata = ThreadSafeByteBuffer.fromByteBuffer(sliceOrderLimit(buf, 36));
@@ -1196,7 +1320,7 @@ public class SuccinctCore implements Serializable {
         FileChannel fileChannel = new RandomAccessFile(file, "r").getChannel();
 
         ByteBuffer buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size);
-        readFromBuffer(buf);
+        mapFromBuffer(buf);
     }
 
     /**

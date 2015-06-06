@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct;
 
+import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.executor.RegExExecutor;
 import edu.berkeley.cs.succinct.regex.parser.RegEx;
 import edu.berkeley.cs.succinct.regex.parser.RegExParser;
@@ -41,6 +42,13 @@ public class SuccinctBuffer extends SuccinctCore {
      */
     public SuccinctBuffer(String path, StorageMode storageMode) {
         super(path, storageMode);
+    }
+
+    /**
+     * Default constructor.
+     */
+    public SuccinctBuffer() {
+        super();
     }
 
     /**

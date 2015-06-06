@@ -1,11 +1,10 @@
 package edu.berkeley.cs.succinct;
 
+import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
 import java.util.*;
 
@@ -46,7 +45,41 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
      * @param storageMode Mode in which data is stored (In-memory or Memory-mapped)
      */
     public SuccinctIndexedBuffer(String path, StorageMode storageMode) {
-        super(path, storageMode);
+        this.storageMode = storageMode;
+        try {
+            Tables.init();
+            if (storageMode == StorageMode.MEMORY_ONLY) {
+                readFromFile(path);
+            } else if (storageMode == StorageMode.MEMORY_MAPPED) {
+                memoryMap(path);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Constructor to load the data from a DataInputStream.
+     *
+     * @param is Input stream to load the data from
+     */
+    public SuccinctIndexedBuffer(DataInputStream is) {
+        try {
+            Tables.init();
+            readFromStream(is);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Constructor to load the data from a ByteBuffer.
+     *
+     * @param buf Input buffer to load the data from
+     */
+    public SuccinctIndexedBuffer(ByteBuffer buf) {
+        Tables.init();
+        mapFromBuffer(buf);
     }
 
     /**
@@ -507,6 +540,20 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
     }
 
     /**
+     * Reads Succinct data structures from a ByteBuffer.
+     *
+     * @param buf ByteBuffer to read Succinct data structures from.
+     */
+    public void mapFromBuffer(ByteBuffer buf) {
+        super.mapFromBuffer(buf);
+        int len = buf.getInt();
+        offsets = new int[len];
+        for(int i = 0; i < offsets.length; i++) {
+            offsets[i] = buf.getInt();
+        }
+    }
+
+    /**
      * Convert Succinct data-structures to a byte array.
      *
      * @return Byte array containing serialzied Succinct data structures.
@@ -565,7 +612,7 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         FileChannel fileChannel = new RandomAccessFile(file, "r").getChannel();
 
         ByteBuffer buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size);
-        readFromBuffer(buf);
+        mapFromBuffer(buf);
         offsets = new int[buf.getInt()];
         buf.asIntBuffer().get(offsets);
     }
