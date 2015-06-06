@@ -4,6 +4,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Row, SQLContext}
+import org.apache.spark.storage.StorageLevel
 
 case class SuccinctRelation(
     location: String,
@@ -13,7 +14,7 @@ case class SuccinctRelation(
   private[succinct] var succinctSchema = getSchema
 
   override def schema: StructType = succinctSchema
-  val succinctTableRDD = SuccinctTableRDD(sqlContext.sparkContext, location).persist()
+  val succinctTableRDD = SuccinctTableRDD(sqlContext.sparkContext, location, StorageLevel.MEMORY_ONLY).persist()
 
   override def buildScan(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
     succinctTableRDD.pruneAndFilter(requiredColumns, filters)

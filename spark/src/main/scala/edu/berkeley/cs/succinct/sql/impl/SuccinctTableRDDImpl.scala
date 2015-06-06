@@ -114,13 +114,24 @@ class SuccinctTableRDDImpl private[succinct](
     val separatorsPath = path.stripSuffix("/") + "/separators"
     val minPath = path.stripSuffix("/") + "/min"
     val maxPath = path.stripSuffix("/") + "/max"
-    val conf = this.context.hadoopConfiguration
-    partitionsRDD.saveAsObjectFile(dataPath)
+    val conf = new Configuration()
+    val fs = FileSystem.get(new Path(path.stripSuffix("/")).toUri, conf)
+    fs.mkdirs(new Path(dataPath))
+    partitionsRDD.zipWithIndex().foreach(entry => {
+      val i = entry._2
+      val partition = entry._1
+      val partitionLocation = dataPath.stripSuffix("/") + "/part-" + "%05d".format(i)
+      println(partitionLocation)
+      val path = new Path(partitionLocation)
+      val fs = FileSystem.get(path.toUri, new Configuration())
+      val os = fs.create(path)
+      partition.writeToStream(os)
+      os.close()
+    })
     SuccinctUtils.writeObjectToFS(conf, schemaPath, schema)
     SuccinctUtils.writeObjectToFS(conf, separatorsPath, separators)
     SuccinctUtils.writeObjectToFS(conf, minPath, minimums)
     SuccinctUtils.writeObjectToFS(conf, maxPath, maximums)
-    val fs = FileSystem.get(new java.net.URI(path.stripSuffix("/")), new Configuration())
     fs.create(new Path(s"${path.stripSuffix("/")}/_SUCCESS")).close()
   }
 

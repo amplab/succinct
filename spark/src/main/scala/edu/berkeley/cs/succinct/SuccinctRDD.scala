@@ -1,8 +1,11 @@
 package edu.berkeley.cs.succinct
 
 import edu.berkeley.cs.succinct.impl.SuccinctRDDImpl
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{PathFilter, FileStatus, FileSystem, Path}
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
+import org.apache.spark.storage.StorageLevel
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
@@ -164,10 +167,30 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
   /**
    * Saves the SuccinctRDD at the specified path.
    *
-   * @param path The path where the SuccinctRDD should be stored.
+   * @param location The path where the SuccinctRDD should be stored.
    */
-  def save(path: String): Unit = {
-    partitionsRDD.saveAsObjectFile(path)
+  def save(location: String): Unit = {
+    println("Writing to: " + location)
+    val path = new Path(location)
+    val fs = FileSystem.get(path.toUri, new Configuration())
+    if(!fs.exists(path)) {
+      fs.mkdirs(path)
+    }
+
+    partitionsRDD.zipWithIndex().foreach(entry => {
+      val i = entry._2
+      val partition = entry._1
+      val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
+      println(partitionLocation)
+      val path = new Path(partitionLocation)
+      val fs = FileSystem.get(path.toUri, new Configuration())
+      val os = fs.create(path)
+      partition.writeToStream(os)
+      os.close()
+    })
+
+    val successPath = new Path(location.stripSuffix("/") + "/_SUCCESS")
+    fs.create(successPath).close()
   }
 
 }
@@ -190,11 +213,29 @@ object SuccinctRDD {
    * Reads a SuccinctRDD from disk.
    *
    * @param sc The spark context
-   * @param path The path to read the SuccinctRDD from.
+   * @param location The path to read the SuccinctRDD from.
    * @return The SuccinctRDD.
    */
-  def apply(sc: SparkContext, path: String): SuccinctRDD = {
-    val succinctPartitions = sc.objectFile[SuccinctIndexedBuffer](path)
+  def apply(sc: SparkContext, location: String, storageLevel: StorageLevel): SuccinctRDD = {
+    val locationPath = new Path(location)
+    val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
+    val status = fs.listStatus(locationPath, new PathFilter {
+      override def accept(path: Path): Boolean = {
+        path.getName.startsWith("part-")
+      }
+    })
+    val numPartitions = status.length
+    val succinctPartitions = sc.parallelize((0 to numPartitions - 1), numPartitions)
+      .mapPartitionsWithIndex((i, partition) => {
+        val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
+        val path = new Path(partitionLocation)
+        val fs = FileSystem.get(path.toUri, new Configuration())
+        val is = fs.open(path)
+        if(storageLevel == StorageLevel.MEMORY_ONLY)
+          Iterator(new SuccinctIndexedBuffer(is))
+        else
+          Iterator()
+      })
     new SuccinctRDDImpl(succinctPartitions)
   }
 

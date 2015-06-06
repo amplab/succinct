@@ -5,6 +5,7 @@ import edu.berkeley.cs.succinct.sql.SuccinctTableRDD
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import org.apache.spark.storage.StorageLevel
 import org.scalatest.FunSuite
 
 class SuccinctTableRDDSuite extends FunSuite with LocalSparkContext {
@@ -55,7 +56,7 @@ class SuccinctTableRDDSuite extends FunSuite with LocalSparkContext {
     assert(count === expectedCount)
   }
 
-  test("Test save and retrieve") {
+  test("Test save and retrieve in memory") {
     sc = new SparkContext("local", "test")
 
     val baseRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
@@ -70,7 +71,7 @@ class SuccinctTableRDDSuite extends FunSuite with LocalSparkContext {
     succinctTableRDD.save(succinctDir)
 
     val originalEntries = succinctTableRDD.collect()
-    val newEntries = SuccinctTableRDD(sc, succinctDir).collect()
+    val newEntries = SuccinctTableRDD(sc, succinctDir, StorageLevel.MEMORY_ONLY).collect()
 
     assert(originalEntries === newEntries)
   }

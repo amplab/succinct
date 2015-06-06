@@ -2,10 +2,13 @@ package edu.berkeley.cs.succinct.sql
 
 import edu.berkeley.cs.succinct.SuccinctIndexedBuffer
 import edu.berkeley.cs.succinct.sql.impl.SuccinctTableRDDImpl
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{PathFilter, FileSystem, Path}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row}
+import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{Dependency, Partition, SparkContext}
 
 import scala.Array._
@@ -115,15 +118,32 @@ abstract class SuccinctTableRDD(@transient sc: SparkContext,
 /** Factory for [[SuccinctTableRDD]] instances */
 object SuccinctTableRDD {
 
-  def apply(sparkContext: SparkContext, path: String): SuccinctTableRDD = {
+  def apply(sparkContext: SparkContext, path: String, storageLevel: StorageLevel): SuccinctTableRDD = {
     val dataPath = path.stripSuffix("/") + "/data"
     val schemaPath = path.stripSuffix("/") + "/schema"
     val separatorsPath = path.stripSuffix("/") + "/separators"
     val minPath = path.stripSuffix("/") + "/min"
     val maxPath = path.stripSuffix("/") + "/max"
-    val conf = sparkContext.hadoopConfiguration
-    val succinctPartitions: RDD[SuccinctIndexedBuffer] =
-      sparkContext.objectFile[SuccinctIndexedBuffer](dataPath)
+    val conf = new Configuration()
+    val succinctDataPath = new Path(dataPath)
+    val fs = FileSystem.get(succinctDataPath.toUri, conf)
+    val status = fs.listStatus(succinctDataPath, new PathFilter {
+      override def accept(path: Path): Boolean = {
+        path.getName.startsWith("part-")
+      }
+    })
+    val numPartitions = status.length
+    val succinctPartitions = sparkContext.parallelize((0 to numPartitions - 1), numPartitions)
+      .mapPartitionsWithIndex((i, partition) => {
+        val partitionLocation = dataPath + "/part-" + "%05d".format(i)
+        val path = new Path(partitionLocation)
+        val fs = FileSystem.get(path.toUri, new Configuration())
+        val is = fs.open(path)
+        if(storageLevel == StorageLevel.MEMORY_ONLY)
+          Iterator(new SuccinctIndexedBuffer(is))
+        else
+          Iterator()
+      })
     val succinctSchema: StructType = SuccinctUtils.readObjectFromFS[StructType](conf, schemaPath)
     val succinctSeparators: Array[Byte] = SuccinctUtils.readObjectFromFS[Array[Byte]](conf, separatorsPath)
     val minRow: Row = SuccinctUtils.readObjectFromFS[Row](conf, minPath)
