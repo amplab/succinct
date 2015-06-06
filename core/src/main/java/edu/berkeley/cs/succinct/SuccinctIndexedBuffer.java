@@ -613,8 +613,6 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
 
         ByteBuffer buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size);
         mapFromBuffer(buf);
-        offsets = new int[buf.getInt()];
-        buf.asIntBuffer().get(offsets);
     }
 
     /**
