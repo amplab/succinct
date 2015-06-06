@@ -809,6 +809,12 @@ public class SuccinctCore implements Serializable {
         return 0;
     }
 
+    /**
+     * Write Succinct data structures to a DataOutputStream.
+     *
+     * @param os Output stream to write data to.
+     * @throws IOException
+     */
     protected void writeToStream(DataOutputStream os) throws IOException {
         WritableByteChannel dataChannel = Channels.newChannel(os);
 
@@ -885,7 +891,12 @@ public class SuccinctCore implements Serializable {
         }
     }
 
-
+    /**
+     * Reads Succinct data structures from a DataInputStream.
+     *
+     * @param is Stream to read data structures from.
+     * @throws IOException
+     */
     protected void readFromStream(DataInputStream is) throws IOException {
         ReadableByteChannel dataChannel = Channels.newChannel(is);
         this.setOriginalSize(is.readInt());
@@ -1033,12 +1044,24 @@ public class SuccinctCore implements Serializable {
         }
     }
 
+    /**
+     * Slices, orders and limits ByteBuffer.
+     *
+     * @param buf Buffer to slice, order and limit.
+     * @param size Size to which buffer should be limited.
+     * @return Sliced, ordered and limited buffer.
+     */
     private ByteBuffer sliceOrderLimit(ByteBuffer buf, int size) {
         ByteBuffer ret = (ByteBuffer) buf.slice().order(ByteOrder.BIG_ENDIAN).limit(size);
         buf.position(buf.position() + size);
         return ret;
     }
 
+    /**
+     * Reads Succinct data structures from a ByteBuffer.
+     *
+     * @param buf ByteBuffer to read Succinct data structures from.
+     */
     public void readFromBuffer(ByteBuffer buf) {
         buf.rewind();
 
@@ -1136,18 +1159,36 @@ public class SuccinctCore implements Serializable {
         }
     }
 
+    /**
+     * Write Succinct data structures to file.
+     *
+     * @param path Path to file where Succinct data structures should be written.
+     * @throws IOException
+     */
     public void writeToFile(String path) throws IOException {
         FileOutputStream fos = new FileOutputStream(path);
         DataOutputStream os = new DataOutputStream(fos);
         writeToStream(os);
     }
 
+    /**
+     * Read Succinct data structures into memory from file.
+     *
+     * @param path Path to serialized Succinct data structures.
+     * @throws IOException
+     */
     public void readFromFile(String path) throws IOException {
         FileInputStream fis = new FileInputStream(path);
         DataInputStream is = new DataInputStream(fis);
         readFromStream(is);
     }
 
+    /**
+     * Memory maps serialized Succinct data structures.
+     *
+     * @param path Path to serialized Succinct data structures.
+     * @throws IOException
+     */
     public void memoryMap(String path) throws IOException {
         File file = new File(path);
         long size = file.length();
@@ -1157,12 +1198,24 @@ public class SuccinctCore implements Serializable {
         readFromBuffer(buf);
     }
 
+    /**
+     * Convert Succinct data-structures to a byte array.
+     *
+     * @return Byte array containing serialzied Succinct data structures.
+     * @throws IOException
+     */
     protected byte[] toByteArray() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         writeToStream(new DataOutputStream(bos));
         return bos.toByteArray();
     }
 
+    /**
+     * Read Succinct data structures from byte array.
+     *
+     * @param data Byte array to read data from.
+     * @throws IOException
+     */
     protected void fromByteArray(byte[] data) throws IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         readFromStream(new DataInputStream(bis));
