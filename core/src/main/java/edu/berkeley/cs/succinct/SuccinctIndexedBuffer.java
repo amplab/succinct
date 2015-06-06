@@ -477,20 +477,28 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         return results.toArray(new byte[results.size()][]);
     }
 
-    public void writeToFile(String path) throws IOException {
-        FileOutputStream fos = new FileOutputStream(path);
-        DataOutputStream os = new DataOutputStream(fos);
-        writeToStream(os);
+    /**
+     * Write Succinct data structures to a DataOutputStream.
+     *
+     * @param os Output stream to write data to.
+     * @throws IOException
+     */
+    public void writeToStream(DataOutputStream os) throws IOException {
+        super.writeToStream(os);
         os.writeInt(offsets.length);
         for(int i = 0; i < offsets.length; i++) {
             os.writeInt(offsets[i]);
         }
     }
 
-    public void readFromFile(String path) throws IOException {
-        FileInputStream fis = new FileInputStream(path);
-        DataInputStream is = new DataInputStream(fis);
-        readFromStream(is);
+    /**
+     * Reads Succinct data structures from a DataInputStream.
+     *
+     * @param is Stream to read data structures from.
+     * @throws IOException
+     */
+    public void readFromStream(DataInputStream is) throws IOException {
+        super.readFromStream(is);
         int len = is.readInt();
         offsets = new int[len];
         for(int i = 0; i < len; i++) {
@@ -498,6 +506,59 @@ public class SuccinctIndexedBuffer extends SuccinctBuffer {
         }
     }
 
+    /**
+     * Convert Succinct data-structures to a byte array.
+     *
+     * @return Byte array containing serialzied Succinct data structures.
+     * @throws IOException
+     */
+    public byte[] toByteArray() throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        writeToStream(new DataOutputStream(bos));
+        return bos.toByteArray();
+    }
+
+    /**
+     * Read Succinct data structures from byte array.
+     *
+     * @param data Byte array to read data from.
+     * @throws IOException
+     */
+    public void fromByteArray(byte[] data) throws IOException {
+        ByteArrayInputStream bis = new ByteArrayInputStream(data);
+        readFromStream(new DataInputStream(bis));
+    }
+
+    /**
+     * Write Succinct data structures to file.
+     *
+     * @param path Path to file where Succinct data structures should be written.
+     * @throws IOException
+     */
+    public void writeToFile(String path) throws IOException {
+        FileOutputStream fos = new FileOutputStream(path);
+        DataOutputStream os = new DataOutputStream(fos);
+        writeToStream(os);
+    }
+
+    /**
+     * Read Succinct data structures into memory from file.
+     *
+     * @param path Path to serialized Succinct data structures.
+     * @throws IOException
+     */
+    public void readFromFile(String path) throws IOException {
+        FileInputStream fis = new FileInputStream(path);
+        DataInputStream is = new DataInputStream(fis);
+        readFromStream(is);
+    }
+
+    /**
+     * Memory maps serialized Succinct data structures.
+     *
+     * @param path Path to serialized Succinct data structures.
+     * @throws IOException
+     */
     public void memoryMap(String path) throws IOException {
         File file = new File(path);
         long size = file.length();

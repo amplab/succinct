@@ -10,6 +10,7 @@ import edu.berkeley.cs.succinct.util.buffers.ThreadSafeByteBuffer;
 import edu.berkeley.cs.succinct.util.buffers.ThreadSafeIntBuffer;
 import edu.berkeley.cs.succinct.util.buffers.ThreadSafeLongBuffer;
 import edu.berkeley.cs.succinct.wavelettree.WaveletTree;
+import org.apache.hadoop.hdfs.server.common.Storage;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -96,9 +97,9 @@ public class SuccinctCore implements Serializable {
         this.storageMode = storageMode;
         try {
             Tables.init();
-            if(storageMode == StorageMode.MEMORY_ONLY) {
+            if (storageMode == StorageMode.MEMORY_ONLY) {
                 readFromFile(path);
-            } else {
+            } else if (storageMode == StorageMode.MEMORY_MAPPED) {
                 memoryMap(path);
             }
         } catch (IOException e) {
@@ -815,7 +816,7 @@ public class SuccinctCore implements Serializable {
      * @param os Output stream to write data to.
      * @throws IOException
      */
-    protected void writeToStream(DataOutputStream os) throws IOException {
+    public void writeToStream(DataOutputStream os) throws IOException {
         WritableByteChannel dataChannel = Channels.newChannel(os);
 
         dataChannel.write(metadata.order(ByteOrder.BIG_ENDIAN));
@@ -897,7 +898,7 @@ public class SuccinctCore implements Serializable {
      * @param is Stream to read data structures from.
      * @throws IOException
      */
-    protected void readFromStream(DataInputStream is) throws IOException {
+    public void readFromStream(DataInputStream is) throws IOException {
         ReadableByteChannel dataChannel = Channels.newChannel(is);
         this.setOriginalSize(is.readInt());
         this.setSampledSASize(is.readInt());
@@ -1204,7 +1205,7 @@ public class SuccinctCore implements Serializable {
      * @return Byte array containing serialzied Succinct data structures.
      * @throws IOException
      */
-    protected byte[] toByteArray() throws IOException {
+    public byte[] toByteArray() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         writeToStream(new DataOutputStream(bos));
         return bos.toByteArray();
@@ -1216,7 +1217,7 @@ public class SuccinctCore implements Serializable {
      * @param data Byte array to read data from.
      * @throws IOException
      */
-    protected void fromByteArray(byte[] data) throws IOException {
+    public void fromByteArray(byte[] data) throws IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         readFromStream(new DataInputStream(bis));
     }
