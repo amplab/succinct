@@ -1,5 +1,9 @@
 package edu.berkeley.cs.succinct.sql
 
+import java.io.{RandomAccessFile, File}
+import java.nio.channels.FileChannel
+
+import com.google.common.io.Files
 import edu.berkeley.cs.succinct.SuccinctIndexedBuffer
 import edu.berkeley.cs.succinct.sql.impl.SuccinctTableRDDImpl
 import org.apache.hadoop.conf.Configuration
@@ -139,10 +143,19 @@ object SuccinctTableRDD {
         val path = new Path(partitionLocation)
         val fs = FileSystem.get(path.toUri, new Configuration())
         val is = fs.open(path)
-        if(storageLevel == StorageLevel.MEMORY_ONLY)
+        if(storageLevel == StorageLevel.MEMORY_ONLY) {
           Iterator(new SuccinctIndexedBuffer(is))
-        else
-          Iterator()
+        } else {
+          // TODO: Add better location for temp location, e.g, where spark stores its files.
+          val tmpDir = Files.createTempDir()
+          val localFile = tmpDir + "/" + path.getName
+          fs.copyToLocalFile(path, new Path(localFile))
+          val file = new File(localFile)
+          val size = file.length
+          val fileChannel: FileChannel = new RandomAccessFile(file, "r").getChannel
+          val buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size)
+          Iterator(new SuccinctIndexedBuffer(buf))
+        }
       })
     val succinctSchema: StructType = SuccinctUtils.readObjectFromFS[StructType](conf, schemaPath)
     val succinctSeparators: Array[Byte] = SuccinctUtils.readObjectFromFS[Array[Byte]](conf, separatorsPath)
