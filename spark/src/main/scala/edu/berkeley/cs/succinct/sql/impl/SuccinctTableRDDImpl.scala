@@ -121,7 +121,6 @@ class SuccinctTableRDDImpl private[succinct](
       val i = entry._2
       val partition = entry._1
       val partitionLocation = dataPath.stripSuffix("/") + "/part-" + "%05d".format(i)
-      println(partitionLocation)
       val path = new Path(partitionLocation)
       val fs = FileSystem.get(path.toUri, new Configuration())
       val os = fs.create(path)

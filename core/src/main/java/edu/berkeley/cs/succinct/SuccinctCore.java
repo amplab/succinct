@@ -5,7 +5,7 @@ import edu.berkeley.cs.succinct.bitmap.BitMap;
 import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.qsufsort.QSufSort;
 import edu.berkeley.cs.succinct.util.CommonUtils;
-import edu.berkeley.cs.succinct.util.SerializedOperations;
+import edu.berkeley.cs.succinct.util.buffers.SerializedOperations;
 import edu.berkeley.cs.succinct.util.buffers.ThreadSafeByteBuffer;
 import edu.berkeley.cs.succinct.util.buffers.ThreadSafeIntBuffer;
 import edu.berkeley.cs.succinct.util.buffers.ThreadSafeLongBuffer;
@@ -69,10 +69,6 @@ public class SuccinctCore implements Serializable {
         Tables.init();
     }
 
-    public enum StorageMode {
-        MEMORY_ONLY,
-        MEMORY_MAPPED
-    }
     protected transient StorageMode storageMode;
 
     /**

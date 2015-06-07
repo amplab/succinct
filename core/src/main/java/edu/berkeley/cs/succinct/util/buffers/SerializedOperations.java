@@ -1,6 +1,7 @@
-package edu.berkeley.cs.succinct.util;
+package edu.berkeley.cs.succinct.util.buffers;
 
 import edu.berkeley.cs.succinct.dictionary.Tables;
+import edu.berkeley.cs.succinct.util.CommonUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;

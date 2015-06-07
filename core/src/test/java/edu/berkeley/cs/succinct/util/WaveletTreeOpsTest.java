@@ -1,12 +1,7 @@
 package edu.berkeley.cs.succinct.util;
 
 import edu.berkeley.cs.succinct.dictionary.Tables;
-import edu.berkeley.cs.succinct.wavelettree.WaveletTree;
-import edu.berkeley.cs.succinct.util.SerializedOperations.WaveletTreeOps;
 import junit.framework.TestCase;
-
-import java.util.ArrayList;
-import java.nio.ByteBuffer;
 
 public class WaveletTreeOpsTest extends TestCase {
 

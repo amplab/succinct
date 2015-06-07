@@ -1,6 +1,7 @@
 package edu.berkeley.cs.succinct.util;
 
 import edu.berkeley.cs.succinct.bitmap.BMArray;
+import edu.berkeley.cs.succinct.util.buffers.SerializedOperations;
 import junit.framework.TestCase;
 
 import java.nio.LongBuffer;

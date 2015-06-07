@@ -8,9 +8,9 @@ import java.util.Arrays;
 
 public class SuccinctIndexedBufferTest extends TestCase {
 
-    private String testFileRaw = this.getClass().getResource("/test_file").getFile();
-    private String testFileSuccinct = this.getClass().getResource("/test_file").getFile() + ".idx.succinct";
-    private String testFileSuccinctMin = this.getClass().getResource("/test_file").getFile() + ".idx.min.succinct";
+    private String testFileRaw = this.getClass().getResource("/raw.dat").getFile();
+    private String testFileSuccinct = this.getClass().getResource("/raw.dat").getFile() + ".idx.succinct";
+    private String testFileSuccinctMin = this.getClass().getResource("/raw.dat").getFile() + ".idx.min.succinct";
     private SuccinctIndexedBuffer sIBuf;
     private int[] offsets;
     private byte[] fileData;
@@ -240,7 +240,7 @@ public class SuccinctIndexedBufferTest extends TestCase {
         System.out.println("memoryMap");
 
         sIBuf.writeToFile(testFileSuccinctMin);
-        SuccinctIndexedBuffer sIBufRead = new SuccinctIndexedBuffer(testFileSuccinctMin, SuccinctCore.StorageMode.MEMORY_MAPPED);
+        SuccinctIndexedBuffer sIBufRead = new SuccinctIndexedBuffer(testFileSuccinctMin, StorageMode.MEMORY_MAPPED);
 
         assertNotNull(sIBufRead);
         assertEquals(sIBufRead.getOriginalSize(), sIBuf.getOriginalSize());
@@ -259,7 +259,7 @@ public class SuccinctIndexedBufferTest extends TestCase {
         System.out.println("readFromFile");
 
         sIBuf.writeToFile(testFileSuccinctMin);
-        SuccinctIndexedBuffer sIBufRead = new SuccinctIndexedBuffer(testFileSuccinctMin, SuccinctCore.StorageMode.MEMORY_ONLY);
+        SuccinctIndexedBuffer sIBufRead = new SuccinctIndexedBuffer(testFileSuccinctMin, StorageMode.MEMORY_ONLY);
 
         assertNotNull(sIBufRead);
         assertEquals(sIBufRead.getOriginalSize(), sIBuf.getOriginalSize());

@@ -3,6 +3,7 @@ package edu.berkeley.cs.succinct.util;
 import edu.berkeley.cs.succinct.bitmap.BitMap;
 import edu.berkeley.cs.succinct.dictionary.Dictionary;
 import edu.berkeley.cs.succinct.dictionary.Tables;
+import edu.berkeley.cs.succinct.util.buffers.SerializedOperations;
 import junit.framework.TestCase;
 
 import java.nio.ByteBuffer;

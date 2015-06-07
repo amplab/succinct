@@ -1,13 +1,12 @@
 package edu.berkeley.cs.succinct;
 
-import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.executor.RegExExecutor;
 import edu.berkeley.cs.succinct.regex.parser.RegEx;
 import edu.berkeley.cs.succinct.regex.parser.RegExParser;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.regex.planner.NaiveRegExPlanner;
 import edu.berkeley.cs.succinct.regex.planner.RegExPlanner;
-import edu.berkeley.cs.succinct.util.SerializedOperations;
+import edu.berkeley.cs.succinct.util.buffers.SerializedOperations;
 
 import java.util.Map;
 
