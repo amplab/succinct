@@ -24,24 +24,23 @@ using Maven by adding the following dependency information to your pom.xml file:
 
 ## Usage
 
-The Succinct-Core library exposes the Succinct algorithms at three layers:
+The Succinct-Core library exposes the Succinct algorithms at two layers:
 
 ```
-SuccinctCore
 SuccinctBuffer
-SuccinctIndexedBuffer
+SuccinctFile
 ```
 
-### SuccinctCore
+### SuccinctBuffer
 
-`SuccinctCore` exposes the basic construction primitive for all internal 
+`SuccinctBuffer` exposes the basic construction primitive for all internal 
 internal data-structures, along with accessors to the core data-structures 
 (e.g., NPA, SA and ISA, which are termed as NextCharIdx, Input2AOS and AOS2Input
 in the [paper](https://www.usenix.org/conference/nsdi15/technical-sessions/presentation/agarwal)).
 
-### SuccinctBuffer
+### SuccinctFile
 
-`SuccinctBuffer` builds on top of `SuccinctCore` and implements algorithms for
+`SuccinctFile` builds on top of `SuccinctBuffer` and implements algorithms for
 three basic functionalities:
 
 ```
@@ -53,13 +52,5 @@ long count(byte[] query)
 These primitives allow random access (`extract`) and search (`count`, `search`)
 directly on the compressed representation of flat-file (i.e., unstructured) 
 data. Look at this [example](src/main/java/edu/berkeley/cs/succinct/examples/SuccinctShell.java)
-to see how `SuccinctBuffer` can be used.
+to see how `SuccinctFile` can be used.
 
-### SuccinctIndexedBuffer
-
-Finally, `SuccinctIndexedBuffer` uses the functionality of both `SuccinctCore`
-and `SuccinctBuffer` to implement a record buffer, i.e., a collection of records.
-This interface is used heavily in the [Succinct-Spark](../spark) library,
-particularly in the [SuccinctRDD](../spark/src/main/scala/edu/berkeley/cs/succinct/SuccinctRDD.scala) 
-and [SuccinctTableRDD](../spark/src/main/scala/edu/berkeley/cs/succinct/sql/SuccinctTableRDD.scala) 
-implementations.

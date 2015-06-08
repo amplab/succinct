@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.regex.executor;
 
-import edu.berkeley.cs.succinct.SuccinctBuffer;
+import edu.berkeley.cs.succinct.SuccinctFile;
 import edu.berkeley.cs.succinct.regex.parser.*;
 
 import java.util.Iterator;
@@ -9,18 +9,18 @@ import java.util.TreeMap;
 
 public class RegExExecutor {
 
-    private SuccinctBuffer succinctBuffer;
+    private SuccinctFile succinctFile;
     private RegEx regEx;
     private Map<Long, Integer> finalResults;
 
     /**
      * Constructor to initialize Regex Executor with the Succinct Buffer and regex query.
      *
-     * @param succinctBuffer The backing SuccinctBuffer.
+     * @param succinctFile The backing SuccinctBuffer.
      * @param regEx The regular expression query.
      */
-    public RegExExecutor(SuccinctBuffer succinctBuffer, RegEx regEx) {
-        this.succinctBuffer = succinctBuffer;
+    public RegExExecutor(SuccinctFile succinctFile, RegEx regEx) {
+        this.succinctFile = succinctFile;
         this.regEx = regEx;
     }
 
@@ -86,7 +86,7 @@ public class RegExExecutor {
     protected Map<Long, Integer> mgramSearch(RegExPrimitive rp) {
         Map<Long, Integer> mgramRes = new TreeMap<Long, Integer>();
         String mgram = rp.getMgram();
-        Long[] searchRes = succinctBuffer.search(mgram.getBytes());
+        Long[] searchRes = succinctFile.search(mgram.getBytes());
         for(int i = 0; i < searchRes.length; i++) {
             mgramRes.put(searchRes[i], mgram.length());
         }

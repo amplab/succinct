@@ -1,13 +1,12 @@
 package edu.berkeley.cs.succinct.regex.executor;
 
-import edu.berkeley.cs.succinct.SuccinctBuffer;
+import edu.berkeley.cs.succinct.SuccinctFile;
 import edu.berkeley.cs.succinct.regex.parser.*;
 import junit.framework.TestCase;
 
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
@@ -16,7 +15,7 @@ public class RegExExecutorTest extends TestCase {
 
     private String testFileRaw = this.getClass().getResource("/test_file").getFile();
     private RegExExecutor regExExecutor;
-    private SuccinctBuffer sBuf;
+    private SuccinctFile sBuf;
     private byte[] fileData;
     /**
      * Set up test.
@@ -31,7 +30,7 @@ public class RegExExecutorTest extends TestCase {
         DataInputStream dis = new DataInputStream(
                 new FileInputStream(inputFile));
         dis.readFully(fileData);
-        sBuf = new SuccinctBuffer(fileData, 3);
+        sBuf = new SuccinctFile(fileData, 3);
     }
 
     /**
@@ -43,7 +42,7 @@ public class RegExExecutorTest extends TestCase {
      */
     private boolean checkResults(RegEx regEx, String exp) {
         Map<Long, Integer> results;
-        
+
         regExExecutor = new RegExExecutor(sBuf, regEx);
         regExExecutor.execute();
         results = regExExecutor.getFinalResults();
@@ -85,7 +84,7 @@ public class RegExExecutorTest extends TestCase {
                     flagSecond = false;
                 }
             }
-            
+
             if(!flagFirst && !flagSecond) return false;
         }
         return true;
@@ -113,7 +112,7 @@ public class RegExExecutorTest extends TestCase {
         }
         return true;
     }
-    
+
     /**
      * Test method: void execute()
      *
@@ -128,12 +127,12 @@ public class RegExExecutorTest extends TestCase {
         RegEx union = new RegExUnion(primitive2, primitive3);
         RegEx concat = new RegExConcat(primitive1, primitive2);
         RegEx repeat = new RegExRepeat(primitive1, RegExRepeatType.OneOrMore);
-        
+
         // Check primitives
         assertTrue(checkResults(primitive1, "c"));
         assertTrue(checkResults(primitive2, "out"));
         assertTrue(checkResults(primitive3, "in"));
-        
+
         // Check operators
         assertTrue(checkResultsUnion(union, "in", "out"));
         assertTrue(checkResults(concat, "cout"));
@@ -152,14 +151,14 @@ public class RegExExecutorTest extends TestCase {
         RegExPrimitive regEx = new RegExPrimitive(query);
         regExExecutor = new RegExExecutor(sBuf, regEx);
         Map<Long, Integer> results = regExExecutor.mgramSearch(regEx);
-        
+
         for(Long offset : results.keySet()) {
             int len = results.get(offset);
             for(int i = 0; i < len; i++) {
                 assertEquals(fileData[offset.intValue() + i], query.charAt(i));
             }
         }
-        
+
     }
 
     /**
@@ -169,7 +168,7 @@ public class RegExExecutorTest extends TestCase {
      */
     public void testRegexUnion() throws Exception {
         System.out.println("regexUnion");
-        
+
         // Populate two maps randomly
         Map<Long, Integer> A = new TreeMap<Long, Integer>();
         Map<Long, Integer> B = new TreeMap<Long, Integer>();
@@ -178,16 +177,16 @@ public class RegExExecutorTest extends TestCase {
             A.put(generator.nextLong(), generator.nextInt());
             B.put(generator.nextLong(), generator.nextInt());
         }
-        
+
         // Check if union is correct
         regExExecutor = new RegExExecutor(null, null);
         Map<Long, Integer> unionRes = regExExecutor.regexUnion(A, B);
-        
+
         for(Long offset : A.keySet()) {
             assertTrue(unionRes.containsKey(offset));
             assertEquals(unionRes.get(offset), A.get(offset));
         }
-        
+
         for(Long offset : B.keySet()) {
             assertTrue(unionRes.containsKey(offset));
             assertEquals(unionRes.get(offset), B.get(offset));
@@ -196,7 +195,7 @@ public class RegExExecutorTest extends TestCase {
 
     /**
      * Test method: Map<Long, Integer> regexConcat(Map<Long, Integer> a, Map<Long, Integer> b)
-     * 
+     *
      * @throws Exception
      */
     public void testRegexConcat() throws Exception {
@@ -214,7 +213,7 @@ public class RegExExecutorTest extends TestCase {
         // Check if concat is correct
         regExExecutor = new RegExExecutor(null, null);
         Map<Long, Integer> concatRes = regExExecutor.regexConcat(A, B);
-        
+
         for(Long offset : concatRes.keySet()) {
             assertTrue(A.containsKey(offset));
             assertTrue(B.containsKey(offset + A.get(offset)));
@@ -248,7 +247,7 @@ public class RegExExecutorTest extends TestCase {
             int repeatLen = repeatRes.get(offset);
             int origLen = A.get(offset);
             assertTrue(repeatLen % origLen == 0);
-            
+
             int multiple = repeatLen / origLen;
             for(int i = 1; i < multiple; i++) {
                 long repOff = offset + i * repeatLen;

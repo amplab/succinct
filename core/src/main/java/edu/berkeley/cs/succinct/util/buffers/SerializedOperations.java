@@ -508,6 +508,8 @@ public class SerializedOperations {
             int dictPos = wTree.position();
             long p, v;
 
+            // System.out.println("m = " + (int)m + " left = " + left + " right = " + right + " dictPos = " + dictPos);
+
             if (contextPos > m && contextPos <= endIdx) {
                 if (right == 0) {
                     return DictionaryOps.getSelect1(wTree, dictPos, cellPos);
