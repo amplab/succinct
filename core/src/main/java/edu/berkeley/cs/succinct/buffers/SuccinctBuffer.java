@@ -1,5 +1,7 @@
-package edu.berkeley.cs.succinct;
+package edu.berkeley.cs.succinct.buffers;
 
+import edu.berkeley.cs.succinct.StorageMode;
+import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.bitmap.BMArray;
 import edu.berkeley.cs.succinct.bitmap.BitMap;
 import edu.berkeley.cs.succinct.dictionary.Tables;
@@ -26,8 +28,7 @@ public class SuccinctBuffer extends SuccinctCore {
     // To maintain versioning
     private static final long serialVersionUID = 1382615274437547247L;
 
-    // End of File marker
-    public transient static final byte EOF = 1;
+
 
     // Serialized data structures
     protected transient ThreadSafeByteBuffer metadata;
@@ -166,8 +167,6 @@ public class SuccinctBuffer extends SuccinctCore {
 
         long cellValue = cellOff;
 
-        System.out.println(colId + " " + colOff + " " + cellId + " " + cellOff + " " + rowId + " " + rowOff + " " + contextSize + " " + contextPos);
-        System.out.println(wavelettree[rowId] == null);
         if (wavelettree[rowId] != null) {
             cellValue = SerializedOperations.WaveletTreeOps.getValue(
                     (ByteBuffer) wavelettree[rowId].rewind(), contextPos,

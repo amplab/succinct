@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.regex.executor;
 
-import edu.berkeley.cs.succinct.SuccinctFile;
+import edu.berkeley.cs.succinct.buffers.SuccinctFileBuffer;
 import edu.berkeley.cs.succinct.regex.parser.*;
 import junit.framework.TestCase;
 
@@ -15,7 +15,7 @@ public class RegExExecutorTest extends TestCase {
 
     private String testFileRaw = this.getClass().getResource("/test_file").getFile();
     private RegExExecutor regExExecutor;
-    private SuccinctFile sBuf;
+    private SuccinctFileBuffer sBuf;
     private byte[] fileData;
     /**
      * Set up test.
@@ -30,7 +30,7 @@ public class RegExExecutorTest extends TestCase {
         DataInputStream dis = new DataInputStream(
                 new FileInputStream(inputFile));
         dis.readFully(fileData);
-        sBuf = new SuccinctFile(fileData, 3);
+        sBuf = new SuccinctFileBuffer(fileData, 3);
     }
 
     /**

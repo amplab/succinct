@@ -3,12 +3,18 @@ package edu.berkeley.cs.succinct;
 import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.util.Pair;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 public abstract class SuccinctCore implements Serializable {
+
+    // End of File marker
+    public transient static final byte EOF = 1;
+
+    // End of Line marker
+    public transient static final byte EOL = '\n';
+
     // Metadata
     private transient int originalSize;
     private transient int sampledSASize;
@@ -215,7 +221,7 @@ public abstract class SuccinctCore implements Serializable {
      * @param i Index into NPA.
      * @return Value of NPA at specified index.
      */
-    abstract long lookupNPA(long i);
+    public abstract long lookupNPA(long i);
 
     /**
      * Lookup SA at specified index.
@@ -223,7 +229,7 @@ public abstract class SuccinctCore implements Serializable {
      * @param i Index into SA.
      * @return Value of SA at specified index.
      */
-    abstract long lookupSA(long i);
+    public abstract long lookupSA(long i);
 
     /**
      * Lookup ISA at specified index.
@@ -231,6 +237,6 @@ public abstract class SuccinctCore implements Serializable {
      * @param i Index into ISA.
      * @return Value of ISA at specified index.
      */
-    abstract long lookupISA(long i);
+    public abstract long lookupISA(long i);
 
 }

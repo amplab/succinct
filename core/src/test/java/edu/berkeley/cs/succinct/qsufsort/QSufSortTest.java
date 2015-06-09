@@ -4,6 +4,7 @@ import edu.berkeley.cs.succinct.util.CommonUtils;
 import junit.framework.TestCase;
 
 import java.io.*;
+import java.util.Arrays;
 
 public class QSufSortTest extends TestCase {
 
@@ -24,17 +25,19 @@ public class QSufSortTest extends TestCase {
         File inputFile = new File(testFileRaw);
 
         byte[] fileData = new byte[(int) inputFile.length()];
+
         DataInputStream dis = new DataInputStream(
                 new FileInputStream(inputFile));
         dis.readFully(fileData);
         byte[] data = (new String(fileData) + (char) 1).getBytes();
+
         instance.buildSuffixArray(data);
         fileSize = (int) (inputFile.length() + 1);
     }
 
     /**
      * Test method: MinMax minmax(byte[] input)
-     *  
+     *
      * @throws Exception
      */
     public void testMinmax() throws Exception {
@@ -45,7 +48,7 @@ public class QSufSortTest extends TestCase {
         for(int i = 0; i < input.length; i++) {
             input[i] = (byte) (i + 20);
         }
-        
+
         QSufSort.MinMax mm = QSufSort.minmax(input);
         assertEquals(mm.min, expectedMin);
         assertEquals(mm.max, expectedMax);
@@ -54,13 +57,13 @@ public class QSufSortTest extends TestCase {
 
     /**
      * Test method: int[] getSA()
-     *  
+     *
      * @throws Exception
      */
     public void testGetSA() throws Exception {
         System.out.println("getSA");
         int[] SA = instance.getSA();
-        
+
         long sum = 0;
         DataInputStream dIS = new DataInputStream(new FileInputStream(new File(testFileSA)));
         int[] testSA = CommonUtils.readArray(dIS);
@@ -68,27 +71,6 @@ public class QSufSortTest extends TestCase {
         for(int i = 0; i < fileSize; i++) {
             assertEquals(SA[i], testSA[i]);
             sum += SA[i];
-            sum %= fileSize;
-        }
-        assertEquals(sum, 0L);
-    }
-
-    /**
-     * Test method: int[] getISA()
-     *
-     * @throws Exception
-     */
-    public void testGetSAinv() throws Exception {
-        System.out.println("getISA");
-        int[] ISA = instance.getISA();
-        
-        long sum = 0;
-        DataInputStream dIS = new DataInputStream(new FileInputStream(new File(testFileISA)));
-        int[] testISA = CommonUtils.readArray(dIS);
-        dIS.close();
-        for(int i = 0; i < fileSize; i++) {
-            assertEquals(ISA[i], testISA[i]);
-            sum += ISA[i];
             sum %= fileSize;
         }
         assertEquals(sum, 0L);

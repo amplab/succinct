@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.examples;
 
-import edu.berkeley.cs.succinct.SuccinctFile;
+import edu.berkeley.cs.succinct.buffers.SuccinctFileBuffer;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 
 import java.io.*;
@@ -23,7 +23,7 @@ public class SuccinctShell {
         DataInputStream dis = new DataInputStream(new FileInputStream(file));
         dis.readFully(fileData, 0, (int)file.length());
 
-        SuccinctFile succinctFile = new SuccinctFile(fileData);
+        SuccinctFileBuffer succinctFileBuffer = new SuccinctFileBuffer(fileData);
         BufferedReader shellReader = new BufferedReader(new InputStreamReader(System.in));
         while(true) {
             System.out.print("succinct> ");
@@ -35,14 +35,14 @@ public class SuccinctShell {
                     System.err.println("Usage: count [query]");
                     continue;
                 }
-                System.out.println("Count[" + cmdArray[1] + "] = " + succinctFile.count(cmdArray[1].getBytes()));
+                System.out.println("Count[" + cmdArray[1] + "] = " + succinctFileBuffer.count(cmdArray[1].getBytes()));
             } else if(cmdArray[0].compareTo("search") == 0) {
                 if(cmdArray.length != 2) {
                     System.err.println("Could not parse search query.");
                     System.err.println("Usage: search [query]");
                     continue;
                 }
-                Long[] results = succinctFile.search(cmdArray[1].getBytes());
+                Long[] results = succinctFileBuffer.search(cmdArray[1].getBytes());
                 System.out.println("Result size = " + results.length);
                 System.out.print("Search[" + cmdArray[1] + "] = {");
                 if(results.length < 10) {
@@ -75,7 +75,7 @@ public class SuccinctShell {
                     System.err.println("[Extract]: Failed to parse length: must be an integer.");
                     continue;
                 }
-                System.out.println("Extract[" + offset + ", " + length + "] = " + new String(succinctFile.extract(offset, length)));
+                System.out.println("Extract[" + offset + ", " + length + "] = " + new String(succinctFileBuffer.extract(offset, length)));
             } else if (cmdArray[0].compareTo("regex") == 0) {
                 if(cmdArray.length != 2) {
                     System.err.println("Could not parse regex query.");
@@ -85,7 +85,7 @@ public class SuccinctShell {
 
                 Map<Long, Integer> results = null;
                 try {
-                    results = succinctFile.regexSearch(cmdArray[1]);
+                    results = succinctFileBuffer.regexSearch(cmdArray[1]);
                 } catch (RegExParsingException e) {
                     System.err.println("Could not parse regular expression: [" + cmdArray[1] + "]");
                     continue;

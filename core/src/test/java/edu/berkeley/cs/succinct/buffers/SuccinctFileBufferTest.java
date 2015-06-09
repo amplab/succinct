@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct;
+package edu.berkeley.cs.succinct.buffers;
 
 import junit.framework.TestCase;
 
@@ -6,9 +6,9 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Map;
 
-public class SuccinctFileTest extends TestCase {
+public class SuccinctFileBufferTest extends TestCase {
 
-    private SuccinctFile sBuf;
+    private SuccinctFileBuffer sBuf;
     private byte[] fileData;
     private String testFileRaw = this.getClass().getResource("/test_file").getFile();
     private String testFileSuccinct = this.getClass().getResource("/test_file").getFile() + ".buf.succinct";
@@ -27,7 +27,7 @@ public class SuccinctFileTest extends TestCase {
         DataInputStream dis = new DataInputStream(
                 new FileInputStream(inputFile));
         dis.readFully(fileData);
-        sBuf = new SuccinctFile(fileData, 3);
+        sBuf = new SuccinctFileBuffer(fileData, 3);
     }
 
     /**
@@ -210,7 +210,7 @@ public class SuccinctFileTest extends TestCase {
         // Deserialize data
         FileInputStream fIn = new FileInputStream(testFileSuccinct);
         ObjectInputStream ois = new ObjectInputStream(fIn);
-        SuccinctFile sBufRead = (SuccinctFile) ois.readObject();
+        SuccinctFileBuffer sBufRead = (SuccinctFileBuffer) ois.readObject();
         ois.close();
 
         assertNotNull(sBufRead);
