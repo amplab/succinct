@@ -24,24 +24,26 @@ using Maven by adding the following dependency information to your pom.xml file:
 
 ## Usage
 
-The Succinct-Core library exposes the Succinct algorithms at two layers:
+The Succinct-Core library exposes Succinct in three layers:
 
 ```
-SuccinctBuffer
+SuccinctCore
 SuccinctFile
+SuccinctIndexedFile
 ```
 
-### SuccinctBuffer
+### SuccinctCore
 
-`SuccinctBuffer` exposes the basic construction primitive for all internal 
+`SuccinctCore` exposes the basic construction primitive for all internal 
 internal data-structures, along with accessors to the core data-structures 
 (e.g., NPA, SA and ISA, which are termed as NextCharIdx, Input2AOS and AOS2Input
 in the [paper](https://www.usenix.org/conference/nsdi15/technical-sessions/presentation/agarwal)).
+An implementation of the same is at [`SuccinctBuffer`](src/java/edu/berkeley/cs/succinct/buffers/SuccinctBuffer.java).
 
 ### SuccinctFile
 
-`SuccinctFile` builds on top of `SuccinctBuffer` and implements algorithms for
-three basic functionalities:
+`SuccinctFile` builds on top of `SuccinctCore` and exposes the interface for
+three main functionalities:
 
 ```
 byte[] extract(int offset, int length)
@@ -51,6 +53,17 @@ long count(byte[] query)
 
 These primitives allow random access (`extract`) and search (`count`, `search`)
 directly on the compressed representation of flat-file (i.e., unstructured) 
-data. Look at this [example](src/main/java/edu/berkeley/cs/succinct/examples/SuccinctShell.java)
-to see how `SuccinctFile` can be used.
+data. [`SuccinctFileBuffer`](src/java/edu/berkeley/cs/succinct/buffers/SuccinctFileBuffer.java) 
+is a ByteBuffer based implementation of SuccinctFile. Look at this 
+[example](src/main/java/edu/berkeley/cs/succinct/examples/SuccinctShell.java) to
+see how `SuccinctFileBuffer` can be used.
+
+### SuccinctIndexedFile
+
+Finally, `SuccinctIndexedFile` builds on the functionality of both `SuccinctCore`
+and `SuccinctFile` to expose a record buffer, i.e., a collection of records.
+This interface is used heavily in the [Succinct-Spark](../spark) library,
+particularly in the [SuccinctRDD](../spark/src/main/scala/edu/berkeley/cs/succinct/SuccinctRDD.scala) 
+and [SuccinctTableRDD](../spark/src/main/scala/edu/berkeley/cs/succinct/sql/SuccinctTableRDD.scala) 
+implementations.
 
