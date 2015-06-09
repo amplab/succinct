@@ -38,7 +38,7 @@ SuccinctIndexedFile
 internal data-structures, along with accessors to the core data-structures 
 (e.g., NPA, SA and ISA, which are termed as NextCharIdx, Input2AOS and AOS2Input
 in the [paper](https://www.usenix.org/conference/nsdi15/technical-sessions/presentation/agarwal)).
-An implementation of the same is at [`SuccinctBuffer`](src/java/edu/berkeley/cs/succinct/buffers/SuccinctBuffer.java).
+An implementation of the same is at [`SuccinctBuffer`](src/main/java/edu/berkeley/cs/succinct/buffers/SuccinctBuffer.java).
 
 ### SuccinctFile
 
@@ -53,7 +53,7 @@ long count(byte[] query)
 
 These primitives allow random access (`extract`) and search (`count`, `search`)
 directly on the compressed representation of flat-file (i.e., unstructured) 
-data. [`SuccinctFileBuffer`](src/java/edu/berkeley/cs/succinct/buffers/SuccinctFileBuffer.java) 
+data. [`SuccinctFileBuffer`](src/main/java/edu/berkeley/cs/succinct/buffers/SuccinctFileBuffer.java) 
 is a ByteBuffer based implementation of SuccinctFile. Look at this 
 [example](src/main/java/edu/berkeley/cs/succinct/examples/SuccinctShell.java) to
 see how `SuccinctFileBuffer` can be used.
