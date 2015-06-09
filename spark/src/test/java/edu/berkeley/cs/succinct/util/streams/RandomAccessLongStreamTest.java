@@ -1,0 +1,66 @@
+package edu.berkeley.cs.succinct.util.streams;
+
+import junit.framework.TestCase;
+import org.apache.hadoop.fs.FSDataInputStream;
+
+import java.nio.LongBuffer;
+
+public class RandomAccessLongStreamTest extends TestCase {
+
+    public void testGet() throws Exception {
+        System.out.println("get");
+        LongBuffer buf = LongBuffer.allocate(10);
+        for (int i = 0; i < 10; i++) {
+            buf.put(i);
+        }
+        FSDataInputStream is = TestUtils.getStream(buf);
+        RandomAccessLongStream bs = new RandomAccessLongStream(is, 0, 80);
+        for (int i = 0; i < 10; i++) {
+            assertEquals(i, bs.get());
+        }
+    }
+
+    public void testGet1() throws Exception {
+        System.out.println("get1");
+        LongBuffer buf = LongBuffer.allocate(10);
+        for (int i = 0; i < 10; i++) {
+            buf.put(i);
+        }
+        FSDataInputStream is = TestUtils.getStream(buf);
+        RandomAccessLongStream bs = new RandomAccessLongStream(is, 0, 80);
+        for (int i = 0; i < 10; i++) {
+            assertEquals(i, bs.get(i));
+        }
+    }
+
+    public void testPosition() throws Exception {
+        System.out.println("position");
+        LongBuffer buf = LongBuffer.allocate(10);
+        for (int i = 0; i < 10; i++) {
+            buf.put(i);
+        }
+        FSDataInputStream is = TestUtils.getStream(buf);
+        RandomAccessLongStream bs = new RandomAccessLongStream(is, 0, 80);
+        bs.position(3);
+        assertEquals(bs.position(), 3);
+    }
+
+    public void testOffsetBeginning() throws Exception {
+        System.out.println("offsetBeginning");
+        LongBuffer buf = LongBuffer.allocate(20);
+        for (int i = 0; i < 20; i++) {
+            buf.put(i);
+        }
+        FSDataInputStream is = TestUtils.getStream(buf);
+        RandomAccessLongStream bs = new RandomAccessLongStream(is, 80, 10);
+        for (int i = 10; i < 20; i++) {
+            assertEquals(i, bs.get());
+        }
+        bs.rewind();
+        assertEquals(0, bs.position());
+        for (int i = 0; i < 10; i++) {
+            assertEquals((i + 10), bs.get(i));
+        }
+
+    }
+}
