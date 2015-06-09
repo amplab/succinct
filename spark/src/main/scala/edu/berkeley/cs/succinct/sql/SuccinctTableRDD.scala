@@ -4,7 +4,9 @@ import java.io.{RandomAccessFile, File}
 import java.nio.channels.FileChannel
 
 import com.google.common.io.Files
-import edu.berkeley.cs.succinct.SuccinctIndexedBuffer
+import edu.berkeley.cs.succinct.streams.SuccinctIndexedFileStream
+import edu.berkeley.cs.succinct.{SuccinctIndexedFile, SuccinctCore}
+import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.sql.impl.SuccinctTableRDDImpl
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{PathFilter, FileSystem, Path}
@@ -19,7 +21,7 @@ import scala.Array._
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * Extends `RDD[Row]` to a [[SuccinctTableRDD]], which stores each partition as a [[SuccinctIndexedBuffer]].
+ * Extends `RDD[Row]` to a [[SuccinctTableRDD]], which stores each partition as a [[SuccinctIndexedFile]].
  * [[SuccinctTableRDD]] exposes a table interface, allowing search and count operations on any
  * column based on a matching pattern.
  *
@@ -29,7 +31,7 @@ abstract class SuccinctTableRDD(@transient sc: SparkContext,
     @transient deps: Seq[Dependency[_]])
   extends RDD[Row](sc, deps) {
 
-  private[succinct] def partitionsRDD: RDD[SuccinctIndexedBuffer]
+  private[succinct] def partitionsRDD: RDD[SuccinctIndexedFile]
 
   /**
    * Returns the RDD of partitions.
@@ -43,12 +45,12 @@ abstract class SuccinctTableRDD(@transient sc: SparkContext,
    *
    * @return The first parent of the RDD.
    */
-  protected[succinct] def getFirstParent: RDD[SuccinctIndexedBuffer] = {
-    firstParent[SuccinctIndexedBuffer]
+  protected[succinct] def getFirstParent: RDD[SuccinctIndexedFile] = {
+    firstParent[SuccinctIndexedFile]
   }
 
   /**
-   * Saves the [[SuccinctIndexedBuffer]] partitions to disk by serializing them.
+   * Saves the [[SuccinctIndexedFile]] partitions to disk by serializing them.
    *
    * @param path Path to save the serialized partitions to.
    */
@@ -138,24 +140,30 @@ object SuccinctTableRDD {
     })
     val numPartitions = status.length
     val succinctPartitions = sparkContext.parallelize((0 to numPartitions - 1), numPartitions)
-      .mapPartitionsWithIndex((i, partition) => {
+      .mapPartitionsWithIndex[SuccinctIndexedFile]((i, partition) => {
         val partitionLocation = dataPath + "/part-" + "%05d".format(i)
         val path = new Path(partitionLocation)
         val fs = FileSystem.get(path.toUri, new Configuration())
         val is = fs.open(path)
-        if(storageLevel == StorageLevel.MEMORY_ONLY) {
-          Iterator(new SuccinctIndexedBuffer(is))
-        } else {
-          // TODO: Add better location for temp location, e.g, where spark stores its files.
-          val tmpDir = Files.createTempDir()
-          val localFile = tmpDir + "/" + path.getName
-          fs.copyToLocalFile(path, new Path(localFile))
-          val file = new File(localFile)
-          val size = file.length
-          val fileChannel: FileChannel = new RandomAccessFile(file, "r").getChannel
-          val buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size)
-          Iterator(new SuccinctIndexedBuffer(buf))
+        val partitionIterator = storageLevel match {
+          case StorageLevel.MEMORY_ONLY =>
+            Iterator(new SuccinctIndexedFileBuffer(is))
+          case StorageLevel.DISK_ONLY =>
+            Iterator(new SuccinctIndexedFileStream(path))
+          case StorageLevel.MEMORY_AND_DISK => {
+            // TODO: Add better location for temp location, e.g, where spark stores its files.
+            val tmpDir = Files.createTempDir()
+            val localFile = tmpDir + "/" + path.getName
+            fs.copyToLocalFile(path, new Path(localFile))
+            val file = new File(localFile)
+            val size = file.length
+            val fileChannel: FileChannel = new RandomAccessFile(file, "r").getChannel
+            val buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size)
+            Iterator(new SuccinctIndexedFileBuffer(buf))
+          }
         }
+        is.close()
+        partitionIterator
       })
     val succinctSchema: StructType = SuccinctUtils.readObjectFromFS[StructType](conf, schemaPath)
     val succinctSeparators: Array[Byte] = SuccinctUtils.readObjectFromFS[Array[Byte]](conf, separatorsPath)
@@ -222,15 +230,15 @@ object SuccinctTableRDD {
   }
 
   /**
-   * Creates a [[SuccinctIndexedBuffer]] from an Iterator over [[Row]] and the list of separators.
+   * Creates a [[SuccinctIndexedFile]] from an Iterator over [[Row]] and the list of separators.
    *
    * @param dataIter The Iterator over data tuples.
    * @param succinctSerializer The serializer/deserializer for Succinct's representation of records.
-   * @return An Iterator over the [[SuccinctIndexedBuffer]].
+   * @return An Iterator over the [[SuccinctIndexedFile]].
    */
   private[succinct] def createSuccinctBuffer(
       dataIter: Iterator[Row],
-      succinctSerializer: SuccinctSerializer): Iterator[SuccinctIndexedBuffer] = {
+      succinctSerializer: SuccinctSerializer): Iterator[SuccinctIndexedFile] = {
 
     var offsets = new ArrayBuffer[Int]()
     val rawBufferBuilder = new StringBuilder
@@ -238,11 +246,11 @@ object SuccinctTableRDD {
     while (dataIter.hasNext) {
       val curTuple = succinctSerializer.serializeRow(dataIter.next())
       rawBufferBuilder.append(new String(curTuple))
-      rawBufferBuilder.append(SuccinctIndexedBuffer.getRecordDelim.toChar)
+      rawBufferBuilder.append(SuccinctCore.EOL.toChar)
       offsets += offset
       offset += (curTuple.length + 1)
     }
-    val ret = Iterator(new SuccinctIndexedBuffer(rawBufferBuilder.toString().getBytes, offsets.toArray, 2))
+    val ret = Iterator(new SuccinctIndexedFileBuffer(rawBufferBuilder.toString().getBytes, offsets.toArray, 2))
     ret
   }
 

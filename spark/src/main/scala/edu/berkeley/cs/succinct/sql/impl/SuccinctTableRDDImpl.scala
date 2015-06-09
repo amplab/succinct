@@ -1,7 +1,7 @@
 package edu.berkeley.cs.succinct.sql.impl
 
-import edu.berkeley.cs.succinct.SuccinctIndexedBuffer
-import edu.berkeley.cs.succinct.SuccinctIndexedBuffer.QueryType
+import edu.berkeley.cs.succinct.{SuccinctIndexedFile, SuccinctCore}
+import edu.berkeley.cs.succinct.SuccinctIndexedFile.QueryType
 import edu.berkeley.cs.succinct.sql._
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -15,7 +15,7 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
 /**
  * Implements [[SuccinctTableRDD]]; provides implementations for the count and search methods.
  *
- * @constructor Creates a [[SuccinctTableRDD]] from an RDD of [[SuccinctIndexedBuffer]] partitions,
+ * @constructor Creates a [[SuccinctTableRDD]] from an RDD of [[SuccinctIndexedFile]] partitions,
  *             the list of separators and the target storage level.
  * @param partitionsRDD The RDD of partitions (SuccinctIndexedBuffer).
  * @param separators The list of separators for distinguishing between attributes.
@@ -23,7 +23,7 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
  * @param targetStorageLevel The target storage level for the RDD.
  */
 class SuccinctTableRDDImpl private[succinct](
-    val partitionsRDD: RDD[SuccinctIndexedBuffer],
+    val partitionsRDD: RDD[SuccinctIndexedFile],
     val separators: Array[Byte],
     val schema: StructType,
     val minimums: Row,
@@ -34,7 +34,7 @@ class SuccinctTableRDDImpl private[succinct](
 
   /** Overrides [[RDD]]]'s compute to return a [[SuccinctTableIterator]]. */
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
-    val succinctIterator = firstParent[SuccinctIndexedBuffer].iterator(split, context)
+    val succinctIterator = firstParent[SuccinctIndexedFile].iterator(split, context)
     if (succinctIterator.hasNext) {
       new SuccinctTableIterator(succinctIterator.next(), succinctSerializer)
     } else {
@@ -80,7 +80,7 @@ class SuccinctTableRDDImpl private[succinct](
 
   /** Implements getSeparator for [[SuccinctTableRDD]] */
   private def getSeparator(attrIdx: Int): Byte = {
-    if (attrIdx == separators.length) SuccinctIndexedBuffer.getRecordDelim
+    if (attrIdx == separators.length) SuccinctCore.EOL
     else separators(attrIdx)
   }
 
@@ -120,7 +120,7 @@ class SuccinctTableRDDImpl private[succinct](
     partitionsRDD.zipWithIndex().foreach(entry => {
       val i = entry._2
       val partition = entry._1
-      val partitionLocation = dataPath.stripSuffix("/") + "/part-" + "%05d".format(i)
+      val partitionLocation = dataPath + "/part-" + "%05d".format(i)
       val path = new Path(partitionLocation)
       val fs = FileSystem.get(path.toUri, new Configuration())
       val os = fs.create(path)

@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.sql
 
-import edu.berkeley.cs.succinct.SuccinctIndexedBuffer.QueryType
+import edu.berkeley.cs.succinct.SuccinctIndexedFile.QueryType
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.apache.spark.storage.StorageLevel

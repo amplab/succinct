@@ -1,13 +1,13 @@
 package edu.berkeley.cs.succinct.sql
 
-import edu.berkeley.cs.succinct.SuccinctIndexedBuffer
+import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
 
 class SuccinctPrunedTableRDD(
-    val partitionsRDD: RDD[SuccinctIndexedBuffer],
+    val partitionsRDD: RDD[SuccinctIndexedFile],
     val succinctSerializer: SuccinctSerializer,
     val reqColsCheck: Map[String, Boolean],
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
@@ -15,7 +15,7 @@ class SuccinctPrunedTableRDD(
 
   /** Overrides [[RDD]]]'s compute to return a [[SuccinctTableIterator]]. */
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
-    val succinctIterator = firstParent[SuccinctIndexedBuffer].iterator(split, context)
+    val succinctIterator = firstParent[SuccinctIndexedFile].iterator(split, context)
     if (succinctIterator.hasNext) {
       new SuccinctPrunedTableIterator(succinctIterator.next(),
         succinctSerializer, reqColsCheck)
@@ -69,8 +69,8 @@ class SuccinctPrunedTableRDD(
    *
    * @return The first parent of the RDD.
    */
-  protected[succinct] def getFirstParent: RDD[SuccinctIndexedBuffer] = {
-    firstParent[SuccinctIndexedBuffer]
+  protected[succinct] def getFirstParent: RDD[SuccinctIndexedFile] = {
+    firstParent[SuccinctIndexedFile]
   }
 
 }

@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.sql
 
-import edu.berkeley.cs.succinct.SuccinctIndexedBuffer
+import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import org.apache.spark.sql.Row
 
 /**
@@ -12,7 +12,7 @@ import org.apache.spark.sql.Row
  * @param reqColsCheck The list of required columns.
  */
 class SuccinctPrunedTableIterator private[succinct](
-    sBuf: SuccinctIndexedBuffer,
+    sBuf: SuccinctIndexedFile,
     succinctSerializer: SuccinctSerializer,
     reqColsCheck: Map[String, Boolean])
   extends Iterator[Row] {

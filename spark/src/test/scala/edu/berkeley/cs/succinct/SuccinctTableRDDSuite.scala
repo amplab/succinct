@@ -66,11 +66,12 @@ class SuccinctTableRDDSuite extends FunSuite with LocalSparkContext {
     val tableRDD = baseRDD.filter(_ != firstRecord).map(Row.fromSeq(_))
     val succinctTableRDD = SuccinctTableRDD(tableRDD, schema).persist()
 
+    val originalEntries = succinctTableRDD.collect()
+
     val tmpDir = Files.createTempDir()
-    val succinctDir = tmpDir + "/succinct"
+    val succinctDir = tmpDir + "/succinct-table"
     succinctTableRDD.save(succinctDir)
 
-    val originalEntries = succinctTableRDD.collect()
     val newEntries = SuccinctTableRDD(sc, succinctDir, StorageLevel.MEMORY_ONLY).collect()
 
     assert(originalEntries === newEntries)
@@ -86,11 +87,12 @@ class SuccinctTableRDDSuite extends FunSuite with LocalSparkContext {
     val tableRDD = baseRDD.filter(_ != firstRecord).map(Row.fromSeq(_))
     val succinctTableRDD = SuccinctTableRDD(tableRDD, schema).persist()
 
+    val originalEntries = succinctTableRDD.collect()
+
     val tmpDir = Files.createTempDir()
-    val succinctDir = tmpDir + "/succinct"
+    val succinctDir = tmpDir + "/succinct-table"
     succinctTableRDD.save(succinctDir)
 
-    val originalEntries = succinctTableRDD.collect()
     val newEntries = SuccinctTableRDD(sc, succinctDir, StorageLevel.MEMORY_AND_DISK).collect()
 
     assert(originalEntries === newEntries)

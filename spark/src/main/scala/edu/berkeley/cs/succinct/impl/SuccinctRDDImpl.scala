@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.impl
 
-import edu.berkeley.cs.succinct.{SuccinctIndexedBuffer, SuccinctRDD}
+import edu.berkeley.cs.succinct.{SuccinctIndexedFile, SuccinctRDD}
 import org.apache.spark.OneToOneDependency
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
@@ -14,7 +14,7 @@ import org.apache.spark.storage.StorageLevel
  * @param targetStorageLevel The storage level for the RDD.
  */
 class SuccinctRDDImpl private[succinct](
-    val partitionsRDD: RDD[SuccinctIndexedBuffer],
+    val partitionsRDD: RDD[SuccinctIndexedFile],
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 

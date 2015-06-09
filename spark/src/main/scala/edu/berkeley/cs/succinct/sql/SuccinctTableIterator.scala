@@ -1,16 +1,16 @@
 package edu.berkeley.cs.succinct.sql
 
-import edu.berkeley.cs.succinct.SuccinctIndexedBuffer
+import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import org.apache.spark.sql.Row
 
 /**
  * Iterator for a SuccinctTableRDD partition.
  *
- * @constructor Create a new SuccinctTableIterator with a SuccinctIndexedBuffer and a list of separators.
- * @param sBuf The underlying SuccinctIndexedBuffer.
+ * @constructor Create a new SuccinctTableIterator with a SuccinctIndexedFile and a list of separators.
+ * @param sBuf The underlying SuccinctIndexedFile.
  * @param succinctSerializer The serializer/deserializer for Succinct's representation of records.
  */
-class SuccinctTableIterator private[succinct](sBuf: SuccinctIndexedBuffer, succinctSerializer: SuccinctSerializer)
+class SuccinctTableIterator private[succinct](sBuf: SuccinctIndexedFile, succinctSerializer: SuccinctSerializer)
   extends Iterator[Row] {
 
   var curRecordId: Int = 0

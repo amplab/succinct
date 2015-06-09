@@ -4,12 +4,11 @@ package edu.berkeley.cs.succinct
  * Iterator for a SuccinctRDD partition.
  *
  * @constructor Create a new SuccinctIterator from the underlying SuccinctBuffer.
- * @param sBuf The underlying SuccinctBuffer.
+ * @param sBuf The underlying SuccinctIndexedBuffer.
  */
-class SuccinctIterator private[succinct](sBuf: SuccinctBuffer) extends Iterator[Array[Byte]] {
+class SuccinctIterator private[succinct](sBuf: SuccinctIndexedFile) extends Iterator[Array[Byte]] {
 
-  var curPos: Int = 0
-  var buf: SuccinctBuffer = sBuf
+  var curRecordId: Int = 0
 
   /**
    * Returns true if there are more records to iterate over.
@@ -17,7 +16,7 @@ class SuccinctIterator private[succinct](sBuf: SuccinctBuffer) extends Iterator[
    * @return true if there are more records to iterate over;
    *         false otherwise.
    */
-  override def hasNext: Boolean = curPos < sBuf.getOriginalSize - 1
+  override def hasNext: Boolean = curRecordId < sBuf.getNumRecords
 
   /**
    * Returns the next tuple.
@@ -25,8 +24,8 @@ class SuccinctIterator private[succinct](sBuf: SuccinctBuffer) extends Iterator[
    * @return The next tuple.
    */
   override def next(): Array[Byte] = {
-    val data = buf.extractUntil(curPos, SuccinctIndexedBuffer.getRecordDelim)
-    curPos = curPos + data.length + 1
+    val data = sBuf.getRecord(curRecordId)
+    curRecordId += 1
     data
   }
 }

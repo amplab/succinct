@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.sql
 
-import edu.berkeley.cs.succinct.SuccinctIndexedBuffer
+import edu.berkeley.cs.succinct.SuccinctCore
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 
@@ -45,7 +45,7 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
         if (separatorsIter.hasNext)
           nextSeparator = separatorsIter.next()
         else
-          nextSeparator = SuccinctIndexedBuffer.getRecordDelim
+          nextSeparator = SuccinctCore.EOL
       } else {
         elemBuilder.append(data(i).toChar)
       }
@@ -76,13 +76,13 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
     val elemBuilder = new StringBuilder
     val separatorsIter = separators.iterator
     var nextSeparator: Byte = if (separatorsIter.hasNext) separatorsIter.next()
-                              else SuccinctIndexedBuffer.getRecordDelim
+                              else SuccinctCore.EOL
     while (i < data.length) {
       if (data(i) == nextSeparator) {
         if (i != 0 && requiredColumns(fieldNames(k - 1))) elemList += elemBuilder.toString
         elemBuilder.clear()
         nextSeparator = if (separatorsIter.hasNext) separatorsIter.next()
-                        else SuccinctIndexedBuffer.getRecordDelim
+                        else SuccinctCore.EOL
         k += 1
       } else {
         elemBuilder.append(data(i).toChar)
@@ -143,6 +143,10 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
         case other => throw new IllegalArgumentException(s"Unexpected type. ${schema(elemIdx).dataType}")
       }
     }
+  }
+
+  override def toString(): String = {
+    separators.map(_.toInt).mkString(",")
   }
 
 }
