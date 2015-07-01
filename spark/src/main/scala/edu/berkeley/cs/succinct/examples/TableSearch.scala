@@ -1,34 +1,47 @@
 package edu.berkeley.cs.succinct.examples
 
-import edu.berkeley.cs.succinct.sql.SuccinctTableRDD
+import com.google.common.io.Files
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{Row, SQLContext}
 import org.apache.spark.{SparkConf, SparkContext}
+import edu.berkeley.cs.succinct.sql._
 
+/**
+ * Performs search on a TPC-H dataset provided as an input.
+ */
 object TableSearch {
   def main(args: Array[String]) = {
+
+    if (args.length < 1) {
+      System.err.println("Usage: TableSearch <csv-file> <partitions>")
+      System.exit(1)
+    }
+
     val dataPath = args(0)
-    val sc = new SparkContext(new SparkConf().setAppName("table search"))
-    val partitions = if (args.length > 1) args(1).toInt else 2
-    val baseRDD = sc.textFile(dataPath, partitions)
+    val ctx = new SparkContext(new SparkConf().setAppName("TableSearch"))
+    val sqlCtx = new SQLContext(ctx)
+    val partitions = if (args.length > 1) args(1).toInt else 1
+    val csvData = ctx.textFile(dataPath, partitions)
       .map(_.split('|').toSeq)
-    val firstRecord = baseRDD.first()
+    val firstRecord = csvData.first()
     val schema = StructType(firstRecord.map(StructField(_, StringType)))
-    val tableRDD = baseRDD.filter(_ != firstRecord).map(Row.fromSeq(_))
-    val succinctTableRDD = SuccinctTableRDD(tableRDD, schema).persist()
+    val tableRDD = csvData.filter(_ != firstRecord).map(Row.fromSeq(_))
+
+    val dataFrame = sqlCtx.createDataFrame(tableRDD, schema)
+    val tempDir = Files.createTempDir()
+    val succinctDir = tempDir + "/succinct"
+    dataFrame.saveAsSuccinctFiles(succinctDir)
+
+    val succinctDataFrame = sqlCtx.succinctFile(succinctDir)
 
     // Search for "TRUCK" for attribute shipmode
     val attrName = "shipmode"
     val query = "TRUCK"
 
-    // Get the count
-    val count = succinctTableRDD.count(attrName, query.getBytes)
-    println(s"Count of TRUCK in attribute=$attrName = $count")
-
     // Get search results
-    val records = succinctTableRDD.search(attrName, query.getBytes)
-    println("Records matching the query:")
-    records.foreach(println)
+    val records = succinctDataFrame.filter(s"$attrName = \'$query\'")
+    println("10 records matching the query:")
+    records.take(10).foreach(println)
 
   }
 }

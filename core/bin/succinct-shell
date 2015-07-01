@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+# Runs the succinct shell
+##
+
+usage="Usage: succinct-shell [filename]"
+
+# if no args specified, show usage
+if [ $# -le 0 ]; then
+  echo $usage
+  exit 1
+fi
+
+bin="`dirname "$0"`"
+bin="`cd "$bin"; pwd`"
+
+. "$bin/succinct-config.sh"
+. "$SUCCINCT_PREFIX/bin/load-succinct-env.sh"
+
+JAR_PATH="$SUCCINCT_PREFIX/target"
+
+JAR_COUNT=0
+
+for f in "${JAR_PATH}"/succinct-core-*.jar; do
+  if [[ ! -e "$f" ]]; then
+    echo "Failed to find Succinct Core assembly in $JAR_PATH" 1>&2
+    echo "You need to build Succinct-Core before running this program" 1>&2
+    exit 1
+  fi
+  SUCCINCT_CORE_JAR="$f"
+  JAR_COUNT=$((JAR_COUNT+1))
+done
+
+if [ "$JAR_COUNT" -gt "1" ]; then
+  echo "Found multiple Succinct Spark assemblies in $JAR_PATH" 1>&2
+  ls "${JAR_PATH}"/succinct-spark-*-jar-with-dependencies.jar 1>&2
+  echo "Please remove all but one jar." 1>&2
+  exit 1
+fi
+
+java -cp $SUCCINCT_CORE_JAR edu.berkeley.cs.succinct.examples.SuccinctShell $@
