@@ -67,3 +67,15 @@ particularly in the [SuccinctRDD](../spark/src/main/scala/edu/berkeley/cs/succin
 and [SuccinctTableRDD](../spark/src/main/scala/edu/berkeley/cs/succinct/sql/SuccinctTableRDD.scala) 
 implementations.
 
+## Example Program
+
+We provide an [example](src/main/java/edu/berkeley/cs/succinct/examples/SuccinctShell.java)
+program that outlines the usage of `count`, `search` and `extract` 
+functionalities of the `SuccinctFile`. A convenient script is included in the 
+`bin/` directory to run the example. The usage of the script is as follows:
+
+```
+./bin/succinct-shell <file-name>
+```
+
+where filename is the name of the file being analyzed.
