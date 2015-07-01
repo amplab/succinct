@@ -117,7 +117,7 @@ SQL operations in a future release.
 
 The DataFrame API can be used as follows:
 
-```
+```scala
 import edu.berkeley.cs.succinct.sql
 
 // Create a schema
