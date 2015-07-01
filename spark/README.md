@@ -159,7 +159,7 @@ example using SuccinctRDD, run as follows:
 ./bin/wiki-search [num-partitions]
 ```
 
-The `num-partitions` paramter is simply the number of partitions that the
+The `num-partitions` parameter is simply the number of partitions that the
 original dataset should be divided into for creating Succinct data structures.
 This defaults to 1 by default; **note that due to Java constraints, we do not
 support partitions of sizes greater than 2GB yet.**
