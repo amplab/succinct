@@ -145,3 +145,29 @@ val succinctCityRDD = sqlContext.succinctFile("/path/to/data")
 // Filter and prune
 val bigCities = succinctCityRDD.filter("Area >= 22.0").select("Name").collect
 ```
+
+## Example Programs
+
+The Succinct-Spark packages includes a few 
+[examples](src/main/scala/edu/berkeley/cs/succinct/examples/) that elucidate the
+usage of its API. To run these examples, we provide convenient scripts to run
+them in the `bin/` directory. In particular, to execute the 
+[Wikipedia Search](src/main/scala/edu/berkeley/cs/succinct/examples/WikiSearch.scala) 
+example using SuccinctRDD, run as follows:
+
+```
+./bin/wiki-search [num-partitions]
+```
+
+The `num-partitions` paramter is simply the number of partitions that the
+original dataset should be divided into for creating Succinct data structures.
+This defaults to 1 by default; **note that due to Java constraints, we do not
+support partitions of sizes greater than 2GB yet.**
+
+Similarly, to execute the 
+[Table Search](src/main/scala/edu/berkeley/cs/succinct/examples/TableSearch.scala)
+example, run as follows:
+
+```
+./bin/table-search [num-partitions]
+```
