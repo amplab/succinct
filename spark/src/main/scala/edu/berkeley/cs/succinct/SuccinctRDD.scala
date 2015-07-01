@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct
 
-import java.io.{File, RandomAccessFile}
+import java.io.{ByteArrayOutputStream, File, RandomAccessFile}
 import java.nio.channels.FileChannel
 
 import com.google.common.io.Files
@@ -276,16 +276,16 @@ object SuccinctRDD {
    */
   private[succinct] def createSuccinctBuffer(dataIter: Iterator[Array[Byte]]): Iterator[SuccinctIndexedFile] = {
     var offsets = new ArrayBuffer[Int]()
-    val rawBufferBuilder = new StringBuilder
+    val rawBufferOS = new ByteArrayOutputStream
     var offset = 0
     while (dataIter.hasNext) {
       val curRecord = dataIter.next()
-      rawBufferBuilder.append(new String(curRecord))
-      rawBufferBuilder.append(SuccinctCore.EOL.toChar)
+      rawBufferOS.write(curRecord)
+      rawBufferOS.write(SuccinctCore.EOL)
       offsets += offset
       offset += (curRecord.length + 1)
     }
-    val ret = Iterator(new SuccinctIndexedFileBuffer(rawBufferBuilder.toString().getBytes, offsets.toArray))
+    val ret = Iterator(new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray))
     ret
   }
 

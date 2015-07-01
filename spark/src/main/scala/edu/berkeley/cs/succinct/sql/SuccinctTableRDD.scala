@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.sql
 
-import java.io.{RandomAccessFile, File}
+import java.io.{ByteArrayOutputStream, RandomAccessFile, File}
 import java.nio.channels.FileChannel
 
 import com.google.common.io.Files
@@ -241,16 +241,16 @@ object SuccinctTableRDD {
       succinctSerializer: SuccinctSerializer): Iterator[SuccinctIndexedFile] = {
 
     var offsets = new ArrayBuffer[Int]()
-    val rawBufferBuilder = new StringBuilder
+    val rawBufferOS = new ByteArrayOutputStream
     var offset = 0
     while (dataIter.hasNext) {
       val curTuple = succinctSerializer.serializeRow(dataIter.next())
-      rawBufferBuilder.append(new String(curTuple))
-      rawBufferBuilder.append(SuccinctCore.EOL.toChar)
+      rawBufferOS.write(curTuple)
+      rawBufferOS.write(SuccinctCore.EOL)
       offsets += offset
       offset += (curTuple.length + 1)
     }
-    val ret = Iterator(new SuccinctIndexedFileBuffer(rawBufferBuilder.toString().getBytes, offsets.toArray, 2))
+    val ret = Iterator(new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray, 2))
     ret
   }
 
