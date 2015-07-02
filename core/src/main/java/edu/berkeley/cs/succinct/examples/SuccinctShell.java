@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct.examples;
 
+import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.buffers.SuccinctFileBuffer;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 
@@ -13,17 +14,24 @@ public class SuccinctShell {
             System.exit(-1);
         }
 
-        File file = new File(args[0]);
-        if(file.length() > 1L<<31) {
-            System.err.println("Cant handle files > 2GB");
-            System.exit(-1);
-        }
-        byte[] fileData = new byte[(int) file.length()];
-        System.out.println("File size: " + fileData.length + " bytes");
-        DataInputStream dis = new DataInputStream(new FileInputStream(file));
-        dis.readFully(fileData, 0, (int)file.length());
+        SuccinctFileBuffer succinctFileBuffer;
 
-        SuccinctFileBuffer succinctFileBuffer = new SuccinctFileBuffer(fileData);
+        if(args[0].endsWith(".succinct")) {
+            succinctFileBuffer = new SuccinctFileBuffer(args[0], StorageMode.MEMORY_ONLY);
+        } else {
+            File file = new File(args[0]);
+            if (file.length() > 1L << 31) {
+                System.err.println("Cant handle files > 2GB");
+                System.exit(-1);
+            }
+            byte[] fileData = new byte[(int) file.length()];
+            System.out.println("File size: " + fileData.length + " bytes");
+            DataInputStream dis = new DataInputStream(new FileInputStream(file));
+            dis.readFully(fileData, 0, (int) file.length());
+
+            succinctFileBuffer = new SuccinctFileBuffer(fileData);
+        }
+
         BufferedReader shellReader = new BufferedReader(new InputStreamReader(System.in));
         while(true) {
             System.out.print("succinct> ");
