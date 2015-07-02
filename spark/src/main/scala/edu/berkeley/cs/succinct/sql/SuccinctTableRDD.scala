@@ -241,15 +241,24 @@ object SuccinctTableRDD {
       succinctSerializer: SuccinctSerializer): Iterator[SuccinctIndexedFile] = {
 
     var offsets = new ArrayBuffer[Int]()
-    val rawBufferOS = new ByteArrayOutputStream
+    var buffers = new ArrayBuffer[Array[Byte]]()
     var offset = 0
+    var partitionSize = 0
     while (dataIter.hasNext) {
       val curTuple = succinctSerializer.serializeRow(dataIter.next())
-      rawBufferOS.write(curTuple)
-      rawBufferOS.write(SuccinctCore.EOL)
+      buffers += curTuple
+      partitionSize += (curTuple.size + 1)
       offsets += offset
       offset += (curTuple.length + 1)
     }
+
+    val rawBufferOS = new ByteArrayOutputStream(partitionSize)
+    for (i <- 0 to buffers.size - 1) {
+      val curRecord = buffers(i)
+      rawBufferOS.write(curRecord)
+      rawBufferOS.write(SuccinctCore.EOL)
+    }
+
     val ret = Iterator(new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray, 2))
     ret
   }

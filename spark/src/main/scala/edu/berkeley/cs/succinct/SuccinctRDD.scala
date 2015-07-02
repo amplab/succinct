@@ -276,15 +276,24 @@ object SuccinctRDD {
    */
   private[succinct] def createSuccinctBuffer(dataIter: Iterator[Array[Byte]]): Iterator[SuccinctIndexedFile] = {
     var offsets = new ArrayBuffer[Int]()
-    val rawBufferOS = new ByteArrayOutputStream
+    var buffers = new ArrayBuffer[Array[Byte]]()
     var offset = 0
+    var partitionSize = 0
     while (dataIter.hasNext) {
       val curRecord = dataIter.next()
-      rawBufferOS.write(curRecord)
-      rawBufferOS.write(SuccinctCore.EOL)
+      buffers += curRecord
+      partitionSize += (curRecord.size + 1)
       offsets += offset
       offset += (curRecord.length + 1)
     }
+
+    val rawBufferOS = new ByteArrayOutputStream(partitionSize)
+    for (i <- 0 to buffers.size - 1) {
+      val curRecord = buffers(i)
+      rawBufferOS.write(curRecord)
+      rawBufferOS.write(SuccinctCore.EOL)
+    }
+
     val ret = Iterator(new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray))
     ret
   }
