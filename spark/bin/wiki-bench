@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+# Runs the Wikipedia Search benchmark
+##
+
+bin="`dirname "$0"`"
+bin="`cd "$bin"; pwd`"
+
+. "$bin/succinct-spark-config.sh"
+. "$SUCCINCT_SPARK_PREFIX/bin/load-succinct-spark-env.sh"
+
+JAR_PATH="$SUCCINCT_SPARK_PREFIX/target"
+
+JAR_COUNT=0
+
+for f in "${JAR_PATH}"/succinct-spark-*-jar-with-dependencies.jar; do
+  if [[ ! -e "$f" ]]; then
+    echo "Failed to find Succinct Spark assembly in $JAR_PATH" 1>&2
+    echo "You need to build Succinct-Spark before running this program" 1>&2
+    exit 1
+  fi
+  SUCCINCT_SPARK_JAR="$f"
+  JAR_COUNT=$((JAR_COUNT+1))
+done
+
+if [ "$JAR_COUNT" -gt "1" ]; then
+  echo "Found multiple Succinct Spark assemblies in $JAR_PATH" 1>&2
+  ls "${JAR_PATH}"/succinct-spark-*-jar-with-dependencies.jar 1>&2
+  echo "Please remove all but one jar." 1>&2
+  exit 1
+fi
+
+WIKI_DATA="file://$SUCCINCT_SPARK_PREFIX/src/main/resources/wiki.dat"
+WIKI_SUCCINCT_DATA="file://$SUCCINCT_SPARK_PREFIX/src/main/resources/wiki.succinct"
+SPARK_MASTER=${MASTER:-"local[*]"}
+
+$SPARK_HOME/bin/spark-submit \
+    --class "edu.berkeley.cs.succinct.examples.WikiBench" \
+    --master "$SPARK_MASTER" \
+    --executor-memory 1G \
+    --driver-memory 1G \
+    "$SUCCINCT_SPARK_JAR" \
+    "$WIKI_DATA" \
+    "$WIKI_SUCCINCT_DATA" \
+    $@

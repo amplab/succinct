@@ -8,6 +8,11 @@ import org.apache.spark.{SparkConf, SparkContext}
  */
 object WikiSearch {
 
+  val extractOffset = 0
+  val extractLength = 100
+  val searchQuery = "Berkeley"
+  val regexQuery = "(berkeley|stanford).edu"
+
   def main(args: Array[String]) = {
 
     if (args.length < 1) {
@@ -24,32 +29,42 @@ object WikiSearch {
     val wikiData = ctx.textFile(dataPath, partitions).map(_.getBytes)
     val wikiSuccinctData = SuccinctRDD(wikiData).persist()
 
-    // Operations with the term "berkeley"
-    val berkeleyCount = wikiSuccinctData.count("berkeley".getBytes)
-    println("# of times berkeley appears in text = " + berkeleyCount)
+    // Count all occurrences
+    val count = wikiSuccinctData.count(searchQuery.getBytes)
+    println(s"# of times $searchQuery appears in text = " + count)
 
-    val berkeleyRecords = wikiSuccinctData.searchRecords("berkeley".getBytes)
+    // Search for offsets
+    val searchOffsets = wikiSuccinctData.search(searchQuery.getBytes)
+    println(s"10 locations in first partitions where $searchQuery occurs: ")
+    searchOffsets.take(1).take(10).foreach(println)
+
+    // Count all records
+    val countRecords = wikiSuccinctData.countRecords(searchQuery.getBytes)
+    println(s"# of lines $searchQuery appears in text = " + countRecords)
+
+    // Search for records
+    val searchRecords = wikiSuccinctData.searchRecords("berkeley".getBytes)
       .records()
       .map(new String(_))
-    println("10 articles in which berkeley appears: ")
-    berkeleyRecords.top(10).foreach(println)
+    println("10 lines in which berkeley appears: ")
+    searchRecords.top(10).foreach(println)
 
-    // Operations with the term "stanford"
-    val stanfordCount = wikiSuccinctData.count("stanford".getBytes)
-    println("# of times stanford appears in text = " + stanfordCount)
+    // Extract per partition
+    val extractedPartitions = wikiSuccinctData.extractPerPartition(extractOffset, extractLength).map(new String(_))
+    println(s"$extractLength bytes from offset $extractLength in each partition: ")
+    extractedPartitions.foreach(println)
 
-    val stanfordRecords = wikiSuccinctData.searchRecords("stanford".getBytes)
-      .records()
+    // Extract per record
+    val extractedRecords = wikiSuccinctData.extractRecords(extractOffset, extractLength).map(new String(_))
+    println(s"$extractLength bytes from offset $extractLength in each record, for 10 records: ")
+    extractedRecords.take(10).foreach(println)
+
+    // Regex search operation
+    val regexResults = wikiSuccinctData.regexSearchRecords(regexQuery)
       .map(new String(_))
-    println("10 articles in which stanford appears: ")
-    stanfordRecords.top(10).foreach(println)
+    println(s"# of records containing the regular expression $regexQuery = " + regexResults.count)
 
-    // Regex search operations (berkeley|stanford).edu
-    val regexResults = wikiSuccinctData.regexSearchRecords("(berkeley|stanford).edu")
-      .map(new String(_))
-    println("# of records containing the regular expression (berkeley|stanford).edu = " + regexResults.count)
-
-    println("10 articles containing the regular expression (berkeley|stanford).edu:")
+    println(s"10 articles containing the regular expression $regexQuery:")
     regexResults.top(10).foreach(println)
 
   }
