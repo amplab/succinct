@@ -31,10 +31,10 @@ object WikiBench {
 
     System.out.println(s"Extracting $numWords  words with frequency in the range ($freqMin, $freqMax)")
     // Obtain words in the Wikipedia dataset with frequency in the range (freqMin, freqMax)
-    val words = wikiData.flatMap(_.split("[\\W]"))
+    val words = wikiData.flatMap(_.split(" "))
       .map(word => (word, 1))
       .reduceByKey(_ + _)
-      .filter(t => (t._2 >= freqMin && t._2 < freqMax))
+      .filter(t => (t._2 >= freqMin && t._2 <= freqMax))
       .keys
       .take(numWords)
 
@@ -60,13 +60,23 @@ object WikiBench {
     // Ensure all partitions are in memory
     System.out.println("Number of lines = " + wikiSuccinctData.count("\n".getBytes()))
 
-    System.out.println("Benchmarking Succinct RDD...")
+    System.out.println("Benchmarking Succinct RDD search offsets...")
     words.foreach(w => {
       val startTime = System.currentTimeMillis()
       val results = wikiSuccinctData.searchRecords(w.getBytes()).collect()
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
       val count = results.map(_.size).sum
+      System.out.println(s"$w\t$count\t$totTime")
+    })
+
+    System.out.println("Benchmarking Succinct RDD search records...")
+    words.foreach(w => {
+      val startTime = System.currentTimeMillis()
+      val results = wikiSuccinctData.searchRecords(w.getBytes()).records().collect()
+      val endTime = System.currentTimeMillis()
+      val totTime = endTime - startTime
+      val count = results.size
       System.out.println(s"$w\t$count\t$totTime")
     })
 
