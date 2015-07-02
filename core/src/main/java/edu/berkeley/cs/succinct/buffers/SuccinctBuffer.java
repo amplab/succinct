@@ -390,17 +390,17 @@ public class SuccinctBuffer extends SuccinctCore {
 
         BitMap NonNullBitMap = new BitMap(k * getSigmaSize());
         table = new ArrayList<ArrayList<TLongArrayList>>(k);
-        cellOffsets = new ArrayList<TLongArrayList>();
-        necCol = new ArrayList<TLongArrayList>();
-        colOffsets = new TLongArrayList();
-        rowOffsets = new TLongArrayList();
-        necRow = new ArrayList<TLongArrayList>();
+        cellOffsets = new ArrayList<TLongArrayList>(getSigmaSize());
+        necCol = new ArrayList<TLongArrayList>(getSigmaSize());
+        colOffsets = new TLongArrayList(getSigmaSize());
+        rowOffsets = new TLongArrayList(k);
+        necRow = new ArrayList<TLongArrayList>(k);
         wavelettree = new ThreadSafeByteBuffer[k];
 
         for (int i = 0; i < k; i++) {
             table.add(new ArrayList<TLongArrayList>(getSigmaSize()));
             for (int j = 0; j < getSigmaSize(); j++) {
-                table.get(i).add(new TLongArrayList());
+                table.get(i).add(new TLongArrayList(0));
             }
             necRow.add(new TLongArrayList());
         }
