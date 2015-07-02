@@ -13,6 +13,8 @@ import edu.berkeley.cs.succinct.util.buffers.ThreadSafeByteBuffer;
 import edu.berkeley.cs.succinct.util.buffers.ThreadSafeIntBuffer;
 import edu.berkeley.cs.succinct.util.buffers.ThreadSafeLongBuffer;
 import edu.berkeley.cs.succinct.wavelettree.WaveletTree;
+import gnu.trove.list.array.TLongArrayList;
+import gnu.trove.map.hash.TLongLongHashMap;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -341,26 +343,25 @@ public class SuccinctBuffer extends SuccinctCore {
      */
     private void constructNPA(BMArray T, BMArray SA, BMArray ISA) {
 
-        ArrayList<Long> rowOffsets;
-        ArrayList<Long> colOffsets;
-        ArrayList<ArrayList<Long>> cellOffsets;
-        ArrayList<ArrayList<Long>> necCol;
-        ArrayList<ArrayList<Long>> necRow;
-
         int necColSize = 0, necRowSize = 0, cellOffsetsSize = 0;
-
         int k = 0, contextVal, contextId;
         long k1, k2, lOff = 0, npaVal, p = 0;
-        HashMap<Long, Long> contextSizesMap = new HashMap<Long, Long>();
 
-        ArrayList<ArrayList<ArrayList<Long>>> table;
-        ArrayList<Pair<ArrayList<Long>, Character>> context = new ArrayList<Pair<ArrayList<Long>, Character>>();
-        ArrayList<Long> cell;
-        ArrayList<Long> contextValues = new ArrayList<Long>();
-        ArrayList<Long> contextColumnIds = new ArrayList<Long>();
+        TLongArrayList rowOffsets;
+        TLongArrayList colOffsets;
+        ArrayList<TLongArrayList> cellOffsets;
+        ArrayList<TLongArrayList> necCol;
+        ArrayList<TLongArrayList> necRow;
+        TLongLongHashMap contextSizesMap = new TLongLongHashMap();
+        ArrayList<ArrayList<TLongArrayList>> table;
+        ArrayList<Pair<TLongArrayList, Character>> context = new ArrayList<Pair<TLongArrayList, Character>>();
+        TLongArrayList cell;
+        TLongArrayList contextValues = new TLongArrayList();
+        TLongArrayList contextColumnIds = new TLongArrayList();
+
         boolean flag;
-        long[] sizes, starts, c_sizes;
-        long last_i = 0;
+        long[] sizes, starts, cSizes;
+        long lastI = 0;
 
         contextMap = new TreeMap<Long, Long>();
         for (long i = 0; i < getOriginalSize(); i++) {
@@ -369,13 +370,12 @@ public class SuccinctBuffer extends SuccinctCore {
             if (!contextSizesMap.containsKey(contextValue)) {
                 contextSizesMap.put(contextValue, 1L);
             } else {
-                contextSizesMap.put(contextValue,
-                        contextSizesMap.get(contextValue) + 1);
+                contextSizesMap.put(contextValue, contextSizesMap.get(contextValue) + 1L);
             }
         }
 
         sizes = new long[contextMap.size()];
-        c_sizes = new long[contextMap.size()];
+        cSizes = new long[contextMap.size()];
         starts = new long[contextMap.size()];
 
         for (Map.Entry<Long, Long> currentContext : contextMap.entrySet()) {
@@ -389,26 +389,25 @@ public class SuccinctBuffer extends SuccinctCore {
         contextSizesMap.clear();
 
         BitMap NonNullBitMap = new BitMap(k * getSigmaSize());
-        table = new ArrayList<ArrayList<ArrayList<Long>>>(k);
-        cellOffsets = new ArrayList<ArrayList<Long>>();
-        necCol = new ArrayList<ArrayList<Long>>();
-        colOffsets = new ArrayList<Long>();
-        rowOffsets = new ArrayList<Long>();
-        necRow = new ArrayList<ArrayList<Long>>();
+        table = new ArrayList<ArrayList<TLongArrayList>>(k);
+        cellOffsets = new ArrayList<TLongArrayList>();
+        necCol = new ArrayList<TLongArrayList>();
+        colOffsets = new TLongArrayList();
+        rowOffsets = new TLongArrayList();
+        necRow = new ArrayList<TLongArrayList>();
         wavelettree = new ThreadSafeByteBuffer[k];
 
         for (int i = 0; i < k; i++) {
-            table.add(new ArrayList<ArrayList<Long>>(getSigmaSize()));
+            table.add(new ArrayList<TLongArrayList>(getSigmaSize()));
             for (int j = 0; j < getSigmaSize(); j++) {
-                ArrayList<Long> tableCell = new ArrayList<Long>();
-                table.get(i).add(tableCell);
+                table.get(i).add(new TLongArrayList());
             }
-            necRow.add(new ArrayList<Long>());
+            necRow.add(new TLongArrayList());
         }
 
         for (int i = 0; i < getSigmaSize(); i++) {
-            necCol.add(new ArrayList<Long>());
-            cellOffsets.add(new ArrayList<Long>());
+            necCol.add(new TLongArrayList());
+            cellOffsets.add(new TLongArrayList());
         }
 
         k1 = SA.getVal(0);
@@ -417,9 +416,9 @@ public class SuccinctBuffer extends SuccinctCore {
         npaVal = ISA.getVal((int) ((SA.getVal(0) + 1) % getOriginalSize()));
         table.get(contextVal).get((int) (lOff / k)).add(npaVal);
         starts[contextVal] = Math.min(starts[contextVal], npaVal);
-        c_sizes[contextVal]++;
+        cSizes[contextVal]++;
 
-        NonNullBitMap.setBit((int) contextVal);
+        NonNullBitMap.setBit(contextVal);
         necCol.get(0).add((long) contextVal);
         necColSize++;
         colOffsets.add(0L);
@@ -441,12 +440,12 @@ public class SuccinctBuffer extends SuccinctCore {
             if (!compareT(T, k1, k2, 1)) {
                 colOffsets.add(i);
                 lOff += k;
-                last_i = i;
-                cellOffsets.get((int) (lOff / k)).add(i - last_i);
+                lastI = i;
+                cellOffsets.get((int) (lOff / k)).add(i - lastI);
                 cellOffsetsSize++;
             } else if (!compareT(T, (k1 + 1) % getOriginalSize(), (k2 + 1) % getOriginalSize(), getContextLen())) {
                 // Context has changed; mark in cellOffsets
-                cellOffsets.get((int) (lOff / k)).add(i - last_i);
+                cellOffsets.get((int) (lOff / k)).add(i - lastI);
                 cellOffsetsSize++;
             }
 
@@ -466,7 +465,7 @@ public class SuccinctBuffer extends SuccinctCore {
             table.get(contextVal).get((int) (lOff / k)).add(npaVal);
             starts[contextVal] = Math.min(starts[contextVal], npaVal);
             if (table.get(contextVal).get((int) (lOff / k)).size() == 1) {
-                c_sizes[contextVal]++;
+                cSizes[contextVal]++;
             }
         }
 
@@ -482,13 +481,12 @@ public class SuccinctBuffer extends SuccinctCore {
                 }
 
                 if (NonNullBitMap.getBit(i + j * k) == 1) {
-                    cell = new ArrayList<Long>();
-                    for (long t = 0; t < table.get(i).get(j).size(); t++) {
-                        cell.add(table.get(i).get(j).get((int) t)
-                                - starts[i]);
+                    cell = new TLongArrayList();
+                    for (int t = 0; t < table.get(i).get(j).size(); t++) {
+                        cell.add(table.get(i).get(j).get(t) - starts[i]);
                     }
                     assert (cell.size() > 0);
-                    context.add(new Pair<ArrayList<Long>, Character>(cell, (char) j));
+                    context.add(new Pair<TLongArrayList, Character>(cell, (char) j));
 
                     necRow.get(i).add((long) j);
                     necRowSize++;
@@ -507,8 +505,7 @@ public class SuccinctBuffer extends SuccinctCore {
             assert (contextValues.size() > 0);
             assert (contextColumnIds.size() == contextValues.size());
 
-            WaveletTree wTree = new WaveletTree(0, context.size() - 1,
-                    contextValues, contextColumnIds);
+            WaveletTree wTree = new WaveletTree(0, context.size() - 1, contextValues, contextColumnIds);
             wavelettree[i] = ThreadSafeByteBuffer.fromByteBuffer(wTree.getByteBuffer());
 
             contextValues.clear();
