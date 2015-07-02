@@ -40,7 +40,7 @@
     <scala.binary.version>2.10</scala.binary.version>
     <scalatest.version>2.2.1</scalatest.version>
   </properties>
-  
+
   <modules>
     <module>core</module>
     <module>spark</module>
@@ -75,6 +75,11 @@
   </build>
 
   <dependencies>
+    <dependency>
+      <groupId>net.sf.trove4j</groupId>
+      <artifactId>trove4j</artifactId>
+      <version>3.0.3</version>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
