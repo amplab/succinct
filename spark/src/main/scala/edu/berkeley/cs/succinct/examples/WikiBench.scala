@@ -11,7 +11,7 @@ object WikiBench {
 
   val freqMin = 1000
   val freqMax = 2000
-  val numWords = 1000
+  val numWords = 10
 
   def main(args: Array[String]) = {
 
@@ -24,10 +24,10 @@ object WikiBench {
     val succinctDataPath = args(1)
     val partitions = if (args.length > 2) args(2).toInt else 1
 
-    val sparkConf = new SparkConf().setAppName("WikiSearch")
+    val sparkConf = new SparkConf().setAppName("WikiBench")
     val ctx = new SparkContext(sparkConf)
 
-    val wikiData = ctx.textFile(dataPath, partitions).persist()
+    val wikiData = ctx.textFile(dataPath, partitions).coalesce(partitions).persist()
 
     // Ensure all partitions are in memory
     System.out.println("Number of articles = " + wikiData.count())
@@ -46,7 +46,7 @@ object WikiBench {
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
       val count = results.size
-      println(s"$count\t$totTime")
+      println(s"$w\t$count\t$totTime")
     })
 
     val wikiSuccinctData = SuccinctRDD(ctx, succinctDataPath, StorageLevel.MEMORY_ONLY).persist()
@@ -61,7 +61,7 @@ object WikiBench {
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
       val count = results.size
-      println(s"$count\t$totTime")
+      println(s"$w\t$count\t$totTime")
     })
 
   }
