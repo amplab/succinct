@@ -47,10 +47,10 @@ object WikiBench {
     System.out.println("Benchmarking Spark RDD...")
     words.foreach(w => {
       val startTime = System.currentTimeMillis()
-      val results = wikiData.filter(_.contains(w)).collect()
+      val results = wikiData.filter(_.contains(w))
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      val count = results.size
+      val count = results.count()
       System.out.println(s"$w\t$count\t$totTime")
     })
 
@@ -73,10 +73,10 @@ object WikiBench {
     System.out.println("Benchmarking Succinct RDD search records...")
     words.foreach(w => {
       val startTime = System.currentTimeMillis()
-      val results = wikiSuccinctData.searchRecords(w.getBytes()).records().collect()
+      val results = wikiSuccinctData.searchRecords(w.getBytes()).records()
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      val count = results.size
+      val count = results.map(_.size).sum
       System.out.println(s"$w\t$count\t$totTime")
     })
 
