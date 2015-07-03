@@ -47,7 +47,8 @@ using Maven by adding the following dependency information to your pom.xml file:
 ## Succinct-Spark
 The Succinct-Spark module contains Spark and Spark SQL intefaces for Succinct,
 exposes a compressed, queryable RDD `SuccinctRDD`. We also expose Succinct
-as a DataSource in Spark SQL as an experimental feature.
+as a DataSource in Spark SQL as an experimental feature. More details on the
+Succinct-Spark module can be found [here](spark/README.md).
 
 ### Dependency Information
 
