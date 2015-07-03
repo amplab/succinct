@@ -9,9 +9,8 @@ import org.apache.spark.{SparkContext, SparkConf}
  */
 object WikiBench {
 
-  val freqMin = 1000
-  val freqMax = 2000
-  val numWords = 10
+  val words = Seq("enactments", "subcostal", "Ellsberg", "chronometer", "lobbed",
+    "Reckoning", "Counter-Terrorism", "overpopulated", "retriever", "nosewheel")
 
   def main(args: Array[String]) = {
 
@@ -29,16 +28,7 @@ object WikiBench {
 
     val wikiData = ctx.textFile(dataPath, partitions).coalesce(partitions).persist()
 
-    System.out.println(s"Extracting $numWords  words with frequency in the range ($freqMin, $freqMax)")
-    // Obtain words in the Wikipedia dataset with frequency in the range (freqMin, freqMax)
-    val words = wikiData.flatMap(_.split(" "))
-      .map(word => (word, 1))
-      .reduceByKey(_ + _)
-      .filter(t => (t._2 >= freqMin && t._2 <= freqMax))
-      .keys
-      .take(numWords)
-
-    System.out.println("Done! Found words: ")
+    System.out.println("Benchmarking with words: ")
     words.foreach(System.out.println)
 
     // Ensure all partitions are in memory
@@ -48,9 +38,9 @@ object WikiBench {
     words.foreach(w => {
       val startTime = System.currentTimeMillis()
       val results = wikiData.filter(_.contains(w))
+      val count = results.count()
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      val count = results.count()
       System.out.println(s"$w\t$count\t$totTime")
     })
 
@@ -64,9 +54,9 @@ object WikiBench {
     words.foreach(w => {
       val startTime = System.currentTimeMillis()
       val results = wikiSuccinctData.searchRecords(w.getBytes()).collect()
+      val count = results.map(_.size).sum
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      val count = results.map(_.size).sum
       System.out.println(s"$w\t$count\t$totTime")
     })
 
@@ -74,9 +64,9 @@ object WikiBench {
     words.foreach(w => {
       val startTime = System.currentTimeMillis()
       val results = wikiSuccinctData.searchRecords(w.getBytes()).records()
+      val count = results.map(_.size).sum
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      val count = results.map(_.size).sum
       System.out.println(s"$w\t$count\t$totTime")
     })
 
