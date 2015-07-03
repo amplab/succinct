@@ -27,7 +27,7 @@ public class ArrayOpsTest extends TestCase {
         long[] data = {2L, 3L, 5L, 7L, 11L, 13L, 17L, 19L, 23L, 29L};
 
         FSDataInputStream is = TestUtils.getStream(LongBuffer.wrap(data));
-        RandomAccessLongStream ls = new RandomAccessLongStream(is, 0, data.length);
+        LongArrayStream ls = new LongArrayStream(is, 0, data.length * 8);
         assertEquals(SerializedOperations.ArrayOps.getRank1(ls, 0, data.length, 0L), 0L);
         assertEquals(SerializedOperations.ArrayOps.getRank1(ls, 0, data.length, 2L), 1L);
         assertEquals(SerializedOperations.ArrayOps.getRank1(ls, 0, data.length, 3L), 2L);

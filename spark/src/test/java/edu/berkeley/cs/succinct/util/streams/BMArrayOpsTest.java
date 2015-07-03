@@ -23,7 +23,7 @@ public class BMArrayOpsTest extends TestCase {
 
         LongBuffer bBuf = bmArray.getLongBuffer();
         FSDataInputStream is = TestUtils.getStream(bBuf);
-        RandomAccessLongStream ls = new RandomAccessLongStream(is, 0, bBuf.limit());
+        LongArrayStream ls = new LongArrayStream(is, 0, bBuf.limit() * 8);
         for(int i = 0; i < 1000; i++) {
             assertEquals(SerializedOperations.BMArrayOps.getVal(ls, i, 64), i);
         }

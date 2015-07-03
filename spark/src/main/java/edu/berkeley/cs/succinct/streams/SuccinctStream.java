@@ -2,10 +2,7 @@ package edu.berkeley.cs.succinct.streams;
 
 import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.dictionary.Tables;
-import edu.berkeley.cs.succinct.util.streams.RandomAccessByteStream;
-import edu.berkeley.cs.succinct.util.streams.RandomAccessIntStream;
-import edu.berkeley.cs.succinct.util.streams.RandomAccessLongStream;
-import edu.berkeley.cs.succinct.util.streams.SerializedOperations;
+import edu.berkeley.cs.succinct.util.streams.*;
 import edu.berkeley.cs.succinct.util.Pair;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -21,19 +18,19 @@ import java.util.HashMap;
  */
 public class SuccinctStream extends SuccinctCore {
 
-    protected transient RandomAccessByteStream alphabet;
-    protected transient RandomAccessLongStream sa;
-    protected transient RandomAccessLongStream isa;
-    protected transient RandomAccessLongStream neccol;
-    protected transient RandomAccessLongStream necrow;
-    protected transient RandomAccessLongStream rowoffsets;
-    protected transient RandomAccessLongStream coloffsets;
-    protected transient RandomAccessLongStream celloffsets;
-    protected transient RandomAccessIntStream rowsizes;
-    protected transient RandomAccessIntStream colsizes;
-    protected transient RandomAccessIntStream roff;
-    protected transient RandomAccessIntStream coff;
-    protected transient RandomAccessByteStream[] wavelettree;
+    protected transient ByteArrayStream alphabet;
+    protected transient LongArrayStream sa;
+    protected transient LongArrayStream isa;
+    protected transient LongArrayStream neccol;
+    protected transient LongArrayStream necrow;
+    protected transient LongArrayStream rowoffsets;
+    protected transient LongArrayStream coloffsets;
+    protected transient LongArrayStream celloffsets;
+    protected transient IntArrayStream rowsizes;
+    protected transient IntArrayStream colsizes;
+    protected transient IntArrayStream roff;
+    protected transient IntArrayStream coff;
+    protected transient WaveletTreeStream[] wavelettree;
 
     protected transient FSDataInputStream originalStream;
     protected transient long endOfCoreStream;
@@ -77,71 +74,71 @@ public class SuccinctStream extends SuccinctCore {
         }
 
         // Map alphabet
-        alphabet = new RandomAccessByteStream(getStream(filePath), is.getPos(), getAlphaSize());
+        alphabet = new ByteArrayStream(is, is.getPos(), getAlphaSize());
         is.seek(is.getPos() + getAlphaSize());
 
         // Map sa
         int saSize = ((getSampledSASize() * getSampledSABits()) / 64 + 1) * 8;
-        sa = new RandomAccessLongStream(getStream(filePath), is.getPos(), saSize);
+        sa = new LongArrayStream(is, is.getPos(), saSize);
         is.seek(is.getPos() + saSize);
 
         // Map isa
         int isaSize = ((getSampledSASize() * getSampledSABits()) / 64 + 1) * 8;
-        isa = new RandomAccessLongStream(getStream(filePath), is.getPos(), isaSize);
+        isa = new LongArrayStream(is, is.getPos(), isaSize);
         is.seek(is.getPos() + isaSize);
 
         // Map neccol
         int neccolSize = is.readInt() * 8;
-        neccol = new RandomAccessLongStream(getStream(filePath), is.getPos(), neccolSize);
+        neccol = new LongArrayStream(is, is.getPos(), neccolSize);
         is.seek(is.getPos() + neccolSize);
 
         // Map necrow
         int necrowSize = is.readInt() * 8;
-        necrow = new RandomAccessLongStream(getStream(filePath), is.getPos(), necrowSize);
+        necrow = new LongArrayStream(is, is.getPos(), necrowSize);
         is.seek(is.getPos() + necrowSize);
 
         // Map rowoffsets
         int rowoffsetsSize = is.readInt() * 8;
-        rowoffsets = new RandomAccessLongStream(getStream(filePath), is.getPos(), rowoffsetsSize);
+        rowoffsets = new LongArrayStream(is, is.getPos(), rowoffsetsSize);
         is.seek(is.getPos() + rowoffsetsSize);
 
         // Map coloffsets
         int coloffsetsSize = is.readInt() * 8;
-        coloffsets = new RandomAccessLongStream(getStream(filePath), is.getPos(), coloffsetsSize);
+        coloffsets = new LongArrayStream(is, is.getPos(), coloffsetsSize);
         is.seek(is.getPos() + coloffsetsSize);
 
         // Map celloffsets
         int celloffsetsSize = is.readInt() * 8;
-        celloffsets = new RandomAccessLongStream(getStream(filePath), is.getPos(), celloffsetsSize);
+        celloffsets = new LongArrayStream(is, is.getPos(), celloffsetsSize);
         is.seek(is.getPos() + celloffsetsSize);
 
         // Map rowsizes
         int rowsizesSize = is.readInt() * 4;
-        rowsizes = new RandomAccessIntStream(getStream(filePath), is.getPos(), rowsizesSize);
+        rowsizes = new IntArrayStream(is, is.getPos(), rowsizesSize);
         is.seek(is.getPos() + rowsizesSize);
 
         // Map colsizes
         int colsizesSize = is.readInt() * 4;
-        colsizes = new RandomAccessIntStream(getStream(filePath), is.getPos(), colsizesSize);
+        colsizes = new IntArrayStream(is, is.getPos(), colsizesSize);
         is.seek(is.getPos() + colsizesSize);
 
         // Map roff
         int roffSize = is.readInt() * 4;
-        roff = new RandomAccessIntStream(getStream(filePath), is.getPos(), roffSize);
+        roff = new IntArrayStream(is, is.getPos(), roffSize);
         is.seek(is.getPos() + roffSize);
 
         // Map coff
         int coffSize = is.readInt() * 4;
-        coff = new RandomAccessIntStream(getStream(filePath), is.getPos(), coffSize);
+        coff = new IntArrayStream(is, is.getPos(), coffSize);
         is.seek(is.getPos() + coffSize);
 
-        wavelettree = new RandomAccessByteStream[getNumContexts()];
+        wavelettree = new WaveletTreeStream[getNumContexts()];
         for (int i = 0; i < getNumContexts(); i++) {
             int wavelettreeSize = is.readInt();
             wavelettree[i] = null;
             if (wavelettreeSize != 0) {
                 // Map wavelettree
-                wavelettree[i] = new RandomAccessByteStream(getStream(filePath), is.getPos(), wavelettreeSize);
+                wavelettree[i] = new WaveletTreeStream(is, is.getPos(), wavelettreeSize);
                 is.seek(is.getPos() + wavelettreeSize);
             }
         }
@@ -173,7 +170,7 @@ public class SuccinctStream extends SuccinctCore {
      */
     @Override
     public long lookupNPA(long i) {
-        long cellValue = 0, rowOff;
+        long cellValue, rowOff;
 
         try {
             if (i > getOriginalSize() - 1 || i < 0) {
@@ -212,10 +209,8 @@ public class SuccinctStream extends SuccinctCore {
             cellValue = cellOff;
 
             if (wavelettree[rowId] != null) {
-                cellValue = SerializedOperations.WaveletTreeOps.getValue(
-                        wavelettree[rowId], contextPos,
+                cellValue = wavelettree[rowId].lookup(contextPos,
                         cellOff, 0, contextSize - 1);
-                wavelettree[rowId].rewind();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -291,20 +286,5 @@ public class SuccinctStream extends SuccinctCore {
      */
     void close() throws IOException {
         originalStream.close();
-        alphabet.close();
-        sa.close();
-        isa.close();
-        neccol.close();
-        necrow.close();
-        rowoffsets.close();
-        coloffsets.close();
-        celloffsets.close();
-        rowsizes.close();
-        colsizes.close();
-        roff.close();
-        coff.close();
-        for(RandomAccessByteStream wTree: wavelettree) {
-            if(wTree != null) wTree.close();
-        }
     }
 }

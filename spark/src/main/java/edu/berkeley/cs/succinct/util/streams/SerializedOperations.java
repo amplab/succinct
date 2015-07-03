@@ -20,7 +20,7 @@ public class SerializedOperations {
          * @param i        Rank query.
          * @return Value of rank1 for query.
          */
-        public static int getRank1(RandomAccessLongStream arrayBuf, int startPos, int size, long i) throws IOException {
+        public static int getRank1(LongArrayStream arrayBuf, int startPos, int size, long i) throws IOException {
             int sp = 0, ep = size - 1;
             int m;
 
@@ -92,7 +92,7 @@ public class SerializedOperations {
          * @param bits Width in bits of value.
          * @return Value at specified index.
          */
-        public static long getVal(RandomAccessLongStream B, int i, int bits) throws IOException {
+        public static long getVal(LongArrayStream B, int i, int bits) throws IOException {
             assert (i >= 0);
 
             long val;
@@ -485,47 +485,6 @@ public class SerializedOperations {
             }
 
             return sel;
-        }
-    }
-
-    public static class WaveletTreeOps {
-
-        /**
-         * Get value encoded in wavelet tree.
-         *
-         * @param wTree      Serialized WaveletTree.
-         * @param contextPos Context Position.
-         * @param cellPos    Cell Position.
-         * @param startIdx   Starting context index.
-         * @param endIdx     Ending context index.
-         * @return Decoded value.
-         */
-        public static long getValue(RandomAccessByteStream wTree, int contextPos,
-                                    int cellPos, int startIdx, int endIdx) throws IOException {
-
-            char m = (char) wTree.get();
-            int left = (int) wTree.getLong();
-            int right = (int) wTree.getLong();
-            int dictPos = (int) wTree.position();
-            long p, v;
-
-            if (contextPos > m && contextPos <= endIdx) {
-                if (right == 0) {
-                    return DictionaryOps.getSelect1(wTree, dictPos, cellPos);
-                }
-                p = getValue(wTree.position(right), contextPos,
-                        cellPos, m + 1, endIdx);
-                v = DictionaryOps.getSelect1(wTree, dictPos, (int) p);
-            } else {
-                if (left == 0) {
-                    return DictionaryOps.getSelect0(wTree, dictPos, cellPos);
-                }
-                p = getValue(wTree.position(left), contextPos,
-                        cellPos, startIdx, m);
-                v = DictionaryOps.getSelect0(wTree, dictPos, (int) p);
-            }
-
-            return v;
         }
     }
 }
