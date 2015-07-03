@@ -9,7 +9,7 @@ import org.apache.spark.{SparkContext, SparkConf}
  */
 object WikiBench {
 
-  val numRepeats = 3
+  val numRepeats = 10
   val words = Seq("enactments", "subcostal", "Ellsberg", "chronometer", "lobbed",
     "Reckoning", "Counter-Terrorism", "overpopulated", "retriever", "nosewheel")
 
@@ -27,10 +27,32 @@ object WikiBench {
     val sparkConf = new SparkConf().setAppName("WikiBench")
     val ctx = new SparkContext(sparkConf)
 
-    val wikiData = ctx.textFile(dataPath, partitions).coalesce(partitions).persist()
-
     System.out.println("Benchmarking with words: ")
     words.foreach(System.out.println)
+
+    val wikiData = ctx.textFile(dataPath, partitions).coalesce(partitions).persist(StorageLevel.DISK_ONLY)
+
+    // Ensure all partitions are in memory
+    System.out.println("Number of lines = " + wikiData.count())
+
+    System.out.println("Benchmarking Spark RDD...")
+    words.foreach(w => {
+      var time = 0.0
+      var count = 0.0
+      for (i <- 1 to numRepeats) {
+        val startTime = System.currentTimeMillis()
+        val results = wikiData.filter(_.contains(w))
+        count += results.count()
+        val endTime = System.currentTimeMillis()
+        val totTime = endTime - startTime
+        time += totTime
+      }
+      count = count / numRepeats
+      time = time / numRepeats
+      System.out.println(s"$w\t$count\t$time")
+    })
+
+    wikiData.persist(StorageLevel.MEMORY_ONLY)
 
     // Ensure all partitions are in memory
     System.out.println("Number of lines = " + wikiData.count())
