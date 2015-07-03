@@ -9,6 +9,7 @@ import org.apache.spark.{SparkContext, SparkConf}
  */
 object WikiBench {
 
+  val numRepeats = 3
   val words = Seq("enactments", "subcostal", "Ellsberg", "chronometer", "lobbed",
     "Reckoning", "Counter-Terrorism", "overpopulated", "retriever", "nosewheel")
 
@@ -36,12 +37,19 @@ object WikiBench {
 
     System.out.println("Benchmarking Spark RDD...")
     words.foreach(w => {
-      val startTime = System.currentTimeMillis()
-      val results = wikiData.filter(_.contains(w))
-      val count = results.count()
-      val endTime = System.currentTimeMillis()
-      val totTime = endTime - startTime
-      System.out.println(s"$w\t$count\t$totTime")
+      var time = 0.0
+      var count = 0.0
+      for (i <- 1 to numRepeats) {
+        val startTime = System.currentTimeMillis()
+        val results = wikiData.filter(_.contains(w))
+        count += results.count()
+        val endTime = System.currentTimeMillis()
+        val totTime = endTime - startTime
+        time += totTime
+      }
+      count = count / numRepeats
+      time = time / numRepeats
+      System.out.println(s"$w\t$count\t$time")
     })
 
     val wikiSuccinctData = SuccinctRDD(ctx, succinctDataPath, StorageLevel.MEMORY_ONLY).persist()
@@ -52,22 +60,36 @@ object WikiBench {
 
     System.out.println("Benchmarking Succinct RDD search offsets...")
     words.foreach(w => {
-      val startTime = System.currentTimeMillis()
-      val results = wikiSuccinctData.searchRecords(w.getBytes()).collect()
-      val count = results.map(_.size).sum
-      val endTime = System.currentTimeMillis()
-      val totTime = endTime - startTime
-      System.out.println(s"$w\t$count\t$totTime")
+      var time = 0.0
+      var count = 0.0
+      for (i <- 1 to numRepeats) {
+        val startTime = System.currentTimeMillis()
+        val results = wikiSuccinctData.searchRecords(w.getBytes()).collect()
+        count += results.map(_.size).sum
+        val endTime = System.currentTimeMillis()
+        val totTime = endTime - startTime
+        time += totTime
+      }
+      count = count / numRepeats
+      time = time / numRepeats
+      System.out.println(s"$w\t$count\t$time")
     })
 
     System.out.println("Benchmarking Succinct RDD search records...")
     words.foreach(w => {
-      val startTime = System.currentTimeMillis()
-      val results = wikiSuccinctData.searchRecords(w.getBytes()).records()
-      val count = results.map(_.size).sum
-      val endTime = System.currentTimeMillis()
-      val totTime = endTime - startTime
-      System.out.println(s"$w\t$count\t$totTime")
+      var time = 0.0
+      var count = 0.0
+      for (i <- 1 to numRepeats) {
+        val startTime = System.currentTimeMillis()
+        val results = wikiSuccinctData.searchRecords(w.getBytes()).records()
+        count += results.count
+        val endTime = System.currentTimeMillis()
+        val totTime = endTime - startTime
+        time += totTime
+      }
+      count = count / numRepeats
+      time = time / numRepeats
+      System.out.println(s"$w\t$count\t$time")
     })
 
   }
