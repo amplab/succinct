@@ -11,7 +11,7 @@ The master branch is in version 0.1.1.
 ## Building Succinct
 
 Succinct is built using [Apache Maven](http://maven.apache.org/).
-To build Succinct and its example programs, run:
+To build Succinct and its component modules, run:
 
     mvn clean package
 
@@ -22,3 +22,63 @@ Alternatively, one can also use `sbt` for building and development:
     sbt/sbt "~assembly" # incremental build
     sbt/sbt "testOnly edu.berkeley.cs.succinct.sql.SuccinctSQLSuite"
     sbt/sbt "project spark" "runMain edu.berkeley.cs.succinct.examples.WikiSearch <dataPath>"
+
+## Succinct-Core
+
+The Succinct-Core module contains Java implementation of Succinct's core
+algorithms. See a more descriptive description of the core module 
+[here](core/README.md).
+
+### Dependency Information
+
+#### Apache Maven
+
+To build your application with Succinct-Core, you can link against this library
+using Maven by adding the following dependency information to your pom.xml file:
+
+```xml
+<dependency>
+    <groupId>edu.berkeley.cs.succinct</groupId>
+    <artifactId>succinct-core</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
+
+## Succinct-Spark
+The Succinct-Spark module contains Spark and Spark SQL intefaces for Succinct,
+exposes a compressed, queryable RDD `SuccinctRDD`. We also expose Succinct
+as a DataSource in Spark SQL as an experimental feature.
+
+### Dependency Information
+
+#### Apache Maven
+
+To build your application with Succinct-Spark, you can link against this library
+using Maven by adding the following dependency information to your pom.xml file:
+
+```xml
+<dependency>
+    <groupId>edu.berkeley.cs.succinct</groupId>
+    <artifactId>succinct-spark</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
+
+#### SBT and Spark-Packages
+
+Add the dependency to your SBT project by adding the following to `build.sbt` 
+(see the [Spark Packages listing](http://spark-packages.org/package/amplab/succinct-spark)
+for spark-submit and Maven instructions):
+
+```
+resolvers += "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
+libraryDependencies += "edu.berkeley.cs.succinct" % "succinct-spark" % "0.1.0"
+```
+
+The succinct-spark jar file can also be added to a Spark shell using the 
+`--jars` command line option. For example, to include it when starting the 
+spark shell:
+
+```
+$ bin/spark-shell --jars succinct-spark_2.10-0.1.0.jar
+```

@@ -68,17 +68,17 @@ the record type.
 import edu.berkeley.cs.succinct.SuccinctRDD
 
 // Read text data from file
-val textRDD = sc.textFile("/path/to/data")
+val textRDD = sc.textFile("README.md")
 
 // Convert the textRDD to a SuccinctRDD after serializing each record into an
 // array of bytes. Persist the RDD memory to perform in-memory queries.
 val succinctTextRDD = SuccinctRDD(textRDD.map(_.getBytes)).cache
 
-// Count the number of occurrences of "berkeley" in the data
-val berkeleyCount = succinctTextRDD.count("berkeley".getBytes)
+// Count the number of occurrences of "Succinct" in the data
+val succinctCount = succinctTextRDD.count("Succinct".getBytes)
 
-// Fetch all records that contain the string "berkeley"
-val berkeleyRecords = succinctTextRDD.searchRecords("berkeley".getBytes).collect
+// Fetch all records that contain the string "Succinct"
+val succinctRecords = succinctTextRDD.searchRecords("Succinct".getBytes).collect
 ```
 
 ### DataFrame API
