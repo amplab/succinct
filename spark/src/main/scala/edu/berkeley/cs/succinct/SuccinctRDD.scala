@@ -1,11 +1,10 @@
 package edu.berkeley.cs.succinct
 
-import java.io.{ByteArrayOutputStream, File, RandomAccessFile}
-import java.nio.channels.FileChannel
+import java.io.ByteArrayOutputStream
 
-import com.google.common.io.Files
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.impl.SuccinctRDDImpl
+import edu.berkeley.cs.succinct.storage.TachyonStorageManager
 import edu.berkeley.cs.succinct.streams.SuccinctIndexedFileStream
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
@@ -250,17 +249,8 @@ object SuccinctRDD {
             Iterator(new SuccinctIndexedFileBuffer(is))
           case StorageLevel.DISK_ONLY =>
             Iterator(new SuccinctIndexedFileStream(path))
-          case StorageLevel.MEMORY_AND_DISK => {
-            // TODO: Add better location for temp location, e.g, where spark stores its files.
-            val tmpDir = Files.createTempDir()
-            val localFile = tmpDir + "/" + path.getName
-            fs.copyToLocalFile(path, new Path(localFile))
-            val file = new File(localFile)
-            val size = file.length
-            val fileChannel: FileChannel = new RandomAccessFile(file, "r").getChannel
-            val buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size)
-            Iterator(new SuccinctIndexedFileBuffer(buf))
-          }
+          case StorageLevel.OFF_HEAP =>
+            Iterator(TachyonStorageManager.loadFromTachyon(path.getName))
         }
         is.close()
         partitionIterator
