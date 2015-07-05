@@ -86,7 +86,7 @@ val succinctRecords = succinctTextRDD.searchRecords("Succinct".getBytes).collect
 We don't support non-ASCII characters in the input for now, since the
 algorithms depend on using certain non-ASCII characters as internal symbols.
 
-### Construction Time
+#### Construction Time
 
 Another constraint to consider is the construction time for Succinct
 data-structures. As for any block compression scheme, Succinct requires
