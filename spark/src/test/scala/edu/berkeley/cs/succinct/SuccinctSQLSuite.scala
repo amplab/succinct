@@ -7,7 +7,7 @@ import org.apache.spark.sql.{DataFrame, Row}
 import org.apache.spark.sql.test.TestSQLContext
 import org.apache.spark.sql.test.TestSQLContext._
 import org.apache.spark.sql.types._
-import org.scalatest.FunSuite
+import org.scalatest._
 
 import scala.util.Random
 
@@ -73,9 +73,9 @@ private[succinct] object TestUtils {
   }
 }
 
-class SuccinctSQLSuite extends FunSuite {
+class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
   val rawTable = getClass.getResource("/table.dat").getFile
-  val succinctTable = getClass.getResource("/table.succinct").getFile
+  val succinctTable = rawTable + ".succinct"
 
   val citiesTable = getClass.getResource("/cities.dat").getFile
   val testSchema = StructType(Seq(
@@ -83,6 +83,20 @@ class SuccinctSQLSuite extends FunSuite {
     StructField("Length", IntegerType, true),
     StructField("Area", DoubleType, false),
     StructField("Airport", BooleanType, true)))
+
+  override def beforeAll(): Unit = {
+    val baseRDD = TestSQLContext.sparkContext.textFile(getClass.getResource("/table.dat").getFile)
+      .map(_.split('|').toSeq)
+    val firstRecord = baseRDD.first()
+    val schema = StructType(firstRecord.map(StructField(_, StringType)))
+    val tableRDD = baseRDD.filter(_ != firstRecord).map(Row.fromSeq(_))
+    val succinctTableRDD = SuccinctTableRDD(tableRDD, schema).persist()
+    succinctTableRDD.save(succinctTable)
+  }
+
+  override def afterAll(): Unit = {
+    TestUtils.deleteRecursively(new File(succinctTable))
+  }
 
   def createTestDF(schema: StructType = testSchema): (DataFrame, DataFrame) = {
     val cityRDD = sparkContext.textFile(citiesTable)
@@ -266,14 +280,14 @@ class SuccinctSQLSuite extends FunSuite {
 
   test("test load and save") {
     // Test if load works as expected
-    val df = TestSQLContext.load(succinctTable, "edu.berkeley.cs.succinct.sql")
+    val df = TestSQLContext.read.format("edu.berkeley.cs.succinct.sql").load(succinctTable)
     assert(df.count == 1000)
 
     // Test if save works as expected
     val tempSaveDir = Files.createTempDir().getAbsolutePath
     TestUtils.deleteRecursively(new File(tempSaveDir))
-    df.save(tempSaveDir, "edu.berkeley.cs.succinct.sql")
-    val newDf = TestSQLContext.load(tempSaveDir, "edu.berkeley.cs.succinct.sql")
+    df.write.format("edu.berkeley.cs.succinct.sql").save(tempSaveDir)
+    val newDf = TestSQLContext.read.format("edu.berkeley.cs.succinct.sql").load(tempSaveDir)
     assert(newDf.count == 1000)
   }
 

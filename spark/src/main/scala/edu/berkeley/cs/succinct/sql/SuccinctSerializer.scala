@@ -139,7 +139,7 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
           digsBeforeDec = limits(elemIdx)
           val formatString = s"%0${digsBeforeDec}.${digsAfterDec}f"
           formatString.format(elem.toString.toDouble)
-        case StringType => elem.asInstanceOf[String]
+        case StringType => elem.toString
         case other => throw new IllegalArgumentException(s"Unexpected type. ${schema(elemIdx).dataType}")
       }
     }

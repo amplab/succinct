@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream
 
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.impl.SuccinctRDDImpl
-import edu.berkeley.cs.succinct.storage.TachyonStorageManager
 import edu.berkeley.cs.succinct.streams.SuccinctIndexedFileStream
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
@@ -249,8 +248,8 @@ object SuccinctRDD {
             Iterator(new SuccinctIndexedFileBuffer(is))
           case StorageLevel.DISK_ONLY =>
             Iterator(new SuccinctIndexedFileStream(path))
-          case StorageLevel.OFF_HEAP =>
-            Iterator(TachyonStorageManager.loadFromTachyon(path.getName))
+          case _ =>
+            Iterator(new SuccinctIndexedFileBuffer(is))
         }
         is.close()
         partitionIterator

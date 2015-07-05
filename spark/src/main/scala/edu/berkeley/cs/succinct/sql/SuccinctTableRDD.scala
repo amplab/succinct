@@ -1,15 +1,13 @@
 package edu.berkeley.cs.succinct.sql
 
-import java.io.{ByteArrayOutputStream, RandomAccessFile, File}
-import java.nio.channels.FileChannel
+import java.io.ByteArrayOutputStream
 
-import com.google.common.io.Files
-import edu.berkeley.cs.succinct.streams.SuccinctIndexedFileStream
-import edu.berkeley.cs.succinct.{SuccinctIndexedFile, SuccinctCore}
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.sql.impl.SuccinctTableRDDImpl
+import edu.berkeley.cs.succinct.streams.SuccinctIndexedFileStream
+import edu.berkeley.cs.succinct.{SuccinctCore, SuccinctIndexedFile}
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{PathFilter, FileSystem, Path}
+import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.types._
@@ -150,17 +148,8 @@ object SuccinctTableRDD {
             Iterator(new SuccinctIndexedFileBuffer(is))
           case StorageLevel.DISK_ONLY =>
             Iterator(new SuccinctIndexedFileStream(path))
-          case StorageLevel.MEMORY_AND_DISK => {
-            // TODO: Add better location for temp location, e.g, where spark stores its files.
-            val tmpDir = Files.createTempDir()
-            val localFile = tmpDir + "/" + path.getName
-            fs.copyToLocalFile(path, new Path(localFile))
-            val file = new File(localFile)
-            val size = file.length
-            val fileChannel: FileChannel = new RandomAccessFile(file, "r").getChannel
-            val buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size)
-            Iterator(new SuccinctIndexedFileBuffer(buf))
-          }
+          case _ =>
+            Iterator(new SuccinctIndexedFileBuffer(is))
         }
         is.close()
         partitionIterator
@@ -274,6 +263,7 @@ object SuccinctTableRDD {
       case _: Double => "%.2f".format(data.asInstanceOf[Double]).length
       case _: java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal].longValue.toString.length
       case _: String => data.asInstanceOf[String].length
+      case _: UTF8String => data.asInstanceOf[UTF8String].length
       case other => throw new IllegalArgumentException(s"Unexpected type.")
     }
   }
@@ -362,6 +352,13 @@ object SuccinctTableRDD {
         }
       }
       case _: String => if (a.asInstanceOf[String] < b.asInstanceOf[String]) a else b
+      case _: UTF8String => {
+        b match {
+          case _: String => minValue(a.asInstanceOf[UTF8String].toString(), b)
+          case _: UTF8String => minValue(a.asInstanceOf[UTF8String].toString(), b.asInstanceOf[UTF8String].toString())
+          case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
+        }
+      }
       case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
     }
   }
@@ -390,7 +387,14 @@ object SuccinctTableRDD {
         }
       }
       case _: String => if (a.asInstanceOf[String] > b.asInstanceOf[String]) a else b
-      case other => throw new IllegalArgumentException(s"Unexpected type. $other")
+      case _: UTF8String => {
+        b match {
+          case _: String => maxValue(a.asInstanceOf[UTF8String].toString(), b)
+          case _: UTF8String => maxValue(a.asInstanceOf[UTF8String].toString(), b.asInstanceOf[UTF8String].toString())
+          case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
+        }
+      }
+      case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
     }
   }
 

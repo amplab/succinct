@@ -76,25 +76,4 @@ class SuccinctTableRDDSuite extends FunSuite with LocalSparkContext {
 
     assert(originalEntries === newEntries)
   }
-
-  test("Test save and retrieve memory mapped") {
-    sc = new SparkContext("local", "test")
-
-    val baseRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
-      .map(_.split('|').toSeq)
-    val firstRecord = baseRDD.first()
-    val schema = StructType(firstRecord.map(StructField(_, StringType)))
-    val tableRDD = baseRDD.filter(_ != firstRecord).map(Row.fromSeq(_))
-    val succinctTableRDD = SuccinctTableRDD(tableRDD, schema).persist()
-
-    val originalEntries = succinctTableRDD.collect()
-
-    val tmpDir = Files.createTempDir()
-    val succinctDir = tmpDir + "/succinct-table"
-    succinctTableRDD.save(succinctDir)
-
-    val newEntries = SuccinctTableRDD(sc, succinctDir, StorageLevel.MEMORY_AND_DISK).collect()
-
-    assert(originalEntries === newEntries)
-  }
 }
