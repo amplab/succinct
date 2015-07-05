@@ -67,7 +67,7 @@ the record type.
 ```scala
 import edu.berkeley.cs.succinct.SuccinctRDD
 
-// Read text data from file
+// Read text data from file; sc is the SparkContext
 val textRDD = sc.textFile("README.md")
 
 // Convert the textRDD to a SuccinctRDD after serializing each record into an
@@ -79,6 +79,31 @@ val succinctCount = succinctTextRDD.count("Succinct".getBytes)
 
 // Fetch all records that contain the string "Succinct"
 val succinctRecords = succinctTextRDD.searchRecords("Succinct".getBytes).collect
+```
+
+#### Input Constraints
+
+We don't support non-ASCII characters in the input for now, since the
+algorithms depend on using certain non-ASCII characters as internal symbols.
+
+### Construction Time
+
+Another constraint to consider is the construction time for Succinct
+data-structures. As for any block compression scheme, Succinct requires
+non-trivial amount of time to compress an input dataset. It is strongly
+advised that the SuccinctRDD be cached in memory (using RDD.cache()) 
+and persisted on disk after construcion completes, to be able to re-use 
+the constructed data-structures without trigerring re-construction:
+
+```scala
+import edu.berkeley.cs.succinct.SuccinctRDD
+import org.apache.spark.storage.StorageLevel
+
+// Construct the succinct RDD as before, and save it as follows
+succinctTextRDD.save("/README.md.succinct")
+
+// Load into memory again as follows; sc is the SparkContext
+val loadedSuccinctRDD = SuccinctRDD(sc, "/README.md.succinct", StorageLevel.MEMORY_ONLY)
 ```
 
 ### DataFrame API
