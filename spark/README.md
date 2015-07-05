@@ -143,7 +143,7 @@ SQL operations in a future release.
 The DataFrame API can be used as follows:
 
 ```scala
-import edu.berkeley.cs.succinct.sql
+import edu.berkeley.cs.succinct.sql._
 
 // Create a schema
 val citySchema = StructType(Seq(
@@ -165,10 +165,15 @@ val cityDataFrame = sqlContext.createDataFrame(cityRDD, citySchema)
 cityDataFrame.saveAsSuccinctFiles("/path/to/data")
 
 // Read the Succinct DataFrame from the saved path
-val succinctCityRDD = sqlContext.succinctFile("/path/to/data")
+val succinctCities = sqlContext.succinctFile("/path/to/data")
 
 // Filter and prune
-val bigCities = succinctCityRDD.filter("Area >= 22.0").select("Name").collect
+val bigCities = succinctCities.filter("Area >= 22.0").select("Name").collect
+
+// Alternately, use the DataFrameReader API:
+cityDataFrame.write.format("edu.berkeley.cs.succinct.sql").save("/path/to/data")
+val succinctCities2 = sqlContext.read.format("edu.berkeley.cs.succinct.sql").load("/path/to/data")
+val smallCities = succinctCities2.filter("Area <= 10.0").select("Name").collect
 ```
 
 ## Example Programs
