@@ -111,7 +111,7 @@ public class SuccinctIndexedFileStreamTest extends TestCase {
      * @throws Exception
      */
     public void testRegexSearchRecords() throws Exception {
-        System.out.println("regexSearchRecords");
+        System.out.println("regexSearch");
 
         // TODO: Add more tests
         byte[][] records = sStream.recordSearchRegex("int");

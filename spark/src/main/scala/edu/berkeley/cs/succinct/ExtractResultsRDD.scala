@@ -40,4 +40,12 @@ class ExtractResultsRDD(val succinctRDD: SuccinctRDD,
    * @return The array of partitions.
    */
   override def getPartitions: Array[Partition] = succinctRDD.partitions
+
+  /**
+   * Converts to an RDD of String representation.
+   * @return An RDD of strings
+   */
+  def toStringRDD(): RDD[String] = {
+    map(new String(_))
+  }
 }

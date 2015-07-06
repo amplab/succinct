@@ -47,4 +47,12 @@ class SearchRecordResultsRDD(val succinctRDD: SuccinctRDD,
   def offsets(): SearchOffsetResultsRDD = {
     new SearchOffsetResultsRDD(succinctRDD, searchQuery, targetStorageLevel)
   }
+
+  /**
+   * Converts to an RDD of String representation.
+   * @return An RDD of strings
+   */
+  def toStringRDD(): RDD[String] = {
+    map(new String(_))
+  }
 }

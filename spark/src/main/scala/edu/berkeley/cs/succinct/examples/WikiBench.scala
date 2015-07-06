@@ -78,7 +78,7 @@ object WikiBench {
     wikiData.unpersist()
 
     // Ensure all partitions are in memory
-    System.out.println("Number of lines = " + wikiSuccinctData.count("\n".getBytes()))
+    System.out.println("Number of lines = " + wikiSuccinctData.countOffsets("\n".getBytes()))
 
     System.out.println("Benchmarking Succinct RDD search offsets...")
     words.foreach(w => {
@@ -86,7 +86,7 @@ object WikiBench {
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = wikiSuccinctData.searchRecords(w.getBytes()).collect()
+        val results = wikiSuccinctData.search(w.getBytes()).collect()
         count += results.map(_.size).sum
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
@@ -103,7 +103,7 @@ object WikiBench {
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = wikiSuccinctData.searchRecords(w.getBytes()).records()
+        val results = wikiSuccinctData.search(w.getBytes()).records()
         count += results.count
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime

@@ -30,20 +30,20 @@ object WikiSearch {
     val wikiSuccinctData = SuccinctRDD(wikiData).persist()
 
     // Count all occurrences
-    val count = wikiSuccinctData.count(searchQuery.getBytes)
+    val count = wikiSuccinctData.countOffsets(searchQuery)
     println(s"# of times $searchQuery appears in text = " + count)
 
     // Search for offsets
-    val searchOffsets = wikiSuccinctData.search(searchQuery.getBytes)
+    val searchOffsets = wikiSuccinctData.searchOffsets(searchQuery)
     println(s"10 locations in first partitions where $searchQuery occurs: ")
     searchOffsets.take(1).take(10).foreach(println)
 
     // Count all records
-    val countRecords = wikiSuccinctData.countRecords(searchQuery.getBytes)
+    val countRecords = wikiSuccinctData.count(searchQuery)
     println(s"# of lines $searchQuery appears in text = " + countRecords)
 
     // Search for records
-    val searchRecords = wikiSuccinctData.searchRecords("berkeley".getBytes)
+    val searchRecords = wikiSuccinctData.search(searchQuery)
       .records()
       .map(new String(_))
     println("10 lines in which berkeley appears: ")
@@ -55,12 +55,12 @@ object WikiSearch {
     extractedPartitions.foreach(println)
 
     // Extract per record
-    val extractedRecords = wikiSuccinctData.extractRecords(extractOffset, extractLength).map(new String(_))
+    val extractedRecords = wikiSuccinctData.extractRecords(extractOffset, extractLength).toStringRDD()
     println(s"$extractLength bytes from offset $extractLength in each record, for 10 records: ")
     extractedRecords.take(10).foreach(println)
 
     // Regex search operation
-    val regexResults = wikiSuccinctData.regexSearchRecords(regexQuery)
+    val regexResults = wikiSuccinctData.regexSearch(regexQuery)
       .map(new String(_))
     println(s"# of records containing the regular expression $regexQuery = " + regexResults.count)
 

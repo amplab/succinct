@@ -182,7 +182,7 @@ public class SuccinctFileStreamTest extends TestCase {
      * @throws Exception
      */
     public void testRegexSearch() throws Exception {
-        System.out.println("regexSearch");
+        System.out.println("regexSearchOffsets");
 
         Map<Long, Integer> primitiveResults1 = sStream.regexSearch("c");
         assertTrue(checkResults(primitiveResults1, "c"));
