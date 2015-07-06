@@ -74,11 +74,11 @@ val textRDD = sc.textFile("README.md")
 // array of bytes. Persist the RDD memory to perform in-memory queries.
 val succinctTextRDD = SuccinctRDD(textRDD.map(_.getBytes)).cache
 
-// Count the number of occurrences of "Succinct" in the data
-val succinctCount = succinctTextRDD.count("Succinct".getBytes)
+// Count the number of records containing "Succinct" in the data
+val succinctCount = succinctTextRDD.count("Succinct")
 
 // Fetch all records that contain the string "Succinct"
-val succinctRecords = succinctTextRDD.searchRecords("Succinct".getBytes).collect
+val succinctRecords = succinctTextRDD.search("Succinct").collect
 ```
 
 #### Input Constraints
