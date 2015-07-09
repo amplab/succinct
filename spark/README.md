@@ -9,7 +9,7 @@ and enables queries directly on the compressed representation.
 
 ## Requirements
 
-This library requires Succinct 0.1.0+ and Spark 1.3+.
+This library requires Succinct 0.1.2+ and Spark 1.3+.
 
 ## Dependency Information
 
@@ -22,7 +22,7 @@ using Maven by adding the following dependency information to your pom.xml file:
 <dependency>
     <groupId>edu.berkeley.cs.succinct</groupId>
     <artifactId>succinct-spark</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.2</version>
 </dependency>
 ```
 
@@ -34,7 +34,7 @@ for spark-submit and Maven instructions):
 
 ```
 resolvers += "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
-libraryDependencies += "edu.berkeley.cs.succinct" % "succinct-spark" % "0.1.0"
+libraryDependencies += "edu.berkeley.cs.succinct" % "succinct-spark" % "0.1.2"
 ```
 
 The succinct-spark jar file can also be added to a Spark shell using the 
@@ -42,7 +42,7 @@ The succinct-spark jar file can also be added to a Spark shell using the
 spark shell:
 
 ```
-$ bin/spark-shell --jars succinct-spark_2.10-0.1.0.jar
+$ bin/spark-shell --jars succinct-spark_2.10-0.1.2.jar
 ```
 
 ## Usage

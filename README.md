@@ -6,7 +6,7 @@ directly on a compressed representation of data. This repository maintains the
 Java implementations of Succinct's core algorithms, and applications that 
 exploit them, such as a [Spark](http://spark.apache.org/) binding for Succinct.
 
-The master branch is in version 0.1.1.
+The master branch is in version 0.1.2.
 
 ## Building Succinct
 
@@ -40,7 +40,7 @@ using Maven by adding the following dependency information to your pom.xml file:
 <dependency>
     <groupId>edu.berkeley.cs.succinct</groupId>
     <artifactId>succinct-core</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.2</version>
 </dependency>
 ```
 
@@ -61,7 +61,7 @@ using Maven by adding the following dependency information to your pom.xml file:
 <dependency>
     <groupId>edu.berkeley.cs.succinct</groupId>
     <artifactId>succinct-spark</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.2</version>
 </dependency>
 ```
 
@@ -73,7 +73,7 @@ for spark-submit and Maven instructions):
 
 ```
 resolvers += "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
-libraryDependencies += "edu.berkeley.cs.succinct" % "succinct-spark" % "0.1.0"
+libraryDependencies += "edu.berkeley.cs.succinct" % "succinct-spark" % "0.1.2"
 ```
 
 The succinct-spark jar file can also be added to a Spark shell using the 
@@ -81,5 +81,5 @@ The succinct-spark jar file can also be added to a Spark shell using the
 spark shell:
 
 ```
-$ bin/spark-shell --jars succinct-spark_2.10-0.1.0.jar
+$ bin/spark-shell --jars succinct-spark_2.10-0.1.2.jar
 ```
