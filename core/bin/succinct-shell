@@ -32,7 +32,7 @@ for f in "${JAR_PATH}"/succinct-core-*-jar-with-dependencies.jar; do
 done
 
 if [ "$JAR_COUNT" -gt "1" ]; then
-  echo "Found multiple Succinct Spark assemblies in $JAR_PATH" 1>&2
+  echo "Found multiple Succinct Core assemblies in $JAR_PATH" 1>&2
   ls "${JAR_PATH}"/succinct-core-*-jar-with-dependencies.jar 1>&2
   echo "Please remove all but one jar." 1>&2
   exit 1
