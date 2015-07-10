@@ -3,6 +3,7 @@ package edu.berkeley.cs.succinct.streams;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.Range;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 
@@ -14,13 +15,14 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
     protected transient int offsets[];
 
     /**
-     * Constructor to map a file containing Succinct data structures via streams
+     * Constructor to map a file containing Succinct data structures via streams.
      *
      * @param filePath Path of the file.
+     * @param conf Configuration for the filesystem.
      * @throws IOException
      */
-    public SuccinctIndexedFileStream(Path filePath) throws IOException {
-        super(filePath);
+    public SuccinctIndexedFileStream(Path filePath, Configuration conf) throws IOException {
+        super(filePath, conf);
         FSDataInputStream is = getStream(filePath);
         is.seek(endOfCoreStream);
         int len = is.readInt();
@@ -28,6 +30,15 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
         for(int i = 0; i < len; i++) {
             offsets[i] = is.readInt();
         }
+    }
+    /**
+     * Constructor to map a file containing Succinct data structures via streams.
+     *
+     * @param filePath Path of the file.
+     * @throws IOException
+     */
+    public SuccinctIndexedFileStream(Path filePath) throws IOException {
+        this(filePath, new Configuration());
     }
 
 

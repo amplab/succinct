@@ -9,6 +9,7 @@ import edu.berkeley.cs.succinct.regex.planner.NaiveRegExPlanner;
 import edu.berkeley.cs.succinct.regex.planner.RegExPlanner;
 import edu.berkeley.cs.succinct.util.Range;
 import edu.berkeley.cs.succinct.util.streams.SerializedOperations;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
 import java.io.DataInputStream;
@@ -19,13 +20,23 @@ import java.util.Map;
 public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
 
     /**
+     * Constructor to map a file containing Succinct data structures via streams.
+     * @param filePath Path of the file.
+     * @param conf Configuration for the filesystem.
+     * @throws IOException
+     */
+    public SuccinctFileStream(Path filePath, Configuration conf) throws IOException {
+        super(filePath, conf);
+    }
+
+    /**
      * Constructor to map a file containing Succinct data structures via streams
      *
      * @param filePath Path of the file.
      * @throws IOException
      */
     public SuccinctFileStream(Path filePath) throws IOException {
-        super(filePath);
+        this(filePath, new Configuration());
     }
 
     /**

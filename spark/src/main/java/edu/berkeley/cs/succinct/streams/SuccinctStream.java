@@ -35,13 +35,17 @@ public class SuccinctStream extends SuccinctCore {
     protected transient FSDataInputStream originalStream;
     protected transient long endOfCoreStream;
 
+    private transient Configuration conf;
+
     /**
-     * Constructor to map a file containing Succinct data structures via streams
+     * Constructor to map a file containing Succinct data structures via streams.
      *
      * @param filePath Path of the file.
+     * @param conf Configuration for the filesystem.
      * @throws IOException
      */
-    public SuccinctStream(Path filePath) throws IOException {
+    public SuccinctStream(Path filePath, Configuration conf) throws IOException {
+        this.conf = conf;
 
         Tables.init();
         FSDataInputStream is = getStream(filePath);
@@ -150,6 +154,16 @@ public class SuccinctStream extends SuccinctCore {
     }
 
     /**
+     * Constructor to map a file containing Succinct data structures via streams
+     *
+     * @param filePath Path of the file.
+     * @throws IOException
+     */
+    public SuccinctStream(Path filePath) throws IOException {
+        this(filePath, new Configuration());
+    }
+
+    /**
      * Opens a new FSDataInputStream on the provided file.
      *
      * @param path Path of the file.
@@ -157,7 +171,6 @@ public class SuccinctStream extends SuccinctCore {
      * @throws IOException
      */
     protected FSDataInputStream getStream(Path path) throws IOException {
-        Configuration conf = new Configuration();
         FileSystem fs = FileSystem.get(path.toUri(), conf);
         return fs.open(path);
     }
