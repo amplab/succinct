@@ -71,7 +71,7 @@ import edu.berkeley.cs.succinct.SuccinctRDD
 val textRDD = sc.textFile("README.md")
 
 // Convert the textRDD to a SuccinctRDD after serializing each record into an
-// array of bytes. Persist the RDD memory to perform in-memory queries.
+// array of bytes. Persist the RDD in memory to perform in-memory queries.
 val succinctTextRDD = SuccinctRDD(textRDD.map(_.getBytes)).cache
 
 // Count the number of records containing "Succinct" in the data
