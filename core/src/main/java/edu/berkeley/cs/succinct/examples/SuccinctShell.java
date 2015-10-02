@@ -10,7 +10,7 @@ import java.util.Map;
 public class SuccinctShell {
     public static void main(String[] args) throws IOException {
         if(args.length != 1) {
-            System.err.println("Paramters: [input-path]");
+            System.err.println("Parameters: [input-path]");
             System.exit(-1);
         }
 
