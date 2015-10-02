@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class Construct {
     public static void main(String[] args) throws IOException {
-        if(args.length != 1) {
+        if(args.length != 2) {
             System.err.println("Parameters: [input-path] [output-path]");
             System.exit(-1);
         }
