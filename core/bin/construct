@@ -3,10 +3,10 @@
 # Runs the succinct shell
 ##
 
-usage="Usage: succinct-shell [filename]"
+usage="Usage: succinct-shell [input] [output]"
 
-# if no args specified, show usage
-if [ $# -le 0 ]; then
+# if less than 2 args specified, show usage
+if [ $# -le 1 ]; then
   echo $usage
   exit 1
 fi
