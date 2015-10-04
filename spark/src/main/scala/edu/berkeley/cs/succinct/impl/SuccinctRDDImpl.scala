@@ -55,8 +55,22 @@ class SuccinctRDDImpl private[succinct](
 
   /** Extract data from an RDD **/
   override def extract(offset: Long, length: Int): Array[Byte] = {
-    val startPartitionRange = partitionRanges.filter(_.contains(offset))(0)
-    val endPartitionRange = partitionRanges.filter(_.contains(offset + length))(0)
+    val startPartitionRanges = partitionRanges.filter(_.contains(offset))
+    val endPartitionRanges = partitionRanges.filter(_.contains(offset + length))
+
+    if (startPartitionRanges.size != 1) {
+      throw new ArrayIndexOutOfBoundsException("Invalid offset = " + offset)
+    }
+
+    if (endPartitionRanges.size != 1) {
+      throw new ArrayIndexOutOfBoundsException("Invalid length = " + length)
+    }
+
+    val startPartitionRange = startPartitionRanges(0)
+    val endPartitionRange = endPartitionRanges(0)
+
+    // TODO: Handle case where extracted data spans more than 2 partitions
+
     if (startPartitionRange == endPartitionRange) {
       val values = partitionsRDD.map(partition => {
         if (partition.getFileOffset == startPartitionRange.first) {
