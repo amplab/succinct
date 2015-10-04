@@ -29,7 +29,7 @@ public class SuccinctFileStreamTest extends TestCase {
         DataInputStream dis = new DataInputStream(
                 new FileInputStream(inputFile));
         dis.readFully(fileData);
-        SuccinctFileBuffer sBuf = new SuccinctFileBuffer(fileData, 3);
+        SuccinctFileBuffer sBuf = new SuccinctFileBuffer(fileData);
         sBuf.writeToFile(testFileSuccinct);
 
         sStream = new SuccinctFileStream(new Path(testFileSuccinct));

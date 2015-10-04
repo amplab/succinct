@@ -12,13 +12,27 @@ import java.util.Map;
 public interface SuccinctFile extends Serializable {
 
     /**
+     * Get beginning offset for the file chunk.
+     *
+     * @return The beginning offset for the file chunk.
+     */
+    long getFileOffset();
+
+    /**
+     * Get offset range for the file chunk.
+     *
+     * @return The offset range for the file chunk.
+     */
+    Range getFileRange();
+
+    /**
      * Extract data of specified length from Succinct data structures at specified index.
      *
      * @param offset Index into original input to start extracting at.
      * @param len Length of data to be extracted.
      * @return Extracted data.
      */
-    byte[] extract(int offset, int len);
+    byte[] extract(long offset, int len);
 
     /**
      * Extract data from Succinct data structures at specified index until specified delimiter.
@@ -27,7 +41,7 @@ public interface SuccinctFile extends Serializable {
      * @param delim Delimiter at which to stop extracting.
      * @return Extracted data.
      */
-    byte[] extractUntil(int offset, byte delim);
+    byte[] extractUntil(long offset, byte delim);
 
     /**
      * Binary Search for a value withing NPA.

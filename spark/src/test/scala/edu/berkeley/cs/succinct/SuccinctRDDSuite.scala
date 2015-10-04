@@ -9,7 +9,7 @@ import scala.collection.mutable.ArrayBuffer
 
 class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
 
-  def search(data: String, str: String): Iterable[Long] = {
+  def search(data: String, str: String): Array[Long] = {
     var lastIndex = 0L
     val results:ArrayBuffer[Long] = new ArrayBuffer[Long]()
     while (lastIndex != -1) {
@@ -19,7 +19,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
         lastIndex += str.length
       }
     }
-    results.toIterable
+    results.toArray
   }
 
   test("Test searchOffsets") {
@@ -30,11 +30,11 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
 
     // Compute expected values
-    val partitionsArray = textRDD.mapPartitions(data => Iterator(data.mkString("\n"))).collect
-    val expectedSearchOffsets = partitionsArray.map(data => search(data, query))
+    val data = textRDD.collect.mkString("\n")
+    val expectedSearchOffsets = search(data, query)
 
     // Compute results
-    val searchOffsets = succinctRDD.searchOffsets(query).collect.map(t => t.toList.sorted.toIterable)
+    val searchOffsets = succinctRDD.searchOffsets(query).collect.sorted
 
     assert(searchOffsets === expectedSearchOffsets)
   }
@@ -54,6 +54,24 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val count = succinctRDD.countOffsets(query)
 
     assert(count === expectedCount)
+  }
+
+  test("Test extract") {
+    sc = new SparkContext("local", "test")
+
+    val offset = 100
+    val length = 100
+    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
+    val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
+
+    // Compute expected values
+    val data = textRDD.collect.mkString("\n")
+    val expectedExtractedData = data.substring(offset, offset + length).getBytes
+
+    // Compute results
+    val extractedData = succinctRDD.extract(offset, length)
+
+    assert(extractedData === expectedExtractedData)
   }
 
   test("Test extractPerPartition") {
@@ -141,7 +159,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     assert(searchRecords === expectedSearchRecords)
   }
 
-  test("Test rdd countOffsets") {
+  test("Test RDD count") {
     sc = new SparkContext("local", "test")
 
     val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
@@ -154,6 +172,54 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val count = succinctRDD.count
 
     assert(count === expectedCount)
+  }
+
+  test("Test multiple partitions") {
+    // TODO: Add tests
+
+    sc = new SparkContext("local", "test")
+
+    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile).repartition(5)
+    val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
+
+    val query = "int"
+    val offset = 100
+    val length = 100
+
+    // Compute expected values
+    val data = textRDD.collect.mkString("\n")
+    val expectedSearchOffsets = search(data, query)
+
+    // Compute results
+    val searchOffsets = succinctRDD.searchOffsets(query).collect.sorted
+
+    assert(searchOffsets === expectedSearchOffsets)
+
+    // Compute expected value
+    val expectedCount = expectedSearchOffsets.size
+
+    // Compute result
+    val count = succinctRDD.countOffsets(query)
+
+    assert(count === expectedCount)
+
+    // Compute expected values
+    val expectedExtractedData = data.substring(offset, offset + length).getBytes
+
+    // Compute results
+    val extractedData = succinctRDD.extract(offset, length)
+
+    assert(extractedData === expectedExtractedData)
+
+    // Compute expected values
+    val partitionsArray = textRDD.mapPartitions(data => Iterator(data.mkString("\n"))).collect
+    val expectedExtracts = partitionsArray.map(_.substring(offset, offset + length).getBytes)
+
+    // Compute results
+    val extracts = succinctRDD.extractPerPartition(offset, length).collect
+
+    assert(expectedExtracts === extracts)
+
   }
 
   test("Test save and load in memory") {

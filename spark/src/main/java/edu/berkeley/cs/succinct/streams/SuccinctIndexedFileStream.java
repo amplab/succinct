@@ -12,7 +12,7 @@ import java.util.*;
 
 public class SuccinctIndexedFileStream extends SuccinctFileStream implements SuccinctIndexedFile {
 
-    protected transient int offsets[];
+    protected transient int[] offsets;
 
     /**
      * Constructor to map a file containing Succinct data structures via streams.
@@ -24,12 +24,13 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
     public SuccinctIndexedFileStream(Path filePath, Configuration conf) throws IOException {
         super(filePath, conf);
         FSDataInputStream is = getStream(filePath);
-        is.seek(endOfCoreStream);
+        is.seek(endOfFileStream);
         int len = is.readInt();
         offsets = new int[len];
         for(int i = 0; i < len; i++) {
             offsets[i] = is.readInt();
         }
+        is.close();
     }
     /**
      * Constructor to map a file containing Succinct data structures via streams.
@@ -41,8 +42,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
         this(filePath, new Configuration());
     }
 
-
-    public int searchOffset(int pos) {
+    public int offsetToRecordId(int pos) {
         int sp = 0, ep = offsets.length - 1;
         int m;
 
@@ -74,20 +74,20 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
         return extract(begOffset, len);
     }
 
-    public Integer[] recordSearchOffsets(byte[] query) {
-        Set<Integer> results = new HashSet<Integer>();
+    public Long[] recordSearchOffsets(byte[] query) {
+        Set<Long> results = new HashSet<Long>();
         Range range = getRange(query);
 
         long sp = range.first, ep = range.second;
         if (ep - sp + 1 <= 0) {
-            return new Integer[0];
+            return new Long[0];
         }
 
         for (long i = 0; i < ep - sp + 1; i++) {
-            results.add(offsets[searchOffset((int) lookupSA(sp + i))]);
+            results.add(fileOffset + offsets[offsetToRecordId((int) lookupSA(sp + i))]);
         }
 
-        return results.toArray(new Integer[results.size()]);
+        return results.toArray(new Long[results.size()]);
     }
 
     public long recordCount(byte[] query) {
@@ -106,7 +106,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
 
         for (long i = 0; i < ep - sp + 1; i++) {
             long saVal = lookupSA(sp + i);
-            int recordId = searchOffset((int) saVal);
+            int recordId = offsetToRecordId((int) saVal);
             if(!recordIds.contains(recordId)) {
                 results.add(getRecord(recordId));
                 recordIds.add(recordId);
@@ -129,7 +129,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
 
         for (long i = 0; i < ep - sp + 1; i++) {
             long saVal = lookupSA(sp + i);
-            int recordId = searchOffset((int) saVal);
+            int recordId = offsetToRecordId((int) saVal);
             if(!recordIds.contains(recordId)) {
                 results.add(getRecord(recordId));
                 recordIds.add(recordId);
@@ -144,7 +144,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
         Set<Integer> recordIds = new HashSet<Integer>();
         ArrayList<byte[]> results = new ArrayList<byte[]>();
         for(Long offset: regexOffsetResults.keySet()) {
-            int recordId = searchOffset(offset.intValue());
+            int recordId = offsetToRecordId(offset.intValue());
             if(!recordIds.contains(recordId)) {
                 results.add(getRecord(recordId));
                 recordIds.add(recordId);
@@ -206,7 +206,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
             long sp = firstRange.first, ep = firstRange.second;
             for (long i = 0; i < ep - sp + 1; i++) {
                 long saVal = lookupSA(sp + i);
-                int recordId = searchOffset((int) saVal);
+                int recordId = offsetToRecordId((int) saVal);
                 recordIds.add(recordId);
                 counts.put(recordId, 1);
             }
@@ -218,7 +218,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
 
             for (long i = 0; i < ep - sp + 1; i++) {
                 long saVal = lookupSA(sp + i);
-                int recordId = searchOffset((int) saVal);
+                int recordId = offsetToRecordId((int) saVal);
                 if (recordIds.contains(recordId)) {
                     counts.put(recordId, counts.get(recordId) + 1);
                 }

@@ -31,7 +31,7 @@ public interface SuccinctIndexedFile extends SuccinctFile {
      * @param pos Position in the input
      * @return Offset corresponding to the position.
      */
-    int searchOffset(int pos);
+    int offsetToRecordId(int pos);
 
     /**
      * Get the number of records.
@@ -54,7 +54,7 @@ public interface SuccinctIndexedFile extends SuccinctFile {
      * @param query Input query.
      * @return Offsets of all matching records.
      */
-    Integer[] recordSearchOffsets(byte[] query);
+    Long[] recordSearchOffsets(byte[] query);
 
     /**
      * Count of all records containing a particular query.

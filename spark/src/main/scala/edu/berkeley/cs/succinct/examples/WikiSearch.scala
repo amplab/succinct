@@ -35,8 +35,8 @@ object WikiSearch {
 
     // Search for offsets
     val searchOffsets = wikiSuccinctData.searchOffsets(searchQuery)
-    println(s"10 locations in first partitions where $searchQuery occurs: ")
-    searchOffsets.take(1).take(10).foreach(println)
+    println(s"First 10 locations in RDD where $searchQuery occurs: ")
+    searchOffsets.take(10).foreach(println)
 
     // Count all records
     val countRecords = wikiSuccinctData.count(searchQuery)

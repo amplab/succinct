@@ -86,8 +86,8 @@ object WikiBench {
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = wikiSuccinctData.search(w.getBytes()).collect()
-        count += results.map(_.size).sum
+        val results = wikiSuccinctData.search(w).collect()
+        count += results.size
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
         time += totTime

@@ -56,9 +56,9 @@ public class SuccinctIndexedFileStreamTest extends TestCase {
     public void testRecordSearchOffsets() throws Exception {
         System.out.println("recordSearchOffsets");
 
-        Integer[] searchOffsets = sStream.recordSearchOffsets("int".getBytes());
+        Long[] searchOffsets = sStream.recordSearchOffsets("int".getBytes());
         for(int i = 0; i < searchOffsets.length; i++) {
-            byte[] buf = sStream.extractUntil(searchOffsets[i], (byte)'\n');
+            byte[] buf = sStream.extractUntil(searchOffsets[i].intValue(), (byte)'\n');
             assertTrue(new String(buf).contains("int"));
         }
     }

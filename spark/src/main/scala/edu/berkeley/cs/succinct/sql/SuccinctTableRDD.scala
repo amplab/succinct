@@ -248,7 +248,7 @@ object SuccinctTableRDD {
       rawBufferOS.write(SuccinctCore.EOL)
     }
 
-    val ret = Iterator(new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray, 2))
+    val ret = Iterator(new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray, 0))
     ret
   }
 

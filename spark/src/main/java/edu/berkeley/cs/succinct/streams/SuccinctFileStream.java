@@ -10,14 +10,19 @@ import edu.berkeley.cs.succinct.regex.planner.RegExPlanner;
 import edu.berkeley.cs.succinct.util.Range;
 import edu.berkeley.cs.succinct.util.streams.SerializedOperations;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
+
+    protected transient long fileOffset;
+    protected transient long endOfFileStream;
 
     /**
      * Constructor to map a file containing Succinct data structures via streams.
@@ -27,6 +32,11 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
      */
     public SuccinctFileStream(Path filePath, Configuration conf) throws IOException {
         super(filePath, conf);
+        FSDataInputStream is = getStream(filePath);
+        is.seek(endOfCoreStream);
+        fileOffset = is.readLong();
+        endOfFileStream = is.getPos();
+        is.close();
     }
 
     /**
@@ -40,6 +50,24 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     }
 
     /**
+     * Get beginning offset for the file chunk.
+     *
+     * @return The beginning offset for the file chunk.
+     */
+    public long getFileOffset() {
+        return fileOffset;
+    }
+
+    /**
+     * Get offset range for the file chunk.
+     *
+     * @return The offset range for the file chunk.
+     */
+    public Range getFileRange() {
+        return new Range(fileOffset, fileOffset + getOriginalSize() - 2);
+    }
+
+    /**
      * Extract data of specified length from Succinct data structures at specified index.
      *
      * @param offset Index into original input to start extracting at.
@@ -47,13 +75,14 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
      * @return Extracted data.
      */
     @Override
-    public byte[] extract(int offset, int len) {
+    public byte[] extract(long offset, int len) {
         byte[] buf = new byte[len];
         long s;
 
         try {
-            s = lookupISA(offset);
-            for (int k = 0; k < len; k++) {
+            long chunkOffset = offset - fileOffset;
+            s = lookupISA(chunkOffset);
+            for (int k = 0; k < len && k < getOriginalSize(); k++) {
                 buf[k] = alphabet.get(SerializedOperations.ArrayOps.getRank1(
                         coloffsets, 0, getSigmaSize(), s) - 1);
                 s = lookupNPA(s);
@@ -73,12 +102,13 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
      * @return Extracted data.
      */
     @Override
-    public byte[] extractUntil(int offset, byte delim) {
+    public byte[] extractUntil(long offset, byte delim) {
         String strBuf = "";
         long s;
 
         try {
-            s = lookupISA(offset);
+            long chunkOffset = offset - fileOffset;
+            s = lookupISA(chunkOffset);
             char nextChar;
             do {
                 nextChar = (char) alphabet.get(SerializedOperations.ArrayOps.getRank1(
@@ -112,12 +142,12 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
         while (sp <= ep) {
             m = (sp + ep) / 2;
 
-            long psi_val;
-            psi_val = lookupNPA(m);
+            long npaVal;
+            npaVal = lookupNPA(m);
 
-            if (psi_val == val) {
+            if (npaVal == val) {
                 return m;
-            } else if (val < psi_val) {
+            } else if (val < npaVal) {
                 ep = m - 1;
             } else {
                 sp = m + 1;
@@ -192,7 +222,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
 
         Long[] positions = new Long[(int)(ep - sp + 1)];
         for (long i = 0; i < ep - sp + 1; i++) {
-            positions[(int)i] = lookupSA(sp + i);
+            positions[(int)i] = lookupSA(sp + i) + fileOffset;
         }
 
         return positions;
@@ -218,7 +248,13 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
         RegExExecutor regExExecutor = new RegExExecutor(this, optRegEx);
         regExExecutor.execute();
 
-        return regExExecutor.getFinalResults();
+        Map<Long, Integer> chunkResults = regExExecutor.getFinalResults();
+        Map<Long, Integer> results = new TreeMap<Long, Integer>();
+        for (Map.Entry<Long, Integer> result : chunkResults.entrySet()) {
+            results.put(result.getKey() + fileOffset, result.getValue());
+        }
+
+        return results;
     }
 
     /**

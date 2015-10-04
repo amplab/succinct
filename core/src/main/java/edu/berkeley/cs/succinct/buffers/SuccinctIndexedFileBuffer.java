@@ -8,36 +8,47 @@ import edu.berkeley.cs.succinct.util.Range;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.*;
 
 public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements SuccinctIndexedFile {
 
     private static final long serialVersionUID = -8357331195541317163L;
-
     protected transient int[] offsets;
 
     /**
-     * Constructor to initialize SuccinctIndexedBuffer from input byte array, offsets corresponding to records, and
-     * context length.
+     * Constructor to initialize SuccinctIndexedBuffer from input byte array, offsets corresponding to records,
+     * context length and file offset.
      *
      * @param input The input byte array.
      * @param offsets Offsets corresponding to records.
      * @param contextLen Context Length.
+     * @param fileOffset Beginning offset for this file chunk (if file is partitioned).
      */
-    public SuccinctIndexedFileBuffer(byte[] input, int[] offsets, int contextLen) {
-        super(input, contextLen);
+    public SuccinctIndexedFileBuffer(byte[] input, int[] offsets, int contextLen, long fileOffset) {
+        super(input, contextLen, fileOffset);
         this.offsets = offsets;
     }
 
     /**
-     * Constructor to initialize SuccinctIndexedBuffer from input byte array and offsets corresponding to records
+     * Constructor to initialize SuccinctIndexedBuffer from input byte array, offsets corresponding to records and file
+     * offset.
+     *
+     * @param input The input byte array.
+     * @param offsets Offsets corresponding to records.
+     * @param fileOffset Beginning offset for this file chunk (if file is partitioned).
+     */
+    public SuccinctIndexedFileBuffer(byte[] input, int[] offsets, long fileOffset) {
+        this(input, offsets, 3, fileOffset);
+    }
+
+    /**
+     * Constructor to initialize SuccinctIndexedBuffer from input byte array and offsets corresponding to records.
      *
      * @param input The input byte array.
      * @param offsets Offsets corresponding to records.
      */
     public SuccinctIndexedFileBuffer(byte[] input, int[] offsets) {
-        this(input, offsets, 3);
+        this(input, offsets, 0);
     }
 
     /**
@@ -47,17 +58,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
      * @param storageMode Mode in which data is stored (In-memory or Memory-mapped)
      */
     public SuccinctIndexedFileBuffer(String path, StorageMode storageMode) {
-        this.storageMode = storageMode;
-        try {
-            Tables.init();
-            if (storageMode == StorageMode.MEMORY_ONLY) {
-                readFromFile(path);
-            } else if (storageMode == StorageMode.MEMORY_MAPPED) {
-                memoryMap(path);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        super(path, storageMode);
     }
 
     /**
@@ -80,8 +81,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
      * @param buf Input buffer to load the data from
      */
     public SuccinctIndexedFileBuffer(ByteBuffer buf) {
-        Tables.init();
-        mapFromBuffer(buf);
+        super(buf);
     }
 
     /**
@@ -117,7 +117,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
      * @return Offset corresponding to the position.
      */
     @Override
-    public int searchOffset(int pos) {
+    public int offsetToRecordId(int pos) {
         int sp = 0, ep = offsets.length - 1;
         int m;
 
@@ -142,20 +142,20 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
      * @return Offsets of all matching records.
      */
     @Override
-    public Integer[] recordSearchOffsets(byte[] query) {
-        Set<Integer> results = new HashSet<Integer>();
+    public Long[] recordSearchOffsets(byte[] query) {
+        Set<Long> results = new HashSet<Long>();
         Range range = getRange(query);
 
         long sp = range.first, ep = range.second;
         if (ep - sp + 1 <= 0) {
-            return new Integer[0];
+            return new Long[0];
         }
 
         for (long i = 0; i < ep - sp + 1; i++) {
-            results.add(offsets[searchOffset((int) lookupSA(sp + i))]);
+            results.add(fileOffset + offsets[offsetToRecordId((int) lookupSA(sp + i))]);
         }
 
-        return results.toArray(new Integer[results.size()]);
+        return results.toArray(new Long[results.size()]);
     }
 
     /**
@@ -188,7 +188,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
 
         for (long i = 0; i < ep - sp + 1; i++) {
             long saVal = lookupSA(sp + i);
-            int recordId = searchOffset((int) saVal);
+            int recordId = offsetToRecordId((int) saVal);
             if(!recordIds.contains(recordId)) {
                 results.add(getRecord(recordId));
                 recordIds.add(recordId);
@@ -219,7 +219,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
 
         for (long i = 0; i < ep - sp + 1; i++) {
             long saVal = lookupSA(sp + i);
-            int recordId = searchOffset((int) saVal);
+            int recordId = offsetToRecordId((int) saVal);
             if(!recordIds.contains(recordId)) {
                 results.add(getRecord(recordId));
                 recordIds.add(recordId);
@@ -290,7 +290,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
             long sp = firstRange.first, ep = firstRange.second;
             for (long i = 0; i < ep - sp + 1; i++) {
                 long saVal = lookupSA(sp + i);
-                int recordId = searchOffset((int) saVal);
+                int recordId = offsetToRecordId((int) saVal);
                 recordIds.add(recordId);
                 counts.put(recordId, 1);
             }
@@ -302,7 +302,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
 
             for (long i = 0; i < ep - sp + 1; i++) {
                 long saVal = lookupSA(sp + i);
-                int recordId = searchOffset((int) saVal);
+                int recordId = offsetToRecordId((int) saVal);
                 if (recordIds.contains(recordId)) {
                     counts.put(recordId, counts.get(recordId) + 1);
                 }
@@ -331,7 +331,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
         Set<Integer> recordIds = new HashSet<Integer>();
         ArrayList<byte[]> results = new ArrayList<byte[]>();
         for(Long offset: regexOffsetResults.keySet()) {
-            int recordId = searchOffset(offset.intValue());
+            int recordId = offsetToRecordId(offset.intValue());
             if(!recordIds.contains(recordId)) {
                 results.add(getRecord(recordId));
                 recordIds.add(recordId);
@@ -403,73 +403,6 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
         for(int i = 0; i < offsets.length; i++) {
             offsets[i] = buf.getInt();
         }
-    }
-
-    /**
-     * Convert Succinct data-structures to a byte array.
-     *
-     * @return Byte array containing serialzied Succinct data structures.
-     * @throws IOException
-     */
-    @Override
-    public byte[] toByteArray() throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        writeToStream(new DataOutputStream(bos));
-        return bos.toByteArray();
-    }
-
-    /**
-     * Read Succinct data structures from byte array.
-     *
-     * @param data Byte array to read data from.
-     * @throws IOException
-     */
-    @Override
-    public void fromByteArray(byte[] data) throws IOException {
-        ByteArrayInputStream bis = new ByteArrayInputStream(data);
-        readFromStream(new DataInputStream(bis));
-    }
-
-    /**
-     * Write Succinct data structures to file.
-     *
-     * @param path Path to file where Succinct data structures should be written.
-     * @throws IOException
-     */
-    @Override
-    public void writeToFile(String path) throws IOException {
-        FileOutputStream fos = new FileOutputStream(path);
-        DataOutputStream os = new DataOutputStream(fos);
-        writeToStream(os);
-    }
-
-    /**
-     * Read Succinct data structures into memory from file.
-     *
-     * @param path Path to serialized Succinct data structures.
-     * @throws IOException
-     */
-    @Override
-    public void readFromFile(String path) throws IOException {
-        FileInputStream fis = new FileInputStream(path);
-        DataInputStream is = new DataInputStream(fis);
-        readFromStream(is);
-    }
-
-    /**
-     * Memory maps serialized Succinct data structures.
-     *
-     * @param path Path to serialized Succinct data structures.
-     * @throws IOException
-     */
-    @Override
-    public void memoryMap(String path) throws IOException {
-        File file = new File(path);
-        long size = file.length();
-        FileChannel fileChannel = new RandomAccessFile(file, "r").getChannel();
-
-        ByteBuffer buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size);
-        mapFromBuffer(buf);
     }
 
     /**

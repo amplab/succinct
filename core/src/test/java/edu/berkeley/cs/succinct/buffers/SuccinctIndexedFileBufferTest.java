@@ -52,9 +52,9 @@ public class SuccinctIndexedFileBufferTest extends TestCase {
     public void testRecordSearchOffsets() throws Exception {
         System.out.println("recordSearchOffsets");
 
-        Integer[] searchOffsets = sIBuf.recordSearchOffsets("int".getBytes());
+        Long[] searchOffsets = sIBuf.recordSearchOffsets("int".getBytes());
         for(int i = 0; i < searchOffsets.length; i++) {
-            byte[] buf = sIBuf.extractUntil(searchOffsets[i], (byte)'\n');
+            byte[] buf = sIBuf.extractUntil(searchOffsets[i].intValue(), (byte)'\n');
             assertTrue(new String(buf).contains("int"));
         }
     }
