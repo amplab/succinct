@@ -16,7 +16,6 @@ object WikiBench {
   val numRepeats = 10
   val words = Seq("enactments", "subcostal", "Ellsberg", "chronometer", "lobbed",
     "Reckoning", "Counter-Terrorism", "overpopulated", "retriever", "nosewheel")
-  val randoms = (0 to 99).map(t => Math.abs(Random.nextLong()))
   val extractLen = 1024
 
   def count(data: Array[Byte], str: String): Long = {
@@ -141,8 +140,10 @@ object WikiBench {
         Iterator((idx, partitionSize))
       }).collect.sorted.map(_._2)
     val partitionOffsets = partitionSizes.scanLeft(0L)(_ + _).slice(0, partitionSizes.size)
-    val dataSize = partitionSizes.sum
-    val offsets = randoms.map(_ % dataSize)
+    val offsets = Random.shuffle(partitionOffsets.zip(partitionSizes)
+      .map(range => (0 to 99).map(i => range._1 + (Math.abs(Random.nextLong()) % (range._2 - extractLen))))
+      .flatMap(_.iterator)).take(100)
+    // val offsets = randoms.map(_ % dataSize)
 
     // Benchmark DISK_ONLY
     println("Benchmarking Spark RDD count offsets (DISK_ONLY)...")
