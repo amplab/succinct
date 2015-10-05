@@ -79,7 +79,7 @@ object WikiBench {
     var ret = rec.slice(recordOffset, recordOffset + length)
     // If there are insufficient number of bytes in this record,
     // Fetch from next record
-    if (ret.length < length) {
+    if (ret.length < length && it.hasNext) {
       // Fetch the next record
       rec = it.next()
       ret = ret ++ rec.slice(0, length - ret.length)
@@ -100,18 +100,21 @@ object WikiBench {
 
   def extractRDD(rdd: RDD[Array[Byte]], partitionOffsets: Array[Long], partitionSizes: Array[Long],
                  offset: Long, length: Int): Array[Byte] = {
-    val results = rdd.mapPartitionsWithIndex((idx, it) => {
-      if(offset >= partitionOffsets(idx) && offset < partitionOffsets(idx) + partitionSizes(idx)) {
+    val extractResults = rdd.mapPartitionsWithIndex((idx, it) => {
+      val offBeg = partitionOffsets(idx)
+      val offEnd = offBeg + partitionSizes(idx)
+      if(offset >= offBeg && offset < offEnd) {
         val res = extract(it, partitionOffsets(idx), offset, length)
         Iterator(res)
       } else {
         Iterator()
       }
     }).collect
-    if (results.size != 1) {
-      throw new ArrayIndexOutOfBoundsException("Invalid output " + results.mkString(","))
+    if (extractResults.size != 1) {
+      throw new ArrayIndexOutOfBoundsException("Invalid output; size = " + extractResults.size
+        + "; values = " + extractResults.mkString(",") + "; offset = " + offset)
     }
-    results(0)
+    extractResults(0)
   }
 
   def main(args: Array[String]) = {
@@ -129,7 +132,7 @@ object WikiBench {
     val ctx = new SparkContext(sparkConf)
 
     // Create RDD
-    val wikiData = ctx.textFile(dataPath, partitions).coalesce(partitions).map(_.getBytes).persist(StorageLevel.DISK_ONLY)
+    val wikiData = ctx.textFile(dataPath, partitions).map(_.getBytes).repartition(partitions).persist(StorageLevel.DISK_ONLY)
 
     // Compute partition sizes and partition offsets
     val partitionSizes = wikiData.mapPartitionsWithIndex((idx, partition) =>
@@ -139,10 +142,10 @@ object WikiBench {
       }).collect.sorted.map(_._2)
     val partitionOffsets = partitionSizes.scanLeft(0L)(_ + _).slice(0, partitionSizes.size)
     val dataSize = partitionSizes.sum
-    val offsets = randoms.map(_ % (dataSize - extractLen))
+    val offsets = randoms.map(_ % dataSize)
 
     // Benchmark DISK_ONLY
-    System.out.println("Benchmarking Spark RDD count offsets (DISK_ONLY)...")
+    println("Benchmarking Spark RDD count offsets (DISK_ONLY)...")
     words.foreach(w => {
       var time = 0.0
       var count = 0.0
@@ -159,7 +162,7 @@ object WikiBench {
       println(s"$w\t$count\t$time")
     })
 
-    System.out.println("Benchmarking Spark RDD search offsets (DISK_ONLY)...")
+    println("Benchmarking Spark RDD search offsets (DISK_ONLY)...")
     words.foreach(w => {
       var time = 0.0
       var count = 0.0
@@ -199,7 +202,7 @@ object WikiBench {
     println("Number of lines = " + wikiData.count())
 
     // Benchmark MEMORY_ONLY
-    System.out.println("Benchmarking Spark RDD count offsets (MEMORY_ONLY)...")
+    println("Benchmarking Spark RDD count offsets (MEMORY_ONLY)...")
     words.foreach(w => {
       var time = 0.0
       var count = 0.0
@@ -216,7 +219,7 @@ object WikiBench {
       println(s"$w\t$count\t$time")
     })
 
-    System.out.println("Benchmarking Spark RDD search offsets (MEMORY_ONLY)...")
+    println("Benchmarking Spark RDD search offsets (MEMORY_ONLY)...")
     words.foreach(w => {
       var time = 0.0
       var count = 0.0
@@ -257,7 +260,7 @@ object WikiBench {
     println("Number of lines = " + wikiSuccinctData.countOffsets("\n".getBytes()))
 
     // Benchmark Succinct
-    System.out.println("Benchmarking Succinct RDD count offsets...")
+    println("Benchmarking Succinct RDD count offsets...")
     words.foreach(w => {
       var time = 0.0
       var count = 0.0
