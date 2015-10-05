@@ -109,7 +109,7 @@ object WikiBench {
       }
     }).collect
     if (results.size != 1) {
-      throw new ArrayIndexOutOfBoundsException("Invalid output " + results)
+      throw new ArrayIndexOutOfBoundsException("Invalid output " + results.mkString(","))
     }
     results(0)
   }
