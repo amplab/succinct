@@ -109,7 +109,7 @@ object WikiBench {
       }
     }).collect
     if (results.size != 1) {
-      throw new ArrayIndexOutOfBoundsException("Invalid offset " + offset)
+      throw new ArrayIndexOutOfBoundsException("Invalid output " + results)
     }
     results(0)
   }
