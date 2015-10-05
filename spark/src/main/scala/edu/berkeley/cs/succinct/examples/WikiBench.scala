@@ -4,6 +4,8 @@ import edu.berkeley.cs.succinct.SuccinctRDD
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{SparkContext, SparkConf}
 
+import scala.collection.mutable.ArrayBuffer
+
 /**
  * Benchmarks search on a Wikipedia dataset provided as an input.
  */
@@ -12,6 +14,19 @@ object WikiBench {
   val numRepeats = 10
   val words = Seq("enactments", "subcostal", "Ellsberg", "chronometer", "lobbed",
     "Reckoning", "Counter-Terrorism", "overpopulated", "retriever", "nosewheel")
+
+  def search(data: String, str: String): Array[Long] = {
+    var lastIndex = 0L
+    val results:ArrayBuffer[Long] = new ArrayBuffer[Long]()
+    while (lastIndex != -1) {
+      lastIndex = data.indexOf(str, lastIndex.toInt).toLong
+      if (lastIndex != -1) {
+        results += lastIndex
+        lastIndex += str.length
+      }
+    }
+    results.toArray
+  }
 
   def main(args: Array[String]) = {
 
@@ -35,13 +50,15 @@ object WikiBench {
     // Ensure all partitions are in memory
     System.out.println("Number of lines = " + wikiData.count())
 
-    System.out.println("Benchmarking Spark RDD...")
+    System.out.println("Benchmarking Spark RDD search (DISK_ONLY)...")
     words.foreach(w => {
       var time = 0.0
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = wikiData.filter(_.contains(w))
+        // Find all offsets for each record; we don't compute global offsets,
+        // but this is strictly less work than what SuccinctRDD has to do
+        val results = wikiData.map(search(_, w)).flatMap(_.iterator)
         count += results.count()
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
@@ -57,13 +74,15 @@ object WikiBench {
     // Ensure all partitions are in memory
     System.out.println("Number of lines = " + wikiData.count())
 
-    System.out.println("Benchmarking Spark RDD...")
+    System.out.println("Benchmarking Spark RDD search (MEMORY_ONLY)...")
     words.foreach(w => {
       var time = 0.0
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = wikiData.filter(_.contains(w))
+        // Find all offsets for each record; we don't compute global offsets,
+        // but this is strictly less work than what SuccinctRDD has to do
+        val results = wikiData.map(search(_, w)).flatMap(_.iterator)
         count += results.count()
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
@@ -74,8 +93,8 @@ object WikiBench {
       System.out.println(s"$w\t$count\t$time")
     })
 
-    val wikiSuccinctData = SuccinctRDD(ctx, succinctDataPath, StorageLevel.MEMORY_ONLY).persist()
     wikiData.unpersist()
+    val wikiSuccinctData = SuccinctRDD(ctx, succinctDataPath, StorageLevel.MEMORY_ONLY).persist()
 
     // Ensure all partitions are in memory
     System.out.println("Number of lines = " + wikiSuccinctData.countOffsets("\n".getBytes()))
@@ -86,7 +105,7 @@ object WikiBench {
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = wikiSuccinctData.search(w).collect()
+        val results = wikiSuccinctData.searchOffsets(w).collect()
         count += results.size
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
@@ -97,14 +116,14 @@ object WikiBench {
       System.out.println(s"$w\t$count\t$time")
     })
 
-    System.out.println("Benchmarking Succinct RDD search records...")
+    System.out.println("Benchmarking Succinct RDD count offsets...")
     words.foreach(w => {
       var time = 0.0
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = wikiSuccinctData.search(w.getBytes()).records()
-        count += results.count
+        val results = wikiSuccinctData.countOffsets(w)
+        count += results
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
         time += totTime

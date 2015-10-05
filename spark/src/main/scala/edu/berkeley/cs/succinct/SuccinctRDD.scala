@@ -285,7 +285,7 @@ object SuccinctRDD {
 
     val succinctPartitions = inputRDD.mapPartitionsWithIndex((i, p) =>
       createSuccinctBuffer(partitionOffsets(i), partitionFirstRecordIds(i), p))
-    new SuccinctRDDImpl(succinctPartitions)
+    new SuccinctRDDImpl(succinctPartitions.cache())
   }
 
   /**
@@ -321,7 +321,7 @@ object SuccinctRDD {
         is.close()
         partitionIterator
       })
-    new SuccinctRDDImpl(succinctPartitions)
+    new SuccinctRDDImpl(succinctPartitions.cache())
   }
 
   /**
