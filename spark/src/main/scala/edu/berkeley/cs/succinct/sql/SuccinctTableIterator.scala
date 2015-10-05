@@ -29,7 +29,7 @@ class SuccinctTableIterator private[succinct](sBuf: SuccinctIndexedFile, succinc
    * @return The next [[Row]].
    */
   override def next(): Row = {
-    val data = sBuf.getRecord(curRecordId)
+    val data = sBuf.getPartitionRecord(curRecordId)
     curRecordId += 1
     succinctSerializer.deserializeRow(data)
   }

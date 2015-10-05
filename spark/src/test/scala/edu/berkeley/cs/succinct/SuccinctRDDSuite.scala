@@ -92,6 +92,20 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     assert(expectedExtracts === extracts)
   }
 
+  test("Get record") {
+    sc = new SparkContext("local", "test")
+
+    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
+    val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
+
+    val records = textRDD.map(_.getBytes).collect
+
+    // Check
+    (0 to 1000).foreach(i => {
+      assert(records(i) === succinctRDD.getRecord(i))
+    })
+  }
+
   test("Test search") {
     sc = new SparkContext("local", "test")
 
@@ -220,6 +234,12 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
 
     assert(expectedExtracts === extracts)
 
+    val records = textRDD.map(_.getBytes).collect
+
+    // Check
+    (0 to 1000).foreach(i => {
+      assert(records(i) === succinctRDD.getRecord(i))
+    })
   }
 
   test("Test save and load in memory") {

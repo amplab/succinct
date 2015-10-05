@@ -24,7 +24,7 @@ class SuccinctIterator private[succinct](sBuf: SuccinctIndexedFile) extends Iter
    * @return The next tuple.
    */
   override def next(): Array[Byte] = {
-    val data = sBuf.getRecord(curRecordId)
+    val data = sBuf.getPartitionRecord(curRecordId)
     curRecordId += 1
     data
   }

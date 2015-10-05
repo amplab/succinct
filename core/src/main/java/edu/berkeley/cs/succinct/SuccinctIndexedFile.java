@@ -41,12 +41,34 @@ public interface SuccinctIndexedFile extends SuccinctFile {
     int getNumRecords();
 
     /**
-     * Get the ith record.
+     * Get the first record id in this partition.
      *
-     * @param i The record index.
+     * @return The first record id in this partition.
+     */
+    long getFirstRecordId();
+
+    /**
+     * Get the range of record ids in this partition.
+     *
+     * @return The range of record ids in this partition.
+     */
+    Range getRecordIdRange();
+
+    /**
+     * Get the ith record in the partition.
+     *
+     * @param partitionRecordId The record index relative to partition.
      * @return The corresponding record.
      */
-    byte[] getRecord(int i);
+    byte[] getPartitionRecord(int partitionRecordId);
+
+    /**
+     * Get the ith record.
+     *
+     * @param recordId The record index.
+     * @return The corresponding record.
+     */
+    byte[] getRecord(long recordId);
 
     /**
      * Search for an input query and return offsets of all matching records.

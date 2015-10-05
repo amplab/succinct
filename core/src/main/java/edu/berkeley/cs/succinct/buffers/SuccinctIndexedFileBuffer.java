@@ -14,6 +14,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
 
     private static final long serialVersionUID = -8357331195541317163L;
     protected transient int[] offsets;
+    protected transient long firstRecordId;
 
     /**
      * Constructor to initialize SuccinctIndexedBuffer from input byte array, offsets corresponding to records,
@@ -23,10 +24,26 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
      * @param offsets Offsets corresponding to records.
      * @param contextLen Context Length.
      * @param fileOffset Beginning offset for this file chunk (if file is partitioned).
+     * @param firstRecordId First record id for this partition (if file is partitioned).
      */
-    public SuccinctIndexedFileBuffer(byte[] input, int[] offsets, int contextLen, long fileOffset) {
+    public SuccinctIndexedFileBuffer(byte[] input, int[] offsets, int contextLen, long fileOffset, long firstRecordId) {
         super(input, contextLen, fileOffset);
         this.offsets = offsets;
+        this.firstRecordId = firstRecordId;
+    }
+
+    /**
+     * Constructor to initialize SuccinctIndexedBuffer from input byte array, offsets corresponding to records,
+     * context length and file offset.
+     *
+     * @param input The input byte array.
+     * @param offsets Offsets corresponding to records.
+     * @param fileOffset Beginning offset for this file chunk (if file is partitioned).
+     */
+    public SuccinctIndexedFileBuffer(byte[] input, int[] offsets, long fileOffset, long firstRecordId) {
+        this(input, offsets, 3, fileOffset, firstRecordId);
+        this.offsets = offsets;
+        this.firstRecordId = firstRecordId;
     }
 
     /**
@@ -38,7 +55,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
      * @param fileOffset Beginning offset for this file chunk (if file is partitioned).
      */
     public SuccinctIndexedFileBuffer(byte[] input, int[] offsets, long fileOffset) {
-        this(input, offsets, 3, fileOffset);
+        this(input, offsets, fileOffset, 0);
     }
 
     /**
@@ -94,20 +111,50 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     }
 
     /**
+     * Get the first record id in this partition.
+     *
+     * @return The first record id in this partition.
+     */
+    public long getFirstRecordId() {
+        return firstRecordId;
+    }
+
+    /**
+     * Get the range of record ids in this partition.
+     *
+     * @return The range of record ids in this partition.
+     */
+    public Range getRecordIdRange() {
+        return new Range(firstRecordId, firstRecordId + getNumRecords() - 1);
+    }
+
+    /**
      * Get the ith record.
      *
-     * @param i The record index.
+     * @param partitionRecordId The record index.
      * @return The corresponding record.
      */
     @Override
-    public byte[] getRecord(int i) {
-        if(i >= offsets.length || i < 0) {
-            throw new ArrayIndexOutOfBoundsException("Record does not exist: i = " + i);
+    public byte[] getPartitionRecord(int partitionRecordId) {
+        if(partitionRecordId >= offsets.length || partitionRecordId < 0) {
+            throw new ArrayIndexOutOfBoundsException("Record does not exist: partitionRecordId = " + partitionRecordId);
         }
-        int begOffset = offsets[i];
-        int endOffset = (i == offsets.length - 1) ? getOriginalSize() - 1 : offsets[i + 1];
+        int begOffset = offsets[partitionRecordId];
+        int endOffset = (partitionRecordId == offsets.length - 1) ? getOriginalSize() - 1 : offsets[partitionRecordId + 1];
         int len = (endOffset - begOffset - 1);
-        return extract(begOffset, len);
+        return extract(fileOffset + begOffset, len);
+    }
+
+    /**
+     * Get the ith record.
+     *
+     * @param recordId The record index.
+     * @return The corresponding record.
+     */
+    @Override
+    public byte[] getRecord(long recordId) {
+        int partitionRecordId = (int)(recordId - firstRecordId);
+        return getPartitionRecord(partitionRecordId);
     }
 
     /**
@@ -190,7 +237,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
             long saVal = lookupSA(sp + i);
             int recordId = offsetToRecordId((int) saVal);
             if(!recordIds.contains(recordId)) {
-                results.add(getRecord(recordId));
+                results.add(getPartitionRecord(recordId));
                 recordIds.add(recordId);
             }
         }
@@ -221,7 +268,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
             long saVal = lookupSA(sp + i);
             int recordId = offsetToRecordId((int) saVal);
             if(!recordIds.contains(recordId)) {
-                results.add(getRecord(recordId));
+                results.add(getPartitionRecord(recordId));
                 recordIds.add(recordId);
             }
         }
@@ -311,7 +358,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
 
         for (int recordId: recordIds) {
             if (counts.get(recordId) == numRanges) {
-                results.add(getRecord(recordId));
+                results.add(getPartitionRecord(recordId));
             }
         }
 
@@ -333,7 +380,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
         for(Long offset: regexOffsetResults.keySet()) {
             int recordId = offsetToRecordId(offset.intValue());
             if(!recordIds.contains(recordId)) {
-                results.add(getRecord(recordId));
+                results.add(getPartitionRecord(recordId));
                 recordIds.add(recordId);
             }
         }
@@ -368,6 +415,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     @Override
     public void writeToStream(DataOutputStream os) throws IOException {
         super.writeToStream(os);
+        os.writeLong(firstRecordId);
         os.writeInt(offsets.length);
         for(int i = 0; i < offsets.length; i++) {
             os.writeInt(offsets[i]);
@@ -383,6 +431,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     @Override
     public void readFromStream(DataInputStream is) throws IOException {
         super.readFromStream(is);
+        firstRecordId = is.readLong();
         int len = is.readInt();
         offsets = new int[len];
         for(int i = 0; i < len; i++) {
@@ -398,6 +447,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     @Override
     public void mapFromBuffer(ByteBuffer buf) {
         super.mapFromBuffer(buf);
+        firstRecordId = buf.getLong();
         int len = buf.getInt();
         offsets = new int[len];
         for(int i = 0; i < offsets.length; i++) {
@@ -412,6 +462,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
      * @throws IOException
      */
     private void writeObject(ObjectOutputStream oos) throws IOException {
+        oos.writeLong(firstRecordId);
         oos.writeObject(offsets);
     }
 
@@ -423,6 +474,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
      */
     private void readObject(ObjectInputStream ois)
             throws ClassNotFoundException, IOException {
+        firstRecordId = ois.readLong();
         offsets = (int [])ois.readObject();
     }
 }

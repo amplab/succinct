@@ -148,6 +148,13 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
   }
 
   /**
+   * Get a particular record from the RDD.
+   * @param recordId The ID for the record to fetch.
+   * @return The corresponding record.
+   */
+  def getRecord(recordId: Long): Array[Byte]
+
+  /**
    * Searches for all records that match a query and
    * returns results as offsets relative to each partition.
    *
@@ -259,16 +266,25 @@ object SuccinctRDD {
    * @return The SuccinctRDD.
    */
   def apply(inputRDD: RDD[Array[Byte]]): SuccinctRDD = {
+
     val partitionSizes = inputRDD.mapPartitionsWithIndex((idx, partition) =>
       {
         val partitionSize = partition.aggregate(0L)((sum, record) => sum + (record.length + 1), _ + _)
         Iterator((idx, partitionSize))
       }
     ).collect.sorted.map(_._2)
+
+    val partitionRecordCounts = inputRDD.mapPartitionsWithIndex((idx, partition) =>
+      {
+        val partitionRecordCount = partition.size
+        Iterator((idx, partitionRecordCount))
+      }).collect.sorted.map(_._2)
+
     val partitionOffsets = partitionSizes.scanLeft(0L)(_ + _)
-    partitionOffsets.foreach(println)
+    val partitionFirstRecordIds = partitionRecordCounts.scanLeft(0L)(_ + _)
+
     val succinctPartitions = inputRDD.mapPartitionsWithIndex((i, p) =>
-      createSuccinctBuffer(partitionOffsets(i), p))
+      createSuccinctBuffer(partitionOffsets(i), partitionFirstRecordIds(i), p))
     new SuccinctRDDImpl(succinctPartitions)
   }
 
@@ -314,7 +330,7 @@ object SuccinctRDD {
    * @param dataIter The iterator over the input partition data.
    * @return An Iterator over the SuccinctIndexedBuffer.
    */
-  private[succinct] def createSuccinctBuffer(partitionOffset: Long, dataIter: Iterator[Array[Byte]]):
+  private[succinct] def createSuccinctBuffer(partitionOffset: Long, partitionFirstRecordId: Long, dataIter: Iterator[Array[Byte]]):
       Iterator[SuccinctIndexedFile] = {
     var offsets = new ArrayBuffer[Int]()
     var buffers = new ArrayBuffer[Array[Byte]]()
@@ -335,7 +351,7 @@ object SuccinctRDD {
       rawBufferOS.write(SuccinctCore.EOL)
     }
 
-    val ret = Iterator(new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray, partitionOffset))
+    val ret = Iterator(new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray, partitionOffset, partitionFirstRecordId))
     ret
   }
 

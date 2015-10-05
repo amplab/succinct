@@ -13,6 +13,7 @@ import java.util.*;
 public class SuccinctIndexedFileStream extends SuccinctFileStream implements SuccinctIndexedFile {
 
     protected transient int[] offsets;
+    protected transient long firstRecordId;
 
     /**
      * Constructor to map a file containing Succinct data structures via streams.
@@ -25,6 +26,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
         super(filePath, conf);
         FSDataInputStream is = getStream(filePath);
         is.seek(endOfFileStream);
+        firstRecordId = is.readLong();
         int len = is.readInt();
         offsets = new int[len];
         for(int i = 0; i < len; i++) {
@@ -64,14 +66,27 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
         return offsets.length;
     }
 
-    public byte[] getRecord(int i) {
-        if(i >= offsets.length || i < 0) {
-            throw new ArrayIndexOutOfBoundsException("Record does not exist: i = " + i);
+    public long getFirstRecordId() {
+        return firstRecordId;
+    }
+
+    public Range getRecordIdRange() {
+        return new Range(firstRecordId, firstRecordId + getNumRecords() - 1);
+    }
+
+    public byte[] getPartitionRecord(int partitionRecordId) {
+        if(partitionRecordId >= offsets.length || partitionRecordId < 0) {
+            throw new ArrayIndexOutOfBoundsException("Record does not exist: partitionRecordId = " + partitionRecordId);
         }
-        int begOffset = offsets[i];
-        int endOffset = (i == offsets.length - 1) ? getOriginalSize() - 1 : offsets[i + 1];
+        int begOffset = offsets[partitionRecordId];
+        int endOffset = (partitionRecordId == offsets.length - 1) ? getOriginalSize() - 1 : offsets[partitionRecordId + 1];
         int len = (endOffset - begOffset - 1);
         return extract(begOffset, len);
+    }
+
+    public byte[] getRecord(long recordId) {
+        int paritionRecordId = (int)(recordId - firstRecordId);
+        return getPartitionRecord(paritionRecordId);
     }
 
     public Long[] recordSearchOffsets(byte[] query) {
@@ -108,7 +123,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
             long saVal = lookupSA(sp + i);
             int recordId = offsetToRecordId((int) saVal);
             if(!recordIds.contains(recordId)) {
-                results.add(getRecord(recordId));
+                results.add(getPartitionRecord(recordId));
                 recordIds.add(recordId);
             }
         }
@@ -131,7 +146,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
             long saVal = lookupSA(sp + i);
             int recordId = offsetToRecordId((int) saVal);
             if(!recordIds.contains(recordId)) {
-                results.add(getRecord(recordId));
+                results.add(getPartitionRecord(recordId));
                 recordIds.add(recordId);
             }
         }
@@ -146,7 +161,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
         for(Long offset: regexOffsetResults.keySet()) {
             int recordId = offsetToRecordId(offset.intValue());
             if(!recordIds.contains(recordId)) {
-                results.add(getRecord(recordId));
+                results.add(getPartitionRecord(recordId));
                 recordIds.add(recordId);
             }
         }
@@ -227,7 +242,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
 
         for (int recordId: recordIds) {
             if (counts.get(recordId) == numRanges) {
-                results.add(getRecord(recordId));
+                results.add(getPartitionRecord(recordId));
             }
         }
 

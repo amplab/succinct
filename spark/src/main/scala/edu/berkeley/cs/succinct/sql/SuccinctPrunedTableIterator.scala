@@ -33,7 +33,7 @@ class SuccinctPrunedTableIterator private[succinct](
    * @return The next [[Row]].
    */
   override def next(): Row = {
-    val data = sBuf.getRecord(curRecordId)
+    val data = sBuf.getPartitionRecord(curRecordId)
     curRecordId += 1
     succinctSerializer.deserializeRow(data, reqColsCheck)
   }
