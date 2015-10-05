@@ -1,10 +1,12 @@
 package edu.berkeley.cs.succinct.examples
 
 import edu.berkeley.cs.succinct.SuccinctRDD
+import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{SparkContext, SparkConf}
 
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Random
 
 /**
  * Benchmarks search on a Wikipedia dataset provided as an input.
@@ -14,18 +16,102 @@ object WikiBench {
   val numRepeats = 10
   val words = Seq("enactments", "subcostal", "Ellsberg", "chronometer", "lobbed",
     "Reckoning", "Counter-Terrorism", "overpopulated", "retriever", "nosewheel")
+  val randoms = (0 to 99).map(t => Random.nextLong())
+  val extractLen = 1024
 
-  def search(data: String, str: String): Array[Long] = {
+  def count(data: Array[Byte], str: String): Long = {
     var lastIndex = 0L
-    val results:ArrayBuffer[Long] = new ArrayBuffer[Long]()
+    var result: Long = 0
+    val dataStr = new String(data)
     while (lastIndex != -1) {
-      lastIndex = data.indexOf(str, lastIndex.toInt).toLong
+      result += 1
+      lastIndex = dataStr.indexOf(str, lastIndex.toInt).toLong
+      if (lastIndex != -1) {
+        lastIndex += str.length
+      }
+    }
+    result
+  }
+
+  def search(data: Array[Byte], str: String): Array[Long] = {
+    var lastIndex = 0L
+    val dataStr = new String(data)
+    val results: ArrayBuffer[Long] = new ArrayBuffer[Long]()
+    while (lastIndex != -1) {
+      lastIndex = dataStr.indexOf(str, lastIndex.toInt).toLong
       if (lastIndex != -1) {
         results += lastIndex
         lastIndex += str.length
       }
     }
     results.toArray
+  }
+
+  def search(it: Iterator[Array[Byte]], partitionOffset: Long, str: String): Array[Long] = {
+    var curOffset = partitionOffset
+    var rec: Array[Byte] = null
+    val results: ArrayBuffer[Long] = new ArrayBuffer[Long]()
+    while (it.hasNext) {
+      rec = it.next()
+      results ++= search(rec, str).map(_ + curOffset)
+      curOffset += (rec.length + 1)
+    }
+    results.toArray
+  }
+
+  def extract(it: Iterator[Array[Byte]], partitionOffset: Long, offset: Long, length: Int): Array[Byte] = {
+    var curOffset = partitionOffset
+    var rec: Array[Byte] = null
+    while(curOffset <= offset && it.hasNext) {
+      rec = it.next()
+      curOffset += (rec.length + 1)
+    }
+
+    if (curOffset <= offset) {
+      throw new ArrayIndexOutOfBoundsException("Invalid offset = " + offset)
+    }
+
+    // Roll back to the beginning of last record
+    curOffset -= (rec.length + 1)
+    // Compute offset into record
+    val recordOffset = (offset - curOffset).toInt
+    // Compute the record slice
+    var ret = rec.slice(recordOffset, recordOffset + length)
+    // If there are insufficient number of bytes in this record,
+    // Fetch from next record
+    if (ret.length < length) {
+      // Fetch the next record
+      rec = it.next()
+      ret = ret ++ rec.slice(0, length - ret.length)
+    }
+    ret
+  }
+
+  def countRDD(rdd: RDD[Array[Byte]], str: String): Long = {
+    rdd.map(count(_, str)).aggregate(0L)(_ + _, _ + _)
+  }
+
+  def searchRDD(rdd: RDD[Array[Byte]], partitionOffsets: Array[Long], str: String): RDD[Long] = {
+    rdd.mapPartitionsWithIndex((idx, it) => {
+      val res = search(it, partitionOffsets(idx), str)
+      Iterator(res)
+    }).flatMap(_.iterator)
+  }
+
+  def extractRDD(rdd: RDD[Array[Byte]], partitionOffsets: Array[Long], partitionSizes: Array[Long],
+                 offset: Long, length: Int): Array[Byte] = {
+    val results = rdd.mapPartitionsWithIndex((idx, it) => {
+      if(offset >= partitionOffsets(idx) && offset < partitionOffsets(idx) + partitionSizes(idx)) {
+        val res = extract(it, partitionOffsets(idx), offset, length)
+        Iterator(res)
+      } else {
+        Iterator()
+      }
+    }).collect
+    if (results.size != 1) {
+      throw new ArrayIndexOutOfBoundsException("Invalid offset " + offset)
+    }
+    results(0)
   }
 
   def main(args: Array[String]) = {
@@ -42,23 +128,44 @@ object WikiBench {
     val sparkConf = new SparkConf().setAppName("WikiBench")
     val ctx = new SparkContext(sparkConf)
 
-    System.out.println("Benchmarking with words: ")
-    words.foreach(System.out.println)
+    // Create RDD
+    val wikiData = ctx.textFile(dataPath, partitions).coalesce(partitions).map(_.getBytes).persist(StorageLevel.DISK_ONLY)
 
-    val wikiData = ctx.textFile(dataPath, partitions).coalesce(partitions).persist(StorageLevel.DISK_ONLY)
+    // Compute partition sizes and partition offsets
+    val partitionSizes = wikiData.mapPartitionsWithIndex((idx, partition) =>
+      {
+        val partitionSize = partition.aggregate(0L)((sum, record) => sum + (record.length + 1), _ + _)
+        Iterator((idx, partitionSize))
+      }).collect.sorted.map(_._2)
+    val partitionOffsets = partitionSizes.scanLeft(0L)(_ + _).slice(0, partitionSizes.size)
+    val dataSize = partitionSizes.sum
+    val offsets = randoms.map(_ % (dataSize - extractLen))
 
-    // Ensure all partitions are in memory
-    System.out.println("Number of lines = " + wikiData.count())
-
-    System.out.println("Benchmarking Spark RDD search (DISK_ONLY)...")
+    // Benchmark DISK_ONLY
+    System.out.println("Benchmarking Spark RDD count offsets (DISK_ONLY)...")
     words.foreach(w => {
       var time = 0.0
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        // Find all offsets for each record; we don't compute global offsets,
-        // but this is strictly less work than what SuccinctRDD has to do
-        val results = wikiData.map(search(_, w)).flatMap(_.iterator)
+        val results = countRDD(wikiData, w)
+        count += results
+        val endTime = System.currentTimeMillis()
+        val totTime = endTime - startTime
+        time += totTime
+      }
+      count = count / numRepeats
+      time = time / numRepeats
+      println(s"$w\t$count\t$time")
+    })
+
+    System.out.println("Benchmarking Spark RDD search offsets (DISK_ONLY)...")
+    words.foreach(w => {
+      var time = 0.0
+      var count = 0.0
+      for (i <- 1 to numRepeats) {
+        val startTime = System.currentTimeMillis()
+        val results = searchRDD(wikiData, partitionOffsets, w)
         count += results.count()
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
@@ -66,23 +173,56 @@ object WikiBench {
       }
       count = count / numRepeats
       time = time / numRepeats
-      System.out.println(s"$w\t$count\t$time")
+      println(s"$w\t$count\t$time")
+    })
+
+    println("Benchmarking Spark RDD random access (DISK_ONLY)...")
+    offsets.foreach(o => {
+      var time = 0.0
+      var length = 0.0
+      for (i <- 1 to numRepeats) {
+        val startTime = System.currentTimeMillis()
+        val results = extractRDD(wikiData, partitionOffsets, partitionSizes, o, extractLen)
+        length += results.length
+        val endTime = System.currentTimeMillis()
+        val totTime = endTime - startTime
+        time += totTime
+      }
+      length = length / numRepeats
+      time = time / numRepeats
+      println(s"$o\t$length\t$time")
     })
 
     wikiData.persist(StorageLevel.MEMORY_ONLY)
 
     // Ensure all partitions are in memory
-    System.out.println("Number of lines = " + wikiData.count())
+    println("Number of lines = " + wikiData.count())
 
-    System.out.println("Benchmarking Spark RDD search (MEMORY_ONLY)...")
+    // Benchmark MEMORY_ONLY
+    System.out.println("Benchmarking Spark RDD count offsets (MEMORY_ONLY)...")
     words.foreach(w => {
       var time = 0.0
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        // Find all offsets for each record; we don't compute global offsets,
-        // but this is strictly less work than what SuccinctRDD has to do
-        val results = wikiData.map(search(_, w)).flatMap(_.iterator)
+        val results = countRDD(wikiData, w)
+        count += results
+        val endTime = System.currentTimeMillis()
+        val totTime = endTime - startTime
+        time += totTime
+      }
+      count = count / numRepeats
+      time = time / numRepeats
+      println(s"$w\t$count\t$time")
+    })
+
+    System.out.println("Benchmarking Spark RDD search offsets (MEMORY_ONLY)...")
+    words.foreach(w => {
+      var time = 0.0
+      var count = 0.0
+      for (i <- 1 to numRepeats) {
+        val startTime = System.currentTimeMillis()
+        val results = searchRDD(wikiData, partitionOffsets, w)
         count += results.count()
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
@@ -90,32 +230,33 @@ object WikiBench {
       }
       count = count / numRepeats
       time = time / numRepeats
-      System.out.println(s"$w\t$count\t$time")
+      println(s"$w\t$count\t$time")
     })
 
-    wikiData.unpersist()
-    val wikiSuccinctData = SuccinctRDD(ctx, succinctDataPath, StorageLevel.MEMORY_ONLY).persist()
-
-    // Ensure all partitions are in memory
-    System.out.println("Number of lines = " + wikiSuccinctData.countOffsets("\n".getBytes()))
-
-    System.out.println("Benchmarking Succinct RDD search offsets...")
-    words.foreach(w => {
+    println("Benchmarking Spark RDD random access (MEMORY_ONLY)...")
+    offsets.foreach(o => {
       var time = 0.0
-      var count = 0.0
+      var length = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = wikiSuccinctData.searchOffsets(w).collect()
-        count += results.size
+        val results = extractRDD(wikiData, partitionOffsets, partitionSizes, o, extractLen)
+        length += results.length
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
         time += totTime
       }
-      count = count / numRepeats
+      length = length / numRepeats
       time = time / numRepeats
-      System.out.println(s"$w\t$count\t$time")
+      println(s"$o\t$length\t$time")
     })
 
+    val wikiSuccinctData = SuccinctRDD(ctx, succinctDataPath, StorageLevel.MEMORY_ONLY).persist()
+    wikiData.unpersist()
+
+    // Ensure all partitions are in memory
+    println("Number of lines = " + wikiSuccinctData.countOffsets("\n".getBytes()))
+
+    // Benchmark Succinct
     System.out.println("Benchmarking Succinct RDD count offsets...")
     words.foreach(w => {
       var time = 0.0
@@ -130,7 +271,41 @@ object WikiBench {
       }
       count = count / numRepeats
       time = time / numRepeats
-      System.out.println(s"$w\t$count\t$time")
+      println(s"$w\t$count\t$time")
+    })
+
+    println("Benchmarking Succinct RDD search offsets...")
+    words.foreach(w => {
+      var time = 0.0
+      var count = 0.0
+      for (i <- 1 to numRepeats) {
+        val startTime = System.currentTimeMillis()
+        val results = wikiSuccinctData.searchOffsets(w).collect()
+        count += results.size
+        val endTime = System.currentTimeMillis()
+        val totTime = endTime - startTime
+        time += totTime
+      }
+      count = count / numRepeats
+      time = time / numRepeats
+      println(s"$w\t$count\t$time")
+    })
+
+    println("Benchmarking Succinct RDD random access...")
+    offsets.foreach(o => {
+      var time = 0.0
+      var length = 0.0
+      for (i <- 1 to numRepeats) {
+        val startTime = System.currentTimeMillis()
+        val results =  wikiSuccinctData.extract(o, extractLen)
+        length += results.length
+        val endTime = System.currentTimeMillis()
+        val totTime = endTime - startTime
+        time += totTime
+      }
+      length = length / numRepeats
+      time = time / numRepeats
+      println(s"$o\t$length\t$time")
     })
 
   }
