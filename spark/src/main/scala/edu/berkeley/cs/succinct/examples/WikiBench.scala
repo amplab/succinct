@@ -16,7 +16,7 @@ object WikiBench {
   val numRepeats = 10
   val words = Seq("enactments", "subcostal", "Ellsberg", "chronometer", "lobbed",
     "Reckoning", "Counter-Terrorism", "overpopulated", "retriever", "nosewheel")
-  val randoms = (0 to 99).map(t => Random.nextLong())
+  val randoms = (0 to 99).map(t => Math.abs(Random.nextLong()))
   val extractLen = 1024
 
   def count(data: Array[Byte], str: String): Long = {
