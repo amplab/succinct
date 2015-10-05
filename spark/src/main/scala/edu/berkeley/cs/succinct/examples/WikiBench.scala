@@ -132,10 +132,10 @@ object WikiBench {
     val ctx = new SparkContext(sparkConf)
 
     // Create RDD
-    val wikiData = ctx.textFile(dataPath, partitions).map(_.getBytes).repartition(partitions).persist(StorageLevel.DISK_ONLY)
+    val wikiDataDisk = ctx.textFile(dataPath, partitions).map(_.getBytes).repartition(partitions).persist(StorageLevel.DISK_ONLY)
 
     // Compute partition sizes and partition offsets
-    val partitionSizes = wikiData.mapPartitionsWithIndex((idx, partition) =>
+    val partitionSizes = wikiDataDisk.mapPartitionsWithIndex((idx, partition) =>
       {
         val partitionSize = partition.aggregate(0L)((sum, record) => sum + (record.length + 1), _ + _)
         Iterator((idx, partitionSize))
@@ -151,7 +151,7 @@ object WikiBench {
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = countRDD(wikiData, w)
+        val results = countRDD(wikiDataDisk, w)
         count += results
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
@@ -168,7 +168,7 @@ object WikiBench {
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = searchRDD(wikiData, partitionOffsets, w)
+        val results = searchRDD(wikiDataDisk, partitionOffsets, w)
         count += results.count()
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
@@ -185,7 +185,7 @@ object WikiBench {
       var length = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = extractRDD(wikiData, partitionOffsets, partitionSizes, o, extractLen)
+        val results = extractRDD(wikiDataDisk, partitionOffsets, partitionSizes, o, extractLen)
         length += results.length
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
@@ -196,10 +196,10 @@ object WikiBench {
       println(s"$o\t$length\t$time")
     })
 
-    wikiData.persist(StorageLevel.MEMORY_ONLY)
+    val wikiDataMem = ctx.textFile(dataPath, partitions).map(_.getBytes).repartition(partitions).persist(StorageLevel.MEMORY_ONLY)
 
     // Ensure all partitions are in memory
-    println("Number of lines = " + wikiData.count())
+    println("Number of lines = " + wikiDataMem.count())
 
     // Benchmark MEMORY_ONLY
     println("Benchmarking Spark RDD count offsets (MEMORY_ONLY)...")
@@ -208,7 +208,7 @@ object WikiBench {
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = countRDD(wikiData, w)
+        val results = countRDD(wikiDataMem, w)
         count += results
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
@@ -225,7 +225,7 @@ object WikiBench {
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = searchRDD(wikiData, partitionOffsets, w)
+        val results = searchRDD(wikiDataMem, partitionOffsets, w)
         count += results.count()
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
@@ -242,7 +242,7 @@ object WikiBench {
       var length = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = extractRDD(wikiData, partitionOffsets, partitionSizes, o, extractLen)
+        val results = extractRDD(wikiDataMem, partitionOffsets, partitionSizes, o, extractLen)
         length += results.length
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
@@ -254,7 +254,7 @@ object WikiBench {
     })
 
     val wikiSuccinctData = SuccinctRDD(ctx, succinctDataPath, StorageLevel.MEMORY_ONLY).persist()
-    wikiData.unpersist()
+    wikiDataMem.unpersist()
 
     // Ensure all partitions are in memory
     println("Number of lines = " + wikiSuccinctData.countOffsets("\n".getBytes()))
