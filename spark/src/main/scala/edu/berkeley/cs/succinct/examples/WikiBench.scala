@@ -1,5 +1,7 @@
 package edu.berkeley.cs.succinct.examples
 
+import java.io.FileWriter
+
 import edu.berkeley.cs.succinct.SuccinctRDD
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
@@ -27,8 +29,11 @@ object WikiBench {
   val extractLen: Int = 1024
 
   // Constants
-  val WARMUP_COUNT: Int = 100
-  val MEASURE_COUNT: Int = 1000
+  val WARMUP_COUNT: Int = 20
+  val MEASURE_COUNT: Int = 100
+
+  // Output path
+  var outPath: String = _
 
   def sampleSeq[T](input: Seq[T], sampleSize: Int): Seq[T] = {
     Seq.fill(sampleSize)(input(Random.nextInt(input.length)))
@@ -153,41 +158,51 @@ object WikiBench {
   }
 
   def benchSparkRDD(rdd: RDD[Array[Byte]]): Unit = {
-    println("Benchmarking Spark RDD count offsets (DISK_ONLY)...")
+    val storageLevel = rdd.getStorageLevel match {
+      case StorageLevel.DISK_ONLY => "disk"
+      case StorageLevel.MEMORY_ONLY => "mem"
+      case _ => "undf"
+    }
+
+    println(s"Benchmarking Spark RDD $storageLevel count offsets...")
 
     // Warmup
     sampleSeq(words, WARMUP_COUNT).foreach(w => {
       val count = countRDD(rdd, w)
-      System.err.println(s"$w\t$count")
+      println(s"$w\t$count")
     })
 
     // Measure
+    val outCount = new FileWriter(outPath + "/spark-" + storageLevel + "-count")
     sampleSeq(words, MEASURE_COUNT).foreach(w => {
       val startTime = System.currentTimeMillis()
       val count = countRDD(rdd, w)
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      println(s"$w\t$count\t$totTime")
+      outCount.write(s"$w\t$count\t$totTime")
     })
+    outCount.close()
 
-    println("Benchmarking Spark RDD search offsets (DISK_ONLY)...")
+    println(s"Benchmarking Spark RDD $storageLevel search offsets...")
 
     // Warmup
     sampleSeq(words, WARMUP_COUNT).foreach(w => {
       val count = searchRDD(rdd, partitionOffsets, w).count()
-      System.err.println(s"$w\t$count")
+      println(s"$w\t$count")
     })
 
     // Measure
+    val outSearch = new FileWriter(outPath + "/spark-" + storageLevel + "-search")
     sampleSeq(words, MEASURE_COUNT).foreach(w => {
       val startTime = System.currentTimeMillis()
       val count = searchRDD(rdd, partitionOffsets, w).count()
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      println(s"$w\t$count\t$totTime")
+      outSearch.write(s"$w\t$count\t$totTime")
     })
+    outSearch.close()
 
-    println("Benchmarking Spark RDD random access (DISK_ONLY)...")
+    println(s"Benchmarking Spark RDD $storageLevel random access...")
 
     // Warmup
     sampleSeq(offsets, WARMUP_COUNT).foreach(o => {
@@ -196,13 +211,15 @@ object WikiBench {
     })
 
     // Measure
+    val outExtract = new FileWriter(outPath + "/spark-" + storageLevel + "-extract")
     sampleSeq(offsets, MEASURE_COUNT).foreach(o => {
       val startTime = System.currentTimeMillis()
       val length = extractRDD(rdd, partitionOffsets, partitionSizes, o, extractLen).length
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      println(s"$o\t$length\t$totTime")
+      outExtract.write(s"$o\t$length\t$totTime")
     })
+    outExtract.close()
   }
 
   def benchSuccinctRDD(rdd: SuccinctRDD): Unit = {
@@ -211,34 +228,38 @@ object WikiBench {
     // Warmup
     sampleSeq(words, WARMUP_COUNT).foreach(w => {
       val count = rdd.countOffsets(w)
-      System.err.println(s"$w\t$count")
+      println(s"$w\t$count")
     })
 
     // Measure
+    val outCount = new FileWriter(outPath + "/succinct-count")
     sampleSeq(words, MEASURE_COUNT).foreach(w => {
       val startTime = System.currentTimeMillis()
       val count = rdd.countOffsets(w)
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      println(s"$w\t$count\t$totTime")
+      outCount.write(s"$w\t$count\t$totTime")
     })
+    outCount.close()
 
     println("Benchmarking Succinct RDD search offsets...")
 
     // Warmup
     sampleSeq(words, WARMUP_COUNT).foreach(w => {
       val count = rdd.searchOffsets(w).count()
-      System.err.println(s"$w\t$count")
+      println(s"$w\t$count")
     })
 
     // Measure
+    val outSearch = new FileWriter(outPath + "/succinct-search")
     sampleSeq(words, MEASURE_COUNT).foreach(w => {
       val startTime = System.currentTimeMillis()
       val count = rdd.searchOffsets(w).count()
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      println(s"$w\t$count\t$totTime")
+      outSearch.write(s"$w\t$count\t$totTime")
     })
+    outSearch.close()
 
     println("Benchmarking Succinct RDD random access...")
     sampleSeq(offsets, WARMUP_COUNT).foreach(o => {
@@ -247,26 +268,30 @@ object WikiBench {
     })
 
     // Measure
+    val outExtract = new FileWriter(outPath + "/succinct-extract")
     sampleSeq(offsets, MEASURE_COUNT).foreach(o => {
       val startTime = System.currentTimeMillis()
       val length = rdd.extract(o, extractLen).length
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      println(s"$o\t$length\t$totTime")
+      outExtract.write(s"$o\t$length\t$totTime")
     })
+    outExtract.close()
+
   }
 
   def main(args: Array[String]) = {
 
-    if (args.length < 2) {
-      System.err.println("Usage: WikiBench <raw-data> <succinct-data> [<partitions>] [<query-path>]")
+    if (args.length < 5) {
+      System.err.println("Usage: WikiBench <raw-data> <succinct-data> <partitions> <query-path> <output-path>")
       System.exit(1)
     }
 
     val dataPath = args(0)
     val succinctDataPath = args(1)
-    val partitions = if (args.length > 2) args(2).toInt else 1
-    val queryPath = if (args.length > 3) args(3) else null
+    val partitions = args(2).toInt
+    val queryPath = args(3)
+    outPath = args(4)
 
     val sparkConf = new SparkConf().setAppName("WikiBench")
     val ctx = new SparkContext(sparkConf)
@@ -290,6 +315,7 @@ object WikiBench {
 
     // Benchmark DISK_ONLY
     benchSparkRDD(wikiDataDisk)
+    wikiDataDisk.unpersist()
 
     val wikiDataMem = ctx.textFile(dataPath, partitions).map(_.getBytes).repartition(partitions).persist(StorageLevel.MEMORY_ONLY)
 
@@ -298,15 +324,16 @@ object WikiBench {
 
     // Benchmark MEMORY_ONLY
     benchSparkRDD(wikiDataMem)
+    wikiDataMem.unpersist()
 
     val wikiSuccinctData = SuccinctRDD(ctx, succinctDataPath, StorageLevel.MEMORY_ONLY).persist()
-    wikiDataMem.unpersist()
 
     // Ensure all partitions are in memory
     println("Number of lines = " + wikiSuccinctData.countOffsets("\n".getBytes()))
 
     // Benchmark Succinct
     benchSuccinctRDD(wikiSuccinctData)
+    wikiSuccinctData.unpersist()
 
   }
 
