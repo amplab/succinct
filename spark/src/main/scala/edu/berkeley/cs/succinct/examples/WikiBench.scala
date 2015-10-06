@@ -3,10 +3,12 @@ package edu.berkeley.cs.succinct.examples
 import edu.berkeley.cs.succinct.SuccinctRDD
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.{SparkContext, SparkConf}
+import org.apache.spark.{SparkConf, SparkContext}
 
+import scala.collection.immutable.TreeMap
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
+import scala.util.matching.Regex
 
 /**
  * Benchmarks search on a Wikipedia dataset provided as an input.
@@ -16,6 +18,7 @@ object WikiBench {
   val numRepeats = 10
   val words = Seq("enactments", "subcostal", "Ellsberg", "chronometer", "lobbed",
     "Reckoning", "Counter-Terrorism", "overpopulated", "retriever", "nosewheel")
+  val regex = Seq("(William|Bill) Clinton")
   val extractLen = 1024
 
   def count(data: Array[Byte], str: String): Long = {
@@ -23,9 +26,9 @@ object WikiBench {
     var result: Long = 0
     val dataStr = new String(data)
     while (lastIndex != -1) {
-      result += 1
       lastIndex = dataStr.indexOf(str, lastIndex.toInt).toLong
       if (lastIndex != -1) {
+        result += 1
         lastIndex += str.length
       }
     }
@@ -58,6 +61,19 @@ object WikiBench {
     results.toArray
   }
 
+  def regexSearch(it: Iterator[Array[Byte]], partitionOffset: Long, re: String): Map[Long, Int] = {
+    var curOffset = partitionOffset
+    val rex = new Regex(re)
+    var rec: String = null
+    var results: Map[Long, Int] = new TreeMap[Long, Int]()
+    while (it.hasNext) {
+      rec = new String(it.next())
+      results ++= rex.findAllMatchIn(rec).map(m => (curOffset + m.start, m.end - m.start)).toMap
+      curOffset += (rec.length + 1L)
+    }
+    results
+  }
+
   def extract(it: Iterator[Array[Byte]], partitionOffset: Long, offset: Long, length: Int): Array[Byte] = {
     var curOffset = partitionOffset
     var rec: Array[Byte] = null
@@ -75,15 +91,16 @@ object WikiBench {
     // Compute offset into record
     val recordOffset = (offset - curOffset).toInt
     // Compute the record slice
-    var ret = rec.slice(recordOffset, recordOffset + length)
+    val ret = rec.slice(recordOffset, recordOffset + length)
     // If there are insufficient number of bytes in this record,
     // Fetch from next record
     if (ret.length < length && it.hasNext) {
       // Fetch the next record
       rec = it.next()
-      ret = ret ++ rec.slice(0, length - ret.length)
+      ret ++ rec.slice(0, length - ret.length)
+    } else {
+      ret
     }
-    ret
   }
 
   def countRDD(rdd: RDD[Array[Byte]], str: String): Long = {
@@ -95,6 +112,13 @@ object WikiBench {
       val res = search(it, partitionOffsets(idx), str)
       Iterator(res)
     }).flatMap(_.iterator)
+  }
+
+  def regexSearchRDD(rdd: RDD[Array[Byte]], partitionOffsets: Array[Long], re: String): RDD[(Long, Int)] = {
+    rdd.mapPartitionsWithIndex((idx, it) => {
+      val res = regexSearch(it, partitionOffsets(idx), re)
+      res.iterator
+    })
   }
 
   def extractRDD(rdd: RDD[Array[Byte]], partitionOffsets: Array[Long], partitionSizes: Array[Long],
