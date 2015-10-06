@@ -184,7 +184,7 @@ object WikiBench {
       val count = countRDD(rdd, w)
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      outCount.write(s"$w\t$count\t$totTime")
+      outCount.write(s"$w\t$count\t$totTime\n")
     })
     outCount.close()
 
@@ -203,7 +203,7 @@ object WikiBench {
       val count = searchRDD(rdd, partitionOffsets, w).count()
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      outSearch.write(s"$w\t$count\t$totTime")
+      outSearch.write(s"$w\t$count\t$totTime\n")
     })
     outSearch.close()
 
@@ -222,7 +222,7 @@ object WikiBench {
       val length = extractRDD(rdd, partitionOffsets, partitionSizes, o, extractLen).length
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      outExtract.write(s"$o\t$length\t$totTime")
+      outExtract.write(s"$o\t$length\t$totTime\n")
     })
     outExtract.close()
   }
@@ -243,7 +243,7 @@ object WikiBench {
       val count = rdd.countOffsets(w)
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      outCount.write(s"$w\t$count\t$totTime")
+      outCount.write(s"$w\t$count\t$totTime\n")
     })
     outCount.close()
 
@@ -262,7 +262,7 @@ object WikiBench {
       val count = rdd.searchOffsets(w).count()
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      outSearch.write(s"$w\t$count\t$totTime")
+      outSearch.write(s"$w\t$count\t$totTime\n")
     })
     outSearch.close()
 
@@ -279,7 +279,7 @@ object WikiBench {
       val length = rdd.extract(o, extractLen).length
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      outExtract.write(s"$o\t$length\t$totTime")
+      outExtract.write(s"$o\t$length\t$totTime\n")
     })
     outExtract.close()
 
