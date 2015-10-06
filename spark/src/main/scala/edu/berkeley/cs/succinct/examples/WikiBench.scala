@@ -285,7 +285,7 @@ object WikiBench {
 
   }
 
-  def main(args: Array[String]) = {
+  def main(args: Array[String]) : Unit = {
 
     if (args.length < 5) {
       System.err.println("Usage: WikiBench <raw-data> <succinct-data> <partitions> <query-path> <output-path>")
