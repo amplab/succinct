@@ -15,7 +15,7 @@ import scala.util.matching.Regex
  */
 object WikiBench {
 
-  val numRepeats = 10
+  val numRepeats = 3
   val words = Seq("enactments", "subcostal", "Ellsberg", "chronometer", "lobbed",
     "Reckoning", "Counter-Terrorism", "overpopulated", "retriever", "nosewheel")
   val regex = Seq("(William|Bill) Clinton")
@@ -94,13 +94,12 @@ object WikiBench {
     val ret = rec.slice(recordOffset, recordOffset + length)
     // If there are insufficient number of bytes in this record,
     // Fetch from next record
-    if (ret.length < length && it.hasNext) {
+    while (ret.length < length && it.hasNext) {
       // Fetch the next record
       rec = it.next()
       ret ++ rec.slice(0, length - ret.length)
-    } else {
-      ret
     }
+    ret
   }
 
   def countRDD(rdd: RDD[Array[Byte]], str: String): Long = {
@@ -166,7 +165,7 @@ object WikiBench {
     val partitionOffsets = partitionSizes.scanLeft(0L)(_ + _).slice(0, partitionSizes.size)
     val offsets = Random.shuffle(partitionOffsets.zip(partitionSizes)
       .map(range => (0 to 99).map(i => range._1 + (Math.abs(Random.nextLong()) % (range._2 - extractLen))))
-      .flatMap(_.iterator).toList).take(100)
+      .flatMap(_.iterator).toList).take(10)
 
     // Benchmark DISK_ONLY
     println("Benchmarking Spark RDD count offsets (DISK_ONLY)...")
