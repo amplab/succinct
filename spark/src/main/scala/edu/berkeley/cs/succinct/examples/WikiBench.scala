@@ -315,7 +315,7 @@ object WikiBench {
 
     offsets = Random.shuffle(partitionOffsets.zip(partitionSizes)
       .map(range => (0 to 99).map(i => range._1 + (Math.abs(Random.nextLong()) % (range._2 - extractLen))))
-      .flatMap(_.iterator).toList).take(10)
+      .flatMap(_.iterator).toList)
 
     // Create queries
     wordsWarmup = sampleSeq(words, WARMUP_COUNT)
