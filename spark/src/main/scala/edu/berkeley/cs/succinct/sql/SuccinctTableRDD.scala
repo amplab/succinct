@@ -26,7 +26,7 @@ import scala.collection.mutable.ArrayBuffer
  */
 
 abstract class SuccinctTableRDD(@transient sc: SparkContext,
-    @transient deps: Seq[Dependency[_]])
+                                @transient deps: Seq[Dependency[_]])
   extends RDD[Row](sc, deps) {
 
   private[succinct] def partitionsRDD: RDD[SuccinctIndexedFile]
@@ -139,21 +139,21 @@ object SuccinctTableRDD {
     val numPartitions = status.length
     val succinctPartitions = sparkContext.parallelize((0 to numPartitions - 1), numPartitions)
       .mapPartitionsWithIndex[SuccinctIndexedFile]((i, partition) => {
-        val partitionLocation = dataPath + "/part-" + "%05d".format(i)
-        val path = new Path(partitionLocation)
-        val fs = FileSystem.get(path.toUri, new Configuration())
-        val is = fs.open(path)
-        val partitionIterator = storageLevel match {
-          case StorageLevel.MEMORY_ONLY =>
-            Iterator(new SuccinctIndexedFileBuffer(is))
-          case StorageLevel.DISK_ONLY =>
-            Iterator(new SuccinctIndexedFileStream(path))
-          case _ =>
-            Iterator(new SuccinctIndexedFileBuffer(is))
-        }
-        is.close()
-        partitionIterator
-      })
+      val partitionLocation = dataPath + "/part-" + "%05d".format(i)
+      val path = new Path(partitionLocation)
+      val fs = FileSystem.get(path.toUri, new Configuration())
+      val is = fs.open(path)
+      val partitionIterator = storageLevel match {
+        case StorageLevel.MEMORY_ONLY =>
+          Iterator(new SuccinctIndexedFileBuffer(is))
+        case StorageLevel.DISK_ONLY =>
+          Iterator(new SuccinctIndexedFileStream(path))
+        case _ =>
+          Iterator(new SuccinctIndexedFileBuffer(is))
+      }
+      is.close()
+      partitionIterator
+    })
     val succinctSchema: StructType = SuccinctUtils.readObjectFromFS[StructType](conf, schemaPath)
     val succinctSeparators: Array[Byte] = SuccinctUtils.readObjectFromFS[Array[Byte]](conf, separatorsPath)
     val minRow: Row = SuccinctUtils.readObjectFromFS[Row](conf, minPath)
@@ -177,7 +177,7 @@ object SuccinctTableRDD {
     val maxRow: Row = max(inputRDD, schema)
     val limits = getLimits(maxRow, minRow)
     val succinctSerializer = new SuccinctSerializer(schema, separators, limits)
-    val succinctPartitions = inputRDD.mapPartitions{
+    val succinctPartitions = inputRDD.mapPartitions {
       partition => createSuccinctBuffer(partition, succinctSerializer)
     }
     new SuccinctTableRDDImpl(succinctPartitions, separators, schema, minRow, maxRow, succinctSerializer)
@@ -226,8 +226,8 @@ object SuccinctTableRDD {
    * @return An Iterator over the [[SuccinctIndexedFile]].
    */
   private[succinct] def createSuccinctBuffer(
-      dataIter: Iterator[Row],
-      succinctSerializer: SuccinctSerializer): Iterator[SuccinctIndexedFile] = {
+                                              dataIter: Iterator[Row],
+                                              succinctSerializer: SuccinctSerializer): Iterator[SuccinctIndexedFile] = {
 
     var offsets = new ArrayBuffer[Int]()
     var buffers = new ArrayBuffer[Array[Byte]]()

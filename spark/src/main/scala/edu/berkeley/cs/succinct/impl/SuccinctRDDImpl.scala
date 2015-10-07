@@ -14,8 +14,8 @@ import org.apache.spark.storage.StorageLevel
  * @param targetStorageLevel The storage level for the RDD.
  */
 class SuccinctRDDImpl private[succinct](
-    val partitionsRDD: RDD[SuccinctIndexedFile],
-    val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+                                         val partitionsRDD: RDD[SuccinctIndexedFile],
+                                         val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
   val partitionOffsetRanges = partitionsRDD.map(_.getFileRange).collect.sorted
@@ -107,7 +107,7 @@ class SuccinctRDDImpl private[succinct](
       val values = partitionsRDD.map(partition => {
         if (partition.getFileOffset == startPartitionRange.first) {
           partition.extract(offset, startLength)
-        } else if(partition.getFileOffset == endPartitionRange.first) {
+        } else if (partition.getFileOffset == endPartitionRange.first) {
           partition.extract(endPartitionRange.first, endLength)
         } else {
           null

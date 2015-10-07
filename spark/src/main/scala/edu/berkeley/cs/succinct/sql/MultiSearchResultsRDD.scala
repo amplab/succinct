@@ -10,7 +10,7 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
  * A container RDD for search results of a multi-search operation on [[SuccinctTableRDD]].
  *
  * @constructor Creates a [[MultiSearchResultsRDD]] from the underlying [[SuccinctTableRDD]], list of queries,
- *             list of separators and the target storage level for the RDD.
+ *              list of separators and the target storage level for the RDD.
  * @param succinctTableRDD The underlying SuccinctTableRDD.
  * @param queryTypes The types of the queries.
  * @param queries The parameters for the queries.
@@ -19,11 +19,11 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
  * @param targetStorageLevel The target storage level for the RDD.
  */
 class MultiSearchResultsRDD(val succinctTableRDD: SuccinctTableRDD,
-    val queryTypes: Array[QueryType],
-    val queries: Array[Array[Array[Byte]]],
-    val reqColsCheck: Map[String, Boolean],
-    val succinctSerializer: SuccinctSerializer,
-    val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+                            val queryTypes: Array[QueryType],
+                            val queries: Array[Array[Array[Byte]]],
+                            val reqColsCheck: Map[String, Boolean],
+                            val succinctSerializer: SuccinctSerializer,
+                            val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends RDD[Row](succinctTableRDD.context, List(new OneToOneDependency(succinctTableRDD))) {
 
   /** Overrides the compute method in RDD to return an iterator over the search results. */

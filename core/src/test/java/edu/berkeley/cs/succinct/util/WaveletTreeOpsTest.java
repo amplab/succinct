@@ -5,25 +5,25 @@ import junit.framework.TestCase;
 
 public class WaveletTreeOpsTest extends TestCase {
 
-    /**
-     * Set up test.
-     *
-     * @throws Exception
-     */
-    public void setUp() throws Exception {
-        super.setUp();
-        Tables.init();
-    }
+  /**
+   * Set up test.
+   *
+   * @throws Exception
+   */
+  public void setUp() throws Exception {
+    super.setUp();
+    Tables.init();
+  }
 
-    /**
-     * Test method: long getValue()
-     *
-     * @throws Exception
-     */
-    public void testGetValue() throws Exception {
-        System.out.println("getValue");
+  /**
+   * Test method: long getValue()
+   *
+   * @throws Exception
+   */
+  public void testGetValue() throws Exception {
+    System.out.println("getValue");
 
-        // TODO: Fix test
+    // TODO: Fix test
         /*
         ArrayList<Long> A = new ArrayList<Long>(), B = new ArrayList<Long>();
         for(long i = 0L; i < 256L; i++) {
@@ -40,5 +40,5 @@ public class WaveletTreeOpsTest extends TestCase {
 
         }
         */
-    }
+  }
 }

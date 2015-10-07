@@ -6,34 +6,34 @@ import junit.framework.TestCase;
 
 public class WaveletTreeTest extends TestCase {
 
-    /**
-     * Set up test.
-     *
-     * @throws Exception
-     */
-    public void setUp() throws Exception {
-        super.setUp();
-        Tables.init();
+  /**
+   * Set up test.
+   *
+   * @throws Exception
+   */
+  public void setUp() throws Exception {
+    super.setUp();
+    Tables.init();
+  }
+
+  /**
+   * Test method: ByteBuffer getByteBuffer()
+   *
+   * @throws Exception
+   */
+  public void testGetByteBuffer() throws Exception {
+    System.out.println("getByteBuffer");
+
+    WaveletTree instance1 = new WaveletTree(null);
+    assertNull(instance1.getByteBuffer());
+
+    TLongArrayList A = new TLongArrayList(), B = new TLongArrayList();
+    for (long i = 0L; i < 256L; i++) {
+      A.add(i);
+      B.add(255L - i);
     }
 
-    /**
-     * Test method: ByteBuffer getByteBuffer()
-     *
-     * @throws Exception
-     */
-    public void testGetByteBuffer() throws Exception {
-        System.out.println("getByteBuffer");
-
-        WaveletTree instance1 = new WaveletTree(null);
-        assertNull(instance1.getByteBuffer());
-
-        TLongArrayList A = new TLongArrayList(), B = new TLongArrayList();
-        for(long i = 0L; i < 256L; i++) {
-            A.add(i);
-            B.add(255L - i);
-        }
-
-        WaveletTree instance2 = new WaveletTree(0L, 255L, A, B);
-        assertNotNull(instance2.getByteBuffer());
-    }
+    WaveletTree instance2 = new WaveletTree(0L, 255L, A, B);
+    assertNotNull(instance2.getByteBuffer());
+  }
 }

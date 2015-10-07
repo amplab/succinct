@@ -1,8 +1,8 @@
 package edu.berkeley.cs.succinct.sql.impl
 
-import edu.berkeley.cs.succinct.{SuccinctIndexedFile, SuccinctCore}
 import edu.berkeley.cs.succinct.SuccinctIndexedFile.QueryType
 import edu.berkeley.cs.succinct.sql._
+import edu.berkeley.cs.succinct.{SuccinctCore, SuccinctIndexedFile}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.rdd.RDD
@@ -16,20 +16,20 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
  * Implements [[SuccinctTableRDD]]; provides implementations for the count and search methods.
  *
  * @constructor Creates a [[SuccinctTableRDD]] from an RDD of [[SuccinctIndexedFile]] partitions,
- *             the list of separators and the target storage level.
+ *              the list of separators and the target storage level.
  * @param partitionsRDD The RDD of partitions (SuccinctIndexedBuffer).
  * @param separators The list of separators for distinguishing between attributes.
  * @param schema The schema for [[SuccinctTableRDD]]
  * @param targetStorageLevel The target storage level for the RDD.
  */
 class SuccinctTableRDDImpl private[succinct](
-    val partitionsRDD: RDD[SuccinctIndexedFile],
-    val separators: Array[Byte],
-    val schema: StructType,
-    val minimums: Row,
-    val maximums: Row,
-    val succinctSerializer: SuccinctSerializer,
-    val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+                                              val partitionsRDD: RDD[SuccinctIndexedFile],
+                                              val separators: Array[Byte],
+                                              val schema: StructType,
+                                              val minimums: Row,
+                                              val maximums: Row,
+                                              val succinctSerializer: SuccinctSerializer,
+                                              val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctTableRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
   /** Overrides [[RDD]]]'s compute to return a [[SuccinctTableIterator]]. */
@@ -75,38 +75,6 @@ class SuccinctTableRDDImpl private[succinct](
     this
   }
 
-  /** Implements getAttrIdx for [[SuccinctTableRDD]] */
-  private def getAttrIdx(attribute: String): Int = schema.lastIndexOf(schema(attribute))
-
-  /** Implements getSeparator for [[SuccinctTableRDD]] */
-  private def getSeparator(attrIdx: Int): Byte = {
-    if (attrIdx == separators.length) SuccinctCore.EOL
-    else separators(attrIdx)
-  }
-
-  /** Implements createQuery for [[SuccinctTableRDD]] */
-  private def createQuery(attrIdx: Int, query: Array[Byte]): Array[Byte] = {
-    getSeparator(attrIdx) +: query :+ getSeparator(attrIdx + 1)
-  }
-
-  /** Implements createQuery for [[SuccinctTableRDD]] */
-  private def createQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
-    val attrIdx = getAttrIdx(attribute)
-    createQuery(attrIdx, query)
-  }
-
-  /** Implements createPrefixQuery for [[SuccinctTableRDD]] */
-  private def createPrefixQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
-    val attrIdx = schema.lastIndexOf(schema(attribute))
-    getSeparator(attrIdx) +: query
-  }
-
-  /** Implements createSuffixQuery for [[SuccinctTableRDD]] */
-  private def createSuffixQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
-    val attrIdx = schema.lastIndexOf(schema(attribute))
-    query :+ getSeparator(attrIdx + 1)
-  }
-
   /** Implements save for [[SuccinctTableRDD]] */
   override def save(path: String): Unit = {
     val dataPath = path.stripSuffix("/") + "/data"
@@ -139,6 +107,26 @@ class SuccinctTableRDDImpl private[succinct](
     new SearchResultsRDD(this, createQuery(attribute, query), succinctSerializer)
   }
 
+  /** Implements createQuery for [[SuccinctTableRDD]] */
+  private def createQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
+    val attrIdx = getAttrIdx(attribute)
+    createQuery(attrIdx, query)
+  }
+
+  /** Implements getAttrIdx for [[SuccinctTableRDD]] */
+  private def getAttrIdx(attribute: String): Int = schema.lastIndexOf(schema(attribute))
+
+  /** Implements createQuery for [[SuccinctTableRDD]] */
+  private def createQuery(attrIdx: Int, query: Array[Byte]): Array[Byte] = {
+    getSeparator(attrIdx) +: query :+ getSeparator(attrIdx + 1)
+  }
+
+  /** Implements getSeparator for [[SuccinctTableRDD]] */
+  private def getSeparator(attrIdx: Int): Byte = {
+    if (attrIdx == separators.length) SuccinctCore.EOL
+    else separators(attrIdx)
+  }
+
   /** Implements prefixSearch for [[SuccinctTableRDD]]. */
   override def prefixSearch(attribute: String, query: Array[Byte]): RDD[Row] = {
     new SearchResultsRDD(this, createPrefixQuery(attribute, query), succinctSerializer)
@@ -159,69 +147,19 @@ class SuccinctTableRDDImpl private[succinct](
     new RangeSearchResultsRDD(this, queryBegin, queryEnd, succinctSerializer)
   }
 
-  /**
-   * Check if a filter is supported directly by Succinct data structures.
-   *
-   * @param f Filter to check.
-   * @return Returns true if the filter is supported;
-   *         false otherwise.
-   */
-  private def isFilterSupported(f: Filter): Boolean = f match {
-    case StringStartsWith(attribute, value) => true
-    case StringEndsWith(attribute, value) => true
-    case StringContains(attribute, value) => true
-    case EqualTo(attribute, value) => true
-    case LessThan(attribute, value) => true
-    case LessThanOrEqual(attribute, value) => true
-    case GreaterThan(attribute, value) => true
-    case GreaterThanOrEqual(attribute, value) => true
-    /** Not supported: In, IsNull, IsNotNull, And, Or, Not */
-    case _ => false
-  }
-
-  /**
-   * Gives the previous value for an input value.
-   *
-   * @param data The input value.
-   * @return The previous value.
-   */
-  private def prevValue(data: Any): Any = {
-    data match {
-      case _: Boolean => !data.asInstanceOf[Boolean]
-      case _: Byte => data.asInstanceOf[Byte] - 1
-      case _: Short => data.asInstanceOf[Short] - 1
-      case _: Int => data.asInstanceOf[Int] - 1
-      case _: Long => data.asInstanceOf[Long] - 1
-      case _: Float => data.asInstanceOf[Float] - Float.MinPositiveValue
-      case _: Double => data.asInstanceOf[Double] - Double.MinPositiveValue
-      case _: java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal]
-      case _: BigDecimal => data.asInstanceOf[BigDecimal]
-      case _: Decimal => data.asInstanceOf[Decimal]
-      case _: String => data.asInstanceOf[String]
-      case other => throw new IllegalArgumentException(s"Unexpected type.")
+  /** Implements pruneAndFilter for [[SuccinctTableRDD]]. */
+  override def pruneAndFilter(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
+    val reqColsCheck = schema.map(f => f.name -> requiredColumns.contains(f.name)).toMap
+    val queryList = filtersToQueries(filters)
+    val queryTypes = queryList.map(_._1)
+    val queries = queryList.map(_._2)
+    if (queries.length == 0) {
+      if (requiredColumns.length == schema.length) {
+        return this
+      }
+      return new SuccinctPrunedTableRDD(partitionsRDD, succinctSerializer, reqColsCheck)
     }
-  }
-
-  /**
-   * Gives the next value for an input value.
-   *
-   * @param data The input value.
-   * @return The next value.
-   */
-  private def nextValue(data: Any): Any = {
-    data match {
-      case _:Boolean => !data.asInstanceOf[Boolean]
-      case _:Byte => data.asInstanceOf[Byte] + 1
-      case _:Short => data.asInstanceOf[Short] + 1
-      case _:Int => data.asInstanceOf[Int] + 1
-      case _:Long => data.asInstanceOf[Long] + 1
-      case _:Float => data.asInstanceOf[Float] + Float.MinPositiveValue
-      case _:Double => data.asInstanceOf[Double] + Double.MinPositiveValue
-      case _:java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal]
-      case _:Decimal => data.asInstanceOf[Decimal]
-      case _:String => data.asInstanceOf[String]
-      case other => throw new IllegalArgumentException(s"Unexpected type.")
-    }
+    new MultiSearchResultsRDD(this, queryTypes, queries, reqColsCheck, succinctSerializer)
   }
 
   /**
@@ -284,19 +222,82 @@ class SuccinctTableRDDImpl private[succinct](
     }
   }
 
-  /** Implements pruneAndFilter for [[SuccinctTableRDD]]. */
-  override def pruneAndFilter(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
-    val reqColsCheck = schema.map(f => f.name -> requiredColumns.contains(f.name)).toMap
-    val queryList = filtersToQueries(filters)
-    val queryTypes = queryList.map(_._1)
-    val queries = queryList.map(_._2)
-    if (queries.length == 0) {
-      if (requiredColumns.length == schema.length) {
-        return this
-      }
-      return new SuccinctPrunedTableRDD(partitionsRDD, succinctSerializer, reqColsCheck)
+  /** Implements createPrefixQuery for [[SuccinctTableRDD]] */
+  private def createPrefixQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
+    val attrIdx = schema.lastIndexOf(schema(attribute))
+    getSeparator(attrIdx) +: query
+  }
+
+  /** Implements createSuffixQuery for [[SuccinctTableRDD]] */
+  private def createSuffixQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
+    val attrIdx = schema.lastIndexOf(schema(attribute))
+    query :+ getSeparator(attrIdx + 1)
+  }
+
+  /**
+   * Check if a filter is supported directly by Succinct data structures.
+   *
+   * @param f Filter to check.
+   * @return Returns true if the filter is supported;
+   *         false otherwise.
+   */
+  private def isFilterSupported(f: Filter): Boolean = f match {
+    case StringStartsWith(attribute, value) => true
+    case StringEndsWith(attribute, value) => true
+    case StringContains(attribute, value) => true
+    case EqualTo(attribute, value) => true
+    case LessThan(attribute, value) => true
+    case LessThanOrEqual(attribute, value) => true
+    case GreaterThan(attribute, value) => true
+    case GreaterThanOrEqual(attribute, value) => true
+
+    /** Not supported: In, IsNull, IsNotNull, And, Or, Not */
+    case _ => false
+  }
+
+  /**
+   * Gives the previous value for an input value.
+   *
+   * @param data The input value.
+   * @return The previous value.
+   */
+  private def prevValue(data: Any): Any = {
+    data match {
+      case _: Boolean => !data.asInstanceOf[Boolean]
+      case _: Byte => data.asInstanceOf[Byte] - 1
+      case _: Short => data.asInstanceOf[Short] - 1
+      case _: Int => data.asInstanceOf[Int] - 1
+      case _: Long => data.asInstanceOf[Long] - 1
+      case _: Float => data.asInstanceOf[Float] - Float.MinPositiveValue
+      case _: Double => data.asInstanceOf[Double] - Double.MinPositiveValue
+      case _: java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal]
+      case _: BigDecimal => data.asInstanceOf[BigDecimal]
+      case _: Decimal => data.asInstanceOf[Decimal]
+      case _: String => data.asInstanceOf[String]
+      case other => throw new IllegalArgumentException(s"Unexpected type.")
     }
-    new MultiSearchResultsRDD(this, queryTypes, queries, reqColsCheck, succinctSerializer)
+  }
+
+  /**
+   * Gives the next value for an input value.
+   *
+   * @param data The input value.
+   * @return The next value.
+   */
+  private def nextValue(data: Any): Any = {
+    data match {
+      case _: Boolean => !data.asInstanceOf[Boolean]
+      case _: Byte => data.asInstanceOf[Byte] + 1
+      case _: Short => data.asInstanceOf[Short] + 1
+      case _: Int => data.asInstanceOf[Int] + 1
+      case _: Long => data.asInstanceOf[Long] + 1
+      case _: Float => data.asInstanceOf[Float] + Float.MinPositiveValue
+      case _: Double => data.asInstanceOf[Double] + Double.MinPositiveValue
+      case _: java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal]
+      case _: Decimal => data.asInstanceOf[Decimal]
+      case _: String => data.asInstanceOf[String]
+      case other => throw new IllegalArgumentException(s"Unexpected type.")
+    }
   }
 
   /** Implements count for [[SuccinctTableRDD]]. */

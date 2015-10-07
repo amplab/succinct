@@ -16,9 +16,9 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
  * @param targetStorageLevel The target storage level.
  */
 class ExtractResultsRDD(val succinctRDD: SuccinctRDD,
-    val eOffset: Int,
-    val eLen: Int,
-    val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+                        val eOffset: Int,
+                        val eLen: Int,
+                        val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends RDD[Array[Byte]](succinctRDD.context, List(new OneToOneDependency(succinctRDD))) {
 
   /** Overrides the compute method of RDD to return an iterator over the extracted data. */

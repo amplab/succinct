@@ -11,7 +11,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
 
   def search(data: String, str: String): Array[Long] = {
     var lastIndex = 0L
-    val results:ArrayBuffer[Long] = new ArrayBuffer[Long]()
+    val results: ArrayBuffer[Long] = new ArrayBuffer[Long]()
     while (lastIndex != -1) {
       lastIndex = data.indexOf(str, lastIndex.toInt).toLong
       if (lastIndex != -1) {

@@ -19,4 +19,5 @@ package object sql {
   implicit class SuccinctDataFrame(dataFrame: DataFrame) {
     def saveAsSuccinctFiles(path: String): Unit = SuccinctTableRDD(dataFrame).save(path)
   }
+
 }

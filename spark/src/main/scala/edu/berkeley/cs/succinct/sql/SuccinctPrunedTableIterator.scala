@@ -12,9 +12,9 @@ import org.apache.spark.sql.Row
  * @param reqColsCheck The list of required columns.
  */
 class SuccinctPrunedTableIterator private[succinct](
-    sBuf: SuccinctIndexedFile,
-    succinctSerializer: SuccinctSerializer,
-    reqColsCheck: Map[String, Boolean])
+                                                     sBuf: SuccinctIndexedFile,
+                                                     succinctSerializer: SuccinctSerializer,
+                                                     reqColsCheck: Map[String, Boolean])
   extends Iterator[Row] {
 
   var curRecordId: Int = 0

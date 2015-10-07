@@ -3,10 +3,10 @@ package edu.berkeley.cs.succinct.sql
 import java.io.{File, IOException}
 
 import com.google.common.io.Files
-import org.apache.spark.sql.{DataFrame, Row}
 import org.apache.spark.sql.test.TestSQLContext
 import org.apache.spark.sql.test.TestSQLContext._
 import org.apache.spark.sql.types._
+import org.apache.spark.sql.{DataFrame, Row}
 import org.scalatest._
 
 import scala.util.Random
@@ -102,8 +102,8 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
     val cityRDD = sparkContext.textFile(citiesTable)
       .map(_.split(','))
       .map { t =>
-        Row.fromSeq(Seq.tabulate(schema.size)(i => TestUtils.castToType(t(i), schema(i).dataType)))
-      }
+      Row.fromSeq(Seq.tabulate(schema.size)(i => TestUtils.castToType(t(i), schema(i).dataType)))
+    }
     val df = TestSQLContext.createDataFrame(cityRDD, schema)
 
     val tempDir = Files.createTempDir()

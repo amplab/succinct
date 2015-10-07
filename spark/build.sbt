@@ -1,5 +1,4 @@
-import sbt._
-import Keys._
+
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
@@ -8,7 +7,7 @@ libraryDependencies ++= Seq(
 )
 
 resolvers ++= Seq(
- "Local Maven Repository" at Path.userHome.asFile.toURI.toURL + ".m2/repository",
+  "Local Maven Repository" at Path.userHome.asFile.toURI.toURL + ".m2/repository",
   "Typesafe" at "http://repo.typesafe.com/typesafe/releases",
   "Spray" at "http://repo.spray.cc"
 )

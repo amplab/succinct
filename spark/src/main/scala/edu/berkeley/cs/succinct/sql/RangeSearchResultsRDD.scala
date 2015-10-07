@@ -17,10 +17,10 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
  * @param targetStorageLevel The target storage level for the RDD.
  */
 class RangeSearchResultsRDD(val succinctTableRDD: SuccinctTableRDD,
-    val queryBegin: Array[Byte],
-    val queryEnd: Array[Byte],
-    val succinctSerializer: SuccinctSerializer,
-    val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+                            val queryBegin: Array[Byte],
+                            val queryEnd: Array[Byte],
+                            val succinctSerializer: SuccinctSerializer,
+                            val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends RDD[Row](succinctTableRDD.context, List(new OneToOneDependency(succinctTableRDD))) {
 
   /** Overrides the compute method in RDD to return an iterator over the search results. */

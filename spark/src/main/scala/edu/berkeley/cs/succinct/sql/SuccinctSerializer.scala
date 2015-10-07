@@ -11,6 +11,10 @@ import scala.collection.mutable.ListBuffer
  */
 class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Seq[Int]) extends Serializable {
 
+  override def toString(): String = {
+    separators.map(_.toInt).mkString(",")
+  }
+
   /**
    * Serializes a [[Row]] with input delimiters to create a single byte buffer.
    *
@@ -20,9 +24,38 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
   private[succinct] def serializeRow(data: Row): Array[Byte] = {
     assert(data.length == separators.length)
     assert(data.length == schema.length)
-    separators.zip(Array.tabulate(data.length){ i => typeToString(i, data(i)).getBytes })
+    separators.zip(Array.tabulate(data.length) { i => typeToString(i, data(i)).getBytes })
       .map(t => t._1 +: t._2)
       .flatMap(_.iterator)
+  }
+
+  private[succinct] def typeToString(elemIdx: Int, elem: Any): String = {
+    if (elem == null) {
+      "NULL"
+    } else {
+      schema(elemIdx).dataType match {
+        case BooleanType => if (elem.asInstanceOf[Boolean]) "1" else "0"
+        case ByteType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Byte])
+        case ShortType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Short])
+        case IntegerType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Integer])
+        case LongType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Long])
+        case FloatType => ("%0" + limits(elemIdx) + ".2f").format(elem.asInstanceOf[java.lang.Float])
+        case DoubleType => ("%0" + limits(elemIdx) + ".2f").format(elem.asInstanceOf[java.lang.Double])
+        case dType: DecimalType =>
+          var digsBeforeDec = 0
+          var digsAfterDec = 0
+          if (dType.scale > 0) {
+            digsAfterDec = dType.scale
+          } else {
+            digsAfterDec = dType.precision - dType.scale
+          }
+          digsBeforeDec = limits(elemIdx)
+          val formatString = s"%0${digsBeforeDec}.${digsAfterDec}f"
+          formatString.format(elem.toString.toDouble)
+        case StringType => elem.toString
+        case other => throw new IllegalArgumentException(s"Unexpected type. ${schema(elemIdx).dataType}")
+      }
+    }
   }
 
   /**
@@ -65,9 +98,9 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
    * @return The de-serialized [[Row]].
    */
   private[succinct] def deserializeRow(
-      data: Array[Byte],
-      requiredColumns: Map[String, Boolean]): Row = {
-    if (data.length == 0 || !requiredColumns.map(_._2).reduce((a , b) => a | b)) return Row()
+                                        data: Array[Byte],
+                                        requiredColumns: Map[String, Boolean]): Row = {
+    if (data.length == 0 || !requiredColumns.map(_._2).reduce((a, b) => a | b)) return Row()
     val requiredFieldTypes = schema.fields.filter(field => requiredColumns(field.name)).map(_.dataType)
     val fieldNames = schema.fields.map(_.name)
     var i = 0
@@ -76,13 +109,13 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
     val elemBuilder = new StringBuilder
     val separatorsIter = separators.iterator
     var nextSeparator: Byte = if (separatorsIter.hasNext) separatorsIter.next()
-                              else SuccinctCore.EOL
+    else SuccinctCore.EOL
     while (i < data.length) {
       if (data(i) == nextSeparator) {
         if (i != 0 && requiredColumns(fieldNames(k - 1))) elemList += elemBuilder.toString
         elemBuilder.clear()
         nextSeparator = if (separatorsIter.hasNext) separatorsIter.next()
-                        else SuccinctCore.EOL
+        else SuccinctCore.EOL
         k += 1
       } else {
         elemBuilder.append(data(i).toChar)
@@ -114,39 +147,6 @@ class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Se
       case StringType => elem
       case other => throw new IllegalArgumentException(s"Unexpected type $dataType.")
     }
-  }
-
-  private[succinct] def typeToString(elemIdx: Int, elem: Any): String = {
-    if (elem == null) {
-      "NULL"
-    } else {
-      schema(elemIdx).dataType match {
-        case BooleanType => if (elem.asInstanceOf[Boolean]) "1" else "0"
-        case ByteType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Byte])
-        case ShortType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Short])
-        case IntegerType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Integer])
-        case LongType => ("%0" + limits(elemIdx) + "d").format(elem.asInstanceOf[java.lang.Long])
-        case FloatType => ("%0" + limits(elemIdx) + ".2f").format(elem.asInstanceOf[java.lang.Float])
-        case DoubleType => ("%0" + limits(elemIdx) + ".2f").format(elem.asInstanceOf[java.lang.Double])
-        case dType: DecimalType =>
-          var digsBeforeDec = 0
-          var digsAfterDec = 0
-          if (dType.scale > 0) {
-            digsAfterDec = dType.scale
-          } else {
-            digsAfterDec = dType.precision - dType.scale
-          }
-          digsBeforeDec = limits(elemIdx)
-          val formatString = s"%0${digsBeforeDec}.${digsAfterDec}f"
-          formatString.format(elem.toString.toDouble)
-        case StringType => elem.toString
-        case other => throw new IllegalArgumentException(s"Unexpected type. ${schema(elemIdx).dataType}")
-      }
-    }
-  }
-
-  override def toString(): String = {
-    separators.map(_.toInt).mkString(",")
   }
 
 }

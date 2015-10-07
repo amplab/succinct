@@ -15,8 +15,8 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
  * @param targetStorageLevel The target storage level for the RDD.
  */
 class SearchOffsetResultsRDD(val succinctRDD: SuccinctRDD,
-    val searchQuery: Array[Byte],
-    val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+                             val searchQuery: Array[Byte],
+                             val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends RDD[Long](succinctRDD.context, List(new OneToOneDependency(succinctRDD))) {
 
   /**

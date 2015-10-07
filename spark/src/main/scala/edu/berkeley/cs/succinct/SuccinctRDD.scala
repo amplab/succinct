@@ -22,7 +22,7 @@ import scala.collection.mutable.ArrayBuffer
  */
 
 abstract class SuccinctRDD(@transient sc: SparkContext,
-    @transient deps: Seq[Dependency[_]])
+                           @transient deps: Seq[Dependency[_]])
   extends RDD[Array[Byte]](sc, deps) {
 
   /**
@@ -235,7 +235,7 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
   def save(location: String): Unit = {
     val path = new Path(location)
     val fs = FileSystem.get(path.toUri, new Configuration())
-    if(!fs.exists(path)) {
+    if (!fs.exists(path)) {
       fs.mkdirs(path)
     }
 
@@ -267,18 +267,16 @@ object SuccinctRDD {
    */
   def apply(inputRDD: RDD[Array[Byte]]): SuccinctRDD = {
 
-    val partitionSizes = inputRDD.mapPartitionsWithIndex((idx, partition) =>
-      {
-        val partitionSize = partition.aggregate(0L)((sum, record) => sum + (record.length + 1), _ + _)
-        Iterator((idx, partitionSize))
-      }
+    val partitionSizes = inputRDD.mapPartitionsWithIndex((idx, partition) => {
+      val partitionSize = partition.aggregate(0L)((sum, record) => sum + (record.length + 1), _ + _)
+      Iterator((idx, partitionSize))
+    }
     ).collect.sorted.map(_._2)
 
-    val partitionRecordCounts = inputRDD.mapPartitionsWithIndex((idx, partition) =>
-      {
-        val partitionRecordCount = partition.size
-        Iterator((idx, partitionRecordCount))
-      }).collect.sorted.map(_._2)
+    val partitionRecordCounts = inputRDD.mapPartitionsWithIndex((idx, partition) => {
+      val partitionRecordCount = partition.size
+      Iterator((idx, partitionRecordCount))
+    }).collect.sorted.map(_._2)
 
     val partitionOffsets = partitionSizes.scanLeft(0L)(_ + _)
     val partitionFirstRecordIds = partitionRecordCounts.scanLeft(0L)(_ + _)
@@ -306,21 +304,21 @@ object SuccinctRDD {
     val numPartitions = status.length
     val succinctPartitions = sc.parallelize(0 to numPartitions - 1, numPartitions)
       .mapPartitionsWithIndex[SuccinctIndexedFile]((i, partition) => {
-        val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
-        val path = new Path(partitionLocation)
-        val fs = FileSystem.get(path.toUri, new Configuration())
-        val is = fs.open(path)
-        val partitionIterator = storageLevel match {
-          case StorageLevel.MEMORY_ONLY =>
-            Iterator(new SuccinctIndexedFileBuffer(is))
-          case StorageLevel.DISK_ONLY =>
-            Iterator(new SuccinctIndexedFileStream(path))
-          case _ =>
-            Iterator(new SuccinctIndexedFileBuffer(is))
-        }
-        is.close()
-        partitionIterator
-      })
+      val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
+      val path = new Path(partitionLocation)
+      val fs = FileSystem.get(path.toUri, new Configuration())
+      val is = fs.open(path)
+      val partitionIterator = storageLevel match {
+        case StorageLevel.MEMORY_ONLY =>
+          Iterator(new SuccinctIndexedFileBuffer(is))
+        case StorageLevel.DISK_ONLY =>
+          Iterator(new SuccinctIndexedFileStream(path))
+        case _ =>
+          Iterator(new SuccinctIndexedFileBuffer(is))
+      }
+      is.close()
+      partitionIterator
+    })
     new SuccinctRDDImpl(succinctPartitions.cache())
   }
 
@@ -331,7 +329,7 @@ object SuccinctRDD {
    * @return An Iterator over the SuccinctIndexedBuffer.
    */
   private[succinct] def createSuccinctBuffer(partitionOffset: Long, partitionFirstRecordId: Long, dataIter: Iterator[Array[Byte]]):
-      Iterator[SuccinctIndexedFile] = {
+  Iterator[SuccinctIndexedFile] = {
     var offsets = new ArrayBuffer[Int]()
     var buffers = new ArrayBuffer[Array[Byte]]()
     var offset = 0

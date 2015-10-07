@@ -1,35 +1,28 @@
 package edu.berkeley.cs.succinct.sql
 
 import org.apache.hadoop.fs.Path
+import org.apache.spark.sql.sources.{BaseRelation, CreatableRelationProvider, RelationProvider, SchemaRelationProvider}
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, SaveMode, SQLContext}
-import org.apache.spark.sql.sources.{BaseRelation, CreatableRelationProvider, SchemaRelationProvider, RelationProvider}
+import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode}
 
 class DefaultSource
   extends RelationProvider with SchemaRelationProvider with CreatableRelationProvider {
+
+  override def createRelation(
+                               sqlContext: SQLContext,
+                               parameters: Map[String, String]): BaseRelation = {
+    SuccinctRelation(checkPath(parameters))(sqlContext)
+  }
 
   private def checkPath(parameters: Map[String, String]): String = {
     parameters.getOrElse("path", sys.error("'path' must be specified for Succinct data."))
   }
 
   override def createRelation(
-      sqlContext: SQLContext,
-      parameters: Map[String, String]): BaseRelation = {
-    SuccinctRelation(checkPath(parameters))(sqlContext)
-  }
-
-  override def createRelation(
-      sqlContext: SQLContext,
-      parameters: Map[String, String],
-      schema: StructType): BaseRelation = {
-    SuccinctRelation(checkPath(parameters), schema)(sqlContext)
-  }
-
-  override def createRelation(
-      sqlContext: SQLContext,
-      mode: SaveMode,
-      parameters: Map[String, String],
-      data: DataFrame): BaseRelation = {
+                               sqlContext: SQLContext,
+                               mode: SaveMode,
+                               parameters: Map[String, String],
+                               data: DataFrame): BaseRelation = {
     val path = parameters("path")
     val filesystemPath = new Path(path)
     val fs = filesystemPath.getFileSystem(sqlContext.sparkContext.hadoopConfiguration)
@@ -53,5 +46,12 @@ class DefaultSource
       data.saveAsSuccinctFiles(path)
     }
     createRelation(sqlContext, parameters, data.schema)
+  }
+
+  override def createRelation(
+                               sqlContext: SQLContext,
+                               parameters: Map[String, String],
+                               schema: StructType): BaseRelation = {
+    SuccinctRelation(checkPath(parameters), schema)(sqlContext)
   }
 }

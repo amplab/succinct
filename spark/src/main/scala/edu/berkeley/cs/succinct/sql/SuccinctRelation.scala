@@ -7,14 +7,12 @@ import org.apache.spark.sql.{Row, SQLContext}
 import org.apache.spark.storage.StorageLevel
 
 case class SuccinctRelation(
-    location: String,
-    userSchema: StructType = null)(@transient val sqlContext: SQLContext)
+                             location: String,
+                             userSchema: StructType = null)(@transient val sqlContext: SQLContext)
   extends BaseRelation with PrunedFilteredScan {
 
-  private[succinct] var succinctSchema = getSchema
-
-  override def schema: StructType = succinctSchema
   val succinctTableRDD = SuccinctTableRDD(sqlContext.sparkContext, location, StorageLevel.MEMORY_AND_DISK).persist()
+  private[succinct] var succinctSchema = getSchema
 
   override def buildScan(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
     succinctTableRDD.pruneAndFilter(requiredColumns, filters)
@@ -33,5 +31,7 @@ case class SuccinctRelation(
   private[succinct] def getAttributeIdx(attribute: String): Int = {
     succinctSchema.lastIndexOf(schema(attribute))
   }
+
+  override def schema: StructType = succinctSchema
 
 }

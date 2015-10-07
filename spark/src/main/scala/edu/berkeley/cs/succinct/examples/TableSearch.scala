@@ -1,10 +1,10 @@
 package edu.berkeley.cs.succinct.examples
 
 import com.google.common.io.Files
+import edu.berkeley.cs.succinct.sql._
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{Row, SQLContext}
 import org.apache.spark.{SparkConf, SparkContext}
-import edu.berkeley.cs.succinct.sql._
 
 /**
  * Performs search on a TPC-H dataset provided as an input.

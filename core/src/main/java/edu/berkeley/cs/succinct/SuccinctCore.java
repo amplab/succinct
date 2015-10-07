@@ -9,234 +9,232 @@ import java.util.Map;
 
 public abstract class SuccinctCore implements Serializable {
 
-    // End of File marker
-    public transient static final byte EOF = 1;
+  // End of File marker
+  public transient static final byte EOF = 1;
 
-    // End of Line marker
-    public transient static final byte EOL = '\n';
+  // End of Line marker
+  public transient static final byte EOL = '\n';
+  // Deserialized data-structures
+  protected transient HashMap<Byte, Pair<Long, Integer>> alphabetMap;
+  protected transient Map<Long, Long> contextMap;
+  // Metadata
+  private transient int originalSize;
+  private transient int sampledSASize;
+  private transient int alphaSize;
+  private transient int sigmaSize;
+  private transient int bits;
+  private transient int sampledSABits;
+  private transient int samplingBase;
+  private transient int samplingRate;
+  private transient int numContexts;
+  private transient int contextLen;
 
-    // Metadata
-    private transient int originalSize;
-    private transient int sampledSASize;
-    private transient int alphaSize;
-    private transient int sigmaSize;
-    private transient int bits;
-    private transient int sampledSABits;
-    private transient int samplingBase;
-    private transient int samplingRate;
-    private transient int numContexts;
-    private transient int contextLen;
+  public SuccinctCore() {
+    Tables.init();
+  }
 
-    // Deserialized data-structures
-    protected transient HashMap<Byte, Pair<Long, Integer>> alphabetMap;
-    protected transient Map<Long, Long> contextMap;
+  /**
+   * Get the original size.
+   *
+   * @return The originalSize.
+   */
+  public int getOriginalSize() {
+    return originalSize;
+  }
 
-    public SuccinctCore() {
-        Tables.init();
-    }
+  /**
+   * Set the original size.
+   *
+   * @param originalSize The originalSize to set.
+   */
+  public void setOriginalSize(int originalSize) {
+    this.originalSize = originalSize;
+  }
 
-    /**
-     * Get the original size.
-     *
-     * @return The originalSize.
-     */
-    public int getOriginalSize() {
-        return originalSize;
-    }
+  /**
+   * Get the sampled SA size.
+   *
+   * @return The sampledSASize.
+   */
+  public int getSampledSASize() {
+    return sampledSASize;
+  }
 
-    /**
-     * Set the original size.
-     *
-     * @param originalSize The originalSize to set.
-     */
-    public void setOriginalSize(int originalSize) {
-        this.originalSize = originalSize;
-    }
+  /**
+   * Set the sampled SA size.
+   *
+   * @param sampledSASize The sampledSASize to set.
+   */
+  public void setSampledSASize(int sampledSASize) {
+    this.sampledSASize = sampledSASize;
+  }
 
-    /**
-     * Get the sampled SA size.
-     *
-     * @return The sampledSASize.
-     */
-    public int getSampledSASize() {
-        return sampledSASize;
-    }
+  /**
+   * Get the alpha size.
+   *
+   * @return The alphaSize.
+   */
+  public int getAlphaSize() {
+    return alphaSize;
+  }
 
-    /**
-     * Set the sampled SA size.
-     *
-     * @param sampledSASize The sampledSASize to set.
-     */
-    public void setSampledSASize(int sampledSASize) {
-        this.sampledSASize = sampledSASize;
-    }
+  /**
+   * Set the alpha size.
+   *
+   * @param alphaSize The alphaSize to set.
+   */
+  public void setAlphaSize(int alphaSize) {
+    this.alphaSize = alphaSize;
+  }
 
-    /**
-     * Get the alpha size.
-     *
-     * @return The alphaSize.
-     */
-    public int getAlphaSize() {
-        return alphaSize;
-    }
+  /**
+   * Get the sigma size.
+   *
+   * @return The sigmaSize.
+   */
+  public int getSigmaSize() {
+    return sigmaSize;
+  }
 
-    /**
-     * Set the alpha size.
-     *
-     * @param alphaSize The alphaSize to set.
-     */
-    public void setAlphaSize(int alphaSize) {
-        this.alphaSize = alphaSize;
-    }
+  /**
+   * Set the sigma size.
+   *
+   * @param sigmaSize The sigmaSize to set.
+   */
+  public void setSigmaSize(int sigmaSize) {
+    this.sigmaSize = sigmaSize;
+  }
 
-    /**
-     * Get the sigma size.
-     *
-     * @return The sigmaSize.
-     */
-    public int getSigmaSize() {
-        return sigmaSize;
-    }
+  /**
+   * Get the bits.
+   *
+   * @return The bits.
+   */
+  public int getBits() {
+    return bits;
+  }
 
-    /**
-     * Set the sigma size.
-     *
-     * @param sigmaSize The sigmaSize to set.
-     */
-    public void setSigmaSize(int sigmaSize) {
-        this.sigmaSize = sigmaSize;
-    }
+  /**
+   * Set the bits.
+   *
+   * @param bits The bits to set.
+   */
+  public void setBits(int bits) {
+    this.bits = bits;
+  }
 
-    /**
-     * Get the bits.
-     *
-     * @return The bits.
-     */
-    public int getBits() {
-        return bits;
-    }
+  /**
+   * Get the sampled SA bits.
+   *
+   * @return The sampledSABits.
+   */
+  public int getSampledSABits() {
+    return sampledSABits;
+  }
 
-    /**
-     * Set the bits.
-     *
-     * @param bits The bits to set.
-     */
-    public void setBits(int bits) {
-        this.bits = bits;
-    }
+  /**
+   * Set the sampled SA bits.
+   *
+   * @param sampledSABits The sampledSABits to set.
+   */
+  public void setSampledSABits(int sampledSABits) {
+    this.sampledSABits = sampledSABits;
+  }
 
-    /**
-     * Get the sampled SA bits.
-     *
-     * @return The sampledSABits.
-     */
-    public int getSampledSABits() {
-        return sampledSABits;
-    }
+  /**
+   * Get the sampling base.
+   *
+   * @return The samplingBase.
+   */
+  public int getSamplingBase() {
+    return samplingBase;
+  }
 
-    /**
-     * Set the sampled SA bits.
-     *
-     * @param sampledSABits The sampledSABits to set.
-     */
-    public void setSampledSABits(int sampledSABits) {
-        this.sampledSABits = sampledSABits;
-    }
+  /**
+   * Set the sampling base.
+   *
+   * @param samplingBase The samplingBase to set.
+   */
+  public void setSamplingBase(int samplingBase) {
+    this.samplingBase = samplingBase;
+  }
 
-    /**
-     * Get the sampling base.
-     *
-     * @return The samplingBase.
-     */
-    public int getSamplingBase() {
-        return samplingBase;
-    }
+  /**
+   * Get the sampling rate.
+   *
+   * @return The samplingRate.
+   */
+  public int getSamplingRate() {
+    return samplingRate;
+  }
 
-    /**
-     * Set the sampling base.
-     *
-     * @param samplingBase The samplingBase to set.
-     */
-    public void setSamplingBase(int samplingBase) {
-        this.samplingBase = samplingBase;
-    }
+  /**
+   * Set the sampling rate.
+   *
+   * @param samplingRate The samplingRate to set.
+   */
+  public void setSamplingRate(int samplingRate) {
+    this.samplingRate = samplingRate;
+  }
 
-    /**
-     * Get the sampling rate.
-     *
-     * @return The samplingRate.
-     */
-    public int getSamplingRate() {
-        return samplingRate;
-    }
+  /**
+   * Get the number of contexts.
+   *
+   * @return The numContexts.
+   */
+  public int getNumContexts() {
+    return numContexts;
+  }
 
-    /**
-     * Set the sampling rate.
-     *
-     * @param samplingRate The samplingRate to set.
-     */
-    public void setSamplingRate(int samplingRate) {
-        this.samplingRate = samplingRate;
-    }
+  /**
+   * Set the number of contexts.
+   *
+   * @param numContexts The numContexts to set.
+   */
+  public void setNumContexts(int numContexts) {
+    this.numContexts = numContexts;
+  }
 
-    /**
-     * Get the number of contexts.
-     *
-     * @return The numContexts.
-     */
-    public int getNumContexts() {
-        return numContexts;
-    }
+  /**
+   * Get the context length.
+   *
+   * @return The contextLength.
+   */
+  public int getContextLen() {
+    return contextLen;
+  }
 
-    /**
-     * Set the number of contexts.
-     *
-     * @param numContexts The numContexts to set.
-     */
-    public void setNumContexts(int numContexts) {
-        this.numContexts = numContexts;
-    }
+  /**
+   * Set the context length.
+   *
+   * @param contextLen The contextLen to set.
+   */
+  public void setContextLen(int contextLen) {
+    this.contextLen = contextLen;
+  }
 
-    /**
-     * Get the context length.
-     *
-     * @return The contextLength.
-     */
-    public int getContextLen() {
-        return contextLen;
-    }
+  /**
+   * Lookup NPA at specified index.
+   *
+   * @param i Index into NPA.
+   * @return Value of NPA at specified index.
+   */
+  public abstract long lookupNPA(long i);
 
-    /**
-     * Set the context length.
-     *
-     * @param contextLen The contextLen to set.
-     */
-    public void setContextLen(int contextLen) {
-        this.contextLen = contextLen;
-    }
+  /**
+   * Lookup SA at specified index.
+   *
+   * @param i Index into SA.
+   * @return Value of SA at specified index.
+   */
+  public abstract long lookupSA(long i);
 
-    /**
-     * Lookup NPA at specified index.
-     *
-     * @param i Index into NPA.
-     * @return Value of NPA at specified index.
-     */
-    public abstract long lookupNPA(long i);
-
-    /**
-     * Lookup SA at specified index.
-     *
-     * @param i Index into SA.
-     * @return Value of SA at specified index.
-     */
-    public abstract long lookupSA(long i);
-
-    /**
-     * Lookup ISA at specified index.
-     *
-     * @param i Index into ISA.
-     * @return Value of ISA at specified index.
-     */
-    public abstract long lookupISA(long i);
+  /**
+   * Lookup ISA at specified index.
+   *
+   * @param i Index into ISA.
+   * @return Value of ISA at specified index.
+   */
+  public abstract long lookupISA(long i);
 
 }
