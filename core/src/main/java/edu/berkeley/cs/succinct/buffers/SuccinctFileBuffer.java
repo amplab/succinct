@@ -98,6 +98,12 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     return new Range(fileOffset, fileOffset + getOriginalSize() - 2);
   }
 
+  public char partitionCharAt(long i) {
+    return (char) alphabet.get(
+      SerializedOperations.ArrayOps.getRank1(coloffsets.buffer(), 0, getSigmaSize(), lookupISA(i))
+        - 1);
+  }
+
   /**
    * Extract data of specified length from Succinct data structures at specified index.
    *

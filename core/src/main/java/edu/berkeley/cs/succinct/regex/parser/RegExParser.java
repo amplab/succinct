@@ -8,21 +8,14 @@ public class RegExParser {
 
   /**
    * Constructor to initialize RegExParser from the input regular expression.
-   * <p/>
    * The supported grammar:
-   * <p/>
    * <regex> ::= <term> '|' <regex>
    * |  <term>
-   * <p/>
    * <term> ::= { <factor> }
-   * <p/>
    * <factor> ::= <base> { '*' | '+' | '{' <num> ',' <num> ')' }
-   * <p/>
    * <base> ::= <mgram>
    * |  '(' <regex> ')'
-   * <p/>
    * <mgram> ::= <char> | '\' <char> { <mgram> }
-   * <p/>
    * <num> ::= <digit> { <num> }
    *
    * @param exp The regular expression encoded as a UTF-8 String
@@ -32,11 +25,11 @@ public class RegExParser {
     exp = exp.replace(".*", String.valueOf(WILDCARD));
 
     // Remove leading or trailing wildcards, since they don't matter for us
-    while(exp.charAt(0) == WILDCARD) {
+    while (exp.charAt(0) == WILDCARD) {
       exp = exp.substring(1);
     }
 
-    while(exp.charAt(exp.length() - 1) == WILDCARD) {
+    while (exp.charAt(exp.length() - 1) == WILDCARD) {
       exp = exp.substring(0, exp.length() - 1);
     }
 
@@ -132,6 +125,26 @@ public class RegExParser {
   }
 
   /**
+   * Expands character range, i.e., converts abbreviated ranges into full ranges.
+   *
+   * @param charRange Character range to be expanded.
+   * @return The expanded character range.
+   */
+  private String expandCharRange(String charRange) {
+    String expandedCharRange = "";
+    for (int i = 0; i < charRange.length(); i++) {
+      if (charRange.charAt(i) == '-') {
+        for (char c = (char) (charRange.charAt(i - 1) + 1); c < charRange.charAt(i + 1); i++) {
+          expandedCharRange += c;
+        }
+        i++;
+      }
+      expandedCharRange += charRange.charAt(i);
+    }
+    return expandedCharRange;
+  }
+
+  /**
    * Top level method for recursive top-down parsing.
    * Parses the next regex (sub-expression).
    *
@@ -144,15 +157,17 @@ public class RegExParser {
       eat('|');
       RegEx r = regex();
       return new RegExUnion(t, r);
-    } else if(more() && peek() == WILDCARD) {
-      eat('.');
+    } else if (more() && peek() == WILDCARD) {
+      eat(WILDCARD);
+      RegEx r = regex();
+      return new RegExWildcard(t, r);
     }
     return t;
   }
 
   /**
-   * Performs parse-level optimization for concatenation by consuming empty expressions and merging chained
-   * multi-grams.
+   * Performs parse-level optimization for concatenation by consuming empty expressions and
+   * merging chained multi-grams.
    *
    * @param a The left regular expression.
    * @param b The right regular expression.
@@ -180,6 +195,21 @@ public class RegExParser {
     while (more() && peek() != ')' && peek() != '|') {
       RegEx nextF = factor();
       f = concat(f, nextF);
+    } if (more() && peek() == '[') {
+      eat('[');
+      String charRange = "";
+      boolean repeat = false;
+      while (peek() != ']') {
+        charRange += nextChar();
+      }
+      charRange = expandCharRange(charRange);
+      eat(']');
+      if (peek() == '+' || peek() == '*') {
+        next();
+        repeat = true;
+      }
+      RegEx nextF = factor();
+      return new RegExCharRange(f, nextF, charRange, repeat);
     }
     return f;
   }

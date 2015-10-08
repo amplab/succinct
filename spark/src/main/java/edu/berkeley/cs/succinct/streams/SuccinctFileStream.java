@@ -70,6 +70,15 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     return new Range(fileOffset, fileOffset + getOriginalSize() - 2);
   }
 
+  public char partitionCharAt(long i) {
+    try {
+      return (char) alphabet.get(
+        SerializedOperations.ArrayOps.getRank1(coloffsets, 0, getSigmaSize(), lookupISA(i)) - 1);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   /**
    * Extract data of specified length from Succinct data structures at specified index.
    *

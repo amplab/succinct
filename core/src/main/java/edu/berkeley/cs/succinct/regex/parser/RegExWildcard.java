@@ -12,7 +12,7 @@ public class RegExWildcard extends RegEx {
    * @param right The right regular expression.
    */
   public RegExWildcard(RegEx left, RegEx right) {
-    super(RegExType.Concat);
+    super(RegExType.Wildcard);
     this.left = left;
     this.right = right;
   }

@@ -26,6 +26,14 @@ public interface SuccinctFile extends Serializable {
   Range getFileRange();
 
   /**
+   * Get character at ith index in file chunk.
+   *
+   * @param i Index relative to file chunk.
+   * @return Character at specified index.
+   */
+  char partitionCharAt(long i);
+
+  /**
    * Extract data of specified length from Succinct data structures at specified index.
    *
    * @param offset Index into original input to start extracting at.
@@ -69,7 +77,6 @@ public interface SuccinctFile extends Serializable {
    * @return Count of occurrences.
    */
   long count(byte[] query);
-
 
   /**
    * Get all locations of pattern occurrences in original input.

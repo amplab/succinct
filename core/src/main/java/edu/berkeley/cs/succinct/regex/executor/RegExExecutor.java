@@ -73,7 +73,7 @@ public class RegExExecutor {
   private TreeSet<RegexMatch> compute(RegEx r, SortType sortType) {
     switch (r.getRegExType()) {
       case Blank: {
-        return allocateSet(sortType);
+        return null;
       }
       case Primitive: {
         return mgramSearch((RegExPrimitive) r, sortType);
@@ -99,6 +99,13 @@ public class RegExExecutor {
           compute(((RegExWildcard) r).getRight(), SortType.FRONT_SORTED);
         return regexWildcard(leftRes, rightRes, sortType);
       }
+      case CharRange: {
+        TreeSet<RegexMatch> leftRes = compute(((RegExCharRange) r).getLeft(), SortType.END_SORTED);
+        TreeSet<RegexMatch> rightRes =
+          compute(((RegExCharRange) r).getRight(), SortType.FRONT_SORTED);
+        return regexCharRange(leftRes, rightRes, ((RegExCharRange) r).getCharRange(),
+          ((RegExCharRange) r).isRepeat(), sortType);
+      }
       default:
         throw new UnsupportedOperationException("Unsupported operator");
     }
@@ -122,6 +129,116 @@ public class RegExExecutor {
   }
 
   /**
+   * Computes the regular expression char range using the results from two regex sub-expressions.
+   *
+   * @param left     A set of (offset, length) pairs (END_SORTED).
+   * @param right    A set of (offset, length) pairs (FRONT_SORTED).
+   * @param sortType Sorting type for the returned set.
+   * @return A set of (offset, length) pairs.
+   */
+  protected TreeSet<RegexMatch> regexCharRange(TreeSet<RegexMatch> left, TreeSet<RegexMatch> right,
+    String charRange, boolean repeat, SortType sortType) {
+
+    TreeSet<RegexMatch> charRangeRes = allocateSet(sortType);
+
+    if (left == null) {
+      if (right.isEmpty()) {
+        return charRangeRes;
+      }
+
+      if (repeat) {
+        Iterator<RegexMatch> rightIterator = right.iterator();
+        while (rightIterator.hasNext()) {
+          RegexMatch rightEntry = rightIterator.next();
+          int i = 1;
+          while (true) {
+            char c = succinctFile.partitionCharAt(rightEntry.begin() - i);
+            if (charRange.indexOf(c) == -1) {
+              break;
+            }
+            charRangeRes
+              .add(new RegexMatch(rightEntry.getOffset() - i, rightEntry.getLength() + i));
+            i++;
+          }
+        }
+      } else {
+        Iterator<RegexMatch> rightIterator = right.iterator();
+        while (rightIterator.hasNext()) {
+          RegexMatch rightEntry = rightIterator.next();
+          char c = succinctFile.partitionCharAt(rightEntry.begin() - 1);
+          if (charRange.indexOf(c) != -1) {
+            charRangeRes
+              .add(new RegexMatch(rightEntry.getOffset() - 1, rightEntry.getLength() + 1));
+          }
+        }
+      }
+    } else if (right == null) {
+      if (left.isEmpty()) {
+        return charRangeRes;
+      }
+
+      if (repeat) {
+        Iterator<RegexMatch> leftIterator = left.iterator();
+        int i = 1;
+        while (leftIterator.hasNext()) {
+          RegexMatch leftEntry = leftIterator.next();
+          while (true) {
+            char c = succinctFile.partitionCharAt(leftEntry.end() + i);
+            if (charRange.indexOf(c) == -1) {
+              break;
+            }
+            charRangeRes.add(new RegexMatch(leftEntry.getOffset(), leftEntry.getLength() + i));
+            i++;
+          }
+        }
+      } else {
+        Iterator<RegexMatch> leftIterator = left.iterator();
+        while (leftIterator.hasNext()) {
+          RegexMatch leftEntry = leftIterator.next();
+          char c = succinctFile.partitionCharAt(leftEntry.end() + 1);
+          if (charRange.indexOf(c) != -1) {
+            charRangeRes.add(new RegexMatch(leftEntry.getOffset(), leftEntry.getLength() + 1));
+          }
+        }
+      }
+    } else {
+      if (right.isEmpty() || right.isEmpty()) {
+        return charRangeRes;
+      }
+
+      TreeSet<RegexMatch> leftAug = allocateSet(SortType.END_SORTED);
+      if (repeat) {
+        Iterator<RegexMatch> leftIterator = left.iterator();
+        int i = 1;
+        while (leftIterator.hasNext()) {
+          RegexMatch leftEntry = leftIterator.next();
+          while (true) {
+            char c = succinctFile.partitionCharAt(leftEntry.end() + i);
+            if (charRange.indexOf(c) == -1) {
+              break;
+            }
+            leftAug.add(new RegexMatch(leftEntry.getOffset(), leftEntry.getLength() + i));
+            i++;
+          }
+        }
+      } else {
+        Iterator<RegexMatch> leftIterator = left.iterator();
+        while (leftIterator.hasNext()) {
+          RegexMatch leftEntry = leftIterator.next();
+          char c = succinctFile.partitionCharAt(leftEntry.end() + 1);
+          if (charRange.indexOf(c) != -1) {
+            leftAug.add(new RegexMatch(leftEntry.getOffset(), leftEntry.getLength() + 1));
+          }
+        }
+      }
+
+      charRangeRes = regexConcat(leftAug, right, sortType);
+    }
+
+    return charRangeRes;
+  }
+
+  /**
    * Computes the regular expression wildcard using the results from two regex sub-expressions.
    *
    * @param left     A set of (offset, length) pairs (END_SORTED).
@@ -132,7 +249,6 @@ public class RegExExecutor {
   protected TreeSet<RegexMatch> regexWildcard(TreeSet<RegexMatch> left, TreeSet<RegexMatch> right,
     SortType sortType) {
 
-    System.out.println("Executing wildcard...");
     TreeSet<RegexMatch> wildcardRes = allocateSet(sortType);
 
     Iterator<RegexMatch> leftIterator = left.iterator();
