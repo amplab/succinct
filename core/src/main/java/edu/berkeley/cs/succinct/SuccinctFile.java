@@ -31,7 +31,7 @@ public interface SuccinctFile extends Serializable {
    * @param i Index relative to file chunk.
    * @return Character at specified index.
    */
-  char partitionCharAt(long i);
+  char charAt(long i);
 
   /**
    * Extract data of specified length from Succinct data structures at specified index.

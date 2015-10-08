@@ -70,10 +70,10 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     return new Range(fileOffset, fileOffset + getOriginalSize() - 2);
   }
 
-  public char partitionCharAt(long i) {
+  public char charAt(long i) {
     try {
-      return (char) alphabet.get(
-        SerializedOperations.ArrayOps.getRank1(coloffsets, 0, getSigmaSize(), lookupISA(i)) - 1);
+      return (char) alphabet.get(SerializedOperations.ArrayOps
+        .getRank1(coloffsets, 0, getSigmaSize(), lookupISA(i - fileOffset)) - 1);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -258,7 +258,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     Set<RegexMatch> chunkResults = regExExecutor.getFinalResults();
     Map<Long, Integer> results = new TreeMap<Long, Integer>();
     for (RegexMatch result : chunkResults) {
-      results.put(result.getOffset() + fileOffset, result.getLength());
+      results.put(result.getOffset(), result.getLength());
     }
 
     return results;

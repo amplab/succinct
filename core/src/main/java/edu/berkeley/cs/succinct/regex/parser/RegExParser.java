@@ -2,7 +2,8 @@ package edu.berkeley.cs.succinct.regex.parser;
 
 public class RegExParser {
 
-  private static final char WILDCARD = (char) 1;
+  private static final char WILDCARD = '@';
+  private static final String RESERVED = "(){}[]|+*@";
   private static final RegEx BLANK = new RegExBlank();
   private String exp;
 
@@ -139,6 +140,9 @@ public class RegExParser {
         }
         i++;
       }
+      if (charRange.charAt(i) == '\\') {
+        i++;
+      }
       expandedCharRange += charRange.charAt(i);
     }
     return expandedCharRange;
@@ -157,10 +161,6 @@ public class RegExParser {
       eat('|');
       RegEx r = regex();
       return new RegExUnion(t, r);
-    } else if (more() && peek() == WILDCARD) {
-      eat(WILDCARD);
-      RegEx r = regex();
-      return new RegExWildcard(t, r);
     }
     return t;
   }
@@ -193,23 +193,32 @@ public class RegExParser {
   private RegEx term() throws RegExParsingException {
     RegEx f = BLANK;
     while (more() && peek() != ')' && peek() != '|') {
-      RegEx nextF = factor();
-      f = concat(f, nextF);
-    } if (more() && peek() == '[') {
-      eat('[');
-      String charRange = "";
-      boolean repeat = false;
-      while (peek() != ']') {
-        charRange += nextChar();
+      if (peek() == WILDCARD) {
+        eat(WILDCARD);
+        RegEx nextF = factor();
+        if (f.getRegExType() == RegExType.Blank || nextF.getRegExType() == RegExType.Blank) {
+          throw new RegExParsingException("Invalid blank children of wildcard operator.");
+        }
+        f = new RegExWildcard(f, nextF);
+      } else if (peek() == '[') {
+        eat('[');
+        String charRange = "";
+        boolean repeat = false;
+        while (peek() != ']') {
+          charRange += next();
+        }
+        charRange = expandCharRange(charRange);
+        eat(']');
+        if (more() && (peek() == '+' || peek() == '*')) {
+          next();
+          repeat = true;
+        }
+        RegEx nextF = factor();
+        f = new RegExCharRange(f, nextF, charRange, repeat);
+      } else {
+        RegEx nextF = factor();
+        f = concat(f, nextF);
       }
-      charRange = expandCharRange(charRange);
-      eat(']');
-      if (peek() == '+' || peek() == '*') {
-        next();
-        repeat = true;
-      }
-      RegEx nextF = factor();
-      return new RegExCharRange(f, nextF, charRange, repeat);
     }
     return f;
   }
@@ -248,7 +257,7 @@ public class RegExParser {
    * @throws RegExParsingException
    */
   private RegEx base() throws RegExParsingException {
-    if (peek() == '(') {
+    if (more() && peek() == '(') {
       eat('(');
       RegEx r = regex();
       eat(')');
@@ -265,10 +274,12 @@ public class RegExParser {
    */
   private RegEx mgram() throws RegExParsingException {
     String m = "";
-    while (more() && peek() != '|' && peek() != '(' && peek() != ')' && peek() != '*'
-      && peek() != '+' &&
-      peek() != '{' && peek() != '}') {
+    while (more() && RESERVED.indexOf(peek()) == -1) {
       m += nextChar();
+    }
+
+    if (m == "") {
+      return BLANK;
     }
     return new RegExPrimitive(m);
   }

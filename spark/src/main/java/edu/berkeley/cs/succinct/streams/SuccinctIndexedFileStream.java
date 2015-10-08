@@ -163,7 +163,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
     Set<Integer> recordIds = new HashSet<Integer>();
     ArrayList<byte[]> results = new ArrayList<byte[]>();
     for (Long offset : regexOffsetResults.keySet()) {
-      int recordId = offsetToRecordId(offset.intValue());
+      int recordId = offsetToRecordId((int) (offset - fileOffset));
       if (!recordIds.contains(recordId)) {
         results.add(getPartitionRecord(recordId));
         recordIds.add(recordId);

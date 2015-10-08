@@ -98,10 +98,9 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     return new Range(fileOffset, fileOffset + getOriginalSize() - 2);
   }
 
-  public char partitionCharAt(long i) {
-    return (char) alphabet.get(
-      SerializedOperations.ArrayOps.getRank1(coloffsets.buffer(), 0, getSigmaSize(), lookupISA(i))
-        - 1);
+  public char charAt(long i) {
+    return (char) alphabet.get(SerializedOperations.ArrayOps
+        .getRank1(coloffsets.buffer(), 0, getSigmaSize(), lookupISA(i - fileOffset)) - 1);
   }
 
   /**
@@ -274,7 +273,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     Set<RegexMatch> chunkResults = regExExecutor.getFinalResults();
     Map<Long, Integer> results = new TreeMap<Long, Integer>();
     for (RegexMatch result : chunkResults) {
-      results.put(result.getOffset() + fileOffset, result.getLength());
+      results.put(result.getOffset(), result.getLength());
     }
 
     return results;

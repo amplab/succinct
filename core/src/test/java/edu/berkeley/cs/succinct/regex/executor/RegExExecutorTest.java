@@ -302,12 +302,12 @@ public class RegExExecutorTest extends TestCase {
       regExExecutor.regexWildcard(A, B, RegExExecutor.SortType.FRONT_SORTED);
 
     for (RegexMatch m1 : A) {
-      for (RegexMatch m2 : B) {
-        if (m2.after(m1)) {
-          long distance = (m2.getOffset() - m1.getOffset());
-          RegexMatch m = new RegexMatch(m1.getOffset(), (int) (distance + m2.getLength()));
-          assertTrue(wildcardRes.contains(m));
-        }
+      RegexMatch lowerBound = new RegexMatch(m1.end(), 0);
+      RegexMatch m2 = B.ceiling(lowerBound);
+      if (m2 != null) {
+        long distance = m2.begin() - m1.begin();
+        RegexMatch entry = new RegexMatch(m1.begin(), (int) (distance + m2.getLength()));
+        assertTrue(wildcardRes.contains(entry));
       }
     }
 

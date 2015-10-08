@@ -18,7 +18,7 @@ import scala.util.matching.Regex
  */
 object WikiBench {
 
-  val numRepeats: Int = 5
+  val numRepeats: Int = 1
   val extractLen: Int = 1024
 
   // Constants
@@ -32,8 +32,8 @@ object WikiBench {
   // Query data
   var words: Seq[String] = _
   var regex: Seq[String] = Seq("<script>.*<script>", "Motorola.*(XPC|MPC)[0-9]+[0-9a-z]+",
-    "William [A-Za-z]+ Clinton", "1-[0-9][0-9][0-9]-[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
-    "[a-z0-9_\\.]+[a-z0-9]+\\.stanford\\.edu")
+    "William [A-Za-z]+ Clinton", "1-[0-9][0-9][0-9][\\-][0-9][0-9][0-9][\\-][0-9][0-9][0-9][0-9]",
+    "[a-z0-9_\\.]+\\.stanford\\.edu")
   var offsets: Seq[Long] = _
   var wordsWarmup: Seq[String] = _
   var wordsMeasure: Seq[String] = _

@@ -141,7 +141,17 @@ public class RegExExecutor {
 
     TreeSet<RegexMatch> charRangeRes = allocateSet(sortType);
 
-    if (left == null) {
+    if (left == null && right == null) {
+      for (char c: charRange.toCharArray()) {
+        Long[] searchRes = succinctFile.search(String.valueOf(c).getBytes());
+        for (Long offset : searchRes) {
+          charRangeRes.add(new RegexMatch(offset, 1));
+        }
+      }
+      if (repeat) {
+        charRangeRes = regexRepeat(charRangeRes, RegExRepeatType.OneOrMore, sortType);
+      }
+    } else if (left == null) {
       if (right.isEmpty()) {
         return charRangeRes;
       }
@@ -152,7 +162,7 @@ public class RegExExecutor {
           RegexMatch rightEntry = rightIterator.next();
           int i = 1;
           while (true) {
-            char c = succinctFile.partitionCharAt(rightEntry.begin() - i);
+            char c = succinctFile.charAt(rightEntry.begin() - i);
             if (charRange.indexOf(c) == -1) {
               break;
             }
@@ -165,7 +175,7 @@ public class RegExExecutor {
         Iterator<RegexMatch> rightIterator = right.iterator();
         while (rightIterator.hasNext()) {
           RegexMatch rightEntry = rightIterator.next();
-          char c = succinctFile.partitionCharAt(rightEntry.begin() - 1);
+          char c = succinctFile.charAt(rightEntry.begin() - 1);
           if (charRange.indexOf(c) != -1) {
             charRangeRes
               .add(new RegexMatch(rightEntry.getOffset() - 1, rightEntry.getLength() + 1));
@@ -179,11 +189,11 @@ public class RegExExecutor {
 
       if (repeat) {
         Iterator<RegexMatch> leftIterator = left.iterator();
-        int i = 1;
         while (leftIterator.hasNext()) {
           RegexMatch leftEntry = leftIterator.next();
+          int i = 1;
           while (true) {
-            char c = succinctFile.partitionCharAt(leftEntry.end() + i);
+            char c = succinctFile.charAt(leftEntry.end() + i - 1);
             if (charRange.indexOf(c) == -1) {
               break;
             }
@@ -195,7 +205,7 @@ public class RegExExecutor {
         Iterator<RegexMatch> leftIterator = left.iterator();
         while (leftIterator.hasNext()) {
           RegexMatch leftEntry = leftIterator.next();
-          char c = succinctFile.partitionCharAt(leftEntry.end() + 1);
+          char c = succinctFile.charAt(leftEntry.end());
           if (charRange.indexOf(c) != -1) {
             charRangeRes.add(new RegexMatch(leftEntry.getOffset(), leftEntry.getLength() + 1));
           }
@@ -209,11 +219,11 @@ public class RegExExecutor {
       TreeSet<RegexMatch> leftAug = allocateSet(SortType.END_SORTED);
       if (repeat) {
         Iterator<RegexMatch> leftIterator = left.iterator();
-        int i = 1;
         while (leftIterator.hasNext()) {
           RegexMatch leftEntry = leftIterator.next();
+          int i = 1;
           while (true) {
-            char c = succinctFile.partitionCharAt(leftEntry.end() + i);
+            char c = succinctFile.charAt(leftEntry.end() + i - 1);
             if (charRange.indexOf(c) == -1) {
               break;
             }
@@ -225,7 +235,7 @@ public class RegExExecutor {
         Iterator<RegexMatch> leftIterator = left.iterator();
         while (leftIterator.hasNext()) {
           RegexMatch leftEntry = leftIterator.next();
-          char c = succinctFile.partitionCharAt(leftEntry.end() + 1);
+          char c = succinctFile.charAt(leftEntry.end());
           if (charRange.indexOf(c) != -1) {
             leftAug.add(new RegexMatch(leftEntry.getOffset(), leftEntry.getLength() + 1));
           }
@@ -259,13 +269,10 @@ public class RegExExecutor {
       RegexMatch rightEntry = right.ceiling(lowerBoundEntry);
       if (rightEntry == null)
         continue;
-      Iterator<RegexMatch> rightIterator = right.tailSet(rightEntry, true).iterator();
-      while (rightIterator.hasNext()) {
-        rightEntry = rightIterator.next();
-        long distance = rightEntry.getOffset() - leftEntry.getOffset();
-        wildcardRes
-          .add(new RegexMatch(leftEntry.getOffset(), (int) distance + rightEntry.getLength()));
-      }
+      long distance = rightEntry.getOffset() - leftEntry.getOffset();
+      wildcardRes
+        .add(new RegexMatch(leftEntry.getOffset(), (int) distance + rightEntry.getLength()));
+
     }
 
     return wildcardRes;
