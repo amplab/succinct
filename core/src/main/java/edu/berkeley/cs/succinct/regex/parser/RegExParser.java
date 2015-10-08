@@ -133,9 +133,13 @@ public class RegExParser {
    */
   private String expandCharRange(String charRange) {
     String expandedCharRange = "";
+    System.out.println("Char range = " + charRange);
     for (int i = 0; i < charRange.length(); i++) {
       if (charRange.charAt(i) == '-') {
-        for (char c = (char) (charRange.charAt(i - 1) + 1); c < charRange.charAt(i + 1); i++) {
+        char begChar = charRange.charAt(i - 1);
+        char endChar = charRange.charAt(i + 1);
+        System.out.println("begChar = " + begChar + " endChar = " + endChar);
+        for (char c = (char) (begChar + 1); c < endChar; c++) {
           expandedCharRange += c;
         }
         i++;
