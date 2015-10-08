@@ -2,6 +2,7 @@ package edu.berkeley.cs.succinct.regex.parser;
 
 public class RegExParser {
 
+  private static final char WILDCARD = (char) 1;
   private static final RegEx BLANK = new RegExBlank();
   private String exp;
 
@@ -24,9 +25,21 @@ public class RegExParser {
    * <p/>
    * <num> ::= <digit> { <num> }
    *
-   * @param exp The regular expression encoded as a
+   * @param exp The regular expression encoded as a UTF-8 String
    */
   public RegExParser(String exp) {
+    // Replace all wildcard occurrences with single character
+    exp = exp.replace(".*", String.valueOf(WILDCARD));
+
+    // Remove leading or trailing wildcards, since they don't matter for us
+    while(exp.charAt(0) == WILDCARD) {
+      exp = exp.substring(1);
+    }
+
+    while(exp.charAt(exp.length() - 1) == WILDCARD) {
+      exp = exp.substring(0, exp.length() - 1);
+    }
+
     this.exp = exp;
   }
 
@@ -39,6 +52,10 @@ public class RegExParser {
    */
   public RegEx parse() throws RegExParsingException {
     return regex();
+  }
+
+  private char peek(int i) {
+    return exp.charAt(i);
   }
 
   /**
@@ -127,6 +144,8 @@ public class RegExParser {
       eat('|');
       RegEx r = regex();
       return new RegExUnion(t, r);
+    } else if(more() && peek() == WILDCARD) {
+      eat('.');
     }
     return t;
   }
@@ -135,8 +154,8 @@ public class RegExParser {
    * Performs parse-level optimization for concatenation by consuming empty expressions and merging chained
    * multi-grams.
    *
-   * @param a The first regular expression.
-   * @param b The second regular expression.
+   * @param a The left regular expression.
+   * @param b The right regular expression.
    * @return The concatenated regular expression tree.
    */
   private RegEx concat(RegEx a, RegEx b) {

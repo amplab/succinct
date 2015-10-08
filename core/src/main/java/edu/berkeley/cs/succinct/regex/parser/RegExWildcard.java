@@ -1,17 +1,17 @@
 package edu.berkeley.cs.succinct.regex.parser;
 
-public class RegExConcat extends RegEx {
+public class RegExWildcard extends RegEx {
 
   RegEx left;
   RegEx right;
 
   /**
-   * Constructor to initialize a RegExConcat from two input regular expressions.
+   * Constructor to initialize a RegExWildcard from two input regular expressions.
    *
    * @param left  The left regular expression.
    * @param right The right regular expression.
    */
-  public RegExConcat(RegEx left, RegEx right) {
+  public RegExWildcard(RegEx left, RegEx right) {
     super(RegExType.Concat);
     this.left = left;
     this.right = right;

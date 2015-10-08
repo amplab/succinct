@@ -1,17 +1,23 @@
 package edu.berkeley.cs.succinct.regex.executor;
 
 import edu.berkeley.cs.succinct.SuccinctFile;
+import edu.berkeley.cs.succinct.regex.RegexMatch;
 import edu.berkeley.cs.succinct.regex.parser.*;
 
 import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class RegExExecutor {
 
   private SuccinctFile succinctFile;
   private RegEx regEx;
-  private Map<Long, Integer> finalResults;
+  private TreeSet<RegexMatch> finalResults;
+
+
+  enum SortType {
+    FRONT_SORTED,
+    END_SORTED
+  }
 
   /**
    * Constructor to initialize Regex Executor with the Succinct Buffer and regex query.
@@ -28,7 +34,7 @@ public class RegExExecutor {
    * Executes the regular expression query using the backing SuccinctBuffer.
    */
   public void execute() {
-    finalResults = compute(regEx);
+    finalResults = compute(regEx, SortType.FRONT_SORTED);
   }
 
   /**
@@ -36,122 +42,199 @@ public class RegExExecutor {
    *
    * @return Final results for the regex query.
    */
-  public Map<Long, Integer> getFinalResults() {
+  public TreeSet<RegexMatch> getFinalResults() {
     return finalResults;
+  }
+
+  /**
+   * Allocates a TreeSet based on specified sorting scheme.
+   *
+   * @param sortType The sorting scheme.
+   * @return An allocated TreeSet with specified sort scheme.
+   */
+  private TreeSet<RegexMatch> allocateSet(SortType sortType) {
+    switch (sortType) {
+      case END_SORTED:
+        return new TreeSet<RegexMatch>(RegexMatch.END_COMPARATOR);
+      case FRONT_SORTED:
+        return new TreeSet<RegexMatch>(RegexMatch.FRONT_COMPARATOR);
+      default:
+        return new TreeSet<RegexMatch>(RegexMatch.FRONT_COMPARATOR);
+    }
   }
 
   /**
    * Computes the regular expression query by recursively running through the regex tree.
    *
-   * @param r The regular expression query.
+   * @param r        The regular expression query.
+   * @param sortType Sorting type for the returned set.
    * @return A set of (offset, length) pairs.
    */
-  private Map<Long, Integer> compute(RegEx r) {
+  private TreeSet<RegexMatch> compute(RegEx r, SortType sortType) {
     switch (r.getRegExType()) {
       case Blank: {
-        return new TreeMap<Long, Integer>();
+        return allocateSet(sortType);
       }
       case Primitive: {
-        return mgramSearch((RegExPrimitive) r);
+        return mgramSearch((RegExPrimitive) r, sortType);
       }
       case Union: {
-        Map<Long, Integer> firstRes = compute(((RegExUnion) r).getFirst());
-        Map<Long, Integer> secondRes = compute(((RegExUnion) r).getSecond());
-        return regexUnion(firstRes, secondRes);
+        TreeSet<RegexMatch> firstRes = compute(((RegExUnion) r).getFirst(), sortType);
+        TreeSet<RegexMatch> secondRes = compute(((RegExUnion) r).getSecond(), sortType);
+        return regexUnion(firstRes, secondRes, sortType);
       }
       case Concat: {
-        Map<Long, Integer> firstRes = compute(((RegExConcat) r).getFirst());
-        Map<Long, Integer> secondRes = compute(((RegExConcat) r).getSecond());
-        return regexConcat(firstRes, secondRes);
+        TreeSet<RegexMatch> leftRes = compute(((RegExConcat) r).getLeft(), SortType.END_SORTED);
+        TreeSet<RegexMatch> rightRes = compute(((RegExConcat) r).getRight(), SortType.FRONT_SORTED);
+        return regexConcat(leftRes, rightRes, sortType);
       }
       case Repeat: {
-        Map<Long, Integer> internalRes = compute(((RegExRepeat) r).getInternal());
-        return regexRepeat(internalRes, ((RegExRepeat) r).getRegExRepeatType());
+        TreeSet<RegexMatch> internalRes =
+          compute(((RegExRepeat) r).getInternal(), SortType.END_SORTED);
+        return regexRepeat(internalRes, ((RegExRepeat) r).getRegExRepeatType(), sortType);
       }
+      case Wildcard: {
+        TreeSet<RegexMatch> leftRes = compute(((RegExWildcard) r).getLeft(), SortType.END_SORTED);
+        TreeSet<RegexMatch> rightRes =
+          compute(((RegExWildcard) r).getRight(), SortType.FRONT_SORTED);
+        return regexWildcard(leftRes, rightRes, sortType);
+      }
+      default:
+        throw new UnsupportedOperationException("Unsupported operator");
     }
-    return new TreeMap<Long, Integer>();
   }
 
   /**
    * Computes the regular expression search results for a primitive regex query.
    *
-   * @param rp Primitive regular expression.
+   * @param rp       Primitive regular expression.
+   * @param sortType Sorting type for the returned set.
    * @return A set of (offset, length) pairs.
    */
-  protected Map<Long, Integer> mgramSearch(RegExPrimitive rp) {
-    Map<Long, Integer> mgramRes = new TreeMap<Long, Integer>();
+  protected TreeSet<RegexMatch> mgramSearch(RegExPrimitive rp, SortType sortType) {
+    TreeSet<RegexMatch> mgramRes = allocateSet(sortType);
     String mgram = rp.getMgram();
     Long[] searchRes = succinctFile.search(mgram.getBytes());
     for (int i = 0; i < searchRes.length; i++) {
-      mgramRes.put(searchRes[i], mgram.length());
+      mgramRes.add(new RegexMatch(searchRes[i], mgram.length()));
     }
     return mgramRes;
   }
 
   /**
-   * Computes the regular expression union using the results from two regex sub-expressions.
+   * Computes the regular expression wildcard using the results from two regex sub-expressions.
    *
-   * @param a A set of (offset, length) pairs.
-   * @param b A set of (offset, length) pairs.
+   * @param left     A set of (offset, length) pairs (END_SORTED).
+   * @param right    A set of (offset, length) pairs (FRONT_SORTED).
+   * @param sortType Sorting type for the returned set.
    * @return A set of (offset, length) pairs.
    */
-  protected Map<Long, Integer> regexUnion(Map<Long, Integer> a, Map<Long, Integer> b) {
-    Map<Long, Integer> unionRes = new TreeMap<Long, Integer>();
-    unionRes.putAll(a);
-    unionRes.putAll(b);
+  protected TreeSet<RegexMatch> regexWildcard(TreeSet<RegexMatch> left, TreeSet<RegexMatch> right,
+    SortType sortType) {
+
+    System.out.println("Executing wildcard...");
+    TreeSet<RegexMatch> wildcardRes = allocateSet(sortType);
+
+    Iterator<RegexMatch> leftIterator = left.iterator();
+    RegexMatch lowerBoundEntry = new RegexMatch(0, 0);
+    while (leftIterator.hasNext()) {
+      RegexMatch leftEntry = leftIterator.next();
+      lowerBoundEntry.setOffset(leftEntry.end());
+      RegexMatch rightEntry = right.ceiling(lowerBoundEntry);
+      if (rightEntry == null)
+        continue;
+      Iterator<RegexMatch> rightIterator = right.tailSet(rightEntry, true).iterator();
+      while (rightIterator.hasNext()) {
+        rightEntry = rightIterator.next();
+        long distance = rightEntry.getOffset() - leftEntry.getOffset();
+        wildcardRes
+          .add(new RegexMatch(leftEntry.getOffset(), (int) distance + rightEntry.getLength()));
+      }
+    }
+
+    return wildcardRes;
+  }
+
+  /**
+   * Computes the regular expression union using the results from two regex sub-expressions.
+   *
+   * @param left     A set of (offset, length) pairs (FRONT_SORTED).
+   * @param right    A set of (offset, length) pairs (FRONT_SORTED).
+   * @param sortType Sorting type for the returned set.
+   * @return A set of (offset, length) pairs.
+   */
+  protected TreeSet<RegexMatch> regexUnion(TreeSet<RegexMatch> left, TreeSet<RegexMatch> right,
+    SortType sortType) {
+    TreeSet<RegexMatch> unionRes = allocateSet(sortType);
+
+    unionRes.addAll(left);
+    unionRes.addAll(right);
+
     return unionRes;
   }
 
   /**
    * Computes the regex concatenation using the results from two regex sub-expressions.
    *
-   * @param a A set of (offset, length) pairs.
-   * @param b A set of (offset, length) pairs.
+   * @param left     A set of (offset, length) pairs (END_SORTED).
+   * @param right    A set of (offset, length) pairs (FRONT_SORTED).
+   * @param sortType Sorting type for the returned set.
    * @return A set of (offset, length) pairs.
    */
-  protected Map<Long, Integer> regexConcat(Map<Long, Integer> a, Map<Long, Integer> b) {
+  protected TreeSet<RegexMatch> regexConcat(TreeSet<RegexMatch> left, TreeSet<RegexMatch> right,
+    SortType sortType) {
+    TreeSet<RegexMatch> concatRes = allocateSet(sortType);
 
-    Map<Long, Integer> concatRes = new TreeMap<Long, Integer>();
-    Iterator<Long> bKeyIterator = b.keySet().iterator();
-    for (Map.Entry<Long, Integer> entry : a.entrySet()) {
-      Long curAOffset = entry.getKey();
-      Integer curALength = entry.getValue();
-      Long curBOffset = (long) 0;
-      while (bKeyIterator.hasNext() && (curBOffset = bKeyIterator.next()) <= curAOffset) {
-      }
-      if (!bKeyIterator.hasNext())
-        break;
-      if (curBOffset == curAOffset + curALength) {
-        concatRes.put(curAOffset, curALength + b.get(curBOffset));
-      }
+    if (left.isEmpty() || right.isEmpty())
+      return concatRes;
+
+    Iterator<RegexMatch> leftIterator = left.iterator();
+    RegexMatch lowerBoundEntry = new RegexMatch(0, 0);
+    while (leftIterator.hasNext()) {
+      RegexMatch leftEntry = leftIterator.next();
+      lowerBoundEntry.setOffset(leftEntry.end());
+      RegexMatch rightEntry = right.ceiling(lowerBoundEntry);
+      if (rightEntry == null || leftEntry.end() != rightEntry.begin())
+        continue;
+      do {
+        concatRes.add(
+          new RegexMatch(leftEntry.getOffset(), leftEntry.getLength() + rightEntry.getLength()));
+        rightEntry = right.higher(rightEntry);
+      } while (rightEntry != null && leftEntry.end() == rightEntry.begin());
     }
+
     return concatRes;
   }
 
   /**
-   * Computes the regex repetition using the results from a regex sub-expression.
+   * Computes the regex repetition using the results from child regex sub-expression.
    *
-   * @param a          A set of (offset, length) pairs.
+   * @param child      A set of (offset, length) pairs (END_SORTED).
    * @param repeatType The type of repeat operation.
+   * @param sortType   Sorting type for the returned set.
    * @return A set of (offset, length) pairs.
    */
-  protected Map<Long, Integer> regexRepeat(Map<Long, Integer> a, RegExRepeatType repeatType) {
-    Map<Long, Integer> repeatRes = null;
+  protected TreeSet<RegexMatch> regexRepeat(TreeSet<RegexMatch> child, RegExRepeatType repeatType,
+    SortType sortType) {
+    TreeSet<RegexMatch> repeatRes = allocateSet(sortType);
+    TreeSet<RegexMatch> right = allocateSet(SortType.FRONT_SORTED);
+    right.addAll(child);
+
     switch (repeatType) {
       case ZeroOrMore: {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Zero or more unsupported.");
       }
       case OneOrMore: {
-        Map<Long, Integer> concatRes;
-        repeatRes = concatRes = a;
+        TreeSet<RegexMatch> concatRes = child;
+        repeatRes.addAll(child);
         do {
-          concatRes = regexConcat(concatRes, a);
-          repeatRes.putAll(concatRes);
+          concatRes = regexConcat(concatRes, right, sortType);
+          repeatRes.addAll(concatRes);
         } while (concatRes.size() > 0);
         break;
       }
       case MinToMax: {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Min to max unsupported.");
       }
     }
     return repeatRes;

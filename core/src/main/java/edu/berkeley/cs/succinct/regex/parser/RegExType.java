@@ -4,6 +4,7 @@ public enum RegExType {
   Union,
   Concat,
   Repeat,
+  Wildcard,
   Primitive,
   Blank
 }

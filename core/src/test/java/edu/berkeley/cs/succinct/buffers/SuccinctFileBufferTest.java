@@ -196,7 +196,7 @@ public class SuccinctFileBufferTest extends TestCase {
     assertTrue(checkResultsUnion(concatResults, "cin", "cout"));
 
     Map<Long, Integer> repeatResults = sBuf.regexSearch("c+");
-    assertTrue(checkResults(repeatResults, "c"));
+    assertTrue(checkResultsRepeat(repeatResults, "c"));
   }
 
   public void testSerializeDeserialize() throws Exception {

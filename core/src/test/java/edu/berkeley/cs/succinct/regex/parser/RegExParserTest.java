@@ -48,9 +48,9 @@ public class RegExParserTest extends TestCase {
     RegEx concatRegEx1 = concatParser1.parse();
     assertEquals(concatRegEx1.getRegExType(), RegExType.Concat);
     RegExConcat cRE1 = (RegExConcat) concatRegEx1;
-    assertEquals(cRE1.getFirst().getRegExType(), RegExType.Primitive);
-    assertEquals(((RegExPrimitive) cRE1.getFirst()).getMgram(), "a");
-    assertEquals(cRE1.getSecond().getRegExType(), RegExType.Union);
+    assertEquals(cRE1.getLeft().getRegExType(), RegExType.Primitive);
+    assertEquals(((RegExPrimitive) cRE1.getLeft()).getMgram(), "a");
+    assertEquals(cRE1.getRight().getRegExType(), RegExType.Union);
 
     // Parse concat with optimization
     RegExParser concatParser2 = new RegExParser("a(b)");

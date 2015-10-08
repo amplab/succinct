@@ -1,6 +1,7 @@
 package edu.berkeley.cs.succinct.streams;
 
 import edu.berkeley.cs.succinct.SuccinctFile;
+import edu.berkeley.cs.succinct.regex.RegexMatch;
 import edu.berkeley.cs.succinct.regex.executor.RegExExecutor;
 import edu.berkeley.cs.succinct.regex.parser.RegEx;
 import edu.berkeley.cs.succinct.regex.parser.RegExParser;
@@ -17,6 +18,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
@@ -244,10 +246,10 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     RegExExecutor regExExecutor = new RegExExecutor(this, optRegEx);
     regExExecutor.execute();
 
-    Map<Long, Integer> chunkResults = regExExecutor.getFinalResults();
+    Set<RegexMatch> chunkResults = regExExecutor.getFinalResults();
     Map<Long, Integer> results = new TreeMap<Long, Integer>();
-    for (Map.Entry<Long, Integer> result : chunkResults.entrySet()) {
-      results.put(result.getKey() + fileOffset, result.getValue());
+    for (RegexMatch result : chunkResults) {
+      results.put(result.getOffset() + fileOffset, result.getLength());
     }
 
     return results;
