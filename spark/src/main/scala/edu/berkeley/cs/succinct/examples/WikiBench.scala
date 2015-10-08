@@ -307,7 +307,7 @@ object WikiBench {
     })
   }
 
-  def benchRegexSuccinct(rdd: SuccinctRDD): Unit = {
+  def benchRegexSuccinctRDD(rdd: SuccinctRDD): Unit = {
     println("Benchmarking Succinct RDD regex")
     regex.foreach(r => {
       var time = 0.0
