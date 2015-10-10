@@ -14,6 +14,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
 
   protected transient int[] offsets;
   protected transient long firstRecordId;
+  protected transient long endOfIndexedFileStream;
 
   /**
    * Constructor to map a file containing Succinct data structures via streams.
@@ -32,6 +33,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
     for (int i = 0; i < len; i++) {
       offsets[i] = is.readInt();
     }
+    endOfIndexedFileStream = is.getPos();
     is.close();
   }
 
