@@ -2,25 +2,42 @@ package edu.berkeley.cs.succinct.regex.parser;
 
 public class RegExPrimitive extends RegEx {
 
-  private String mgram;
+  public enum PrimitiveType {
+    MGRAM,
+    CHAR_RANGE,
+    DOT
+  }
+
+  private String primitiveStr;
+  private PrimitiveType primitiveType;
 
   /**
-   * Constructor to initialize RegExPrimitive with multi-gram.
+   * Constructor to initialize RegExPrimitive with primitive string.
    *
-   * @param mgram Input multi-gram.
+   * @param primtiveStr The string for the primitive.
    */
-  public RegExPrimitive(String mgram) {
+  public RegExPrimitive(String primtiveStr, PrimitiveType primitiveType) {
     super(RegExType.Primitive);
-    this.mgram = mgram;
+    this.primitiveStr = primtiveStr;
+    this.primitiveType = primitiveType;
   }
 
   /**
-   * Get multi-gram.
+   * Get the primitive type.
    *
-   * @return The multi-gram.
+   * @return The primitive type.
    */
-  public String getMgram() {
-    return mgram;
+  public PrimitiveType getPrimitiveType() {
+    return primitiveType;
+  }
+
+  /**
+   * Get primitive string.
+   *
+   * @return The primitive string.
+   */
+  public String getPrimitiveStr() {
+    return primitiveStr;
   }
 
 }

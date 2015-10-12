@@ -228,6 +228,49 @@ public class SuccinctBuffer extends SuccinctCore {
   }
 
   /**
+   * Lookup up the inverted alphabet map at specified index.
+   *
+   * @param i Index into inverted alphabet map
+   * @return Value of inverted alphabet map at specified index.
+   */
+  @Override public long lookupC(long i) {
+    return SerializedOperations.ArrayOps.getRank1(coloffsets.buffer(), 0, getSigmaSize(), i) - 1;
+  }
+
+  /**
+   * Binary Search for a value withing NPA.
+   *
+   * @param val      Value to be searched.
+   * @param startIdx Starting index into NPA.
+   * @param endIdx   Ending index into NPA.
+   * @param flag     Whether to search for left or the right boundary.
+   * @return Search result as an index into the NPA.
+   */
+  @Override public long binSearchNPA(long val, long startIdx, long endIdx, boolean flag) {
+
+    long sp = startIdx;
+    long ep = endIdx;
+    long m;
+
+    while (sp <= ep) {
+      m = (sp + ep) / 2;
+
+      long psi_val;
+      psi_val = lookupNPA(m);
+
+      if (psi_val == val) {
+        return m;
+      } else if (val < psi_val) {
+        ep = m - 1;
+      } else {
+        sp = m + 1;
+      }
+    }
+
+    return flag ? ep : sp;
+  }
+
+  /**
    * Construct Succinct data structures from input byte array.
    *
    * @param input Input byte array.

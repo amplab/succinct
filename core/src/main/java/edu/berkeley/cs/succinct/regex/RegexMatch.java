@@ -2,10 +2,10 @@ package edu.berkeley.cs.succinct.regex;
 
 import java.util.Comparator;
 
-public class RegexMatch implements Comparable<RegexMatch> {
+public class RegExMatch implements Comparable<RegExMatch> {
 
-  public static final Comparator<RegexMatch> END_COMPARATOR = new Comparator<RegexMatch>() {
-    @Override public int compare(RegexMatch o1, RegexMatch o2) {
+  public static final Comparator<RegExMatch> END_COMPARATOR = new Comparator<RegExMatch>() {
+    @Override public int compare(RegExMatch o1, RegExMatch o2) {
       long o1End = (o1.getOffset() + o1.getLength());
       long o2End = (o2.getOffset() + o2.getLength());
       if (o1End == o2End) {
@@ -22,8 +22,8 @@ public class RegexMatch implements Comparable<RegexMatch> {
     }
   };
 
-  public static final Comparator<RegexMatch> FRONT_COMPARATOR = new Comparator<RegexMatch>() {
-    @Override public int compare(RegexMatch o1, RegexMatch o2) {
+  public static final Comparator<RegExMatch> FRONT_COMPARATOR = new Comparator<RegExMatch>() {
+    @Override public int compare(RegExMatch o1, RegExMatch o2) {
       if (o1.getOffset() == o2.getOffset()) {
         if (o1.getLength() == o2.getLength()) {
           return 0;
@@ -41,7 +41,7 @@ public class RegexMatch implements Comparable<RegexMatch> {
   private long offset;
   private int length;
 
-  public RegexMatch(long offset, int length) {
+  public RegExMatch(long offset, int length) {
     this.offset = offset;
     this.length = length;
   }
@@ -70,19 +70,19 @@ public class RegexMatch implements Comparable<RegexMatch> {
     return offset + length;
   }
 
-  public boolean adjacentAfter(RegexMatch r) {
+  public boolean adjacentAfter(RegExMatch r) {
     return offset == r.end();
   }
 
-  public boolean adjacentBefore(RegexMatch r) {
+  public boolean adjacentBefore(RegExMatch r) {
     return r.getOffset() == end();
   }
 
-  public boolean after(RegexMatch r) {
+  public boolean after(RegExMatch r) {
     return offset >= r.end();
   }
 
-  public boolean before(RegexMatch r) {
+  public boolean before(RegExMatch r) {
     return end() <= r.getOffset();
   }
 
@@ -92,7 +92,7 @@ public class RegexMatch implements Comparable<RegexMatch> {
   }
 
   @Override
-  public int compareTo(RegexMatch o) {
+  public int compareTo(RegExMatch o) {
     if (offset == o.getOffset()) {
       return length - o.getLength();
     }

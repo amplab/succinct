@@ -24,6 +24,22 @@ public class Range implements Comparable<Range>, Serializable {
     return value >= first && value <= second;
   }
 
+  public long begin() {
+    return first;
+  }
+
+  public long end() {
+    return second;
+  }
+
+  public long size() {
+    return second - first + 1;
+  }
+
+  public boolean empty() {
+    return first > second;
+  }
+
   @Override public int compareTo(Range that) {
     long diff1 = this.first - that.first;
     long diff2 = this.second - that.second;

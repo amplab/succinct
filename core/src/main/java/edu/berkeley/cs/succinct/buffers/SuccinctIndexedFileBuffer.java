@@ -192,7 +192,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   @Override public Long[] recordSearchOffsets(byte[] query) {
     Set<Long> results = new HashSet<Long>();
-    Range range = getRange(query);
+    Range range = bwdSearch(query);
 
     long sp = range.first, ep = range.second;
     if (ep - sp + 1 <= 0) {
@@ -225,7 +225,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   @Override public byte[][] recordSearch(byte[] query) {
     Set<Integer> recordIds = new HashSet<Integer>();
     ArrayList<byte[]> results = new ArrayList<byte[]>();
-    Range range = getRange(query);
+    Range range = bwdSearch(query);
 
     long sp = range.first, ep = range.second;
     if (ep - sp + 1 <= 0) {
@@ -254,8 +254,8 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   @Override public byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd) {
     Set<Integer> recordIds = new HashSet<Integer>();
     ArrayList<byte[]> results = new ArrayList<byte[]>();
-    Range rangeBegin = getRange(queryBegin);
-    Range rangeEnd = getRange(queryEnd);
+    Range rangeBegin = bwdSearch(queryBegin);
+    Range rangeEnd = bwdSearch(queryEnd);
 
     long sp = rangeBegin.first, ep = rangeEnd.second;
     if (ep - sp + 1 <= 0) {
@@ -297,15 +297,15 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
 
       switch (queryTypes[qid]) {
         case Search: {
-          range = getRange(queries[qid][0]);
+          range = bwdSearch(queries[qid][0]);
           break;
         }
         case RangeSearch: {
           byte[] queryBegin = queries[qid][0];
           byte[] queryEnd = queries[qid][1];
           Range rangeBegin, rangeEnd;
-          rangeBegin = getRange(queryBegin);
-          rangeEnd = getRange(queryEnd);
+          rangeBegin = bwdSearch(queryBegin);
+          rangeEnd = bwdSearch(queryEnd);
           range = new Range(rangeBegin.first, rangeEnd.second);
           break;
         }
@@ -357,6 +357,19 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     }
 
     return results.toArray(new byte[results.size()][]);
+  }
+
+  /**
+   * Check if the two offsets belong to the same record.
+   *
+   * @param firstOffset The first offset.
+   * @param secondOffset The second offset.
+   * @return True if the two offsets belong to the same record, false otherwise.
+   */
+  @Override public boolean sameRecord(long firstOffset, long secondOffset) {
+    int firstChunkOffset = (int) (firstOffset - fileOffset);
+    int secondChunkOffset = (int) (secondOffset - fileOffset);
+    return offsetToRecordId(firstChunkOffset) == offsetToRecordId(secondChunkOffset);
   }
 
   /**

@@ -5,7 +5,6 @@ public enum RegExType {
   Concat,
   Repeat,
   Wildcard,
-  CharRange,
   Primitive,
   Blank
 }

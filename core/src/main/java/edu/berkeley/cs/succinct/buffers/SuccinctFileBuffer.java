@@ -2,15 +2,10 @@ package edu.berkeley.cs.succinct.buffers;
 
 import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctFile;
-import edu.berkeley.cs.succinct.regex.RegexMatch;
-import edu.berkeley.cs.succinct.regex.executor.RegExExecutor;
-import edu.berkeley.cs.succinct.regex.parser.RegEx;
-import edu.berkeley.cs.succinct.regex.parser.RegExParser;
+import edu.berkeley.cs.succinct.regex.RegExMatch;
+import edu.berkeley.cs.succinct.regex.SuccinctRegEx;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
-import edu.berkeley.cs.succinct.regex.planner.NaiveRegExPlanner;
-import edu.berkeley.cs.succinct.regex.planner.RegExPlanner;
 import edu.berkeley.cs.succinct.util.Range;
-import edu.berkeley.cs.succinct.util.buffers.SerializedOperations;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -98,9 +93,26 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     return new Range(fileOffset, fileOffset + getOriginalSize() - 2);
   }
 
+  /**
+   * Get the alphabet for the succinct file.
+   *
+   * @return The alphabet for the succinct file.
+   */
+  @Override public byte[] getAlphabet() {
+    byte[] alphabetBuf = new byte[getAlphaSize()];
+    alphabet.buffer().get(alphabetBuf);
+    alphabet.rewind();
+    return alphabetBuf;
+  }
+
+  /**
+   * Get the character at index in file.
+   *
+   * @param i Index into file.
+   * @return The character at the specified index.
+   */
   public char charAt(long i) {
-    return (char) alphabet.get(SerializedOperations.ArrayOps
-        .getRank1(coloffsets.buffer(), 0, getSigmaSize(), lookupISA(i - fileOffset)) - 1);
+    return (char) alphabet.get((int) lookupC(lookupISA(i - fileOffset)));
   }
 
   /**
@@ -118,8 +130,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     long chunkOffset = offset - fileOffset;
     s = lookupISA(chunkOffset);
     for (int k = 0; k < len && k < getOriginalSize(); k++) {
-      buf[k] = alphabet
-        .get(SerializedOperations.ArrayOps.getRank1(coloffsets.buffer(), 0, getSigmaSize(), s) - 1);
+      buf[k] = alphabet.get((int) lookupC(s));
       s = lookupNPA(s);
     }
 
@@ -142,8 +153,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     s = lookupISA(chunkOffset);
     char nextChar;
     do {
-      nextChar = (char) alphabet
-        .get(SerializedOperations.ArrayOps.getRank1(coloffsets.buffer(), 0, getSigmaSize(), s) - 1);
+      nextChar = (char) alphabet.get((int) lookupC(s));
       if (nextChar == delim || nextChar == 1)
         break;
       strBuf += nextChar;
@@ -154,45 +164,12 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
   }
 
   /**
-   * Binary Search for a value withing NPA.
+   * Perform backward search to obtain SA range for a query.
    *
-   * @param val      Value to be searched.
-   * @param startIdx Starting index into NPA.
-   * @param endIdx   Ending index into NPA.
-   * @param flag     Whether to search for left or the right boundary.
-   * @return Search result as an index into the NPA.
+   * @param buf Input query.
+   * @return Range into SA.
    */
-  @Override public long binSearchNPA(long val, long startIdx, long endIdx, boolean flag) {
-
-    long sp = startIdx;
-    long ep = endIdx;
-    long m;
-
-    while (sp <= ep) {
-      m = (sp + ep) / 2;
-
-      long psi_val;
-      psi_val = lookupNPA(m);
-
-      if (psi_val == val) {
-        return m;
-      } else if (val < psi_val) {
-        ep = m - 1;
-      } else {
-        sp = m + 1;
-      }
-    }
-
-    return flag ? ep : sp;
-  }
-
-  /**
-   * Get range of SA positions using Backward search
-   *
-   * @param buf Input query to be searched.
-   * @return Range of indices into the SA.
-   */
-  @Override public Range getRange(byte[] buf) {
+  @Override public Range bwdSearch(byte[] buf) {
     Range range = new Range(0L, -1L);
     int m = buf.length;
     long c1, c2;
@@ -220,14 +197,188 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
   }
 
   /**
+   * Continue backward search on query to obtain SA range.
+   *
+   * @param buf   Input query.
+   * @param range Range to start from.
+   * @return Range into SA.
+   */
+  @Override public Range continueBwdSearch(byte[] buf, Range range) {
+    Range newRange = new Range(range.first, range.second);
+    int m = buf.length;
+    long c1, c2;
+
+    for (int i = m - 1; i >= 0; i--) {
+      if (alphabetMap.containsKey(buf[i])) {
+        c1 = alphabetMap.get(buf[i]).first;
+        c2 = alphabetMap.get((alphabet.get(alphabetMap.get(buf[i]).second + 1))).first - 1;
+      } else {
+        return newRange;
+      }
+      newRange.first = binSearchNPA(newRange.first, c1, c2, false);
+      newRange.second = binSearchNPA(newRange.second, c1, c2, true);
+    }
+    return newRange;
+  }
+
+  /**
+   * Compare entire buffer with input starting at specified index.
+   *
+   * @param buf The buffer to compare with.
+   * @param i   The index into input.
+   * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
+   */
+  @Override public int compare(byte[] buf, int i) {
+    int j = 0;
+
+    do {
+      byte c = alphabet.get((int) lookupC(i));
+      if (buf[j] < c) {
+        return -1;
+      } else if (buf[j] > c) {
+        return 1;
+      }
+      i = (int) lookupNPA(i);
+      j++;
+    } while (j < buf.length);
+
+    return 0;
+  }
+
+  /**
+   * Compare entire buffer with input starting at specified index and offset
+   * into buffer.
+   *
+   * @param buf    The buffer to compare with.
+   * @param i      The index into input.
+   * @param offset Offset into buffer.
+   * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
+   */
+  @Override public int compare(byte[] buf, int i, int offset) {
+    int j = 0;
+
+    while (offset != 0) {
+      i = (int) lookupNPA(i);
+      offset--;
+    }
+
+    do {
+      byte c = alphabet.get((int) lookupC(i));
+      if (buf[j] < c) {
+        return -1;
+      } else if (buf[j] > c) {
+        return 1;
+      }
+      i = (int) lookupNPA(i);
+      j++;
+    } while (j < buf.length);
+
+    return 0;
+  }
+
+  /**
+   * Perform forward search to obtain SA range for a query.
+   *
+   * @param buf Input query.
+   * @return Range into SA.
+   */
+  @Override public Range fwdSearch(byte[] buf) {
+    int st = getOriginalSize() - 1;
+    int sp = 0;
+    int s;
+    while (sp < st) {
+      s = (sp + st) / 2;
+      if (compare(buf, s) > 0) {
+        sp = s + 1;
+      } else {
+        st = s;
+      }
+    }
+
+    int et = getOriginalSize() - 1;
+    int ep = sp - 1;
+    int e;
+    while (ep < et) {
+      e = (int) Math.ceil((double) (ep + et) / 2);
+      if (compare(buf, e) == 0) {
+        ep = e;
+      } else {
+        et = e - 1;
+      }
+    }
+
+    return new Range(sp, ep);
+  }
+
+  /**
+   * Continue forward search on query to obtain SA range.
+   *
+   * @param buf    Input query.
+   * @param range  Range to start from.
+   * @param offset Offset into input query.
+   * @return Range into SA.
+   */
+  @Override public Range continueFwdSearch(byte[] buf, Range range, int offset) {
+
+    if (buf.length == 0) {
+      return range;
+    }
+
+    int st = (int) range.second;
+    int sp = (int) range.first;
+    int s;
+    while (sp < st) {
+      s = (sp + st) / 2;
+      if (compare(buf, s, offset) > 0) {
+        sp = sp + 1;
+      } else {
+        st = s;
+      }
+    }
+
+    int et = (int) range.second;
+    int ep = sp - 1;
+    int e;
+    while (ep < et) {
+      e = (int) Math.ceil((double) (ep + et) / 2);
+      if (compare(buf, e, offset) == 0) {
+        ep = e;
+      } else {
+        et = e - 1;
+      }
+    }
+
+    return new Range(sp, ep);
+  }
+
+  /**
    * Get count of pattern occurrences in original input.
    *
    * @param query Input query.
    * @return Count of occurrences.
    */
   @Override public long count(byte[] query) {
-    Range range = getRange(query);
+    Range range = bwdSearch(query);
     return range.second - range.first + 1;
+  }
+
+  /**
+   * Translate range into SA to offsets in file.
+   *
+   * @param range Range into SA.
+   * @return Offsets corresponding to offsets.
+   */
+  @Override public Long[] rangeToOffsets(Range range) {
+    if (range.empty()) {
+      return new Long[0];
+    }
+
+    Long[] offsets = new Long[(int) range.size()];
+    for (long i = 0; i < range.size(); i++) {
+      offsets[((int) i)] = lookupSA(range.begin() + i) + fileOffset;
+    }
+
+    return offsets;
   }
 
   /**
@@ -237,18 +388,20 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    * @return All locations of pattern occurrences in original input.
    */
   @Override public Long[] search(byte[] query) {
-    Range range = getRange(query);
-    long sp = range.first, ep = range.second;
-    if (ep - sp + 1 <= 0) {
-      return new Long[0];
-    }
+    return rangeToOffsets(bwdSearch(query));
+  }
 
-    Long[] positions = new Long[(int) (ep - sp + 1)];
-    for (long i = 0; i < ep - sp + 1; i++) {
-      positions[(int) i] = lookupSA(sp + i) + fileOffset;
-    }
 
-    return positions;
+  /**
+   * Check if the two offsets belong to the same record. This is always true for the
+   * SuccinctFileBuffer.
+   *
+   * @param firstOffset The first offset.
+   * @param secondOffset The second offset.
+   * @return True if the two offsets belong to the same record, false otherwise.
+   */
+  @Override public boolean sameRecord(long firstOffset, long secondOffset) {
+    return true;
   }
 
   /**
@@ -259,20 +412,11 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    * @throws RegExParsingException
    */
   @Override public Map<Long, Integer> regexSearch(String query) throws RegExParsingException {
-    RegExParser parser = new RegExParser(new String(query));
-    RegEx regEx;
+    SuccinctRegEx succinctRegEx = new SuccinctRegEx(this, query);
 
-    regEx = parser.parse();
-
-    RegExPlanner planner = new NaiveRegExPlanner(this, regEx);
-    RegEx optRegEx = planner.plan();
-
-    RegExExecutor regExExecutor = new RegExExecutor(this, optRegEx);
-    regExExecutor.execute();
-
-    Set<RegexMatch> chunkResults = regExExecutor.getFinalResults();
+    Set<RegExMatch> chunkResults = succinctRegEx.compute();
     Map<Long, Integer> results = new TreeMap<Long, Integer>();
-    for (RegexMatch result : chunkResults) {
+    for (RegExMatch result : chunkResults) {
       results.put(result.getOffset(), result.getLength());
     }
 

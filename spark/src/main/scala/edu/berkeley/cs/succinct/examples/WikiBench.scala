@@ -31,7 +31,7 @@ object WikiBench {
 
   // Query data
   var words: Seq[String] = _
-  var regex: Seq[String] = Seq("<script>.*</script>", "Motorola.*(XPC|MPC)[0-9]+[0-9a-z]+",
+  var regex: Seq[String] = Seq("<script>.*</script>", "Motorola.*((XPC|MPC)[0-9]+[0-9a-z]+)",
     "William [A-Za-z]+ Clinton", "1-[0-9][0-9][0-9][\\-][0-9][0-9][0-9][\\-][0-9][0-9][0-9][0-9]",
     "[a-z0-9_\\.]+\\.stanford\\.edu")
   var offsets: Seq[Long] = _

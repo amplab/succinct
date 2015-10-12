@@ -2,11 +2,9 @@ package edu.berkeley.cs.succinct.examples;
 
 import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.buffers.SuccinctFileBuffer;
-import edu.berkeley.cs.succinct.regex.RegexMatch;
-import edu.berkeley.cs.succinct.regex.executor.RegExExecutor;
-import edu.berkeley.cs.succinct.regex.parser.*;
-import edu.berkeley.cs.succinct.regex.planner.NaiveRegExPlanner;
-import edu.berkeley.cs.succinct.regex.planner.RegExPlanner;
+import edu.berkeley.cs.succinct.regex.RegExMatch;
+import edu.berkeley.cs.succinct.regex.SuccinctRegEx;
+import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 
 import java.io.*;
 import java.util.Map;
@@ -14,60 +12,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 public class SuccinctShell {
-  private static void printRegex(RegEx re) {
-    switch (re.getRegExType()) {
-      case Blank: {
-        System.out.print("Blank");
-        break;
-      }
-      case Wildcard:
-        RegExWildcard w = (RegExWildcard)re;
-        System.out.print("Wildcard(");
-        printRegex(w.getLeft());
-        System.out.print(",");
-        printRegex(w.getRight());
-        System.out.print(")");
-        break;
-      case CharRange:
-        RegExCharRange c = (RegExCharRange)re;
-        System.out.print("CharRange(");
-        printRegex(c.getLeft());
-        System.out.print(",");
-        printRegex(c.getRight());
-        System.out.print("," + c.getCharRange() + "," + c.isRepeat() + ")");
-        break;
-      case Primitive: {
-        RegExPrimitive p = ((RegExPrimitive) re);
-        System.out.print("Primitive:" + p.getMgram());
-        break;
-      }
-      case Repeat: {
-        RegExRepeat r = (RegExRepeat)re;
-        System.out.print("Repeat(");
-        printRegex(r.getInternal());
-        System.out.print(")");
-        break;
-      }
-      case Concat: {
-        RegExConcat co = (RegExConcat)re;
-        System.out.print("Concat(");
-        printRegex(co.getLeft());
-        System.out.print(",");
-        printRegex(co.getRight());
-        System.out.print(")");
-        break;
-      }
-      case Union: {
-        RegExUnion u = (RegExUnion)re;
-        System.out.print("Union(");
-        printRegex(u.getFirst());
-        System.out.print(",");
-        printRegex(u.getSecond());
-        System.out.print(")");
-        break;
-      }
-    }
-  }
 
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {
@@ -156,26 +100,19 @@ public class SuccinctShell {
 
         Map<Long, Integer> results;
         try {
-          RegExParser parser = new RegExParser(new String(cmdArray[1]));
-          RegEx regEx = parser.parse();
+          SuccinctRegEx succinctRegEx = new SuccinctRegEx(succinctFileBuffer, cmdArray[1]);
 
           System.out.println("Parsed Expression: ");
-          printRegex(regEx);
+          succinctRegEx.printRegEx();
           System.out.println();
 
-          RegExPlanner planner = new NaiveRegExPlanner(succinctFileBuffer, regEx);
-          RegEx optRegEx = planner.plan();
-
-          RegExExecutor regExExecutor = new RegExExecutor(succinctFileBuffer, optRegEx);
-          regExExecutor.execute();
-
-          Set<RegexMatch> chunkResults = regExExecutor.getFinalResults();
+          Set<RegExMatch> chunkResults = succinctRegEx.compute();
           results = new TreeMap<Long, Integer>();
-          for (RegexMatch result : chunkResults) {
+          for (RegExMatch result : chunkResults) {
             results.put(result.getOffset(), result.getLength());
           }
         } catch (RegExParsingException e) {
-          System.err.println("Could not parse regular expression: [" + cmdArray[1] + "]");
+          System.err.println("Could not parse regular expression: [" + cmdArray[1] + "]: " + e.getMessage());
           continue;
         }
         System.out.println("Result size = " + results.size());

@@ -1,7 +1,7 @@
 package edu.berkeley.cs.succinct.regex.executor;
 
 import edu.berkeley.cs.succinct.buffers.SuccinctFileBuffer;
-import edu.berkeley.cs.succinct.regex.RegexMatch;
+import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.parser.*;
 import junit.framework.TestCase;
 
@@ -11,10 +11,10 @@ import java.io.FileInputStream;
 import java.util.Random;
 import java.util.TreeSet;
 
-public class RegExExecutorTest extends TestCase {
+public class BlackBoxRegExExecutorTest extends TestCase {
 
   private String testFileRaw = this.getClass().getResource("/test_file").getFile();
-  private RegExExecutor regExExecutor;
+  private BlackBoxRegExExecutor blackBoxRegExExecutor;
   private SuccinctFileBuffer sBuf;
   private byte[] fileData;
   private Random generator;
@@ -40,8 +40,8 @@ public class RegExExecutorTest extends TestCase {
    *
    * @return A random regex match.
    */
-  private RegexMatch generateMatch() {
-    return new RegexMatch(Math.abs(generator.nextInt(1000)), Math.abs(generator.nextInt(99) + 1));
+  private RegExMatch generateMatch() {
+    return new RegExMatch(Math.abs(generator.nextInt(1000)), Math.abs(generator.nextInt(99) + 1));
   }
 
   /**
@@ -52,12 +52,12 @@ public class RegExExecutorTest extends TestCase {
    * @return The check result.
    */
   private boolean checkResults(RegEx regEx, String exp) {
-    TreeSet<RegexMatch> results;
+    TreeSet<RegExMatch> results;
 
-    regExExecutor = new RegExExecutor(sBuf, regEx);
-    regExExecutor.execute();
-    results = regExExecutor.getFinalResults();
-    for (RegexMatch m : results) {
+    blackBoxRegExExecutor = new BlackBoxRegExExecutor(sBuf, regEx);
+    blackBoxRegExExecutor.execute();
+    results = blackBoxRegExExecutor.getFinalResults();
+    for (RegExMatch m : results) {
       for (int i = 0; i < exp.length(); i++) {
         if (fileData[((int) (m.getOffset() + i))] != exp.charAt(i)) {
           return false;
@@ -76,12 +76,12 @@ public class RegExExecutorTest extends TestCase {
    * @return The check result.
    */
   private boolean checkResultsUnion(RegEx regEx, String exp1, String exp2) {
-    TreeSet<RegexMatch> results;
+    TreeSet<RegExMatch> results;
 
-    regExExecutor = new RegExExecutor(sBuf, regEx);
-    regExExecutor.execute();
-    results = regExExecutor.getFinalResults();
-    for (RegexMatch m : results) {
+    blackBoxRegExExecutor = new BlackBoxRegExExecutor(sBuf, regEx);
+    blackBoxRegExExecutor.execute();
+    results = blackBoxRegExExecutor.getFinalResults();
+    for (RegExMatch m : results) {
       boolean flagFirst = true;
       boolean flagSecond = true;
       for (int i = 0; i < exp1.length(); i++) {
@@ -110,12 +110,12 @@ public class RegExExecutorTest extends TestCase {
    * @return The check result.
    */
   private boolean checkResultsRepeat(RegEx regEx, String exp) {
-    TreeSet<RegexMatch> results;
+    TreeSet<RegExMatch> results;
 
-    regExExecutor = new RegExExecutor(sBuf, regEx);
-    regExExecutor.execute();
-    results = regExExecutor.getFinalResults();
-    for (RegexMatch m : results) {
+    blackBoxRegExExecutor = new BlackBoxRegExExecutor(sBuf, regEx);
+    blackBoxRegExExecutor.execute();
+    results = blackBoxRegExExecutor.getFinalResults();
+    for (RegExMatch m : results) {
       for (int i = 0; i < m.getLength(); i++) {
         if (fileData[((int) (m.getOffset() + i))] != exp.charAt(i % exp.length())) {
           return false;
@@ -133,9 +133,9 @@ public class RegExExecutorTest extends TestCase {
   public void testExecute() throws Exception {
     System.out.println("execute");
 
-    RegEx primitive1 = new RegExPrimitive("c");
-    RegEx primitive2 = new RegExPrimitive("out");
-    RegEx primitive3 = new RegExPrimitive("in");
+    RegEx primitive1 = new RegExPrimitive("c", RegExPrimitive.PrimitiveType.MGRAM);
+    RegEx primitive2 = new RegExPrimitive("out", RegExPrimitive.PrimitiveType.MGRAM);
+    RegEx primitive3 = new RegExPrimitive("in", RegExPrimitive.PrimitiveType.MGRAM);
     RegEx union = new RegExUnion(primitive2, primitive3);
     RegEx concat = new RegExConcat(primitive1, primitive2);
     RegEx repeat = new RegExRepeat(primitive1, RegExRepeatType.OneOrMore);
@@ -160,12 +160,12 @@ public class RegExExecutorTest extends TestCase {
     System.out.println("mgramSearch");
 
     String query = "int";
-    RegExPrimitive regEx = new RegExPrimitive(query);
-    regExExecutor = new RegExExecutor(sBuf, regEx);
-    TreeSet<RegexMatch> results =
-      regExExecutor.mgramSearch(regEx, RegExExecutor.SortType.FRONT_SORTED);
+    RegExPrimitive regEx = new RegExPrimitive(query, RegExPrimitive.PrimitiveType.MGRAM);
+    blackBoxRegExExecutor = new BlackBoxRegExExecutor(sBuf, regEx);
+    TreeSet<RegExMatch> results =
+      blackBoxRegExExecutor.mgramSearch(regEx, BlackBoxRegExExecutor.SortType.FRONT_SORTED);
 
-    for (RegexMatch m : results) {
+    for (RegExMatch m : results) {
       int len = m.getLength();
       for (int i = 0; i < len; i++) {
         assertEquals(fileData[((int) (m.getOffset() + i))], query.charAt(i));
@@ -183,23 +183,23 @@ public class RegExExecutorTest extends TestCase {
     System.out.println("regexUnion");
 
     // Populate two maps randomly
-    TreeSet<RegexMatch> A = new TreeSet<RegexMatch>(RegexMatch.FRONT_COMPARATOR);
-    TreeSet<RegexMatch> B = new TreeSet<RegexMatch>(RegexMatch.FRONT_COMPARATOR);
+    TreeSet<RegExMatch> A = new TreeSet<RegExMatch>(RegExMatch.FRONT_COMPARATOR);
+    TreeSet<RegExMatch> B = new TreeSet<RegExMatch>(RegExMatch.FRONT_COMPARATOR);
     for (int i = 0; i < 100; i++) {
       A.add(generateMatch());
       B.add(generateMatch());
     }
 
     // Check if union is correct
-    regExExecutor = new RegExExecutor(null, null);
-    TreeSet<RegexMatch> unionRes =
-      regExExecutor.regexUnion(A, B, RegExExecutor.SortType.FRONT_SORTED);
+    blackBoxRegExExecutor = new BlackBoxRegExExecutor(null, null);
+    TreeSet<RegExMatch> unionRes =
+      blackBoxRegExExecutor.regexUnion(A, B, BlackBoxRegExExecutor.SortType.FRONT_SORTED);
 
-    for (RegexMatch m : A) {
+    for (RegExMatch m : A) {
       assertTrue(unionRes.contains(m));
     }
 
-    for (RegexMatch m : B) {
+    for (RegExMatch m : B) {
       assertTrue(unionRes.contains(m));
     }
   }
@@ -211,12 +211,12 @@ public class RegExExecutorTest extends TestCase {
    * @param right Right result set.
    * @return Concatenation result set.
    */
-  private TreeSet<RegexMatch> naiveConcat(TreeSet<RegexMatch> left, TreeSet<RegexMatch> right) {
-    TreeSet<RegexMatch> res = new TreeSet<RegexMatch>();
-    for (RegexMatch m1 : left) {
-      for (RegexMatch m2 : right) {
+  private TreeSet<RegExMatch> naiveConcat(TreeSet<RegExMatch> left, TreeSet<RegExMatch> right) {
+    TreeSet<RegExMatch> res = new TreeSet<RegExMatch>();
+    for (RegExMatch m1 : left) {
+      for (RegExMatch m2 : right) {
         if (m1.getOffset() + m1.getLength() == m2.getOffset()) {
-          res.add(new RegexMatch(m1.getOffset(), m1.getLength() + m2.getLength()));
+          res.add(new RegExMatch(m1.getOffset(), m1.getLength() + m2.getLength()));
         }
       }
     }
@@ -232,19 +232,19 @@ public class RegExExecutorTest extends TestCase {
     System.out.println("regexConcat");
 
     // Populate two maps randomly
-    TreeSet<RegexMatch> A = new TreeSet<RegexMatch>(RegexMatch.END_COMPARATOR);
-    TreeSet<RegexMatch> B = new TreeSet<RegexMatch>(RegexMatch.FRONT_COMPARATOR);
+    TreeSet<RegExMatch> A = new TreeSet<RegExMatch>(RegExMatch.END_COMPARATOR);
+    TreeSet<RegExMatch> B = new TreeSet<RegExMatch>(RegExMatch.FRONT_COMPARATOR);
     for (int i = 0; i < 100; i++) {
       A.add(generateMatch());
       B.add(generateMatch());
     }
 
     // Check if concat is correct
-    regExExecutor = new RegExExecutor(null, null);
-    TreeSet<RegexMatch> concatRes =
-      regExExecutor.regexConcat(A, B, RegExExecutor.SortType.FRONT_SORTED);
+    blackBoxRegExExecutor = new BlackBoxRegExExecutor(null, null);
+    TreeSet<RegExMatch> concatRes =
+      blackBoxRegExExecutor.regexConcat(A, B, BlackBoxRegExExecutor.SortType.FRONT_SORTED);
 
-    TreeSet<RegexMatch> expectedConcatRes = naiveConcat(A, B);
+    TreeSet<RegExMatch> expectedConcatRes = naiveConcat(A, B);
 
     assertTrue(concatRes.containsAll(expectedConcatRes));
   }
@@ -258,18 +258,18 @@ public class RegExExecutorTest extends TestCase {
     System.out.println("regexRepeat");
 
     // Populate a map randomly
-    TreeSet<RegexMatch> A = new TreeSet<RegexMatch>(RegexMatch.END_COMPARATOR);
+    TreeSet<RegExMatch> A = new TreeSet<RegExMatch>(RegExMatch.END_COMPARATOR);
     for (int i = 0; i < 100; i++) {
-      RegexMatch m = generateMatch();
+      RegExMatch m = generateMatch();
       A.add(m);
     }
 
     // Check if concat is correct
-    regExExecutor = new RegExExecutor(null, null);
-    TreeSet<RegexMatch> repeatRes =
-      regExExecutor.regexRepeat(A, RegExRepeatType.OneOrMore, RegExExecutor.SortType.FRONT_SORTED);
+    blackBoxRegExExecutor = new BlackBoxRegExExecutor(null, null);
+    TreeSet<RegExMatch> repeatRes =
+      blackBoxRegExExecutor.regexRepeat(A, RegExRepeatType.OneOrMore, BlackBoxRegExExecutor.SortType.FRONT_SORTED);
 
-    TreeSet<RegexMatch> expectedRepeatRes = new TreeSet<RegexMatch>(RegexMatch.FRONT_COMPARATOR);
+    TreeSet<RegExMatch> expectedRepeatRes = new TreeSet<RegExMatch>(RegExMatch.FRONT_COMPARATOR);
     expectedRepeatRes.addAll(A);
 
     for (int i = 0; i < A.size(); i++) {
@@ -288,8 +288,8 @@ public class RegExExecutorTest extends TestCase {
     System.out.println("regexWildcard");
 
     // Populate two maps randomly
-    TreeSet<RegexMatch> A = new TreeSet<RegexMatch>(RegexMatch.END_COMPARATOR);
-    TreeSet<RegexMatch> B = new TreeSet<RegexMatch>(RegexMatch.FRONT_COMPARATOR);
+    TreeSet<RegExMatch> A = new TreeSet<RegExMatch>(RegExMatch.END_COMPARATOR);
+    TreeSet<RegExMatch> B = new TreeSet<RegExMatch>(RegExMatch.FRONT_COMPARATOR);
 
     for (int i = 0; i < 10; i++) {
       A.add(generateMatch());
@@ -297,19 +297,18 @@ public class RegExExecutorTest extends TestCase {
     }
 
     // Check if concat is correct
-    regExExecutor = new RegExExecutor(null, null);
-    TreeSet<RegexMatch> wildcardRes =
-      regExExecutor.regexWildcard(A, B, RegExExecutor.SortType.FRONT_SORTED);
+    blackBoxRegExExecutor = new BlackBoxRegExExecutor(null, null);
+    TreeSet<RegExMatch> wildcardRes =
+      blackBoxRegExExecutor.regexWildcard(A, B, BlackBoxRegExExecutor.SortType.FRONT_SORTED);
 
-    for (RegexMatch m1 : A) {
-      RegexMatch lowerBound = new RegexMatch(m1.end(), 0);
-      RegexMatch m2 = B.ceiling(lowerBound);
+    for (RegExMatch m1 : A) {
+      RegExMatch lowerBound = new RegExMatch(m1.end(), 0);
+      RegExMatch m2 = B.ceiling(lowerBound);
       if (m2 != null) {
         long distance = m2.begin() - m1.begin();
-        RegexMatch entry = new RegexMatch(m1.begin(), (int) (distance + m2.getLength()));
+        RegExMatch entry = new RegExMatch(m1.begin(), (int) (distance + m2.getLength()));
         assertTrue(wildcardRes.contains(entry));
       }
     }
-
   }
 }

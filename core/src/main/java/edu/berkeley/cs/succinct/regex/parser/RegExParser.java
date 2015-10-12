@@ -3,7 +3,7 @@ package edu.berkeley.cs.succinct.regex.parser;
 public class RegExParser {
 
   private static final char WILDCARD = '@';
-  private static final String RESERVED = "(){}[]|+*@";
+  private static final String RESERVED = "(){}[]|+*@.";
   private static final RegEx BLANK = new RegExBlank();
   private String exp;
 
@@ -14,9 +14,9 @@ public class RegExParser {
    * |  <term>
    * <term> ::= { <factor> }
    * <factor> ::= <base> { '*' | '+' | '{' <num> ',' <num> ')' }
-   * <base> ::= <mgram>
+   * <base> ::= <primitive>
    * |  '(' <regex> ')'
-   * <mgram> ::= <char> | '\' <char> { <mgram> }
+   * <primitive> ::= <char> | '\' <char> { <primitive> }
    * <num> ::= <digit> { <num> }
    *
    * @param exp The regular expression encoded as a UTF-8 String
@@ -45,11 +45,56 @@ public class RegExParser {
    * @throws RegExParsingException
    */
   public RegEx parse() throws RegExParsingException {
-    return regex();
+    RegEx r = regex();
+    checkParseTree(r, null);
+    return r;
   }
 
-  private char peek(int i) {
-    return exp.charAt(i);
+  /**
+   * Checks the parse tree for conformity to supported grammar.
+   *
+   * @param node Current node.
+   * @param parent Current node's parent.
+   * @throws RegExParsingException
+   */
+  private void checkParseTree(RegEx node, RegEx parent) throws RegExParsingException {
+    // TODO: Change this to cater to cases where Wildcard node may have non-wildcard parents.
+    switch (node.getRegExType()) {
+      case Blank: {
+        // We've reached a leaf node -- stop
+        break;
+      }
+      case Primitive: {
+        // We've reached a leaf node -- stop
+        break;
+      }
+      case Wildcard: {
+        RegExWildcard w = (RegExWildcard) node;
+        if (parent != null && parent.getRegExType() != RegExType.Wildcard) {
+          throw new RegExParsingException("Wildcard node has non-wildcard parent.");
+        }
+        checkParseTree(w.getLeft(), w);
+        checkParseTree(w.getRight(), w);
+        break;
+      }
+      case Repeat: {
+        RegExRepeat r = (RegExRepeat)node;
+        checkParseTree(r.getInternal(), r);
+        break;
+      }
+      case Concat: {
+        RegExConcat c = (RegExConcat)node;
+        checkParseTree(c.getLeft(), c);
+        checkParseTree(c.getRight(), c);
+        break;
+      }
+      case Union: {
+        RegExUnion u = (RegExUnion)node;
+        checkParseTree(u.getFirst(), u);
+        checkParseTree(u.getSecond(), u);
+        break;
+      }
+    }
   }
 
   /**
@@ -126,31 +171,6 @@ public class RegExParser {
   }
 
   /**
-   * Expands character range, i.e., converts abbreviated ranges into full ranges.
-   *
-   * @param charRange Character range to be expanded.
-   * @return The expanded character range.
-   */
-  private String expandCharRange(String charRange) {
-    String expandedCharRange = "";
-    for (int i = 0; i < charRange.length(); i++) {
-      if (charRange.charAt(i) == '-') {
-        char begChar = charRange.charAt(i - 1);
-        char endChar = charRange.charAt(i + 1);
-        for (char c = (char) (begChar + 1); c < endChar; c++) {
-          expandedCharRange += c;
-        }
-        i++;
-      }
-      if (charRange.charAt(i) == '\\') {
-        i++;
-      }
-      expandedCharRange += charRange.charAt(i);
-    }
-    return expandedCharRange;
-  }
-
-  /**
    * Top level method for recursive top-down parsing.
    * Parses the next regex (sub-expression).
    *
@@ -179,9 +199,14 @@ public class RegExParser {
     if (a.getRegExType() == RegExType.Blank) {
       return b;
     } else if (a.getRegExType() == RegExType.Primitive && b.getRegExType() == RegExType.Primitive) {
-      String aStr = ((RegExPrimitive) a).getMgram();
-      String bStr = ((RegExPrimitive) b).getMgram();
-      return new RegExPrimitive(aStr + bStr);
+      RegExPrimitive primitiveA = ((RegExPrimitive) a);
+      RegExPrimitive primitiveB = ((RegExPrimitive) b);
+      if (primitiveA.getPrimitiveType() == RegExPrimitive.PrimitiveType.MGRAM
+        && primitiveB.getPrimitiveType() == RegExPrimitive.PrimitiveType.MGRAM) {
+        String aStr = primitiveA.getPrimitiveStr();
+        String bStr = primitiveB.getPrimitiveStr();
+        return new RegExPrimitive(aStr + bStr, RegExPrimitive.PrimitiveType.MGRAM);
+      }
     }
     return new RegExConcat(a, b);
   }
@@ -199,24 +224,9 @@ public class RegExParser {
         eat(WILDCARD);
         RegEx nextF = factor();
         if (f.getRegExType() == RegExType.Blank || nextF.getRegExType() == RegExType.Blank) {
-          throw new RegExParsingException("Invalid blank children of wildcard operator.");
+          throw new RegExParsingException("Malformed RegEx query; Invalid empty children for wildcard operator.");
         }
         f = new RegExWildcard(f, nextF);
-      } else if (peek() == '[') {
-        eat('[');
-        String charRange = "";
-        boolean repeat = false;
-        while (peek() != ']') {
-          charRange += next();
-        }
-        charRange = expandCharRange(charRange);
-        eat(']');
-        if (more() && (peek() == '+' || peek() == '*')) {
-          next();
-          repeat = true;
-        }
-        RegEx nextF = factor();
-        f = new RegExCharRange(f, nextF, charRange, repeat);
       } else {
         RegEx nextF = factor();
         f = concat(f, nextF);
@@ -265,16 +275,59 @@ public class RegExParser {
       eat(')');
       return r;
     }
-    return mgram();
+    return primitive();
   }
 
   /**
-   * Parses the next multi-gram.
+   * Expands character range, i.e., converts abbreviated ranges into full ranges.
    *
-   * @return The next multi-gram.
+   * @param charRange Character range to be expanded.
+   * @return The expanded character range.
+   */
+  private String expandCharRange(String charRange) throws RegExParsingException {
+    String expandedCharRange = "";
+    try {
+      for (int i = 0; i < charRange.length(); i++) {
+        if (charRange.charAt(i) == '-') {
+          char begChar = charRange.charAt(i - 1);
+          char endChar = charRange.charAt(i + 1);
+          for (char c = (char) (begChar + 1); c < endChar; c++) {
+            expandedCharRange += c;
+          }
+          i++;
+        }
+        if (charRange.charAt(i) == '\\') {
+          i++;
+        }
+        expandedCharRange += charRange.charAt(i);
+      }
+    } catch (Exception e) {
+      throw new RegExParsingException("Could not expand range [" + charRange + "]");
+    }
+    return expandedCharRange;
+  }
+
+  /**
+   * Parses the next primitive.
+   *
+   * @return The next primitive.
    * @throws RegExParsingException
    */
-  private RegEx mgram() throws RegExParsingException {
+  private RegEx primitive() throws RegExParsingException {
+    if (more() && peek() == '[') {
+      eat('[');
+      String charRange = "";
+      while (peek() != ']') {
+        charRange += next();
+      }
+      charRange = expandCharRange(charRange);
+      eat(']');
+      return new RegExPrimitive(charRange, RegExPrimitive.PrimitiveType.CHAR_RANGE);
+    } else if (more() && peek() == '.') {
+      eat('.');
+      return new RegExPrimitive(".", RegExPrimitive.PrimitiveType.DOT);
+    }
+
     String m = "";
     while (more() && RESERVED.indexOf(peek()) == -1) {
       m += nextChar();
@@ -283,7 +336,8 @@ public class RegExParser {
     if (m == "") {
       return BLANK;
     }
-    return new RegExPrimitive(m);
+
+    return new RegExPrimitive(m, RegExPrimitive.PrimitiveType.MGRAM);
   }
 
 }

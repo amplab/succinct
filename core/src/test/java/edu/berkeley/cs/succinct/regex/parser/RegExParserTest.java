@@ -25,13 +25,13 @@ public class RegExParserTest extends TestCase {
     RegExParser mgramParser1 = new RegExParser("abcd");
     RegEx mgramRegEx1 = mgramParser1.parse();
     assertEquals(mgramRegEx1.getRegExType(), RegExType.Primitive);
-    assertEquals(((RegExPrimitive) mgramRegEx1).getMgram(), "abcd");
+    assertEquals(((RegExPrimitive) mgramRegEx1).getPrimitiveStr(), "abcd");
 
     // Parse multi-grams with escape characters
     RegExParser mgramParser2 = new RegExParser("\\|a\\(b\\)c\\*d\\+\\{\\}");
     RegEx mgramRegEx2 = mgramParser2.parse();
     assertEquals(mgramRegEx2.getRegExType(), RegExType.Primitive);
-    assertEquals(((RegExPrimitive) mgramRegEx2).getMgram(), "|a(b)c*d+{}");
+    assertEquals(((RegExPrimitive) mgramRegEx2).getPrimitiveStr(), "|a(b)c*d+{}");
 
     // Parse union
     RegExParser unionParser = new RegExParser("a|b");
@@ -39,9 +39,9 @@ public class RegExParserTest extends TestCase {
     assertEquals(unionRegEx.getRegExType(), RegExType.Union);
     RegExUnion uRE = (RegExUnion) unionRegEx;
     assertEquals(uRE.getFirst().getRegExType(), RegExType.Primitive);
-    assertEquals(((RegExPrimitive) uRE.getFirst()).getMgram(), "a");
+    assertEquals(((RegExPrimitive) uRE.getFirst()).getPrimitiveStr(), "a");
     assertEquals(uRE.getSecond().getRegExType(), RegExType.Primitive);
-    assertEquals(((RegExPrimitive) uRE.getSecond()).getMgram(), "b");
+    assertEquals(((RegExPrimitive) uRE.getSecond()).getPrimitiveStr(), "b");
 
     // Parse concat
     RegExParser concatParser1 = new RegExParser("a(b|c)");
@@ -49,14 +49,14 @@ public class RegExParserTest extends TestCase {
     assertEquals(concatRegEx1.getRegExType(), RegExType.Concat);
     RegExConcat cRE1 = (RegExConcat) concatRegEx1;
     assertEquals(cRE1.getLeft().getRegExType(), RegExType.Primitive);
-    assertEquals(((RegExPrimitive) cRE1.getLeft()).getMgram(), "a");
+    assertEquals(((RegExPrimitive) cRE1.getLeft()).getPrimitiveStr(), "a");
     assertEquals(cRE1.getRight().getRegExType(), RegExType.Union);
 
     // Parse concat with optimization
     RegExParser concatParser2 = new RegExParser("a(b)");
     RegEx concatRegEx2 = concatParser2.parse();
     assertEquals(concatRegEx2.getRegExType(), RegExType.Primitive);
-    assertEquals(((RegExPrimitive) concatRegEx2).getMgram(), "ab");
+    assertEquals(((RegExPrimitive) concatRegEx2).getPrimitiveStr(), "ab");
 
     // Parse repeat: zero or more
     RegExParser repeatParser1 = new RegExParser("a*");
@@ -65,7 +65,7 @@ public class RegExParserTest extends TestCase {
     RegExRepeat rRE1 = (RegExRepeat) repeatRegEx1;
     assertEquals(rRE1.getRegExRepeatType(), RegExRepeatType.ZeroOrMore);
     assertEquals(rRE1.getInternal().getRegExType(), RegExType.Primitive);
-    assertEquals(((RegExPrimitive) rRE1.getInternal()).getMgram(), "a");
+    assertEquals(((RegExPrimitive) rRE1.getInternal()).getPrimitiveStr(), "a");
 
     // Parse repeat: one or more
     RegExParser repeatParser2 = new RegExParser("a+");
@@ -74,7 +74,7 @@ public class RegExParserTest extends TestCase {
     RegExRepeat rRE2 = (RegExRepeat) repeatRegEx2;
     assertEquals(rRE2.getRegExRepeatType(), RegExRepeatType.OneOrMore);
     assertEquals(rRE2.getInternal().getRegExType(), RegExType.Primitive);
-    assertEquals(((RegExPrimitive) rRE2.getInternal()).getMgram(), "a");
+    assertEquals(((RegExPrimitive) rRE2.getInternal()).getPrimitiveStr(), "a");
 
     // Parse repeat: min to max
     RegExParser repeatParser3 = new RegExParser("a{1,2}");
@@ -83,7 +83,7 @@ public class RegExParserTest extends TestCase {
     RegExRepeat rRE3 = (RegExRepeat) repeatRegEx3;
     assertEquals(rRE3.getRegExRepeatType(), RegExRepeatType.MinToMax);
     assertEquals(rRE3.getInternal().getRegExType(), RegExType.Primitive);
-    assertEquals(((RegExPrimitive) rRE3.getInternal()).getMgram(), "a");
+    assertEquals(((RegExPrimitive) rRE3.getInternal()).getPrimitiveStr(), "a");
     assertEquals(rRE3.getMin(), 1);
     assertEquals(rRE3.getMax(), 2);
   }

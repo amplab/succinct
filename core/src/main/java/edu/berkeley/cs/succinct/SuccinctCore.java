@@ -237,4 +237,23 @@ public abstract class SuccinctCore implements Serializable {
    */
   public abstract long lookupISA(long i);
 
+  /**
+   * Lookup up the inverted alphabet map at specified index.
+   *
+   * @param i Index into inverted alphabet map
+   * @return Value of inverted alphabet map at specified index.
+   */
+  public abstract long lookupC(long i);
+
+  /**
+   * Binary Search for a value withing NPA.
+   *
+   * @param val      Value to be searched.
+   * @param startIdx Starting index into NPA.
+   * @param endIdx   Ending index into NPA.
+   * @param flag     Whether to search for left or the right boundary.
+   * @return Search result as an index into the NPA.
+   */
+  public abstract long binSearchNPA(long val, long startIdx, long endIdx, boolean flag);
+
 }
