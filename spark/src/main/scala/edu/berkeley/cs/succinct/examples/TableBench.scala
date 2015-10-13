@@ -53,7 +53,7 @@ object TableBench {
   }
 
   def main(args: Array[String]) {
-    if (args.length < 5) {
+    if (args.length < 4) {
       System.err.println("Usage: TableBench <parquet-data> <succinct-data> <query-path> <output-path>")
       System.exit(1)
     }

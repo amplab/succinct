@@ -89,7 +89,7 @@ object KVBench {
   }
 
   def main(args: Array[String]) {
-    if (args.length < 5) {
+    if (args.length < 4) {
       System.err.println("Usage: KVBench <raw-data> <succinct-data> <partitions> <output-path>")
       System.exit(1)
     }
