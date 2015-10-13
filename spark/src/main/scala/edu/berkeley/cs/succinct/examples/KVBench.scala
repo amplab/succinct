@@ -31,10 +31,10 @@ object KVBench {
   def get(rdd: RDD[(java.lang.Long, Array[Byte])], key: java.lang.Long): Array[Byte] = {
     val res = rdd.filter(kv => kv._1 == key).collect()
     if (res.size == 0) {
-      throw new ArrayIndexOutOfBoundsException("Invalid key = " + key)
+      throw new ArrayIndexOutOfBoundsException(s"Invalid key = $key")
     }
-    if (res.size > 0) {
-      throw new IllegalArgumentException("Got multiple values for key = " + key)
+    if (res.size > 1) {
+      throw new IllegalArgumentException(s"Got ${res.size} values for key = $key")
     }
     res(0)._2
   }
