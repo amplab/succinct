@@ -112,7 +112,7 @@ object KVBench {
     println("Number of entries = " + kvRDDDisk.count())
 
     keys = Random.shuffle((0 to 9999)
-      .map(i => (Random.nextLong() % count).asInstanceOf[java.lang.Long]))
+      .map(i => (Math.abs(Random.nextLong()) % count).asInstanceOf[java.lang.Long]))
       .toArray
 
     // Create queries
