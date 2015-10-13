@@ -33,7 +33,7 @@ fi
 SPARK_MASTER=${MASTER:-"local[*]"}
 
 $SPARK_HOME/bin/spark-submit \
-    --class "edu.berkeley.cs.succinct.examples.WikiBench" \
+    --class "edu.berkeley.cs.succinct.examples.KVBench" \
     --master "$SPARK_MASTER" \
     --executor-memory 1G \
     --driver-memory 1G \
