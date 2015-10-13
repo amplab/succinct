@@ -102,10 +102,10 @@ object KVBench {
     val sparkConf = new SparkConf().setAppName("KVBench")
     val ctx = new SparkContext(sparkConf)
 
-    val kvRDD = ctx.textFile("/conviva-sql-raw")
+    val kvRDD = ctx.textFile(dataPath)
       .zipWithIndex
       .map(t => (t._2.asInstanceOf[java.lang.Long], t._1.getBytes))
-      .repartition(32)
+      .repartition(partitions)
 
     val kvRDDDisk = kvRDD.persist(StorageLevel.DISK_ONLY)
     val count = kvRDDDisk.count()
