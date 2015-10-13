@@ -137,14 +137,14 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
 
   /**
    * Searches for the input regular expression within each RDD and
-   * returns results as (offset, length) pairs relative to each partition.
+   * returns results as (offset, length) pairs.
    * The query must be UTF-8 encoded.
    *
    * @param query The regular expression search query.
-   * @return RDD of an iterable over matched pattern occurrences.
+   * @return RDD of matched pattern occurrences.
    */
-  def regexSearchOffsets(query: String): RDD[Iterable[PatternEntry]] = {
-    partitionsRDD.map(buf => buf.regexSearch(query).toMap.map(t => new PatternEntry(t._1, t._2)))
+  def regexSearchOffsets(query: String): RDD[PatternEntry] = {
+    partitionsRDD.map(buf => buf.regexSearch(query).toMap.map(t => new PatternEntry(t._1, t._2))).flatMap(_.iterator)
   }
 
   /**
