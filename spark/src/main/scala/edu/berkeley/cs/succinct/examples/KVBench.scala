@@ -13,8 +13,8 @@ import scala.util.Random
 object KVBench {
 
   // Constants
-  val WARMUP_COUNT: Int = 100
-  val MEASURE_COUNT: Int = 1000
+  val WARMUP_COUNT: Int = 20
+  val MEASURE_COUNT: Int = 100
 
   // Queries
   var keys: Array[java.lang.Long] = _
