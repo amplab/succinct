@@ -314,7 +314,7 @@ object WikiBench {
       var count = 0.0
       for (i <- 1 to numRepeats) {
         val startTime = System.currentTimeMillis()
-        val results = rdd.regexSearch(r)
+        val results = rdd.regexSearchOffsets(r)
         count += results.count()
         val endTime = System.currentTimeMillis()
         val totTime = endTime - startTime
