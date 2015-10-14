@@ -17,8 +17,7 @@ object TableBench {
   var measureQueries: Array[String] = _
 
   // Constants
-  val WARMUP_COUNT: Int = 10
-  val MEASURE_COUNT: Int = 1000
+  val WARMUP_COUNT: Int = 20
 
   // Output path
   var outPath: String = _
@@ -41,15 +40,15 @@ object TableBench {
     })
 
     // Measure
-    val outGet = new FileWriter(outPath + "/df-" + dfType)
+    val outFilter = new FileWriter(outPath + "/df-" + dfType)
     measureQueries.foreach(k => {
       val startTime = System.currentTimeMillis()
       val length = filterQuery(k, df).count()
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
-      outGet.write(s"$k\t$length\t$totTime\n")
+      outFilter.write(s"$k\t$length\t$totTime\n")
     })
-    outGet.close()
+    outFilter.close()
   }
 
   def main(args: Array[String]) {
@@ -66,15 +65,15 @@ object TableBench {
     queries = Source.fromFile(queryPath)
       .getLines()
       .map(line => line.split('\t'))
-      .map(lineArr => "col" + lineArr(0) + "=" + lineArr(1))
+      .map(lineArr => "col" + lineArr(0) + "=\"" + lineArr(1) + "\"")
       .toArray
 
     warmupQueries = sampleArr(queries, WARMUP_COUNT)
-    measureQueries = sampleArr(queries, MEASURE_COUNT)
+    measureQueries = queries
 
     val sqlCtx = new SQLContext(new SparkContext(new SparkConf().setAppName("TableBench")))
 
-    val parquetDF = sqlCtx.read.parquet(parquetDataPath)
+    val parquetDF = sqlCtx.read.parquet(parquetDataPath).cache()
     benchDF(parquetDF, "parquet")
 
     val succinctDF = sqlCtx.read.format("edu.berkeley.cs.succinct.sql").load(succinctDataPath)
