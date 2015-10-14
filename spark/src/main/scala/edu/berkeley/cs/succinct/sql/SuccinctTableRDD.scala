@@ -160,8 +160,7 @@ object SuccinctTableRDD {
     val maxRow: Row = SuccinctUtils.readObjectFromFS[Row](conf, maxPath)
     val limits = getLimits(maxRow, minRow)
     val succinctSerializer = new SuccinctSerializer(succinctSchema, succinctSeparators, limits)
-    new SuccinctTableRDDImpl(succinctPartitions, succinctSeparators, succinctSchema, minRow, maxRow, succinctSerializer)
-      .cache()
+    new SuccinctTableRDDImpl(succinctPartitions.cache(), succinctSeparators, succinctSchema, minRow, maxRow, succinctSerializer)
   }
 
   /**
@@ -236,7 +235,7 @@ object SuccinctTableRDD {
     while (dataIter.hasNext) {
       val curTuple = succinctSerializer.serializeRow(dataIter.next())
       buffers += curTuple
-      partitionSize += (curTuple.size + 1)
+      partitionSize += (curTuple.length + 1)
       offsets += offset
       offset += (curTuple.length + 1)
     }

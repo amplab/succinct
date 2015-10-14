@@ -32,6 +32,8 @@ class SuccinctTableRDDImpl private[succinct](
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctTableRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
+  val recordCount = partitionsRDD.map(_.getNumRecords).aggregate(0L)(_ + _,  _ + _)
+
   /** Overrides [[RDD]]]'s compute to return a [[SuccinctTableIterator]]. */
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
     val succinctIterator = firstParent[SuccinctIndexedFile].iterator(split, context)
@@ -89,7 +91,6 @@ class SuccinctTableRDDImpl private[succinct](
     SuccinctUtils.writeObjectToFS(conf, separatorsPath, separators)
     SuccinctUtils.writeObjectToFS(conf, minPath, minimums)
     SuccinctUtils.writeObjectToFS(conf, maxPath, maximums)
-    fs.create(new Path(s"${path.stripSuffix("/")}/_SUCCESS")).close()
     partitionsRDD.zipWithIndex().foreach(entry => {
       val i = entry._2
       val partition = entry._1
@@ -100,7 +101,7 @@ class SuccinctTableRDDImpl private[succinct](
       partition.writeToStream(os)
       os.close()
     })
-
+    fs.create(new Path(s"${path.stripSuffix("/")}/_SUCCESS")).close()
   }
 
   /** Implements search for [[SuccinctTableRDD]]. */
@@ -304,5 +305,14 @@ class SuccinctTableRDDImpl private[succinct](
   /** Implements count for [[SuccinctTableRDD]]. */
   override def count(attribute: String, query: Array[Byte]): Long = {
     partitionsRDD.map(buf => buf.recordCount(createQuery(attribute, query))).aggregate(0L)(_ + _, _ + _)
+  }
+
+  /**
+   * Get the count of the number of records in the RDD.
+   *
+   * @return The count of the number of records in the RDD.
+   */
+  override def count(): Long = {
+    recordCount
   }
 }
