@@ -23,13 +23,13 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
  * @param targetStorageLevel The target storage level for the RDD.
  */
 class SuccinctTableRDDImpl private[succinct](
-                                              val partitionsRDD: RDD[SuccinctIndexedFile],
-                                              val separators: Array[Byte],
-                                              val schema: StructType,
-                                              val minimums: Row,
-                                              val maximums: Row,
-                                              val succinctSerializer: SuccinctSerializer,
-                                              val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+    val partitionsRDD: RDD[SuccinctIndexedFile],
+    val separators: Array[Byte],
+    val schema: StructType,
+    val minimums: Row,
+    val maximums: Row,
+    val succinctSerializer: SuccinctSerializer,
+    val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctTableRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
   /** Overrides [[RDD]]]'s compute to return a [[SuccinctTableIterator]]. */
@@ -85,6 +85,11 @@ class SuccinctTableRDDImpl private[succinct](
     val conf = new Configuration()
     val fs = FileSystem.get(new Path(path.stripSuffix("/")).toUri, conf)
     fs.mkdirs(new Path(dataPath))
+    SuccinctUtils.writeObjectToFS(conf, schemaPath, schema)
+    SuccinctUtils.writeObjectToFS(conf, separatorsPath, separators)
+    SuccinctUtils.writeObjectToFS(conf, minPath, minimums)
+    SuccinctUtils.writeObjectToFS(conf, maxPath, maximums)
+    fs.create(new Path(s"${path.stripSuffix("/")}/_SUCCESS")).close()
     partitionsRDD.zipWithIndex().foreach(entry => {
       val i = entry._2
       val partition = entry._1
@@ -95,11 +100,7 @@ class SuccinctTableRDDImpl private[succinct](
       partition.writeToStream(os)
       os.close()
     })
-    SuccinctUtils.writeObjectToFS(conf, schemaPath, schema)
-    SuccinctUtils.writeObjectToFS(conf, separatorsPath, separators)
-    SuccinctUtils.writeObjectToFS(conf, minPath, minimums)
-    SuccinctUtils.writeObjectToFS(conf, maxPath, maximums)
-    fs.create(new Path(s"${path.stripSuffix("/")}/_SUCCESS")).close()
+
   }
 
   /** Implements search for [[SuccinctTableRDD]]. */
