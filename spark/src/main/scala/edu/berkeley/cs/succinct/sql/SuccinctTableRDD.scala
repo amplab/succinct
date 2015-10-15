@@ -192,9 +192,9 @@ object SuccinctTableRDD {
    * @return The [[SuccinctTableRDD]].
    */
   def apply(inputRDD: RDD[Row], schema: StructType): SuccinctTableRDD = {
-    // Assume ASCII values 11- are unused in the original text
+    // Assume ASCII values -124 are unused in the original text
     val separatorsSize = schema.length
-    val separators: Array[Byte] = range(11, 11 + separatorsSize).map(_.toByte)
+    val separators: Array[Byte] = range(-124, -124 + separatorsSize).map(_.toByte)
     val minRow: Row = min(inputRDD, schema)
     val maxRow: Row = max(inputRDD, schema)
     val limits = getLimits(maxRow, minRow)
@@ -225,8 +225,8 @@ object SuccinctTableRDD {
    * @return An Iterator over the [[SuccinctIndexedFile]].
    */
   private[succinct] def createSuccinctBuffer(
-                                              dataIter: Iterator[Row],
-                                              succinctSerializer: SuccinctSerializer): Iterator[SuccinctIndexedFile] = {
+      dataIter: Iterator[Row],
+      succinctSerializer: SuccinctSerializer): Iterator[SuccinctIndexedFile] = {
 
     var offsets = new ArrayBuffer[Int]()
     var buffers = new ArrayBuffer[Array[Byte]]()

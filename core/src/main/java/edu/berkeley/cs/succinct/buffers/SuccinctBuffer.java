@@ -350,8 +350,8 @@ public class SuccinctBuffer extends SuccinctCore {
       alphabetArray[(int) i] = input[(int) SA.getVal((int) sel)];
       alphabetMap.put(alphabetArray[(int) i], new Pair<Long, Integer>(sel, (int) i));
     }
-    alphabetMap.put((byte) 0, new Pair<Long, Integer>((long) input.length, (int) i));
-    alphabetArray[(int) i] = (char) 0;
+    alphabetMap.put((byte) -126, new Pair<Long, Integer>((long) input.length, (int) i));
+    alphabetArray[(int) i] = (byte) -126;
 
     // Serialize cmap
     alphabetmap = ThreadSafeByteBuffer.allocate(alphabetMap.size() * (1 + 8 + 4));

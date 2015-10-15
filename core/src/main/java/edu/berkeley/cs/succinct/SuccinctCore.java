@@ -10,7 +10,7 @@ import java.util.Map;
 public abstract class SuccinctCore implements Serializable {
 
   // End of File marker
-  public transient static final byte EOF = 1;
+  public transient static final byte EOF = -127;
 
   // End of Line marker
   public transient static final byte EOL = '\n';
