@@ -75,6 +75,7 @@ object TableBench {
 
     val parquetDF = sqlCtx.read.parquet(parquetDataPath).cache()
     benchDF(parquetDF, "parquet")
+    parquetDF.unpersist()
 
     val succinctDF = sqlCtx.read.format("edu.berkeley.cs.succinct.sql").load(succinctDataPath)
     benchDF(succinctDF, "succinct")
