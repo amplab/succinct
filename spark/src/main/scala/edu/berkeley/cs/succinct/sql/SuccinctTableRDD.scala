@@ -178,9 +178,8 @@ object SuccinctTableRDD {
     val succinctSerializer = new SuccinctSerializer(schema, separators, limits)
     val succinctPartitions = inputRDD.mapPartitions {
       partition => createSuccinctBuffer(partition, succinctSerializer)
-    }
+    }.cache()
     new SuccinctTableRDDImpl(succinctPartitions, separators, schema, minRow, maxRow, succinctSerializer)
-      .cache()
   }
 
   /**
@@ -201,9 +200,8 @@ object SuccinctTableRDD {
     val succinctSerializer = new SuccinctSerializer(schema, separators, limits)
     val succinctPartitions = inputRDD.mapPartitions {
       partition => createSuccinctBuffer(partition, succinctSerializer)
-    }
+    }.cache()
     new SuccinctTableRDDImpl(succinctPartitions, separators, schema, minRow, maxRow, succinctSerializer)
-      .cache()
   }
 
   /**
