@@ -28,7 +28,7 @@ object KVBench {
     Array.fill(sampleSize)(input(Random.nextInt(input.length)))
   }
 
-  def get(rdd: RDD[(java.lang.Long, Array[Byte])], key: java.lang.Long): Array[Byte] = {
+  def get(rdd: RDD[(Long, Array[Byte])], key: java.lang.Long): Array[Byte] = {
     val res = rdd.filter(kv => kv._1 == key).collect()
     if (res.size == 0) {
       throw new ArrayIndexOutOfBoundsException(s"Invalid key = $key")
@@ -39,7 +39,7 @@ object KVBench {
     res(0)._2
   }
 
-  def benchSparkRDD(rdd: RDD[(java.lang.Long, Array[Byte])]): Unit = {
+  def benchSparkRDD(rdd: RDD[(Long, Array[Byte])]): Unit = {
     val storageLevel = rdd.getStorageLevel match {
       case StorageLevel.DISK_ONLY => "disk"
       case StorageLevel.MEMORY_ONLY => "mem"
@@ -66,7 +66,7 @@ object KVBench {
     outGet.close()
   }
 
-  def benchSuccinctRDD(rdd: SuccinctKVRDD[java.lang.Long]): Unit = {
+  def benchSuccinctRDD(rdd: SuccinctKVRDD[Long]): Unit = {
     println("Benchmarking Succinct RDD get...")
 
     println("Benchmarking Succinct RDD random access...")
@@ -104,7 +104,7 @@ object KVBench {
 
     val kvRDD = ctx.textFile(dataPath)
       .zipWithIndex
-      .map(t => (t._2.asInstanceOf[java.lang.Long], t._1.getBytes))
+      .map(t => (t._2, t._1.getBytes))
       .repartition(partitions)
 
     val kvRDDDisk = kvRDD.persist(StorageLevel.DISK_ONLY)
@@ -128,7 +128,7 @@ object KVBench {
     benchSparkRDD(kvRDDMem)
     kvRDDMem.unpersist(true)
 
-    val kvRDDSuccinct = SuccinctKVRDD[java.lang.Long](ctx, succinctDataPath, StorageLevel.MEMORY_ONLY).cache()
+    val kvRDDSuccinct = SuccinctKVRDD[Long](ctx, succinctDataPath, StorageLevel.MEMORY_ONLY).cache()
     println("Number of entries = " + kvRDDSuccinct.count())
 
     benchSuccinctRDD(kvRDDSuccinct)

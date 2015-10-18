@@ -9,7 +9,7 @@ import scala.collection.mutable.ListBuffer
 /**
  * Object that provides serialization/de-serialization methods for each tuple.
  */
-class SuccinctSerializer(schema: StructType, separators: Array[Byte], limits: Seq[Int]) extends Serializable {
+class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int]) extends Serializable {
 
   override def toString(): String = {
     separators.map(_.toInt).mkString(",")
