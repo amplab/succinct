@@ -149,7 +149,7 @@ object SuccinctKVRDD {
    * @tparam K The key type.
    * @return The SuccinctKVRDD.
    */
-  def apply[K <: Comparable[K] : ClassTag](inputRDD: RDD[(K, Array[Byte])])
+  def apply[K: ClassTag](inputRDD: RDD[(K, Array[Byte])])
     (implicit ordering: Ordering[K])
   : SuccinctKVRDD[K] = {
     val partitionsRDD = inputRDD.sortByKey().mapPartitions(createSuccinctKVPartition[K]).cache()
@@ -163,7 +163,7 @@ object SuccinctKVRDD {
    * @param location The path to read the SuccinctRDD from.
    * @return The SuccinctRDD.
    */
-  def apply[K <: Comparable[K] : ClassTag](sc: SparkContext, location: String, storageLevel: StorageLevel)
+  def apply[K: ClassTag](sc: SparkContext, location: String, storageLevel: StorageLevel)
       (implicit ordering: Ordering[K])
   : SuccinctKVRDD[K] = {
     val locationPath = new Path(location)
