@@ -8,7 +8,7 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
 
 class SuccinctPrunedTableRDD(
     val partitionsRDD: RDD[SuccinctIndexedFile],
-    val succinctSerializer: SuccinctSerializer,
+    val succinctSerializer: SuccinctSerDe,
     val reqColsCheck: Map[String, Boolean],
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends RDD[Row](partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {

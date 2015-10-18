@@ -28,7 +28,7 @@ class SuccinctTableRDDImpl private[succinct](
     val schema: StructType,
     val minimums: Row,
     val maximums: Row,
-    val succinctSerializer: SuccinctSerializer,
+    val succinctSerializer: SuccinctSerDe,
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctTableRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
@@ -77,91 +77,24 @@ class SuccinctTableRDDImpl private[succinct](
     this
   }
 
-  /** Implements save for [[SuccinctTableRDD]] */
-  override def save(path: String): Unit = {
-    val dataPath = path.stripSuffix("/") + "/data"
-    val schemaPath = path.stripSuffix("/") + "/schema"
-    val separatorsPath = path.stripSuffix("/") + "/separators"
-    val minPath = path.stripSuffix("/") + "/min"
-    val maxPath = path.stripSuffix("/") + "/max"
-    val conf = new Configuration()
-    val fs = FileSystem.get(new Path(path.stripSuffix("/")).toUri, conf)
-    fs.mkdirs(new Path(dataPath))
-    SuccinctUtils.writeObjectToFS(conf, schemaPath, schema)
-    SuccinctUtils.writeObjectToFS(conf, separatorsPath, separators)
-    SuccinctUtils.writeObjectToFS(conf, minPath, minimums)
-    SuccinctUtils.writeObjectToFS(conf, maxPath, maximums)
-    partitionsRDD.zipWithIndex().foreach(entry => {
-      val i = entry._2
-      val partition = entry._1
-      val partitionLocation = dataPath + "/part-" + "%05d".format(i)
-      val path = new Path(partitionLocation)
-      val fs = FileSystem.get(path.toUri, new Configuration())
-      val os = fs.create(path)
-      partition.writeToStream(os)
-      os.close()
-    })
-    fs.create(new Path(s"${path.stripSuffix("/")}/_SUCCESS")).close()
-  }
-
-//  /** Implements search for [[SuccinctTableRDD]]. */
-//  override def search(attribute: String, query: Array[Byte]): RDD[Row] = {
-//    new SearchResultsRDD(this, createQuery(attribute, query), succinctSerializer)
-//  }
-//
   /** Implements createQuery for [[SuccinctTableRDD]] */
-  private def createQuery(attrIdx: Int, query: Array[Byte]): Array[Byte] = {
+  private[sql] def createQuery(attrIdx: Int, query: Array[Byte]): Array[Byte] = {
     getSeparator(attrIdx) +: query :+ getSeparator(attrIdx + 1)
   }
 
   /** Implements createQuery for [[SuccinctTableRDD]] */
-  private def createQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
+  private[sql] def createQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
     val attrIdx = getAttrIdx(attribute)
     createQuery(attrIdx, query)
   }
 
   /** Implements getAttrIdx for [[SuccinctTableRDD]] */
-  private def getAttrIdx(attribute: String): Int = schema.lastIndexOf(schema(attribute))
+  private[sql] def getAttrIdx(attribute: String): Int = schema.lastIndexOf(schema(attribute))
 
   /** Implements getSeparator for [[SuccinctTableRDD]] */
-  private def getSeparator(attrIdx: Int): Byte = {
+  private[sql] def getSeparator(attrIdx: Int): Byte = {
     if (attrIdx == separators.length) SuccinctCore.EOL
     else separators(attrIdx)
-  }
-//
-//  /** Implements prefixSearch for [[SuccinctTableRDD]]. */
-//  override def prefixSearch(attribute: String, query: Array[Byte]): RDD[Row] = {
-//    new SearchResultsRDD(this, createPrefixQuery(attribute, query), succinctSerializer)
-//  }
-//
-//  /** Implements suffixSearch for [[SuccinctTableRDD]]. */
-//  override def suffixSearch(attribute: String, query: Array[Byte]): RDD[Row] = {
-//    new SearchResultsRDD(this, createSuffixQuery(attribute, query), succinctSerializer)
-//  }
-//
-//  /** Implements unboundedSearch for [[SuccinctTableRDD]]. */
-//  override def unboundedSearch(attribute: String, query: Array[Byte]): RDD[Row] = {
-//    new SearchResultsRDD(this, query, succinctSerializer)
-//  }
-//
-//  /** Implements rangeSearch for [[SuccinctTableRDD]]. */
-//  override def rangeSearch(attribute: String, queryBegin: Array[Byte], queryEnd: Array[Byte]): RDD[Row] = {
-//    new RangeSearchResultsRDD(this, queryBegin, queryEnd, succinctSerializer)
-//  }
-
-  /** Implements pruneAndFilter for [[SuccinctTableRDD]]. */
-  override def pruneAndFilter(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
-    val reqColsCheck = schema.map(f => f.name -> requiredColumns.contains(f.name)).toMap
-    val queryList = filtersToQueries(filters)
-    val queryTypes = queryList.map(_._1)
-    val queries = queryList.map(_._2)
-    if (queries.length == 0) {
-      if (requiredColumns.length == schema.length) {
-        return this
-      }
-      return new SuccinctPrunedTableRDD(partitionsRDD, succinctSerializer, reqColsCheck)
-    }
-    new MultiSearchResultsRDD(this, queryTypes, queries, reqColsCheck, succinctSerializer)
   }
 
   /**
@@ -170,7 +103,7 @@ class SuccinctTableRDDImpl private[succinct](
    * @param filters Array of filters to be applied.
    * @return Array of queries.
    */
-  private def filtersToQueries(filters: Array[Filter]): Array[(QueryType, Array[Array[Byte]])] = {
+  private[sql] def filtersToQueries(filters: Array[Filter]): Array[(QueryType, Array[Array[Byte]])] = {
     filters.filter(isFilterSupported).map {
       case StringStartsWith(attribute, value) =>
         (QueryType.Search, Array[Array[Byte]](createPrefixQuery(attribute, value.getBytes)))
@@ -225,13 +158,13 @@ class SuccinctTableRDDImpl private[succinct](
   }
 
   /** Implements createPrefixQuery for [[SuccinctTableRDD]] */
-  private def createPrefixQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
+  private[sql] def createPrefixQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
     val attrIdx = schema.lastIndexOf(schema(attribute))
     getSeparator(attrIdx) +: query
   }
 
   /** Implements createSuffixQuery for [[SuccinctTableRDD]] */
-  private def createSuffixQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
+  private[sql] def createSuffixQuery(attribute: String, query: Array[Byte]): Array[Byte] = {
     val attrIdx = schema.lastIndexOf(schema(attribute))
     query :+ getSeparator(attrIdx + 1)
   }
@@ -243,7 +176,7 @@ class SuccinctTableRDDImpl private[succinct](
    * @return Returns true if the filter is supported;
    *         false otherwise.
    */
-  private def isFilterSupported(f: Filter): Boolean = f match {
+  private[sql] def isFilterSupported(f: Filter): Boolean = f match {
     case StringStartsWith(attribute, value) => true
     case StringEndsWith(attribute, value) => true
     case StringContains(attribute, value) => true
@@ -263,7 +196,7 @@ class SuccinctTableRDDImpl private[succinct](
    * @param data The input value.
    * @return The previous value.
    */
-  private def prevValue(data: Any): Any = {
+  private[sql] def prevValue(data: Any): Any = {
     data match {
       case _: Boolean => !data.asInstanceOf[Boolean]
       case _: Byte => data.asInstanceOf[Byte] - 1
@@ -286,7 +219,7 @@ class SuccinctTableRDDImpl private[succinct](
    * @param data The input value.
    * @return The next value.
    */
-  private def nextValue(data: Any): Any = {
+  private[sql] def nextValue(data: Any): Any = {
     data match {
       case _: Boolean => !data.asInstanceOf[Boolean]
       case _: Byte => data.asInstanceOf[Byte] + 1
@@ -302,10 +235,47 @@ class SuccinctTableRDDImpl private[succinct](
     }
   }
 
-//  /** Implements count for [[SuccinctTableRDD]]. */
-//  override def count(attribute: String, query: Array[Byte]): Long = {
-//    partitionsRDD.map(buf => buf.recordCount(createQuery(attribute, query))).aggregate(0L)(_ + _, _ + _)
-//  }
+  /** Implements pruneAndFilter for [[SuccinctTableRDD]]. */
+  override def pruneAndFilter(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
+    val reqColsCheck = schema.map(f => f.name -> requiredColumns.contains(f.name)).toMap
+    val queryList = filtersToQueries(filters)
+    val queryTypes = queryList.map(_._1)
+    val queries = queryList.map(_._2)
+    if (queries.length == 0) {
+      if (requiredColumns.length == schema.length) {
+        return this
+      }
+      return new SuccinctPrunedTableRDD(partitionsRDD, succinctSerializer, reqColsCheck)
+    }
+    new MultiSearchResultsRDD(this, queryTypes, queries, reqColsCheck, succinctSerializer)
+  }
+
+  /** Implements save for [[SuccinctTableRDD]] */
+  override def save(path: String): Unit = {
+    val dataPath = path.stripSuffix("/") + "/data"
+    val schemaPath = path.stripSuffix("/") + "/schema"
+    val separatorsPath = path.stripSuffix("/") + "/separators"
+    val minPath = path.stripSuffix("/") + "/min"
+    val maxPath = path.stripSuffix("/") + "/max"
+    val conf = new Configuration()
+    val fs = FileSystem.get(new Path(path.stripSuffix("/")).toUri, conf)
+    fs.mkdirs(new Path(dataPath))
+    SuccinctUtils.writeObjectToFS(conf, schemaPath, schema)
+    SuccinctUtils.writeObjectToFS(conf, separatorsPath, separators)
+    SuccinctUtils.writeObjectToFS(conf, minPath, minimums)
+    SuccinctUtils.writeObjectToFS(conf, maxPath, maximums)
+    partitionsRDD.zipWithIndex().foreach(entry => {
+      val i = entry._2
+      val partition = entry._1
+      val partitionLocation = dataPath + "/part-" + "%05d".format(i)
+      val path = new Path(partitionLocation)
+      val fs = FileSystem.get(path.toUri, new Configuration())
+      val os = fs.create(path)
+      partition.writeToStream(os)
+      os.close()
+    })
+    fs.create(new Path(s"${path.stripSuffix("/")}/_SUCCESS")).close()
+  }
 
   /**
    * Get the count of the number of records in the RDD.

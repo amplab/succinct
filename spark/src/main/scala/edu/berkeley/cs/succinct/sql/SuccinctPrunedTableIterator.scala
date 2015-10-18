@@ -13,7 +13,7 @@ import org.apache.spark.sql.Row
  */
 class SuccinctPrunedTableIterator private[succinct](
                                                      sBuf: SuccinctIndexedFile,
-                                                     succinctSerializer: SuccinctSerializer,
+                                                     succinctSerializer: SuccinctSerDe,
                                                      reqColsCheck: Map[String, Boolean])
   extends Iterator[Row] {
 

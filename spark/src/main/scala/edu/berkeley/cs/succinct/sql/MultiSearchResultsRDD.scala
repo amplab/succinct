@@ -22,7 +22,7 @@ class MultiSearchResultsRDD(val succinctTableRDD: SuccinctTableRDD,
                             val queryTypes: Array[QueryType],
                             val queries: Array[Array[Array[Byte]]],
                             val reqColsCheck: Map[String, Boolean],
-                            val succinctSerializer: SuccinctSerializer,
+                            val succinctSerializer: SuccinctSerDe,
                             val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends RDD[Row](succinctTableRDD.context, List(new OneToOneDependency(succinctTableRDD))) {
 

@@ -10,7 +10,7 @@ import org.apache.spark.sql.Row
  * @param sBuf The underlying SuccinctIndexedFile.
  * @param succinctSerializer The serializer/deserializer for Succinct's representation of records.
  */
-class SuccinctTableIterator private[succinct](sBuf: SuccinctIndexedFile, succinctSerializer: SuccinctSerializer)
+class SuccinctTableIterator private[succinct](sBuf: SuccinctIndexedFile, succinctSerializer: SuccinctSerDe)
   extends Iterator[Row] {
 
   var curRecordId: Int = 0
