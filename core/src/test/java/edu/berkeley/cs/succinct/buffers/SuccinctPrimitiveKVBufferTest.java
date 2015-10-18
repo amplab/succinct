@@ -20,7 +20,7 @@ public class SuccinctPrimitiveKVBufferTest extends TestCase {
   private Random random;
 
   private Long generateKey() {
-    return Long.valueOf(Math.abs(random.nextInt(numKeys)));
+    return (long) Math.abs(random.nextInt(numKeys));
   }
 
   public void setUp() throws Exception {

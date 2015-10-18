@@ -4,6 +4,7 @@ import junit.framework.TestCase;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Map;
 
 public class SuccinctFileBufferTest extends TestCase {
@@ -39,11 +40,13 @@ public class SuccinctFileBufferTest extends TestCase {
     System.out.println("extract");
 
     byte[] buf1 = sBuf.extract(0, 100);
+    assertEquals(100, buf1.length);
     for (int i = 0; i < 100; i++) {
       assertEquals(buf1[i], fileData[i]);
     }
 
     byte[] buf2 = sBuf.extract(fileData.length - 101, 100);
+    assertEquals(100, buf2.length);
     for (int i = 0; i < 100; i++) {
       assertEquals(buf2[i], fileData[fileData.length - 101 + i]);
     }
@@ -86,7 +89,7 @@ public class SuccinctFileBufferTest extends TestCase {
    * @throws Exception
    */
   public void testSearch() throws Exception {
-    System.out.println("count");
+    System.out.println("search");
 
     byte[] query1 = "int".getBytes();
     Long[] positions1 = sBuf.search(query1);
@@ -104,6 +107,39 @@ public class SuccinctFileBufferTest extends TestCase {
       }
     }
 
+  }
+
+  /**
+   * Test method: Iterator<Long> searchIterator(byte[] query)
+   *
+   * @throws Exception
+   */
+  public void testSearchIterator() throws Exception {
+    System.out.println("searchIterator");
+
+    byte[] query1 = "int".getBytes();
+    Iterator<Long> positions1 = sBuf.searchIterator(query1);
+    long count1 = 0;
+    while (positions1.hasNext()) {
+      long position1 = positions1.next();
+      for (int j = 0; j < query1.length; j++) {
+        assertEquals(query1[j], fileData[((int) (position1 + j))]);
+      }
+      count1++;
+    }
+    assertEquals(count1, 43);
+
+    byte[] query2 = "include".getBytes();
+    Iterator<Long> positions2 = sBuf.searchIterator(query2);
+    long count2 = 0;
+    while (positions2.hasNext()) {
+      long position2 = positions2.next();
+      for (int j = 0; j < query2.length; j++) {
+        assertEquals(query2[j], fileData[((int) (position2 + j))]);
+      }
+      count2++;
+    }
+    assertEquals(count2, 9);
   }
 
   /**

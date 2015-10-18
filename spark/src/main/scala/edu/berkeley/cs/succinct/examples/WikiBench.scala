@@ -32,7 +32,7 @@ object WikiBench {
   // Query data
   var words: Seq[String] = _
   var regex: Seq[String] = Seq("<script>.*</script>", "Motorola.*((XPC|MPC)[0-9]+[0-9a-z]+)",
-    "William [A-Za-z]+ Clinton", "1-[0-9][0-9][0-9][\\-][0-9][0-9][0-9][\\-][0-9][0-9][0-9][0-9]",
+    "William [A-Za-z]+ Clinton", "1-[0-9][0-9][0-9]-[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
     "[a-z0-9_\\.]+\\.stanford\\.edu")
   var offsets: Seq[Long] = _
   var wordsWarmup: Seq[String] = _
@@ -172,7 +172,7 @@ object WikiBench {
       case _ => "undf"
     }
 
-    println(s"Benchmarking Spark RDD $storageLevel count offsets...")
+    println(s"Benchmarking Spark RDD $storageLevel count recordIds...")
 
     // Warmup
     wordsWarmup.foreach(w => {
@@ -191,7 +191,7 @@ object WikiBench {
     })
     outCount.close()
 
-    println(s"Benchmarking Spark RDD $storageLevel search offsets...")
+    println(s"Benchmarking Spark RDD $storageLevel search recordIds...")
 
     // Warmup
     wordsWarmup.foreach(w => {
@@ -231,7 +231,7 @@ object WikiBench {
   }
 
   def benchSuccinctRDD(rdd: SuccinctRDD): Unit = {
-    println("Benchmarking Succinct RDD count offsets...")
+    println("Benchmarking Succinct RDD count recordIds...")
 
     // Warmup
     wordsWarmup.foreach(w => {
@@ -250,7 +250,7 @@ object WikiBench {
     })
     outCount.close()
 
-    println("Benchmarking Succinct RDD search offsets...")
+    println("Benchmarking Succinct RDD search recordIds...")
 
     // Warmup
     wordsWarmup.foreach(w => {
@@ -347,7 +347,7 @@ object WikiBench {
     // Create RDD
     val wikiDataDisk = ctx.textFile(dataPath, partitions).map(_.getBytes).repartition(partitions).persist(StorageLevel.DISK_ONLY)
 
-    // Compute partition sizes and partition offsets
+    // Compute partition sizes and partition recordIds
     partitionSizes = wikiDataDisk.mapPartitionsWithIndex((idx, partition) => {
       val partitionSize = partition.aggregate(0L)((sum, record) => sum + (record.length + 1), _ + _)
       Iterator((idx, partitionSize))

@@ -7,10 +7,10 @@ import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
 
 class SuccinctPrunedTableRDD(
-                              val partitionsRDD: RDD[SuccinctIndexedFile],
-                              val succinctSerializer: SuccinctSerializer,
-                              val reqColsCheck: Map[String, Boolean],
-                              val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+    val partitionsRDD: RDD[SuccinctIndexedFile],
+    val succinctSerializer: SuccinctSerializer,
+    val reqColsCheck: Map[String, Boolean],
+    val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends RDD[Row](partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
   /** Overrides [[RDD]]]'s compute to return a [[SuccinctTableIterator]]. */

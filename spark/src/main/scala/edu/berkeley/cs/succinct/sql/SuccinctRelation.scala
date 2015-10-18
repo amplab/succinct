@@ -7,8 +7,8 @@ import org.apache.spark.sql.{Row, SQLContext}
 import org.apache.spark.storage.StorageLevel
 
 case class SuccinctRelation(
-                             location: String,
-                             userSchema: StructType = null)(@transient val sqlContext: SQLContext)
+   location: String,
+   userSchema: StructType = null)(@transient val sqlContext: SQLContext)
   extends BaseRelation with PrunedFilteredScan {
 
   val succinctTableRDD = SuccinctTableRDD(sqlContext.sparkContext, location, StorageLevel.MEMORY_AND_DISK).persist()

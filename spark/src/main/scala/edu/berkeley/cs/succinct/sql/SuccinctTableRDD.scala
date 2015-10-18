@@ -54,51 +54,51 @@ abstract class SuccinctTableRDD(@transient sc: SparkContext,
    */
   def save(path: String): Unit
 
-  /**
-   * Search for all occurrences of a particular attribute value.
-   *
-   * @param attribute Name of the attribute.
-   * @param query The search query.
-   * @return An RDD of matching rows.
-   */
-  def search(attribute: String, query: Array[Byte]): RDD[Row]
-
-  /**
-   * Perform a prefix search for all occurrences of a particular substring.
-   *
-   * @param attribute Name of the attribute.
-   * @param query The search query.
-   * @return An RDD of matching rows.
-   */
-  def prefixSearch(attribute: String, query: Array[Byte]): RDD[Row]
-
-  /**
-   * Perform a suffix search for all occurrences of a particular substring.
-   *
-   * @param attribute Name of the attribute.
-   * @param query The search query.
-   * @return An RDD of matching rows.
-   */
-  def suffixSearch(attribute: String, query: Array[Byte]): RDD[Row]
-
-  /**
-   * Perform a search for all occurrences of a particular substring.
-   *
-   * @param attribute Name of the attribute.
-   * @param query The search query.
-   * @return An RDD of matching rows.
-   */
-  def unboundedSearch(attribute: String, query: Array[Byte]): RDD[Row]
-
-  /**
-   * Perform a range search for occurrences lying between two values.
-   *
-   * @param attribute Name of the attribute.
-   * @param queryBegin The beginning of range.
-   * @param queryEnd The end of range.
-   * @return An RDD of matching rows.
-   */
-  def rangeSearch(attribute: String, queryBegin: Array[Byte], queryEnd: Array[Byte]): RDD[Row]
+//  /**
+//   * Search for all occurrences of a particular attribute value.
+//   *
+//   * @param attribute Name of the attribute.
+//   * @param query The search query.
+//   * @return An RDD of matching rows.
+//   */
+//  def search(attribute: String, query: Array[Byte]): RDD[Row]
+//
+//  /**
+//   * Perform a prefix search for all occurrences of a particular substring.
+//   *
+//   * @param attribute Name of the attribute.
+//   * @param query The search query.
+//   * @return An RDD of matching rows.
+//   */
+//  def prefixSearch(attribute: String, query: Array[Byte]): RDD[Row]
+//
+//  /**
+//   * Perform a suffix search for all occurrences of a particular substring.
+//   *
+//   * @param attribute Name of the attribute.
+//   * @param query The search query.
+//   * @return An RDD of matching rows.
+//   */
+//  def suffixSearch(attribute: String, query: Array[Byte]): RDD[Row]
+//
+//  /**
+//   * Perform a search for all occurrences of a particular substring.
+//   *
+//   * @param attribute Name of the attribute.
+//   * @param query The search query.
+//   * @return An RDD of matching rows.
+//   */
+//  def unboundedSearch(attribute: String, query: Array[Byte]): RDD[Row]
+//
+//  /**
+//   * Perform a range search for occurrences lying between two values.
+//   *
+//   * @param attribute Name of the attribute.
+//   * @param queryBegin The beginning of range.
+//   * @param queryEnd The end of range.
+//   * @return An RDD of matching rows.
+//   */
+//  def rangeSearch(attribute: String, queryBegin: Array[Byte], queryEnd: Array[Byte]): RDD[Row]
 
   /**
    * Search and extract based on a set of filters and the required columns.
@@ -109,14 +109,14 @@ abstract class SuccinctTableRDD(@transient sc: SparkContext,
    */
   def pruneAndFilter(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row]
 
-  /**
-   * Count all occurrences of a particular attribute value.
-   *
-   * @param attribute Name of the attribute.
-   * @param query The count query.
-   * @return The count of matching rows.
-   */
-  def count(attribute: String, query: Array[Byte]): Long
+//  /**
+//   * Count all occurrences of a particular attribute value.
+//   *
+//   * @param attribute Name of the attribute.
+//   * @param query The count query.
+//   * @return The count of matching rows.
+//   */
+//  def count(attribute: String, query: Array[Byte]): Long
 }
 
 /** Factory for [[SuccinctTableRDD]] instances */

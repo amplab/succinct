@@ -1,15 +1,14 @@
 package edu.berkeley.cs.succinct.kv.impl
 
-import edu.berkeley.cs.succinct.SuccinctKV
-import edu.berkeley.cs.succinct.kv.SuccinctKVRDD
+import edu.berkeley.cs.succinct.kv.{SuccinctKVPartition, SuccinctKVRDD}
 import org.apache.spark.OneToOneDependency
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
 
-class SuccinctKVRDDImpl[K<: Comparable[K]: ClassTag] private[succinct](
-    val partitionsRDD: RDD[SuccinctKV[K]],
+class SuccinctKVRDDImpl[K: ClassTag] private[succinct](
+    val partitionsRDD: RDD[SuccinctKVPartition[K]],
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctKVRDD[K](partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 

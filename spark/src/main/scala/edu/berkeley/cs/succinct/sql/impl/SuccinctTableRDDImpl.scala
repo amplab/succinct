@@ -104,9 +104,14 @@ class SuccinctTableRDDImpl private[succinct](
     fs.create(new Path(s"${path.stripSuffix("/")}/_SUCCESS")).close()
   }
 
-  /** Implements search for [[SuccinctTableRDD]]. */
-  override def search(attribute: String, query: Array[Byte]): RDD[Row] = {
-    new SearchResultsRDD(this, createQuery(attribute, query), succinctSerializer)
+//  /** Implements search for [[SuccinctTableRDD]]. */
+//  override def search(attribute: String, query: Array[Byte]): RDD[Row] = {
+//    new SearchResultsRDD(this, createQuery(attribute, query), succinctSerializer)
+//  }
+//
+  /** Implements createQuery for [[SuccinctTableRDD]] */
+  private def createQuery(attrIdx: Int, query: Array[Byte]): Array[Byte] = {
+    getSeparator(attrIdx) +: query :+ getSeparator(attrIdx + 1)
   }
 
   /** Implements createQuery for [[SuccinctTableRDD]] */
@@ -118,36 +123,31 @@ class SuccinctTableRDDImpl private[succinct](
   /** Implements getAttrIdx for [[SuccinctTableRDD]] */
   private def getAttrIdx(attribute: String): Int = schema.lastIndexOf(schema(attribute))
 
-  /** Implements createQuery for [[SuccinctTableRDD]] */
-  private def createQuery(attrIdx: Int, query: Array[Byte]): Array[Byte] = {
-    getSeparator(attrIdx) +: query :+ getSeparator(attrIdx + 1)
-  }
-
   /** Implements getSeparator for [[SuccinctTableRDD]] */
   private def getSeparator(attrIdx: Int): Byte = {
     if (attrIdx == separators.length) SuccinctCore.EOL
     else separators(attrIdx)
   }
-
-  /** Implements prefixSearch for [[SuccinctTableRDD]]. */
-  override def prefixSearch(attribute: String, query: Array[Byte]): RDD[Row] = {
-    new SearchResultsRDD(this, createPrefixQuery(attribute, query), succinctSerializer)
-  }
-
-  /** Implements suffixSearch for [[SuccinctTableRDD]]. */
-  override def suffixSearch(attribute: String, query: Array[Byte]): RDD[Row] = {
-    new SearchResultsRDD(this, createSuffixQuery(attribute, query), succinctSerializer)
-  }
-
-  /** Implements unboundedSearch for [[SuccinctTableRDD]]. */
-  override def unboundedSearch(attribute: String, query: Array[Byte]): RDD[Row] = {
-    new SearchResultsRDD(this, query, succinctSerializer)
-  }
-
-  /** Implements rangeSearch for [[SuccinctTableRDD]]. */
-  override def rangeSearch(attribute: String, queryBegin: Array[Byte], queryEnd: Array[Byte]): RDD[Row] = {
-    new RangeSearchResultsRDD(this, queryBegin, queryEnd, succinctSerializer)
-  }
+//
+//  /** Implements prefixSearch for [[SuccinctTableRDD]]. */
+//  override def prefixSearch(attribute: String, query: Array[Byte]): RDD[Row] = {
+//    new SearchResultsRDD(this, createPrefixQuery(attribute, query), succinctSerializer)
+//  }
+//
+//  /** Implements suffixSearch for [[SuccinctTableRDD]]. */
+//  override def suffixSearch(attribute: String, query: Array[Byte]): RDD[Row] = {
+//    new SearchResultsRDD(this, createSuffixQuery(attribute, query), succinctSerializer)
+//  }
+//
+//  /** Implements unboundedSearch for [[SuccinctTableRDD]]. */
+//  override def unboundedSearch(attribute: String, query: Array[Byte]): RDD[Row] = {
+//    new SearchResultsRDD(this, query, succinctSerializer)
+//  }
+//
+//  /** Implements rangeSearch for [[SuccinctTableRDD]]. */
+//  override def rangeSearch(attribute: String, queryBegin: Array[Byte], queryEnd: Array[Byte]): RDD[Row] = {
+//    new RangeSearchResultsRDD(this, queryBegin, queryEnd, succinctSerializer)
+//  }
 
   /** Implements pruneAndFilter for [[SuccinctTableRDD]]. */
   override def pruneAndFilter(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
@@ -302,10 +302,10 @@ class SuccinctTableRDDImpl private[succinct](
     }
   }
 
-  /** Implements count for [[SuccinctTableRDD]]. */
-  override def count(attribute: String, query: Array[Byte]): Long = {
-    partitionsRDD.map(buf => buf.recordCount(createQuery(attribute, query))).aggregate(0L)(_ + _, _ + _)
-  }
+//  /** Implements count for [[SuccinctTableRDD]]. */
+//  override def count(attribute: String, query: Array[Byte]): Long = {
+//    partitionsRDD.map(buf => buf.recordCount(createQuery(attribute, query))).aggregate(0L)(_ + _, _ + _)
+//  }
 
   /**
    * Get the count of the number of records in the RDD.

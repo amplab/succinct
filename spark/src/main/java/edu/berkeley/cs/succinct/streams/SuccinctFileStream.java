@@ -5,21 +5,20 @@ import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.SuccinctRegEx;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.Range;
-import edu.berkeley.cs.succinct.util.streams.SerializedOperations;
+import edu.berkeley.cs.succinct.util.SearchIterator;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
 public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
 
-  protected transient long fileOffset;
   protected transient long endOfFileStream;
 
   /**
@@ -31,11 +30,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    */
   public SuccinctFileStream(Path filePath, Configuration conf) throws IOException {
     super(filePath, conf);
-    FSDataInputStream is = getStream(filePath);
-    is.seek(endOfCoreStream);
-    fileOffset = is.readLong();
-    endOfFileStream = is.getPos();
-    is.close();
+    endOfFileStream = endOfCoreStream;
   }
 
   /**
@@ -46,24 +41,6 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    */
   public SuccinctFileStream(Path filePath) throws IOException {
     this(filePath, new Configuration());
-  }
-
-  /**
-   * Get beginning offset for the file chunk.
-   *
-   * @return The beginning offset for the file chunk.
-   */
-  public long getFileOffset() {
-    return fileOffset;
-  }
-
-  /**
-   * Get offset range for the file chunk.
-   *
-   * @return The offset range for the file chunk.
-   */
-  public Range getFileRange() {
-    return new Range(fileOffset, fileOffset + getOriginalSize() - 2);
   }
 
   /**
@@ -82,13 +59,22 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
   }
 
   /**
+   * Get the size of the uncompressed file.
+   *
+   * @return The size of the uncompressed file.
+   */
+  @Override public int getSize() {
+    return getOriginalSize();
+  }
+
+  /**
    * Get the character at specified index into succinct file
    * @param i Index into succinct file.
    * @return The character at specified index.
    */
   public char charAt(long i) {
     try {
-      return (char) alphabet.get((int) lookupC(i - fileOffset));
+      return (char) alphabet.get((int) lookupC(i));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -106,11 +92,9 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     long s;
 
     try {
-      long chunkOffset = offset - fileOffset;
-      s = lookupISA(chunkOffset);
+      s = lookupISA(offset);
       for (int k = 0; k < len && k < getOriginalSize(); k++) {
-        buf[k] = alphabet
-          .get(SerializedOperations.ArrayOps.getRank1(coloffsets, 0, getSigmaSize(), s) - 1);
+        buf[k] = alphabet.get((int) lookupC(s));
         s = lookupNPA(s);
       }
     } catch (IOException e) {
@@ -132,12 +116,9 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     long s;
 
     try {
-      long chunkOffset = offset - fileOffset;
-      s = lookupISA(chunkOffset);
-      char nextChar;
+      s = lookupISA(offset);
       do {
-        nextChar = (char) alphabet
-          .get(SerializedOperations.ArrayOps.getRank1(coloffsets, 0, getSigmaSize(), s) - 1);
+        char nextChar = (char) alphabet.get((int) lookupC(s));
         if (nextChar == delim || nextChar == 1)
           break;
         strBuf += nextChar;
@@ -366,10 +347,10 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
   }
 
   /**
-   * Translate range into SA to offsets in file.
+   * Translate range into SA to recordIds in file.
    *
    * @param range Range into SA.
-   * @return Offsets corresponding to offsets.
+   * @return Offsets corresponding to recordIds.
    */
   @Override public Long[] rangeToOffsets(Range range) {
     if (range.empty()) {
@@ -378,10 +359,15 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
 
     Long[] offsets = new Long[(int) range.size()];
     for (long i = 0; i < range.size(); i++) {
-      offsets[((int) i)] = lookupSA(range.begin() + i) + fileOffset;
+      offsets[((int) i)] = lookupSA(range.begin() + i);
     }
 
     return offsets;
+  }
+
+  @Override public Iterator<Long> searchIterator(byte[] query) {
+    Range range = bwdSearch(query);
+    return new SearchIterator(this, range);
   }
 
   /**
@@ -395,12 +381,12 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
   }
 
   /**
-   * Check if the two offsets belong to the same record. This is always true for the
+   * Check if the two recordIds belong to the same record. This is always true for the
    * SuccinctFileBuffer.
    *
    * @param firstOffset The first offset.
    * @param secondOffset The second offset.
-   * @return True if the two offsets belong to the same record, false otherwise.
+   * @return True if the two recordIds belong to the same record, false otherwise.
    */
   @Override public boolean sameRecord(long firstOffset, long secondOffset) {
     return true;

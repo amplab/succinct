@@ -7,23 +7,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.Map;
 
 public interface SuccinctFile extends Serializable {
-
-  /**
-   * Get beginning offset for the file chunk.
-   *
-   * @return The beginning offset for the file chunk.
-   */
-  long getFileOffset();
-
-  /**
-   * Get offset range for the file chunk.
-   *
-   * @return The offset range for the file chunk.
-   */
-  Range getFileRange();
 
   /**
    * Get the alphabet for the succinct file.
@@ -31,6 +18,13 @@ public interface SuccinctFile extends Serializable {
    * @return The alphabet for the succinct file.
    */
   byte[] getAlphabet();
+
+  /**
+   * Get the size of the uncompressed file.
+   *
+   * @return The size of the uncompressed file.
+   */
+  int getSize();
 
   /**
    * Get character at ith index in file chunk.
@@ -128,6 +122,15 @@ public interface SuccinctFile extends Serializable {
    * @return Offsets corresponding to offsets.
    */
   Long[] rangeToOffsets(Range range);
+
+
+  /**
+   * Search for locations of pattern occurrences in original input.
+   *
+   * @param query Input query.
+   * @return All locations of pattern occurrences in original input.
+   */
+  Iterator<Long> searchIterator(byte[] query);
 
   /**
    * Get all locations of pattern occurrences in original input.

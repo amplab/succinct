@@ -46,7 +46,7 @@ object WikiJSONBench {
       case _ => "undf"
     }
 
-    println(s"Benchmarking Spark RDD $storageLevel search offsets...")
+    println(s"Benchmarking Spark RDD $storageLevel search recordIds...")
 
     // Warmup
     wordsWarmup.foreach(w => {
@@ -79,7 +79,7 @@ object WikiJSONBench {
   }
 
   def benchSuccinctRDD(rdd: SuccinctRDD): Unit = {
-    println("Benchmarking Succinct RDD search offsets...")
+    println("Benchmarking Succinct RDD search recordIds...")
 
     // Warmup
     wordsWarmup.foreach(w => {

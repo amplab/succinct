@@ -24,22 +24,6 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
     })
   }
 
-  test("Test delete") {
-    sc = new SparkContext("local", "test")
-
-    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
-    val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes()))
-
-    val succinctKVRDD = SuccinctKVRDD(kvRDD)
-
-    // Check
-    (0 to 1000).foreach(i => {
-      val key = String.valueOf(i)
-      assert(succinctKVRDD.delete(key))
-      assert(succinctKVRDD.get(key) == null)
-    })
-  }
-
   test("Test multiple partitions") {
     sc = new SparkContext("local", "test")
 
@@ -53,13 +37,6 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
     (0 to 1000).foreach(i => {
       val key = String.valueOf(i)
       assert(kvMap(key) === succinctKVRDD.get(key))
-    })
-
-    // Check
-    (0 to 1000).foreach(i => {
-      val key = String.valueOf(i)
-      assert(succinctKVRDD.delete(key))
-      assert(succinctKVRDD.get(key) == null)
     })
   }
 

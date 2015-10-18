@@ -5,6 +5,8 @@ import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.Range;
+import edu.berkeley.cs.succinct.util.SearchIterator;
+import edu.berkeley.cs.succinct.util.SearchRecordIterator;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -14,7 +16,6 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
 
   private static final long serialVersionUID = -8357331195541317163L;
   protected transient int[] offsets;
-  protected transient long firstRecordId;
 
   /**
    * Constructor to initialize SuccinctIndexedBuffer from input byte array, offsets corresponding to records,
@@ -23,41 +24,10 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @param input         The input byte array.
    * @param offsets       Offsets corresponding to records.
    * @param contextLen    Context Length.
-   * @param fileOffset    Beginning offset for this file chunk (if file is partitioned).
-   * @param firstRecordId First record id for this partition (if file is partitioned).
    */
-  public SuccinctIndexedFileBuffer(byte[] input, int[] offsets, int contextLen, long fileOffset,
-    long firstRecordId) {
-    super(input, contextLen, fileOffset);
+  public SuccinctIndexedFileBuffer(byte[] input, int[] offsets, int contextLen) {
+    super(input, contextLen);
     this.offsets = offsets;
-    this.firstRecordId = firstRecordId;
-  }
-
-  /**
-   * Constructor to initialize SuccinctIndexedBuffer from input byte array, offsets corresponding to records,
-   * context length and file offset.
-   *
-   * @param input      The input byte array.
-   * @param offsets    Offsets corresponding to records.
-   * @param fileOffset Beginning offset for this file chunk (if file is partitioned).
-   */
-  public SuccinctIndexedFileBuffer(byte[] input, int[] offsets, long fileOffset,
-    long firstRecordId) {
-    this(input, offsets, 3, fileOffset, firstRecordId);
-    this.offsets = offsets;
-    this.firstRecordId = firstRecordId;
-  }
-
-  /**
-   * Constructor to initialize SuccinctIndexedBuffer from input byte array, offsets corresponding to records and file
-   * offset.
-   *
-   * @param input      The input byte array.
-   * @param offsets    Offsets corresponding to records.
-   * @param fileOffset Beginning offset for this file chunk (if file is partitioned).
-   */
-  public SuccinctIndexedFileBuffer(byte[] input, int[] offsets, long fileOffset) {
-    this(input, offsets, fileOffset, 0);
   }
 
   /**
@@ -67,7 +37,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @param offsets Offsets corresponding to records.
    */
   public SuccinctIndexedFileBuffer(byte[] input, int[] offsets) {
-    this(input, offsets, 0);
+    this(input, offsets, 3);
   }
 
   /**
@@ -113,51 +83,31 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   }
 
   /**
-   * Get the first record id in this partition.
-   *
-   * @return The first record id in this partition.
-   */
-  public long getFirstRecordId() {
-    return firstRecordId;
-  }
-
-  /**
-   * Get the range of record ids in this partition.
-   *
-   * @return The range of record ids in this partition.
-   */
-  public Range getRecordIdRange() {
-    return new Range(firstRecordId, firstRecordId + getNumRecords() - 1);
-  }
-
-  /**
-   * Get the ith record.
-   *
-   * @param partitionRecordId The record index.
-   * @return The corresponding record.
-   */
-  @Override public byte[] getPartitionRecord(int partitionRecordId) {
-    if (partitionRecordId >= offsets.length || partitionRecordId < 0) {
-      throw new ArrayIndexOutOfBoundsException(
-        "Record does not exist: partitionRecordId = " + partitionRecordId);
-    }
-    int begOffset = offsets[partitionRecordId];
-    int endOffset = (partitionRecordId == offsets.length - 1) ?
-      getOriginalSize() - 1 :
-      offsets[partitionRecordId + 1];
-    int len = (endOffset - begOffset - 1);
-    return extract(fileOffset + begOffset, len);
-  }
-
-  /**
    * Get the ith record.
    *
    * @param recordId The record index.
    * @return The corresponding record.
    */
-  @Override public byte[] getRecord(long recordId) {
-    int partitionRecordId = (int) (recordId - firstRecordId);
-    return getPartitionRecord(partitionRecordId);
+  @Override public byte[] getRecord(int recordId) {
+    if (recordId >= offsets.length || recordId < 0) {
+      throw new ArrayIndexOutOfBoundsException(
+        "Record does not exist: recordId = " + recordId);
+    }
+    int begOffset = offsets[recordId];
+    int endOffset = (recordId == offsets.length - 1) ?
+      getOriginalSize() - 1 :
+      offsets[recordId + 1];
+    int len = (endOffset - begOffset - 1);
+    return extract(begOffset, len);
+  }
+
+  @Override public byte[] accessRecord(int recordId, int offset, int length) {
+    if (recordId >= offsets.length || recordId < 0) {
+      throw new ArrayIndexOutOfBoundsException(
+        "Record does not exist: recordId = " + recordId);
+    }
+    int begOffset = offsets[recordId] + offset;
+    return extract(begOffset, length);
   }
 
   /**
@@ -190,30 +140,25 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @param query Input query.
    * @return Offsets of all matching records.
    */
-  @Override public Long[] recordSearchOffsets(byte[] query) {
-    Set<Long> results = new HashSet<Long>();
+  @Override public Integer[] recordSearchIds(byte[] query) {
+    Set<Integer> results = new HashSet<Integer>();
     Range range = bwdSearch(query);
 
     long sp = range.first, ep = range.second;
     if (ep - sp + 1 <= 0) {
-      return new Long[0];
+      return new Integer[0];
     }
 
     for (long i = 0; i < ep - sp + 1; i++) {
-      results.add(fileOffset + offsets[offsetToRecordId((int) lookupSA(sp + i))]);
+      results.add(offsetToRecordId((int) lookupSA(sp + i)));
     }
 
-    return results.toArray(new Long[results.size()]);
+    return results.toArray(new Integer[results.size()]);
   }
 
-  /**
-   * Count of all records containing a particular query.
-   *
-   * @param query Input query.
-   * @return Count of all records containing input query.
-   */
-  @Override public long recordCount(byte[] query) {
-    return recordSearchOffsets(query).length;
+  @Override public Iterator<Integer> recordSearchIdIterator(byte[] query) {
+    SearchIterator searchIterator = (SearchIterator) searchIterator(query);
+    return new SearchRecordIterator(searchIterator, this);
   }
 
   /**
@@ -236,7 +181,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
       long saVal = lookupSA(sp + i);
       int recordId = offsetToRecordId((int) saVal);
       if (!recordIds.contains(recordId)) {
-        results.add(getPartitionRecord(recordId));
+        results.add(getRecord(recordId));
         recordIds.add(recordId);
       }
     }
@@ -266,7 +211,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
       long saVal = lookupSA(sp + i);
       int recordId = offsetToRecordId((int) saVal);
       if (!recordIds.contains(recordId)) {
-        results.add(getPartitionRecord(recordId));
+        results.add(getRecord(recordId));
         recordIds.add(recordId);
       }
     }
@@ -352,7 +297,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
 
     for (int recordId : recordIds) {
       if (counts.get(recordId) == numRanges) {
-        results.add(getPartitionRecord(recordId));
+        results.add(getRecord(recordId));
       }
     }
 
@@ -367,9 +312,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @return True if the two offsets belong to the same record, false otherwise.
    */
   @Override public boolean sameRecord(long firstOffset, long secondOffset) {
-    int firstChunkOffset = (int) (firstOffset - fileOffset);
-    int secondChunkOffset = (int) (secondOffset - fileOffset);
-    return offsetToRecordId(firstChunkOffset) == offsetToRecordId(secondChunkOffset);
+    return offsetToRecordId((int) firstOffset) == offsetToRecordId((int) secondOffset);
   }
 
   /**
@@ -384,31 +327,13 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     Set<Integer> recordIds = new HashSet<Integer>();
     ArrayList<byte[]> results = new ArrayList<byte[]>();
     for (Long offset : regexOffsetResults.keySet()) {
-      int recordId = offsetToRecordId((int) (offset - fileOffset));
+      int recordId = offsetToRecordId(offset.intValue());
       if (!recordIds.contains(recordId)) {
-        results.add(getPartitionRecord(recordId));
+        results.add(getRecord(recordId));
         recordIds.add(recordId);
       }
     }
     return results.toArray(new byte[results.size()][]);
-  }
-
-  /**
-   * Extract a part of all records.
-   *
-   * @param offset Offset into record.
-   * @param length Length of part to be extracted.
-   * @return Extracted data.
-   */
-  @Override public byte[][] extractRecords(int offset, int length) {
-    byte[][] records = new byte[offsets.length][];
-    for (int i = 0; i < records.length; i++) {
-      int curOffset = offsets[i] + offset;
-      int nextOffset = (i == records.length - 1) ? getOriginalSize() : offsets[i + 1];
-      length = (length < nextOffset - curOffset - 1) ? length : nextOffset - curOffset - 1;
-      records[i] = extract(curOffset, length);
-    }
-    return records;
   }
 
   /**
@@ -419,7 +344,6 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   @Override public void writeToStream(DataOutputStream os) throws IOException {
     super.writeToStream(os);
-    os.writeLong(firstRecordId);
     os.writeInt(offsets.length);
     for (int i = 0; i < offsets.length; i++) {
       os.writeInt(offsets[i]);
@@ -434,7 +358,6 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   @Override public void readFromStream(DataInputStream is) throws IOException {
     super.readFromStream(is);
-    firstRecordId = is.readLong();
     int len = is.readInt();
     offsets = new int[len];
     for (int i = 0; i < len; i++) {
@@ -449,7 +372,6 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   @Override public void mapFromBuffer(ByteBuffer buf) {
     super.mapFromBuffer(buf);
-    firstRecordId = buf.getLong();
     int len = buf.getInt();
     offsets = new int[len];
     for (int i = 0; i < offsets.length; i++) {
@@ -464,7 +386,6 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @throws IOException
    */
   private void writeObject(ObjectOutputStream oos) throws IOException {
-    oos.writeLong(firstRecordId);
     oos.writeObject(offsets);
   }
 
@@ -475,7 +396,6 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @throws IOException
    */
   private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-    firstRecordId = ois.readLong();
     offsets = (int[]) ois.readObject();
   }
 }

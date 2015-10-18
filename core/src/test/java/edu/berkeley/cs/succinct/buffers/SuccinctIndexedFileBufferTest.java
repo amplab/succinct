@@ -6,6 +6,7 @@ import junit.framework.TestCase;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
 public class SuccinctIndexedFileBufferTest extends TestCase {
 
@@ -46,18 +47,68 @@ public class SuccinctIndexedFileBufferTest extends TestCase {
   }
 
   /**
-   * Test method: Long[] recordSearchOffsets(byte[] query)
+   * Test method: byte[] getRecord(int recordId)
    *
    * @throws Exception
    */
-  public void testRecordSearchOffsets() throws Exception {
-    System.out.println("recordSearchOffsets");
+  public void testGetRecord() throws Exception {
+    System.out.println("getRecord");
 
-    Long[] searchOffsets = sIBuf.recordSearchOffsets("int".getBytes());
-    for (int i = 0; i < searchOffsets.length; i++) {
-      byte[] buf = sIBuf.extractUntil(searchOffsets[i].intValue(), (byte) '\n');
+    for (int i = 0; i < offsets.length; i++) {
+      byte[] rec = sIBuf.getRecord(i);
+      for (int j = 0; j < rec.length; j++) {
+        assertEquals(fileData[offsets[i] + j], rec[j]);
+      }
+    }
+  }
+
+  public void testAccessRecord() throws Exception {
+    System.out.println("accessRecord");
+
+    for (int i = 0; i < offsets.length - 1; i++) {
+      if (offsets[i + 1] - offsets[i] > 10) {
+        byte[] rec = sIBuf.accessRecord(i, 5, 5);
+        assertEquals(rec.length, 5);
+        for (int j = 0; j < rec.length; j++) {
+          assertEquals(fileData[offsets[i] + j + 5], rec[j]);
+        }
+      }
+    }
+  }
+
+  /**
+   * Test method: Integer[] recordSearchIds(byte[] query)
+   *
+   * @throws Exception
+   */
+  public void testRecordSearchIds() throws Exception {
+    System.out.println("recordSearchIds");
+
+    Integer[] recordSearchIds = sIBuf.recordSearchIds("int".getBytes());
+    for (Integer recordId : recordSearchIds) {
+      byte[] buf = sIBuf.getRecord(recordId);
       assertTrue(new String(buf).contains("int"));
     }
+    assertEquals(recordSearchIds.length, 28);
+  }
+
+  /**
+   * Test method: Iterator<Integer> recordSearchIdIterator(byte[] query)
+   *
+   * @throws Exception
+   */
+  public void testRecordSearchIdIterator() throws Exception {
+    System.out.println("recordSearchIdIterator");
+
+    Iterator<Integer> recordSearchIds = sIBuf.recordSearchIdIterator("int".getBytes());
+    int count = 0;
+    while (recordSearchIds.hasNext()) {
+      Integer recordId = recordSearchIds.next();
+      byte[] buf = sIBuf.getRecord(recordId);
+      assertTrue(new String(buf).contains("int"));
+      count++;
+    }
+    assertEquals(count, 28);
   }
 
   /**
@@ -72,34 +123,7 @@ public class SuccinctIndexedFileBufferTest extends TestCase {
     for (int i = 0; i < records.length; i++) {
       assertTrue(new String(records[i]).contains("int"));
     }
-  }
-
-  /**
-   * Test method: long recordCount(byte[] query)
-   *
-   * @throws Exception
-   */
-  public void testRecordCount() throws Exception {
-    System.out.println("recordCount");
-
-    long count = sIBuf.recordCount("int".getBytes());
-    assertEquals(count, 28L);
-  }
-
-  /**
-   * Test method: byte[][] extractRecords(int offset, int len)
-   *
-   * @throws Exception
-   */
-  public void testExtractRecords() throws Exception {
-    System.out.println("extractRecords");
-
-    byte[][] records = sIBuf.extractRecords(0, 5);
-    for (int i = 0; i < records.length; i++) {
-      for (int j = 0; j < records[i].length; j++) {
-        assertEquals(records[i][j], fileData[((int) (offsets[i] + j))]);
-      }
-    }
+    assertEquals(records.length, 28);
   }
 
   /**

@@ -53,12 +53,12 @@ public class SuccinctIndexedFileStreamTest extends TestCase {
    *
    * @throws Exception
    */
-  public void testRecordSearchOffsets() throws Exception {
+  public void testRecordSearchIds() throws Exception {
     System.out.println("recordSearchOffsets");
 
-    Long[] searchOffsets = sStream.recordSearchOffsets("int".getBytes());
-    for (int i = 0; i < searchOffsets.length; i++) {
-      byte[] buf = sStream.extractUntil(searchOffsets[i].intValue(), (byte) '\n');
+    Integer[] recordSearchIds = sStream.recordSearchIds("int".getBytes());
+    for (Integer recordSearchId: recordSearchIds) {
+      byte[] buf = sStream.getRecord(recordSearchId);
       assertTrue(new String(buf).contains("int"));
     }
   }
@@ -74,34 +74,6 @@ public class SuccinctIndexedFileStreamTest extends TestCase {
     byte[][] records = sStream.recordSearch("int".getBytes());
     for (int i = 0; i < records.length; i++) {
       assertTrue(new String(records[i]).contains("int"));
-    }
-  }
-
-  /**
-   * Test method: long recordCount(byte[] query)
-   *
-   * @throws Exception
-   */
-  public void testRecordCount() throws Exception {
-    System.out.println("recordCount");
-
-    long count = sStream.recordCount("int".getBytes());
-    assertEquals(count, 28L);
-  }
-
-  /**
-   * Test method: byte[][] extractRecords(int offset, int len)
-   *
-   * @throws Exception
-   */
-  public void testExtractRecords() throws Exception {
-    System.out.println("extractRecords");
-
-    byte[][] records = sStream.extractRecords(0, 5);
-    for (int i = 0; i < records.length; i++) {
-      for (int j = 0; j < records[i].length; j++) {
-        assertEquals(records[i][j], fileData[((int) (offsets[i] + j))]);
-      }
     }
   }
 

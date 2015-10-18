@@ -4,6 +4,7 @@ import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.Range;
 
 import java.util.Comparator;
+import java.util.Iterator;
 
 public interface SuccinctIndexedFile extends SuccinctFile {
 
@@ -23,52 +24,42 @@ public interface SuccinctIndexedFile extends SuccinctFile {
   int getNumRecords();
 
   /**
-   * Get the first record id in this partition.
-   *
-   * @return The first record id in this partition.
-   */
-  long getFirstRecordId();
-
-  /**
-   * Get the range of record ids in this partition.
-   *
-   * @return The range of record ids in this partition.
-   */
-  Range getRecordIdRange();
-
-  /**
-   * Get the ith record in the partition.
-   *
-   * @param partitionRecordId The record index relative to partition.
-   * @return The corresponding record.
-   */
-  byte[] getPartitionRecord(int partitionRecordId);
-
-  /**
    * Get the ith record.
    *
-   * @param recordId The record index.
+   * @param recordId The record id.
    * @return The corresponding record.
    */
-  byte[] getRecord(long recordId);
+  byte[] getRecord(int recordId);
 
   /**
-   * Search for an input query and return offsets of all matching records.
+   * Get random access into record.
+   *
+   * @param recordId The record id.
+   * @param offset Offset into record.
+   * @param length Number of bytes to fetch.
+   * @return The extracted data.
+   */
+  byte[] accessRecord(int recordId, int offset, int length);
+
+  /**
+   * Search for an input query and return ids of all matching records.
    *
    * @param query Input query.
-   * @return Offsets of all matching records.
+   * @return Ids of all matching records.
    */
-  Long[] recordSearchOffsets(byte[] query);
+  Integer[] recordSearchIds(byte[] query);
 
   /**
-   * Count of all records containing a particular query.
+   * Search for an input query and return an iterator over ids of all matching records.
    *
    * @param query Input query.
-   * @return Count of all records containing input query.
+   * @return Iterator over ids of all matching records
    */
-  long recordCount(byte[] query);
+  Iterator<Integer> recordSearchIdIterator(byte[] query);
 
   /**
+   * TODO: Remove
+   *
    * Search for all records that contains the query.
    *
    * @param query Input query.
@@ -77,6 +68,8 @@ public interface SuccinctIndexedFile extends SuccinctFile {
   byte[][] recordSearch(byte[] query);
 
   /**
+   * TODO: Remove; add record ID version; add iterator version
+   *
    * Performs a range search for all records that contains a substring between queryBegin and queryEnd.
    *
    * @param queryBegin The beginning of query range.
@@ -86,6 +79,8 @@ public interface SuccinctIndexedFile extends SuccinctFile {
   byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd);
 
   /**
+   * TODO: Remove; add record ID version; add iterator version
+   *
    * Search for all records that contain a particular regular expression.
    *
    * @param query The regular expression (UTF-8 encoded).
@@ -95,6 +90,8 @@ public interface SuccinctIndexedFile extends SuccinctFile {
   byte[][] recordSearchRegex(String query) throws RegExParsingException;
 
   /**
+   * TODO: Remove; add record ID version; add iterator version
+   *
    * Perform multiple searches with different query types and return the intersection of the results.
    *
    * @param queryTypes The QueryType corresponding to each query
@@ -104,22 +101,12 @@ public interface SuccinctIndexedFile extends SuccinctFile {
   byte[][] multiSearch(QueryType[] queryTypes, byte[][][] queries);
 
   /**
-   * Extract a part of all records.
-   *
-   * @param offset Offset into record.
-   * @param length Length of part to be extracted.
-   * @return Extracted data.
-   */
-  byte[][] extractRecords(int offset, int length);
-
-  /**
    * Defines the types of search queries that SuccinctIndexedBuffer can handle in a multiSearch.
    */
   enum QueryType {
     Search,
     RangeSearch
   }
-
 
   /**
    * Comparator for range objects based on the size of the range.

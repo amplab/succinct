@@ -23,10 +23,7 @@ class SearchRecordResultsRDD(val succinctRDD: SuccinctRDD,
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
     val resultsIterator = succinctRDD.getFirstParent.iterator(split, context)
     if (resultsIterator.hasNext) {
-      resultsIterator.next()
-        .recordSearch(searchQuery)
-        .asInstanceOf[Array[Array[Byte]]]
-        .iterator
+      resultsIterator.next().searchRecords(searchQuery)
     } else {
       Iterator[Array[Byte]]()
     }
@@ -40,17 +37,17 @@ class SearchRecordResultsRDD(val succinctRDD: SuccinctRDD,
   override def getPartitions: Array[Partition] = succinctRDD.partitions
 
   /**
-   * Converts the records RDD to the offsets RDD.
+   * Converts the records RDD to the recordIds RDD.
    *
-   * @return The corresponding SearchOffsetResultsRDD.
+   * @return The corresponding SearchRecordIdResultsRDD.
    */
-  def offsets(): SearchOffsetResultsRDD = {
-    new SearchOffsetResultsRDD(succinctRDD, searchQuery, targetStorageLevel)
+  def recordIds(): SearchRecordIdResultsRDD = {
+    new SearchRecordIdResultsRDD(succinctRDD, searchQuery, targetStorageLevel)
   }
 
   /**
    * Converts to an RDD of String representation.
-   * @return An RDD of strings
+   * @return An RDD of strings.
    */
   def toStringRDD(): RDD[String] = {
     map(new String(_))

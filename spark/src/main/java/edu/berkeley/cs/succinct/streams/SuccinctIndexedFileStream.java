@@ -3,6 +3,8 @@ package edu.berkeley.cs.succinct.streams;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.Range;
+import edu.berkeley.cs.succinct.util.SearchIterator;
+import edu.berkeley.cs.succinct.util.SearchRecordIterator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
@@ -13,7 +15,6 @@ import java.util.*;
 public class SuccinctIndexedFileStream extends SuccinctFileStream implements SuccinctIndexedFile {
 
   protected transient int[] offsets;
-  protected transient long firstRecordId;
   protected transient long endOfIndexedFileStream;
 
   /**
@@ -27,7 +28,6 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
     super(filePath, conf);
     FSDataInputStream is = getStream(filePath);
     is.seek(endOfFileStream);
-    firstRecordId = is.readLong();
     int len = is.readInt();
     offsets = new int[len];
     for (int i = 0; i < len; i++) {
@@ -69,53 +69,50 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
     return offsets.length;
   }
 
-  public long getFirstRecordId() {
-    return firstRecordId;
-  }
-
-  public Range getRecordIdRange() {
-    return new Range(firstRecordId, firstRecordId + getNumRecords() - 1);
-  }
-
-  public byte[] getPartitionRecord(int partitionRecordId) {
-    if (partitionRecordId >= offsets.length || partitionRecordId < 0) {
+  @Override public byte[] getRecord(int recordId) {
+    if (recordId >= offsets.length || recordId < 0) {
       throw new ArrayIndexOutOfBoundsException(
-        "Record does not exist: partitionRecordId = " + partitionRecordId);
+        "Record does not exist: recordId = " + recordId);
     }
-    int begOffset = offsets[partitionRecordId];
-    int endOffset = (partitionRecordId == offsets.length - 1) ?
+    int begOffset = offsets[recordId];
+    int endOffset = (recordId == offsets.length - 1) ?
       getOriginalSize() - 1 :
-      offsets[partitionRecordId + 1];
+      offsets[recordId + 1];
     int len = (endOffset - begOffset - 1);
     return extract(begOffset, len);
   }
 
-  public byte[] getRecord(long recordId) {
-    int paritionRecordId = (int) (recordId - firstRecordId);
-    return getPartitionRecord(paritionRecordId);
+  @Override public byte[] accessRecord(int recordId, int offset, int length) {
+    if (recordId >= offsets.length || recordId < 0) {
+      throw new ArrayIndexOutOfBoundsException(
+        "Record does not exist: recordId = " + recordId);
+    }
+    int begOffset = offsets[recordId] + offset;
+    return extract(begOffset, length);
   }
 
-  public Long[] recordSearchOffsets(byte[] query) {
-    Set<Long> results = new HashSet<Long>();
+  public Integer[] recordSearchIds(byte[] query) {
+    Set<Integer> results = new HashSet<Integer>();
     Range range = bwdSearch(query);
 
     long sp = range.first, ep = range.second;
     if (ep - sp + 1 <= 0) {
-      return new Long[0];
+      return new Integer[0];
     }
 
     for (long i = 0; i < ep - sp + 1; i++) {
-      results.add(fileOffset + offsets[offsetToRecordId((int) lookupSA(sp + i))]);
+      results.add(offsetToRecordId((int) lookupSA(sp + i)));
     }
 
-    return results.toArray(new Long[results.size()]);
+    return results.toArray(new Integer[results.size()]);
   }
 
-  public long recordCount(byte[] query) {
-    return recordSearchOffsets(query).length;
+  @Override public Iterator<Integer> recordSearchIdIterator(byte[] query) {
+    SearchIterator searchIterator = (SearchIterator) searchIterator(query);
+    return new SearchRecordIterator(searchIterator, this);
   }
 
-  public byte[][] recordSearch(byte[] query) {
+  @Override public byte[][] recordSearch(byte[] query) {
     Set<Integer> recordIds = new HashSet<Integer>();
     ArrayList<byte[]> results = new ArrayList<byte[]>();
     Range range = bwdSearch(query);
@@ -129,7 +126,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
       long saVal = lookupSA(sp + i);
       int recordId = offsetToRecordId((int) saVal);
       if (!recordIds.contains(recordId)) {
-        results.add(getPartitionRecord(recordId));
+        results.add(getRecord(recordId));
         recordIds.add(recordId);
       }
     }
@@ -137,7 +134,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
     return results.toArray(new byte[results.size()][]);
   }
 
-  public byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd) {
+  @Override public byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd) {
     Set<Integer> recordIds = new HashSet<Integer>();
     ArrayList<byte[]> results = new ArrayList<byte[]>();
     Range rangeBegin = bwdSearch(queryBegin);
@@ -152,7 +149,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
       long saVal = lookupSA(sp + i);
       int recordId = offsetToRecordId((int) saVal);
       if (!recordIds.contains(recordId)) {
-        results.add(getPartitionRecord(recordId));
+        results.add(getRecord(recordId));
         recordIds.add(recordId);
       }
     }
@@ -161,33 +158,31 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
   }
 
   /**
-   * Check if the two offsets belong to the same record.
+   * Check if the two recordIds belong to the same record.
    *
    * @param firstOffset The first offset.
    * @param secondOffset The second offset.
-   * @return True if the two offsets belong to the same record, false otherwise.
+   * @return True if the two recordIds belong to the same record, false otherwise.
    */
   @Override public boolean sameRecord(long firstOffset, long secondOffset) {
-    int firstChunkOffset = (int) (firstOffset - fileOffset);
-    int secondChunkOffset = (int) (secondOffset - fileOffset);
-    return offsetToRecordId(firstChunkOffset) == offsetToRecordId(secondChunkOffset);
+    return offsetToRecordId((int) firstOffset) == offsetToRecordId((int) secondOffset);
   }
 
-  public byte[][] recordSearchRegex(String query) throws RegExParsingException {
+  @Override public byte[][] recordSearchRegex(String query) throws RegExParsingException {
     Map<Long, Integer> regexOffsetResults = regexSearch(query);
     Set<Integer> recordIds = new HashSet<Integer>();
     ArrayList<byte[]> results = new ArrayList<byte[]>();
     for (Long offset : regexOffsetResults.keySet()) {
-      int recordId = offsetToRecordId((int) (offset - fileOffset));
+      int recordId = offsetToRecordId(offset.intValue());
       if (!recordIds.contains(recordId)) {
-        results.add(getPartitionRecord(recordId));
+        results.add(getRecord(recordId));
         recordIds.add(recordId);
       }
     }
     return results.toArray(new byte[results.size()][]);
   }
 
-  public byte[][] multiSearch(QueryType[] queryTypes, byte[][][] queries) {
+  @Override public byte[][] multiSearch(QueryType[] queryTypes, byte[][][] queries) {
     assert (queryTypes.length == queries.length);
     Set<Integer> recordIds = new HashSet<Integer>();
     ArrayList<byte[]> results = new ArrayList<byte[]>();
@@ -230,7 +225,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
 
     Collections.sort(ranges, new RangeSizeComparator());
 
-    // Populate the set of offsets corresponding to the first range
+    // Populate the set of recordIds corresponding to the first range
     Range firstRange = ranges.get(0);
     Map<Integer, Integer> counts = new HashMap<Integer, Integer>();
     {
@@ -258,21 +253,10 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
 
     for (int recordId : recordIds) {
       if (counts.get(recordId) == numRanges) {
-        results.add(getPartitionRecord(recordId));
+        results.add(getRecord(recordId));
       }
     }
 
     return results.toArray(new byte[results.size()][]);
-  }
-
-  public byte[][] extractRecords(int offset, int length) {
-    byte[][] records = new byte[offsets.length][];
-    for (int i = 0; i < records.length; i++) {
-      int curOffset = offsets[i] + offset;
-      int nextOffset = (i == records.length - 1) ? getOriginalSize() : offsets[i + 1];
-      length = (length < nextOffset - curOffset - 1) ? length : nextOffset - curOffset - 1;
-      records[i] = extract(curOffset, length);
-    }
-    return records;
   }
 }

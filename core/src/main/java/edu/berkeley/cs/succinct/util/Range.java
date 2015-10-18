@@ -32,6 +32,12 @@ public class Range implements Comparable<Range>, Serializable {
     return second;
   }
 
+  public void advanceBeginning() {
+    if (!empty()) {
+      first++;
+    }
+  }
+
   public long size() {
     return second - first + 1;
   }

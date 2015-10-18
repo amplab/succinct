@@ -2,9 +2,8 @@ package edu.berkeley.cs.succinct.kv
 
 import java.io.ByteArrayOutputStream
 
-import edu.berkeley.cs.succinct.buffers.SuccinctKVBuffer
+import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.kv.impl.SuccinctKVRDDImpl
-import edu.berkeley.cs.succinct.streams.SuccinctKVStream
 import edu.berkeley.cs.succinct.{SuccinctCore, SuccinctKV}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
@@ -15,8 +14,9 @@ import org.apache.spark.{Dependency, Partition, SparkContext, TaskContext}
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
-abstract class SuccinctKVRDD[K <: Comparable[K] : ClassTag](@transient sc: SparkContext,
-                                                            @transient deps: Seq[Dependency[_]])
+abstract class SuccinctKVRDD[K: ClassTag](
+    @transient sc: SparkContext,
+    @transient deps: Seq[Dependency[_]])
   extends RDD[(K, Array[Byte])](sc, deps) {
 
   /**
@@ -24,15 +24,15 @@ abstract class SuccinctKVRDD[K <: Comparable[K] : ClassTag](@transient sc: Spark
    *
    * @return The RDD of partitions.
    */
-  private[succinct] def partitionsRDD: RDD[SuccinctKV[K]]
+  private[succinct] def partitionsRDD: RDD[SuccinctKVPartition[K]]
 
   /**
    * Returns first parent of the RDD.
    *
    * @return The first parent of the RDD.
    */
-  protected[succinct] def getFirstParent: RDD[SuccinctKV[K]] = {
-    firstParent[SuccinctKV[K]]
+  protected[succinct] def getFirstParent: RDD[SuccinctKVPartition[K]] = {
+    firstParent[SuccinctKVPartition[K]]
   }
 
   /**
@@ -43,9 +43,9 @@ abstract class SuccinctKVRDD[K <: Comparable[K] : ClassTag](@transient sc: Spark
   override protected def getPartitions: Array[Partition] = partitionsRDD.partitions
 
   override def compute(split: Partition, context: TaskContext): Iterator[(K, Array[Byte])] = {
-    val succinctIterator = firstParent[SuccinctKV[K]].iterator(split, context)
+    val succinctIterator = firstParent[SuccinctKVPartition[K]].iterator(split, context)
     if (succinctIterator.hasNext) {
-      new SuccinctKVIterator(succinctIterator.next())
+      succinctIterator.next().iterator
     } else {
       Iterator[(K, Array[Byte])]()
     }
@@ -57,7 +57,7 @@ abstract class SuccinctKVRDD[K <: Comparable[K] : ClassTag](@transient sc: Spark
    * @return The number of KV-pairs in the SuccinctKVRDD.
    */
   override def count(): Long = {
-    partitionsRDD.map(buf => buf.numEntries()).aggregate(0L)(_ + _, _ + _)
+    partitionsRDD.map(_.count).aggregate(0L)(_ + _, _ + _)
   }
 
   /**
@@ -68,20 +68,47 @@ abstract class SuccinctKVRDD[K <: Comparable[K] : ClassTag](@transient sc: Spark
    */
   def get(key: K): Array[Byte] = {
     val values = partitionsRDD.map(buf => buf.get(key)).filter(v => (v != null)).collect()
-    if (values.size > 1) {
-      throw new IllegalStateException("Single key should not return multiple values")
+    if (values.length > 1) {
+      throw new IllegalStateException(s"Key ${key.toString} returned ${values.length} values")
     }
-    if (values.size == 0) null else values(0)
+    if (values.length == 0) null else values(0)
   }
 
   /**
-   * Get delete the entry corresponding to a key.
+   * Random access into the value for a given key.
    *
    * @param key Input key.
-   * @return True if delete is successful, false otherwise.
+   * @param offset Offset into value.
+   * @param length Number of bytes to be fetched.
+   * @return Extracted bytes from the value corresponding to given key.
    */
-  def delete(key: K): Boolean = {
-    partitionsRDD.map(_.delete(key)).aggregate(false)(_ | _, _ | _)
+  def access(key: K, offset: Int, length: Int): Array[Byte] = {
+    val values = partitionsRDD.map(buf => buf.access(key, offset, length)).filter(v => (v != null))
+      .collect()
+    if (values.length > 1) {
+      throw new IllegalStateException(s"Key ${key.toString} returned ${values.length} values")
+    }
+    if (values.length == 0) null else values(0)
+  }
+
+  /**
+   * Search for a term across values, and return matched keys.
+   *
+   * @param query The search term.
+   * @return An RDD of matched keys.
+   */
+  def search(query: Array[Byte]): RDD[K] = {
+    partitionsRDD.flatMap(_.search(query))
+  }
+
+  /**
+   * Search for a term across values, and return matched keys.
+   *
+   * @param query The search term.
+   * @return An RDD of matched keys.
+   */
+  def search(query: String): RDD[K] = {
+    search(query.getBytes("utf-8"))
   }
 
   /**
@@ -122,9 +149,11 @@ object SuccinctKVRDD {
    * @tparam K The key type.
    * @return The SuccinctKVRDD.
    */
-  def apply[K <: Comparable[K] : ClassTag](inputRDD: RDD[(K, Array[Byte])]): SuccinctKVRDD[K] = {
-    val partitionsRDD = inputRDD.sortByKey().mapPartitions(createSuccinctKVBuffer[K])
-    new SuccinctKVRDDImpl[K](partitionsRDD.cache())
+  def apply[K <: Comparable[K] : ClassTag](inputRDD: RDD[(K, Array[Byte])])
+    (implicit ordering: Ordering[K])
+  : SuccinctKVRDD[K] = {
+    val partitionsRDD = inputRDD.sortByKey().mapPartitions(createSuccinctKVPartition[K]).cache()
+    new SuccinctKVRDDImpl[K](partitionsRDD)
   }
 
   /**
@@ -134,7 +163,9 @@ object SuccinctKVRDD {
    * @param location The path to read the SuccinctRDD from.
    * @return The SuccinctRDD.
    */
-  def apply[K <: Comparable[K] : ClassTag](sc: SparkContext, location: String, storageLevel: StorageLevel): SuccinctKVRDD[K] = {
+  def apply[K <: Comparable[K] : ClassTag](sc: SparkContext, location: String, storageLevel: StorageLevel)
+      (implicit ordering: Ordering[K])
+  : SuccinctKVRDD[K] = {
     val locationPath = new Path(location)
     val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
     val status = fs.listStatus(locationPath, new PathFilter {
@@ -144,23 +175,11 @@ object SuccinctKVRDD {
     })
     val numPartitions = status.length
     val succinctPartitions = sc.parallelize(0 to numPartitions - 1, numPartitions)
-      .mapPartitionsWithIndex[SuccinctKV[K]]((i, partition) => {
-      val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
-      val path = new Path(partitionLocation)
-      val fs = FileSystem.get(path.toUri, new Configuration())
-      val is = fs.open(path)
-      val partitionIterator = storageLevel match {
-        case StorageLevel.MEMORY_ONLY =>
-          Iterator(new SuccinctKVBuffer[K](is))
-        case StorageLevel.DISK_ONLY =>
-          Iterator(new SuccinctKVStream[K](path))
-        case _ =>
-          Iterator(new SuccinctKVBuffer[K](is))
-      }
-      is.close()
-      partitionIterator
-    })
-    new SuccinctKVRDDImpl[K](succinctPartitions.cache())
+      .mapPartitionsWithIndex[SuccinctKVPartition[K]]((i, partition) => {
+        val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
+        Iterator(SuccinctKVPartition[K](partitionLocation, storageLevel))
+      }).cache()
+    new SuccinctKVRDDImpl[K](succinctPartitions)
   }
 
   /**
@@ -170,8 +189,10 @@ object SuccinctKVRDD {
    * @tparam K The type for the keys.
    * @return An iterator over the [[SuccinctKV]]
    */
-  private[succinct] def createSuccinctKVBuffer[K <: Comparable[K] : ClassTag](kvIter: Iterator[(K, Array[Byte])]): Iterator[SuccinctKV[K]] = {
-    val keysBuffer = new java.util.ArrayList[K]()
+  private[succinct] def createSuccinctKVPartition[K: ClassTag](kvIter: Iterator[(K, Array[Byte])])
+    (implicit ordering: Ordering[K]):
+  Iterator[SuccinctKVPartition[K]] = {
+    val keysBuffer = new ArrayBuffer[K]()
     var offsets = new ArrayBuffer[Int]()
     var buffers = new ArrayBuffer[Array[Byte]]()
 
@@ -180,7 +201,7 @@ object SuccinctKVRDD {
 
     while (kvIter.hasNext) {
       val curRecord = kvIter.next()
-      keysBuffer.add(curRecord._1)
+      keysBuffer += curRecord._1
       buffers += curRecord._2
       bufferSize += (curRecord._2.size + 1)
       offsets += offset
@@ -194,6 +215,9 @@ object SuccinctKVRDD {
       rawBufferOS.write(SuccinctCore.EOL)
     }
 
-    Iterator(new SuccinctKVBuffer[K](keysBuffer, rawBufferOS.toByteArray, offsets.toArray))
+    val keys = keysBuffer.toArray
+    val valueBuffer = new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray)
+
+    Iterator(new SuccinctKVPartition[K](keys, valueBuffer))
   }
 }

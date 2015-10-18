@@ -5,31 +5,27 @@ import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
 
 /**
- * A container RDD for the search results as offsets into the original partition of a SuccinctRDD. The results
- * are lazily evaluated.
+ * A container RDD for the search results as record ids in a SuccinctRDD.
  *
- * @constructor Creates a SuccinctOffsetrResultsRDD from the underlying SuccinctRDD, the search query and the target
- *              storage level.
+ * @constructor Creates a SearchRecordIdResultsRDD from the underlying SuccinctRDD, the search query
+ *             and the target storage level.
  * @param succinctRDD The underlying SuccinctRDD.
  * @param searchQuery The search query.
  * @param targetStorageLevel The target storage level for the RDD.
  */
-class SearchOffsetResultsRDD(val succinctRDD: SuccinctRDD,
-                             val searchQuery: Array[Byte],
-                             val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+class SearchRecordIdResultsRDD(val succinctRDD: SuccinctRDD,
+    val searchQuery: Array[Byte],
+    val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends RDD[Long](succinctRDD.context, List(new OneToOneDependency(succinctRDD))) {
 
   /**
    * Overrides the compute method of RDD to return an iterator over the search results
-   * (offsets into the partition).
-     s*/
+   * (id for the record).
+   */
   override def compute(split: Partition, context: TaskContext): Iterator[Long] = {
     val resultsIterator = succinctRDD.getFirstParent.iterator(split, context)
     if (resultsIterator.hasNext) {
-      resultsIterator.next()
-        .recordSearchOffsets(searchQuery)
-        .map(Long2long)
-        .iterator
+      resultsIterator.next().searchRecordIds(searchQuery)
     } else {
       Iterator[Long]()
     }
@@ -43,7 +39,7 @@ class SearchOffsetResultsRDD(val succinctRDD: SuccinctRDD,
   override def getPartitions: Array[Partition] = succinctRDD.partitions
 
   /**
-   * Converts the offsets RDD to records RDD.
+   * Converts the recordIds RDD to records RDD.
    *
    * @return The corresponding SearchRecordResultsRDD.
    */

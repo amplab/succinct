@@ -1,14 +1,16 @@
 package edu.berkeley.cs.succinct.buffers;
 
 import edu.berkeley.cs.succinct.StorageMode;
+import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctFile;
 import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.SuccinctRegEx;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.Range;
+import edu.berkeley.cs.succinct.util.SearchIterator;
 
-import java.io.*;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -16,37 +18,24 @@ import java.util.TreeMap;
 public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
 
   private static final long serialVersionUID = 5879363803993345049L;
-  protected transient long fileOffset;
 
   /**
    * Constructor to create SuccinctBuffer from byte array, context length and file offset.
    *
    * @param input      Input byte array.
    * @param contextLen Context length.
-   * @param fileOffset Beginning offset for this file chunk (if file is partitioned).
    */
-  public SuccinctFileBuffer(byte[] input, int contextLen, long fileOffset) {
+  public SuccinctFileBuffer(byte[] input, int contextLen) {
     super(input, contextLen);
-    this.fileOffset = fileOffset;
   }
 
   /**
    * Constructor to create SuccinctBuffer from byte array and file offset.
    *
    * @param input      Input byte array.
-   * @param fileOffset Beginning offset for this file chunk (if file is partitioned).
-   */
-  public SuccinctFileBuffer(byte[] input, long fileOffset) {
-    this(input, 3, fileOffset);
-  }
-
-  /**
-   * Constructor to create SuccinctBuffer from byte array.
-   *
-   * @param input Input byte array.
    */
   public SuccinctFileBuffer(byte[] input) {
-    this(input, 0);
+    this(input, 3);
   }
 
   /**
@@ -76,24 +65,6 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
   }
 
   /**
-   * Get beginning offset for the file chunk.
-   *
-   * @return The beginning offset for the file chunk.
-   */
-  public long getFileOffset() {
-    return fileOffset;
-  }
-
-  /**
-   * Get offset range for the file chunk.
-   *
-   * @return The offset range for the file chunk.
-   */
-  public Range getFileRange() {
-    return new Range(fileOffset, fileOffset + getOriginalSize() - 2);
-  }
-
-  /**
    * Get the alphabet for the succinct file.
    *
    * @return The alphabet for the succinct file.
@@ -106,13 +77,22 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
   }
 
   /**
+   * Get the size of the uncompressed file.
+   *
+   * @return The size of the uncompressed file.
+   */
+  @Override public int getSize() {
+    return getOriginalSize();
+  }
+
+  /**
    * Get the character at index in file.
    *
    * @param i Index into file.
    * @return The character at the specified index.
    */
-  public char charAt(long i) {
-    return (char) alphabet.get((int) lookupC(lookupISA(i - fileOffset)));
+  @Override public char charAt(long i) {
+    return (char) alphabet.get((int) lookupC(lookupISA(i)));
   }
 
   /**
@@ -125,10 +105,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
   @Override public byte[] extract(long offset, int len) {
 
     byte[] buf = new byte[len];
-    long s;
-
-    long chunkOffset = offset - fileOffset;
-    s = lookupISA(chunkOffset);
+    long s = lookupISA(offset);
     for (int k = 0; k < len && k < getOriginalSize(); k++) {
       buf[k] = alphabet.get((int) lookupC(s));
       s = lookupNPA(s);
@@ -147,14 +124,10 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
   @Override public byte[] extractUntil(long offset, byte delim) {
 
     String strBuf = "";
-    long s;
-
-    long chunkOffset = offset - fileOffset;
-    s = lookupISA(chunkOffset);
-    char nextChar;
+    long s = lookupISA(offset);
     do {
-      nextChar = (char) alphabet.get((int) lookupC(s));
-      if (nextChar == delim || nextChar == 1)
+      char nextChar = (char) alphabet.get((int) lookupC(s));
+      if (nextChar == delim || nextChar == (char)SuccinctCore.EOF)
         break;
       strBuf += nextChar;
       s = lookupNPA(s);
@@ -375,10 +348,15 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
 
     Long[] offsets = new Long[(int) range.size()];
     for (long i = 0; i < range.size(); i++) {
-      offsets[((int) i)] = lookupSA(range.begin() + i) + fileOffset;
+      offsets[((int) i)] = lookupSA(range.begin() + i);
     }
 
     return offsets;
+  }
+
+  @Override public Iterator<Long> searchIterator(byte[] query) {
+    Range range = bwdSearch(query);
+    return new SearchIterator(this, range);
   }
 
   /**
@@ -421,57 +399,5 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     }
 
     return results;
-  }
-
-  /**
-   * Write Succinct data structures to a DataOutputStream.
-   *
-   * @param os Output stream to write data to.
-   * @throws IOException
-   */
-  @Override public void writeToStream(DataOutputStream os) throws IOException {
-    super.writeToStream(os);
-    os.writeLong(fileOffset);
-  }
-
-  /**
-   * Reads Succinct data structures from a DataInputStream.
-   *
-   * @param is Stream to read data structures from.
-   * @throws IOException
-   */
-  @Override public void readFromStream(DataInputStream is) throws IOException {
-    super.readFromStream(is);
-    fileOffset = is.readLong();
-  }
-
-  /**
-   * Reads Succinct data structures from a ByteBuffer.
-   *
-   * @param buf ByteBuffer to read Succinct data structures from.
-   */
-  @Override public void mapFromBuffer(ByteBuffer buf) {
-    super.mapFromBuffer(buf);
-    fileOffset = buf.getLong();
-  }
-
-  /**
-   * Serialize SuccinctIndexedBuffer to OutputStream.
-   *
-   * @param oos ObjectOutputStream to write to.
-   * @throws IOException
-   */
-  private void writeObject(ObjectOutputStream oos) throws IOException {
-    oos.writeLong(fileOffset);
-  }
-
-  /**
-   * Deserialize SuccinctIndexedBuffer from InputStream.
-   *
-   * @param ois ObjectInputStream to read from.
-   * @throws IOException
-   */
-  private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-    fileOffset = ois.readLong();
   }
 }

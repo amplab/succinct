@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.impl
 
-import edu.berkeley.cs.succinct.{SuccinctIndexedFile, SuccinctRDD}
+import edu.berkeley.cs.succinct.{SuccinctPartition, SuccinctRDD}
 import org.apache.spark.OneToOneDependency
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
@@ -14,12 +14,11 @@ import org.apache.spark.storage.StorageLevel
  * @param targetStorageLevel The storage level for the RDD.
  */
 class SuccinctRDDImpl private[succinct](
-    val partitionsRDD: RDD[SuccinctIndexedFile],
+    val partitionsRDD: RDD[SuccinctPartition],
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
-  val partitionOffsetRanges = partitionsRDD.map(_.getFileRange).collect.sorted
-  val partitionRecordIdRanges = partitionsRDD.map(_.getRecordIdRange).collect.sorted
+  val partitionOffsetRanges = partitionsRDD.map(_.partitionOffsetRange).collect.sorted
 
   /** Set the name for the RDD; By default set to "SuccinctRDD" */
   override def setName(_name: String): this.type = {
@@ -54,25 +53,6 @@ class SuccinctRDDImpl private[succinct](
     this
   }
 
-  override def getRecord(recordId: Long): Array[Byte] = {
-    val recordIdRanges = partitionRecordIdRanges.filter(_.contains(recordId))
-    if (recordIdRanges.size != 1) {
-      throw new ArrayIndexOutOfBoundsException("Invalid recordId = " + recordId)
-    }
-    val recordIdRange = recordIdRanges(0)
-    val records = partitionsRDD.map(partition => {
-      if (partition.getFirstRecordId == recordIdRange.first) {
-        partition.getRecord(recordId)
-      } else {
-        null
-      }
-    }).filter(buf => (buf != null)).collect
-    if (records.size != 1) {
-      throw new ArrayIndexOutOfBoundsException("Invalid recordId = " + recordId)
-    }
-    records(0)
-  }
-
   /** Extract data from an RDD **/
   override def extract(offset: Long, length: Int): Array[Byte] = {
     val startPartitionRanges = partitionOffsetRanges.filter(_.contains(offset))
@@ -93,7 +73,7 @@ class SuccinctRDDImpl private[succinct](
 
     if (startPartitionRange == endPartitionRange) {
       val values = partitionsRDD.map(partition => {
-        if (partition.getFileOffset == startPartitionRange.first) {
+        if (partition.partitionOffsetRange.begin() == startPartitionRange.begin()) {
           partition.extract(offset, length)
         } else {
           null
@@ -102,13 +82,13 @@ class SuccinctRDDImpl private[succinct](
       ).filter(buf => (buf != null)).collect()
       values(0)
     } else {
-      val startLength: Int = (startPartitionRange.second - offset).toInt
+      val startLength: Int = (startPartitionRange.end() - offset).toInt
       val endLength: Int = length - startLength
       val values = partitionsRDD.map(partition => {
-        if (partition.getFileOffset == startPartitionRange.first) {
+        if (partition.partitionOffsetRange.begin() == startPartitionRange.begin()) {
           partition.extract(offset, startLength)
-        } else if (partition.getFileOffset == endPartitionRange.first) {
-          partition.extract(endPartitionRange.first, endLength)
+        } else if (partition.partitionOffsetRange.begin() == endPartitionRange.begin()) {
+          partition.extract(endPartitionRange.begin(), endLength)
         } else {
           null
         }
