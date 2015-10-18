@@ -36,22 +36,22 @@ object KVBench {
 
   def get(rdd: RDD[(Long, Array[Byte])], key: Long): Array[Byte] = {
     val res = rdd.filter(kv => kv._1 == key).collect()
-    if (res.size == 0) {
+    if (res.length == 0) {
       throw new ArrayIndexOutOfBoundsException(s"Invalid key = $key")
     }
-    if (res.size > 1) {
-      throw new IllegalArgumentException(s"Got ${res.size} values for key = $key")
+    if (res.length > 1) {
+      throw new IllegalArgumentException(s"Got ${res.length} values for key = $key")
     }
     res(0)._2
   }
 
   def access(rdd: RDD[(Long, Array[Byte])], key: Long): Array[Byte] = {
     val res = rdd.filter(kv => kv._1 == key).map(t => util.Arrays.copyOfRange(t._2, 0, ACCESS_LEN)).collect()
-    if (res.size == 0) {
+    if (res.length == 0) {
       throw new ArrayIndexOutOfBoundsException(s"Invalid key = $key")
     }
-    if (res.size > 1) {
-      throw new IllegalArgumentException(s"Got ${res.size} values for key = $key")
+    if (res.length > 1) {
+      throw new IllegalArgumentException(s"Got ${res.length} values for key = $key")
     }
     res(0)
   }
@@ -201,7 +201,7 @@ object KVBench {
     val ctx = new SparkContext(sparkConf)
 
     val kvRDD = ctx.textFile(dataPath)
-      .zipWithIndex
+      .zipWithIndex()
       .map(t => (t._2, t._1.getBytes))
       .repartition(partitions)
 
