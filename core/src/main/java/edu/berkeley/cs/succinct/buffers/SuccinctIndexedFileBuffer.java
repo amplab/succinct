@@ -1,6 +1,7 @@
 package edu.berkeley.cs.succinct.buffers;
 
 import edu.berkeley.cs.succinct.StorageMode;
+import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
@@ -107,7 +108,16 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
         "Record does not exist: recordId = " + recordId);
     }
     int begOffset = offsets[recordId] + offset;
-    return extract(begOffset, length);
+    String strBuf = "";
+    long s = lookupISA(begOffset);
+    do {
+      char nextChar = (char) alphabet.get((int) lookupC(s));
+      if (nextChar == (char) SuccinctCore.EOL || nextChar == (char) SuccinctCore.EOF)
+        break;
+      strBuf += nextChar;
+      s = lookupNPA(s);
+    } while (strBuf.length() < length);
+    return strBuf.getBytes();
   }
 
   /**
@@ -159,64 +169,6 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   @Override public Iterator<Integer> recordSearchIdIterator(byte[] query) {
     SearchIterator searchIterator = (SearchIterator) searchIterator(query);
     return new SearchRecordIterator(searchIterator, this);
-  }
-
-  /**
-   * Search for all records that contains the query.
-   *
-   * @param query Input query.
-   * @return All records containing input query.
-   */
-  @Override public byte[][] recordSearch(byte[] query) {
-    Set<Integer> recordIds = new HashSet<Integer>();
-    ArrayList<byte[]> results = new ArrayList<byte[]>();
-    Range range = bwdSearch(query);
-
-    long sp = range.first, ep = range.second;
-    if (ep - sp + 1 <= 0) {
-      return new byte[0][0];
-    }
-
-    for (long i = 0; i < ep - sp + 1; i++) {
-      long saVal = lookupSA(sp + i);
-      int recordId = offsetToRecordId((int) saVal);
-      if (!recordIds.contains(recordId)) {
-        results.add(getRecord(recordId));
-        recordIds.add(recordId);
-      }
-    }
-
-    return results.toArray(new byte[results.size()][]);
-  }
-
-  /**
-   * Performs a range search for all records that contains a substring between queryBegin and queryEnd.
-   *
-   * @param queryBegin The beginning of query range.
-   * @param queryEnd   The end of query range.
-   * @return All records matching the query range.
-   */
-  @Override public byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd) {
-    Set<Integer> recordIds = new HashSet<Integer>();
-    ArrayList<byte[]> results = new ArrayList<byte[]>();
-    Range rangeBegin = bwdSearch(queryBegin);
-    Range rangeEnd = bwdSearch(queryEnd);
-
-    long sp = rangeBegin.first, ep = rangeEnd.second;
-    if (ep - sp + 1 <= 0) {
-      return new byte[0][0];
-    }
-
-    for (long i = 0; i < ep - sp + 1; i++) {
-      long saVal = lookupSA(sp + i);
-      int recordId = offsetToRecordId((int) saVal);
-      if (!recordIds.contains(recordId)) {
-        results.add(getRecord(recordId));
-        recordIds.add(recordId);
-      }
-    }
-
-    return results.toArray(new byte[results.size()][]);
   }
 
   /**
@@ -319,21 +271,19 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * Search for all records that contain a particular regular expression.
    *
    * @param query The regular expression (UTF-8 encoded).
-   * @return The records that contain the regular search expression.
+   * @return The records ids for records that contain the regular search expression.
    * @throws RegExParsingException
    */
-  @Override public byte[][] recordSearchRegex(String query) throws RegExParsingException {
+  @Override public Integer[] recordSearchRegexIds(String query) throws RegExParsingException {
     Map<Long, Integer> regexOffsetResults = regexSearch(query);
     Set<Integer> recordIds = new HashSet<Integer>();
-    ArrayList<byte[]> results = new ArrayList<byte[]>();
     for (Long offset : regexOffsetResults.keySet()) {
       int recordId = offsetToRecordId(offset.intValue());
       if (!recordIds.contains(recordId)) {
-        results.add(getRecord(recordId));
         recordIds.add(recordId);
       }
     }
-    return results.toArray(new byte[results.size()][]);
+    return recordIds.toArray(new Integer[recordIds.size()]);
   }
 
   /**

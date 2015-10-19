@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct.streams;
 
+import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.Range;
@@ -88,7 +89,20 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
         "Record does not exist: recordId = " + recordId);
     }
     int begOffset = offsets[recordId] + offset;
-    return extract(begOffset, length);
+    String strBuf = "";
+    try {
+      long s = lookupISA(begOffset);
+      do {
+        char nextChar = (char) alphabet.get((int) lookupC(s));
+        if (nextChar == (char) SuccinctCore.EOL || nextChar == (char) SuccinctCore.EOF)
+          break;
+        strBuf += nextChar;
+        s = lookupNPA(s);
+      } while (strBuf.length() < length);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return strBuf.getBytes();
   }
 
   public Integer[] recordSearchIds(byte[] query) {
@@ -112,51 +126,6 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
     return new SearchRecordIterator(searchIterator, this);
   }
 
-  @Override public byte[][] recordSearch(byte[] query) {
-    Set<Integer> recordIds = new HashSet<Integer>();
-    ArrayList<byte[]> results = new ArrayList<byte[]>();
-    Range range = bwdSearch(query);
-
-    long sp = range.first, ep = range.second;
-    if (ep - sp + 1 <= 0) {
-      return new byte[0][0];
-    }
-
-    for (long i = 0; i < ep - sp + 1; i++) {
-      long saVal = lookupSA(sp + i);
-      int recordId = offsetToRecordId((int) saVal);
-      if (!recordIds.contains(recordId)) {
-        results.add(getRecord(recordId));
-        recordIds.add(recordId);
-      }
-    }
-
-    return results.toArray(new byte[results.size()][]);
-  }
-
-  @Override public byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd) {
-    Set<Integer> recordIds = new HashSet<Integer>();
-    ArrayList<byte[]> results = new ArrayList<byte[]>();
-    Range rangeBegin = bwdSearch(queryBegin);
-    Range rangeEnd = bwdSearch(queryEnd);
-
-    long sp = rangeBegin.first, ep = rangeEnd.second;
-    if (ep - sp + 1 <= 0) {
-      return new byte[0][0];
-    }
-
-    for (long i = 0; i < ep - sp + 1; i++) {
-      long saVal = lookupSA(sp + i);
-      int recordId = offsetToRecordId((int) saVal);
-      if (!recordIds.contains(recordId)) {
-        results.add(getRecord(recordId));
-        recordIds.add(recordId);
-      }
-    }
-
-    return results.toArray(new byte[results.size()][]);
-  }
-
   /**
    * Check if the two recordIds belong to the same record.
    *
@@ -168,18 +137,23 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
     return offsetToRecordId((int) firstOffset) == offsetToRecordId((int) secondOffset);
   }
 
-  @Override public byte[][] recordSearchRegex(String query) throws RegExParsingException {
+  /**
+   * Search for all records that contain a particular regular expression.
+   *
+   * @param query The regular expression (UTF-8 encoded).
+   * @return The records ids for records that contain the regular search expression.
+   * @throws RegExParsingException
+   */
+  @Override public Integer[] recordSearchRegexIds(String query) throws RegExParsingException {
     Map<Long, Integer> regexOffsetResults = regexSearch(query);
     Set<Integer> recordIds = new HashSet<Integer>();
-    ArrayList<byte[]> results = new ArrayList<byte[]>();
     for (Long offset : regexOffsetResults.keySet()) {
       int recordId = offsetToRecordId(offset.intValue());
       if (!recordIds.contains(recordId)) {
-        results.add(getRecord(recordId));
         recordIds.add(recordId);
       }
     }
-    return results.toArray(new byte[results.size()][]);
+    return recordIds.toArray(new Integer[recordIds.size()]);
   }
 
   @Override public byte[][] multiSearch(QueryType[] queryTypes, byte[][][] queries) {

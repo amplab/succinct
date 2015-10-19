@@ -58,36 +58,13 @@ public interface SuccinctIndexedFile extends SuccinctFile {
   Iterator<Integer> recordSearchIdIterator(byte[] query);
 
   /**
-   * TODO: Remove
-   *
-   * Search for all records that contains the query.
-   *
-   * @param query Input query.
-   * @return All records containing input query.
-   */
-  byte[][] recordSearch(byte[] query);
-
-  /**
-   * TODO: Remove; add record ID version; add iterator version
-   *
-   * Performs a range search for all records that contains a substring between queryBegin and queryEnd.
-   *
-   * @param queryBegin The beginning of query range.
-   * @param queryEnd   The end of query range.
-   * @return All records matching the query range.
-   */
-  byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd);
-
-  /**
-   * TODO: Remove; add record ID version; add iterator version
-   *
    * Search for all records that contain a particular regular expression.
    *
    * @param query The regular expression (UTF-8 encoded).
-   * @return The records that contain the regular search expression.
+   * @return The record ids corresponding to records that contain the regular search expression.
    * @throws RegExParsingException
    */
-  byte[][] recordSearchRegex(String query) throws RegExParsingException;
+  Integer[] recordSearchRegexIds(String query) throws RegExParsingException;
 
   /**
    * TODO: Remove; add record ID version; add iterator version

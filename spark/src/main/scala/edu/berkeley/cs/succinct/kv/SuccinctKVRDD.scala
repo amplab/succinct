@@ -112,6 +112,16 @@ abstract class SuccinctKVRDD[K: ClassTag](
   }
 
   /**
+   * Search for a regular expression across values, and return matched keys.
+   *
+   * @param query The regex query.
+   * @return An RDD of matched keys.
+   */
+  def regexSearch(query: String): RDD[K] = {
+    partitionsRDD.flatMap(_.regexSearch(query))
+  }
+
+  /**
    * Saves the SuccinctRDD at the specified path.
    *
    * @param location The path where the SuccinctRDD should be stored.

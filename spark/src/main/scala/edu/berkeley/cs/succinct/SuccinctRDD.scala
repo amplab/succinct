@@ -47,7 +47,7 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
    */
   override protected def getPartitions: Array[Partition] = partitionsRDD.partitions
 
-  /** Overrides the compute function to return a SuccinctIterator. */
+  /** Overrides the compute function to return iterator over Succinct records. */
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
     val succinctIterator = firstParent[SuccinctPartition].iterator(split, context)
     if (succinctIterator.hasNext) {

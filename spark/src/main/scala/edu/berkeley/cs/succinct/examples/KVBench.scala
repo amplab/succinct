@@ -18,6 +18,7 @@ object KVBench {
   val WARMUP_COUNT: Int = 20
   val MEASURE_COUNT: Int = 100
   val ACCESS_LEN: Int = 1024
+  val numRepeats: Int = 1
 
   // Queries
   var regex: Seq[String] = Seq("<script>.*</script>", "Motorola.*((XPC|MPC)[0-9]+[0-9a-z]+)",
@@ -61,6 +62,10 @@ object KVBench {
 
   def search(rdd: RDD[(Long, Array[Byte])], query: Array[Byte]): RDD[Long] = {
     rdd.filter(t => new String(t._2).contains(new String(query))).map(_._1)
+  }
+
+  def regex(rdd: RDD[(Long, Array[Byte])], query: String): RDD[Long] = {
+    rdd.filter(t => new String(t._2).matches(query)).map(_._1)
   }
 
   def benchSparkRDD(rdd: RDD[(Long, Array[Byte])]): Unit = {
@@ -128,6 +133,32 @@ object KVBench {
     outSearch.close()
   }
 
+  def benchRegexSparkRDD(rdd: RDD[(Long, Array[Byte])]): Unit = {
+    val storageLevel = rdd.getStorageLevel match {
+      case StorageLevel.DISK_ONLY => "disk"
+      case StorageLevel.MEMORY_ONLY => "mem"
+      case _ => "undf"
+    }
+
+    val outRegex = new FileWriter(outPath + "/spark-"  + storageLevel + "-regex")
+    println("Benchmarking Spark RDD regex")
+    regex.foreach(r => {
+      var time = 0.0
+      var count = 0.0
+      for (i <- 1 to numRepeats) {
+        val startTime = System.currentTimeMillis()
+        val results = regex(rdd, r)
+        count += results.count()
+        val endTime = System.currentTimeMillis()
+        val totTime = endTime - startTime
+        time += totTime
+      }
+      count = count / numRepeats
+      time = time / numRepeats
+      outRegex.write(s"$r\t$count\t$time")
+    })
+  }
+
   def benchSuccinctRDD(rdd: SuccinctKVRDD[Long]): Unit = {
     println("Benchmarking Succinct RDD get...")
 
@@ -183,6 +214,24 @@ object KVBench {
       outSearch.write(s"$w\t$count\t$totTime\n")
     })
     outSearch.close()
+
+    val outRegex = new FileWriter(outPath + "/succinct-regex")
+    println("Benchmarking Spark RDD regex")
+    regex.foreach(r => {
+      var time = 0.0
+      var count = 0.0
+      for (i <- 1 to numRepeats) {
+        val startTime = System.currentTimeMillis()
+        val results = rdd.regexSearch(r)
+        count += results.count()
+        val endTime = System.currentTimeMillis()
+        val totTime = endTime - startTime
+        time += totTime
+      }
+      count = count / numRepeats
+      time = time / numRepeats
+      outRegex.write(s"$r\t$count\t$time")
+    })
 
   }
 

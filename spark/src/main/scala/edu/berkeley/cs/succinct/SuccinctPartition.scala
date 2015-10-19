@@ -29,7 +29,17 @@ class SuccinctPartition(
 
   /** Iterator over all records in the partition. */
   private[succinct] def iterator: Iterator[Array[Byte]] = {
-    new SuccinctIterator(succinctIndexedFile)
+    new Iterator[Array[Byte]] {
+      var curRecordId: Int = 0
+
+      override def hasNext: Boolean = curRecordId < succinctIndexedFile.getNumRecords
+
+      override def next(): Array[Byte] = {
+        val data = succinctIndexedFile.getRecord(curRecordId)
+        curRecordId += 1
+        data
+      }
+    }
   }
 
   /** Obtain all recordIds in input corresponding to a search query */
@@ -91,7 +101,17 @@ class SuccinctPartition(
 
   /** Obtain all records corresponding to a regex search query */
   private[succinct] def regexSearchRecords(query: String): Iterator[Array[Byte]] = {
-    succinctIndexedFile.recordSearchRegex(query).iterator
+    new Iterator[Array[Byte]] {
+      val it = succinctIndexedFile.recordSearchRegexIds(query).iterator
+
+      override def hasNext: Boolean = it.hasNext
+
+      override def next(): Array[Byte] = {
+        val recordId = it.next()
+        succinctIndexedFile.getRecord(recordId)
+      }
+    }
+
   }
 
   /** Obtain the total number of records in the partition */

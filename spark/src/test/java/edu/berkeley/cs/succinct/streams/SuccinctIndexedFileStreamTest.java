@@ -64,20 +64,6 @@ public class SuccinctIndexedFileStreamTest extends TestCase {
   }
 
   /**
-   * Test method: byte[][] recordSearch(byte[] query)
-   *
-   * @throws Exception
-   */
-  public void testRecordSearch() throws Exception {
-    System.out.println("recordSearch");
-
-    byte[][] records = sStream.recordSearch("int".getBytes());
-    for (int i = 0; i < records.length; i++) {
-      assertTrue(new String(records[i]).contains("int"));
-    }
-  }
-
-  /**
    * Test method: byte[][] recordSearchRegex(byte[] query)
    *
    * @throws Exception
@@ -86,25 +72,9 @@ public class SuccinctIndexedFileStreamTest extends TestCase {
     System.out.println("regexSearch");
 
     // TODO: Add more tests
-    byte[][] records = sStream.recordSearchRegex("int");
-    for (int i = 0; i < records.length; i++) {
-      assertTrue(new String(records[i]).contains("int"));
-    }
-  }
-
-  /**
-   * Test method: byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd)
-   *
-   * @throws Exception
-   */
-  public void testRecordRangeSearch() throws Exception {
-    System.out.println("recordRangeSearch");
-
-    byte[][] records = sStream.recordRangeSearch("aa".getBytes(), "ac".getBytes());
-    for (int i = 0; i < records.length; i++) {
-      String currentRecord = new String(records[i]);
-      assertTrue(currentRecord.contains("aa") || currentRecord.contains("ab") || currentRecord
-        .contains("ac"));
+    Integer[] recordsIds = sStream.recordSearchRegexIds("int");
+    for (Integer recordId: recordsIds) {
+      assertTrue(new String(sStream.getRecord(recordId)).contains("int"));
     }
   }
 

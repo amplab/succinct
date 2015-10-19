@@ -69,6 +69,17 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
     }
   }
 
+  /** Regex search across values, and return all keys for matched values. **/
+  private[kv] def regexSearch(query: String): Iterator[K] = {
+    new Iterator[K] {
+      val recordIds = valueBuffer.recordSearchRegexIds(query).iterator
+
+      override def hasNext: Boolean = recordIds.hasNext
+
+      override def next(): K = keys(recordIds.next)
+    }
+  }
+
   /** Get the number of KV pairs in this partition. **/
   private[kv] def count: Long = numKeys
 

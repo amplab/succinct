@@ -112,21 +112,6 @@ public class SuccinctIndexedFileBufferTest extends TestCase {
   }
 
   /**
-   * Test method: byte[][] recordSearch(byte[] query)
-   *
-   * @throws Exception
-   */
-  public void testRecordSearch() throws Exception {
-    System.out.println("recordSearch");
-
-    byte[][] records = sIBuf.recordSearch("int".getBytes());
-    for (int i = 0; i < records.length; i++) {
-      assertTrue(new String(records[i]).contains("int"));
-    }
-    assertEquals(records.length, 28);
-  }
-
-  /**
    * Test method: byte[][] recordSearchRegex(byte[] query)
    *
    * @throws Exception
@@ -135,25 +120,9 @@ public class SuccinctIndexedFileBufferTest extends TestCase {
     System.out.println("regexSearchRecords");
 
     // TODO: Add more tests
-    byte[][] records = sIBuf.recordSearchRegex("int");
-    for (int i = 0; i < records.length; i++) {
-      assertTrue(new String(records[i]).contains("int"));
-    }
-  }
-
-  /**
-   * Test method: byte[][] recordRangeSearch(byte[] queryBegin, byte[] queryEnd)
-   *
-   * @throws Exception
-   */
-  public void testRecordRangeSearch() throws Exception {
-    System.out.println("recordRangeSearch");
-
-    byte[][] records = sIBuf.recordRangeSearch("aa".getBytes(), "ac".getBytes());
-    for (int i = 0; i < records.length; i++) {
-      String currentRecord = new String(records[i]);
-      assertTrue(currentRecord.contains("aa") || currentRecord.contains("ab") || currentRecord
-        .contains("ac"));
+    Integer[] recordsIds = sIBuf.recordSearchRegexIds("int");
+    for (Integer recordId: recordsIds) {
+      assertTrue(new String(sIBuf.getRecord(recordId)).contains("int"));
     }
   }
 
