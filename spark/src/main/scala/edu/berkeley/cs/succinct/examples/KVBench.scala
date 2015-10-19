@@ -20,6 +20,9 @@ object KVBench {
   val ACCESS_LEN: Int = 1024
 
   // Queries
+  var regex: Seq[String] = Seq("<script>.*</script>", "Motorola.*((XPC|MPC)[0-9]+[0-9a-z]+)",
+    "William [A-Za-z]+ Clinton", "1-[0-9][0-9][0-9]-[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
+    "[a-z0-9_\\.]+\\.stanford\\.edu")
   var words: Array[String] = _
   var wordsWarmup: Array[String] = _
   var wordsMeasure: Array[String] = _
@@ -147,7 +150,7 @@ object KVBench {
 
     println("Benchmarking Succinct RDD access...")
     keysWarmup.foreach(k => {
-      val length = rdd.get(k).length
+      val length = rdd.access(k, 0, ACCESS_LEN).length
       println(s"$k\t$length")
     })
 
@@ -155,7 +158,7 @@ object KVBench {
     val outAccess = new FileWriter(outPath + "/succinct-access")
     keysMeasure.foreach(k => {
       val startTime = System.currentTimeMillis()
-      val length = rdd.get(k).length
+      val length = rdd.access(k, 0, ACCESS_LEN).length
       val endTime = System.currentTimeMillis()
       val totTime = endTime - startTime
       outAccess.write(s"$k\t$length\t$totTime\n")
