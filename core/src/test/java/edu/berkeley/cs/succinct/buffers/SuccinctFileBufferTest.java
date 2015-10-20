@@ -32,6 +32,20 @@ public class SuccinctFileBufferTest extends TestCase {
   }
 
   /**
+   * Test method: char charAt(long i)
+   *
+   * @throws Exception
+   */
+  public void testCharAt() throws Exception {
+    System.out.println("charAt");
+
+    for (int i = 0; i < sBuf.getSize() - 1; i++) {
+      char c = sBuf.charAt(i);
+      assertEquals(fileData[i], c);
+    }
+  }
+
+  /**
    * Test method: byte[] extract(int offset, int len)
    *
    * @throws Exception
@@ -93,6 +107,7 @@ public class SuccinctFileBufferTest extends TestCase {
 
     byte[] query1 = "int".getBytes();
     Long[] positions1 = sBuf.search(query1);
+    assertEquals(43, positions1.length);
     for (int i = 0; i < positions1.length; i++) {
       for (int j = 0; j < query1.length; j++) {
         assertEquals(query1[j], fileData[((int) (positions1[i] + j))]);
@@ -101,6 +116,7 @@ public class SuccinctFileBufferTest extends TestCase {
 
     byte[] query2 = "include".getBytes();
     Long[] positions2 = sBuf.search(query2);
+    assertEquals(9, positions2.length);
     for (int i = 0; i < positions2.length; i++) {
       for (int j = 0; j < query2.length; j++) {
         assertEquals(query2[j], fileData[((int) (positions2[i] + j))]);
@@ -127,7 +143,7 @@ public class SuccinctFileBufferTest extends TestCase {
       }
       count1++;
     }
-    assertEquals(count1, 43);
+    assertEquals(43, count1);
 
     byte[] query2 = "include".getBytes();
     Iterator<Long> positions2 = sBuf.searchIterator(query2);
@@ -139,7 +155,7 @@ public class SuccinctFileBufferTest extends TestCase {
       }
       count2++;
     }
-    assertEquals(count2, 9);
+    assertEquals(9, count2);
   }
 
   /**

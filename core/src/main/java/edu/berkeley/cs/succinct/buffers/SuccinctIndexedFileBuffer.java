@@ -172,6 +172,36 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   }
 
   /**
+   * Check if the two offsets belong to the same record.
+   *
+   * @param firstOffset The first offset.
+   * @param secondOffset The second offset.
+   * @return True if the two offsets belong to the same record, false otherwise.
+   */
+  @Override public boolean sameRecord(long firstOffset, long secondOffset) {
+    return offsetToRecordId((int) firstOffset) == offsetToRecordId((int) secondOffset);
+  }
+
+  /**
+   * Search for all records that contain a particular regular expression.
+   *
+   * @param query The regular expression (UTF-8 encoded).
+   * @return The records ids for records that contain the regular search expression.
+   * @throws RegExParsingException
+   */
+  @Override public Integer[] recordSearchRegexIds(String query) throws RegExParsingException {
+    Map<Long, Integer> regexOffsetResults = regexSearch(query);
+    Set<Integer> recordIds = new HashSet<Integer>();
+    for (Long offset : regexOffsetResults.keySet()) {
+      int recordId = offsetToRecordId(offset.intValue());
+      if (!recordIds.contains(recordId)) {
+        recordIds.add(recordId);
+      }
+    }
+    return recordIds.toArray(new Integer[recordIds.size()]);
+  }
+
+  /**
    * Perform multiple searches with different query types and return the intersection of the results.
    *
    * @param queryTypes The QueryType corresponding to each query
@@ -244,36 +274,6 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
       }
     }
 
-    return recordIds.toArray(new Integer[recordIds.size()]);
-  }
-
-  /**
-   * Check if the two offsets belong to the same record.
-   *
-   * @param firstOffset The first offset.
-   * @param secondOffset The second offset.
-   * @return True if the two offsets belong to the same record, false otherwise.
-   */
-  @Override public boolean sameRecord(long firstOffset, long secondOffset) {
-    return offsetToRecordId((int) firstOffset) == offsetToRecordId((int) secondOffset);
-  }
-
-  /**
-   * Search for all records that contain a particular regular expression.
-   *
-   * @param query The regular expression (UTF-8 encoded).
-   * @return The records ids for records that contain the regular search expression.
-   * @throws RegExParsingException
-   */
-  @Override public Integer[] recordSearchRegexIds(String query) throws RegExParsingException {
-    Map<Long, Integer> regexOffsetResults = regexSearch(query);
-    Set<Integer> recordIds = new HashSet<Integer>();
-    for (Long offset : regexOffsetResults.keySet()) {
-      int recordId = offsetToRecordId(offset.intValue());
-      if (!recordIds.contains(recordId)) {
-        recordIds.add(recordId);
-      }
-    }
     return recordIds.toArray(new Integer[recordIds.size()]);
   }
 

@@ -62,6 +62,11 @@ public class SuccinctIndexedFileBufferTest extends TestCase {
     }
   }
 
+  /**
+   * Test method: byte[] getAccess(int recordId, int offset, int length)
+   *
+   * @throws Exception
+   */
   public void testAccessRecord() throws Exception {
     System.out.println("accessRecord");
 
@@ -112,12 +117,12 @@ public class SuccinctIndexedFileBufferTest extends TestCase {
   }
 
   /**
-   * Test method: byte[][] recordSearchRegex(byte[] query)
+   * Test method: Integer[] recordSearchRegexIds(byte[] query)
    *
    * @throws Exception
    */
-  public void testRegexSearchRecords() throws Exception {
-    System.out.println("regexSearchRecords");
+  public void testRegexSearchIds() throws Exception {
+    System.out.println("regexSearchRecordIds");
 
     // TODO: Add more tests
     Integer[] recordsIds = sIBuf.recordSearchRegexIds("int");
@@ -127,11 +132,11 @@ public class SuccinctIndexedFileBufferTest extends TestCase {
   }
 
   /**
-   * Test method: byte[][] recordMultiSearchIds(Pair<QueryType, byte[][]>[] queries)
+   * Test method: Integer[] recordMultiSearchIds(Pair<QueryType, byte[][]>[] queries)
    *
    * @throws Exception
    */
-  public void testMultiSearch() throws Exception {
+  public void testMultiSearchIds() throws Exception {
     System.out.println("recordMultiSearchIds");
 
     SuccinctIndexedFileBuffer.QueryType[] queryTypes = new SuccinctIndexedFileBuffer.QueryType[2];
