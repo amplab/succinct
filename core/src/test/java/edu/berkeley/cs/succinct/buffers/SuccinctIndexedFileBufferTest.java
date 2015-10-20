@@ -127,12 +127,12 @@ public class SuccinctIndexedFileBufferTest extends TestCase {
   }
 
   /**
-   * Test method: byte[][] multiSearch(Pair<QueryType, byte[][]>[] queries)
+   * Test method: byte[][] recordMultiSearchIds(Pair<QueryType, byte[][]>[] queries)
    *
    * @throws Exception
    */
   public void testMultiSearch() throws Exception {
-    System.out.println("multiSearch");
+    System.out.println("recordMultiSearchIds");
 
     SuccinctIndexedFileBuffer.QueryType[] queryTypes = new SuccinctIndexedFileBuffer.QueryType[2];
     byte[][][] queries = new byte[2][][];
@@ -141,9 +141,9 @@ public class SuccinctIndexedFileBufferTest extends TestCase {
     queryTypes[1] = SuccinctIndexedFileBuffer.QueryType.Search;
     queries[1] = new byte[][] {"Build".getBytes()};
 
-    byte[][] records = sIBuf.multiSearch(queryTypes, queries);
-    for (int i = 0; i < records.length; i++) {
-      String currentRecord = new String(records[i]);
+    Integer[] recordIds = sIBuf.recordMultiSearchIds(queryTypes, queries);
+    for (Integer recordId : recordIds) {
+      String currentRecord = new String(sIBuf.getRecord(recordId));
       assertTrue((currentRecord.contains("/*") || currentRecord.contains("//")) && currentRecord
         .contains("Build"));
     }

@@ -178,13 +178,12 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @param queries    The actual query parameters associated with each query
    * @return The records matching the multi-search queries.
    */
-  @Override public byte[][] multiSearch(QueryType[] queryTypes, byte[][][] queries) {
+  @Override public Integer[] recordMultiSearchIds(QueryType[] queryTypes, byte[][][] queries) {
     assert (queryTypes.length == queries.length);
     Set<Integer> recordIds = new HashSet<Integer>();
-    ArrayList<byte[]> results = new ArrayList<byte[]>();
 
     if (queries.length == 0) {
-      throw new IllegalArgumentException("multiSearch called with empty queries");
+      throw new IllegalArgumentException("recordMultiSearchIds called with empty queries");
     }
 
     // Get all ranges
@@ -214,7 +213,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
       if (range.second - range.first + 1 > 0) {
         ranges.add(range);
       } else {
-        return new byte[0][0];
+        return new Integer[0];
       }
     }
     int numRanges = ranges.size();
@@ -237,7 +236,6 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     ranges.remove(firstRange);
     for (Range range : ranges) {
       long sp = range.first, ep = range.second;
-
       for (long i = 0; i < ep - sp + 1; i++) {
         long saVal = lookupSA(sp + i);
         int recordId = offsetToRecordId((int) saVal);
@@ -247,13 +245,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
       }
     }
 
-    for (int recordId : recordIds) {
-      if (counts.get(recordId) == numRanges) {
-        results.add(getRecord(recordId));
-      }
-    }
-
-    return results.toArray(new byte[results.size()][]);
+    return recordIds.toArray(new Integer[recordIds.size()]);
   }
 
   /**

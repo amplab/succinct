@@ -67,7 +67,7 @@ abstract class SuccinctKVRDD[K: ClassTag](
    * @return Value corresponding to key.
    */
   def get(key: K): Array[Byte] = {
-    val values = partitionsRDD.map(buf => buf.get(key)).filter(v => (v != null)).collect()
+    val values = partitionsRDD.map(buf => buf.get(key)).filter(v => v != null).collect()
     if (values.length > 1) {
       throw new IllegalStateException(s"Key ${key.toString} returned ${values.length} values")
     }
@@ -203,7 +203,7 @@ object SuccinctKVRDD {
     (implicit ordering: Ordering[K]):
   Iterator[SuccinctKVPartition[K]] = {
     val keysBuffer = new ArrayBuffer[K]()
-    var offsets = new ArrayBuffer[Int]()
+    var offsetsBuffer = new ArrayBuffer[Int]()
     var buffers = new ArrayBuffer[Array[Byte]]()
 
     var offset = 0
@@ -213,20 +213,22 @@ object SuccinctKVRDD {
       val curRecord = kvIter.next()
       keysBuffer += curRecord._1
       buffers += curRecord._2
-      bufferSize += (curRecord._2.size + 1)
-      offsets += offset
+      bufferSize += (curRecord._2.length + 1)
+      offsetsBuffer += offset
       offset = bufferSize
     }
 
     val rawBufferOS = new ByteArrayOutputStream(bufferSize)
-    for (i <- 0 to buffers.size - 1) {
+    for (i <- buffers.indices) {
       val curRecord = buffers(i)
       rawBufferOS.write(curRecord)
       rawBufferOS.write(SuccinctCore.EOL)
     }
 
     val keys = keysBuffer.toArray
-    val valueBuffer = new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray)
+    val rawValueBuffer = rawBufferOS.toByteArray
+    val offsets = offsetsBuffer.toArray
+    val valueBuffer = new SuccinctIndexedFileBuffer(rawValueBuffer, offsets)
 
     Iterator(new SuccinctKVPartition[K](keys, valueBuffer))
   }

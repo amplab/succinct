@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream
 
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.sql.impl.SuccinctTableRDDImpl
-import edu.berkeley.cs.succinct.streams.SuccinctIndexedFileStream
 import edu.berkeley.cs.succinct.{SuccinctCore, SuccinctIndexedFile}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
@@ -29,7 +28,7 @@ abstract class SuccinctTableRDD(@transient sc: SparkContext,
                                 @transient deps: Seq[Dependency[_]])
   extends RDD[Row](sc, deps) {
 
-  private[succinct] def partitionsRDD: RDD[SuccinctIndexedFile]
+  private[succinct] def partitionsRDD: RDD[SuccinctTablePartition]
 
   /**
    * Returns the RDD of partitions.
@@ -43,8 +42,8 @@ abstract class SuccinctTableRDD(@transient sc: SparkContext,
    *
    * @return The first parent of the RDD.
    */
-  protected[succinct] def getFirstParent: RDD[SuccinctIndexedFile] = {
-    firstParent[SuccinctIndexedFile]
+  protected[succinct] def getFirstParent: RDD[SuccinctTablePartition] = {
+    firstParent[SuccinctTablePartition]
   }
 
   /**
@@ -76,6 +75,14 @@ object SuccinctTableRDD {
     val maxPath = path.stripSuffix("/") + "/max"
     val conf = new Configuration()
     val succinctDataPath = new Path(dataPath)
+
+    val succinctSchema: StructType = SuccinctUtils.readObjectFromFS[StructType](conf, schemaPath)
+    val succinctSeparators: Array[Byte] = SuccinctUtils.readObjectFromFS[Array[Byte]](conf, separatorsPath)
+    val minRow: Row = SuccinctUtils.readObjectFromFS[Row](conf, minPath)
+    val maxRow: Row = SuccinctUtils.readObjectFromFS[Row](conf, maxPath)
+    val limits = getLimits(maxRow, minRow)
+    val succinctSerDe = new SuccinctSerDe(succinctSchema, succinctSeparators, limits)
+
     val fs = FileSystem.get(succinctDataPath.toUri, conf)
     val status = fs.listStatus(succinctDataPath, new PathFilter {
       override def accept(path: Path): Boolean = {
@@ -83,30 +90,14 @@ object SuccinctTableRDD {
       }
     })
     val numPartitions = status.length
-    val succinctPartitions = sparkContext.parallelize((0 to numPartitions - 1), numPartitions)
-      .mapPartitionsWithIndex[SuccinctIndexedFile]((i, partition) => {
+    val succinctPartitions = sparkContext.parallelize(0 to numPartitions - 1 , numPartitions)
+      .mapPartitionsWithIndex[SuccinctTablePartition]((i, partition) => {
       val partitionLocation = dataPath + "/part-" + "%05d".format(i)
-      val path = new Path(partitionLocation)
-      val fs = FileSystem.get(path.toUri, new Configuration())
-      val is = fs.open(path)
-      val partitionIterator = storageLevel match {
-        case StorageLevel.MEMORY_ONLY =>
-          Iterator(new SuccinctIndexedFileBuffer(is))
-        case StorageLevel.DISK_ONLY =>
-          Iterator(new SuccinctIndexedFileStream(path))
-        case _ =>
-          Iterator(new SuccinctIndexedFileBuffer(is))
-      }
-      is.close()
-      partitionIterator
+      Iterator(SuccinctTablePartition(partitionLocation, succinctSerDe, storageLevel))
     })
-    val succinctSchema: StructType = SuccinctUtils.readObjectFromFS[StructType](conf, schemaPath)
-    val succinctSeparators: Array[Byte] = SuccinctUtils.readObjectFromFS[Array[Byte]](conf, separatorsPath)
-    val minRow: Row = SuccinctUtils.readObjectFromFS[Row](conf, minPath)
-    val maxRow: Row = SuccinctUtils.readObjectFromFS[Row](conf, maxPath)
-    val limits = getLimits(maxRow, minRow)
-    val succinctSerializer = new SuccinctSerDe(succinctSchema, succinctSeparators, limits)
-    new SuccinctTableRDDImpl(succinctPartitions.cache(), succinctSeparators, succinctSchema, minRow, maxRow, succinctSerializer)
+
+
+    new SuccinctTableRDDImpl(succinctPartitions.cache(), succinctSeparators, succinctSchema, minRow, maxRow, succinctSerDe)
   }
 
   /**
@@ -123,7 +114,7 @@ object SuccinctTableRDD {
     val limits = getLimits(maxRow, minRow)
     val succinctSerializer = new SuccinctSerDe(schema, separators, limits)
     val succinctPartitions = inputRDD.mapPartitions {
-      partition => createSuccinctBuffer(partition, succinctSerializer)
+      partition => createSuccinctTablePartition(partition, succinctSerializer)
     }.cache()
     new SuccinctTableRDDImpl(succinctPartitions, separators, schema, minRow, maxRow, succinctSerializer)
   }
@@ -145,7 +136,7 @@ object SuccinctTableRDD {
     val limits = getLimits(maxRow, minRow)
     val succinctSerializer = new SuccinctSerDe(schema, separators, limits)
     val succinctPartitions = inputRDD.mapPartitions {
-      partition => createSuccinctBuffer(partition, succinctSerializer)
+      partition => createSuccinctTablePartition(partition, succinctSerializer)
     }.cache()
     new SuccinctTableRDDImpl(succinctPartitions, separators, schema, minRow, maxRow, succinctSerializer)
   }
@@ -162,22 +153,23 @@ object SuccinctTableRDD {
   }
 
   /**
-   * Creates a [[SuccinctIndexedFile]] from an Iterator over [[Row]] and the list of separators.
+   * Creates an iterator over a [[SuccinctTablePartition]] from an Iterator over [[Row]] and a
+   * serializer/deserializer for records.
    *
    * @param dataIter The Iterator over data tuples.
-   * @param succinctSerializer The serializer/deserializer for Succinct's representation of records.
+   * @param succinctSerDe The serializer/deserializer for Succinct's representation of records.
    * @return An Iterator over the [[SuccinctIndexedFile]].
    */
-  private[succinct] def createSuccinctBuffer(
+  private[succinct] def createSuccinctTablePartition(
       dataIter: Iterator[Row],
-      succinctSerializer: SuccinctSerDe): Iterator[SuccinctIndexedFile] = {
+      succinctSerDe: SuccinctSerDe): Iterator[SuccinctTablePartition] = {
 
     var offsets = new ArrayBuffer[Int]()
     var buffers = new ArrayBuffer[Array[Byte]]()
     var offset = 0
     var partitionSize = 0
     while (dataIter.hasNext) {
-      val curTuple = succinctSerializer.serializeRow(dataIter.next())
+      val curTuple = succinctSerDe.serializeRow(dataIter.next())
       buffers += curTuple
       partitionSize += (curTuple.length + 1)
       offsets += offset
@@ -185,14 +177,14 @@ object SuccinctTableRDD {
     }
 
     val rawBufferOS = new ByteArrayOutputStream(partitionSize)
-    for (i <- 0 to buffers.size - 1) {
+    for (i <- buffers.indices) {
       val curRecord = buffers(i)
       rawBufferOS.write(curRecord)
       rawBufferOS.write(SuccinctCore.EOL)
     }
 
-    val ret = Iterator(new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray, 0))
-    ret
+    val succinctFile = new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray)
+    Iterator(new SuccinctTablePartition(succinctFile, succinctSerDe))
   }
 
   private def getLength(data: Any): Int = {

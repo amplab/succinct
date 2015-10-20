@@ -17,13 +17,13 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
  *
  * @constructor Creates a [[SuccinctTableRDD]] from an RDD of [[SuccinctIndexedFile]] partitions,
  *              the list of separators and the target storage level.
- * @param partitionsRDD The RDD of partitions (SuccinctIndexedBuffer).
+ * @param partitionsRDD The RDD of partitions (SuccinctTablePartition).
  * @param separators The list of separators for distinguishing between attributes.
  * @param schema The schema for [[SuccinctTableRDD]]
  * @param targetStorageLevel The target storage level for the RDD.
  */
 class SuccinctTableRDDImpl private[succinct](
-    val partitionsRDD: RDD[SuccinctIndexedFile],
+    val partitionsRDD: RDD[SuccinctTablePartition],
     val separators: Array[Byte],
     val schema: StructType,
     val minimums: Row,
@@ -32,13 +32,13 @@ class SuccinctTableRDDImpl private[succinct](
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctTableRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
-  val recordCount = partitionsRDD.map(_.getNumRecords).aggregate(0L)(_ + _,  _ + _)
+  val recordCount = partitionsRDD.map(_.count).aggregate(0L)(_ + _,  _ + _)
 
-  /** Overrides [[RDD]]]'s compute to return a [[SuccinctTableIterator]]. */
+  /** Overrides [[RDD]]]'s compute to return an iterator over Succinct's representation of rows. */
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
-    val succinctIterator = firstParent[SuccinctIndexedFile].iterator(split, context)
+    val succinctIterator = firstParent[SuccinctTablePartition].iterator(split, context)
     if (succinctIterator.hasNext) {
-      new SuccinctTableIterator(succinctIterator.next(), succinctSerializer)
+      succinctIterator.next().iterator
     } else {
       Iterator[Row]()
     }
@@ -98,7 +98,7 @@ class SuccinctTableRDDImpl private[succinct](
   }
 
   /**
-   * Converts filters to queries for SuccinctIndexedBuffer's multiSearch.
+   * Converts filters to queries for SuccinctIndexedBuffer's recordMultiSearchIds.
    *
    * @param filters Array of filters to be applied.
    * @return Array of queries.
@@ -241,13 +241,13 @@ class SuccinctTableRDDImpl private[succinct](
     val queryList = filtersToQueries(filters)
     val queryTypes = queryList.map(_._1)
     val queries = queryList.map(_._2)
-    if (queries.length == 0) {
-      if (requiredColumns.length == schema.length) {
-        return this
-      }
-      return new SuccinctPrunedTableRDD(partitionsRDD, succinctSerializer, reqColsCheck)
-    }
-    new MultiSearchResultsRDD(this, queryTypes, queries, reqColsCheck, succinctSerializer)
+    if (queries.length == 0)
+      if (requiredColumns.length == schema.length)
+        this
+      else
+        partitionsRDD.flatMap(_.prune(reqColsCheck))
+    else
+      partitionsRDD.flatMap(_.pruneAndFilter(reqColsCheck, queryTypes, queries))
   }
 
   /** Implements save for [[SuccinctTableRDD]] */

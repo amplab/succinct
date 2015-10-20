@@ -11,6 +11,7 @@ import org.apache.spark.storage.StorageLevel
 import scala.io.Source
 import scala.reflect.ClassTag
 import scala.util.Random
+import scala.util.matching.Regex
 
 object KVBench {
 
@@ -65,7 +66,8 @@ object KVBench {
   }
 
   def regex(rdd: RDD[(Long, Array[Byte])], query: String): RDD[Long] = {
-    rdd.filter(t => new String(t._2).matches(query)).map(_._1)
+    val rex = new Regex(query)
+    rdd.filter(t => rex.findAllMatchIn(new String(t._2)).nonEmpty).map(_._1)
   }
 
   def benchSparkRDD(rdd: RDD[(Long, Array[Byte])]): Unit = {
