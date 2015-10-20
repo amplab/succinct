@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.kv.impl.SuccinctKVRDDImpl
-import edu.berkeley.cs.succinct.{SuccinctCore, SuccinctKV}
+import edu.berkeley.cs.succinct.SuccinctCore
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
 import org.apache.spark.rdd.RDD
@@ -83,7 +83,7 @@ abstract class SuccinctKVRDD[K: ClassTag](
    * @return Extracted bytes from the value corresponding to given key.
    */
   def access(key: K, offset: Int, length: Int): Array[Byte] = {
-    val values = partitionsRDD.map(buf => buf.access(key, offset, length)).filter(v => (v != null))
+    val values = partitionsRDD.map(buf => buf.access(key, offset, length)).filter(v => v != null)
       .collect()
     if (values.length > 1) {
       throw new IllegalStateException(s"Key ${key.toString} returned ${values.length} values")
@@ -193,11 +193,11 @@ object SuccinctKVRDD {
   }
 
   /**
-   * Creates a [[SuccinctKV]] from a partition of the input RDD.
+   * Creates a [[SuccinctKVPartition]] from a partition of the input RDD.
    *
    * @param kvIter The iterator over the input partition data.
    * @tparam K The type for the keys.
-   * @return An iterator over the [[SuccinctKV]]
+   * @return An iterator over the [[SuccinctKVPartition]]
    */
   private[succinct] def createSuccinctKVPartition[K: ClassTag](kvIter: Iterator[(K, Array[Byte])])
     (implicit ordering: Ordering[K]):

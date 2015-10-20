@@ -111,7 +111,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     String strBuf = "";
     long s = lookupISA(begOffset);
     do {
-      char nextChar = (char) alphabet.get((int) lookupC(s));
+      char nextChar = (char) alphabet.get(lookupC(s));
       if (nextChar == (char) SuccinctCore.EOL || nextChar == (char) SuccinctCore.EOF)
         break;
       strBuf += nextChar;
@@ -216,7 +216,6 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
         return new Integer[0];
       }
     }
-    int numRanges = ranges.size();
 
     Collections.sort(ranges, new RangeSizeComparator());
 

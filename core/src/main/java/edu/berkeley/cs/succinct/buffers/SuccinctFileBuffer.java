@@ -92,7 +92,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    * @return The character at the specified index.
    */
   @Override public char charAt(long i) {
-    return (char) alphabet.get((int) lookupC(lookupISA(i)));
+    return (char) alphabet.get(lookupC(lookupISA(i)));
   }
 
   /**
@@ -107,7 +107,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     byte[] buf = new byte[len];
     long s = lookupISA(offset);
     for (int k = 0; k < len && k < getOriginalSize(); k++) {
-      buf[k] = alphabet.get((int) lookupC(s));
+      buf[k] = alphabet.get(lookupC(s));
       s = lookupNPA(s);
     }
 
@@ -126,7 +126,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     String strBuf = "";
     long s = lookupISA(offset);
     do {
-      char nextChar = (char) alphabet.get((int) lookupC(s));
+      char nextChar = (char) alphabet.get(lookupC(s));
       if (nextChar == delim || nextChar == (char)SuccinctCore.EOF)
         break;
       strBuf += nextChar;
@@ -205,7 +205,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     int j = 0;
 
     do {
-      byte c = alphabet.get((int) lookupC(i));
+      byte c = alphabet.get(lookupC(i));
       if (buf[j] < c) {
         return -1;
       } else if (buf[j] > c) {
@@ -236,7 +236,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     }
 
     do {
-      byte c = alphabet.get((int) lookupC(i));
+      byte c = alphabet.get(lookupC(i));
       if (buf[j] < c) {
         return -1;
       } else if (buf[j] > c) {

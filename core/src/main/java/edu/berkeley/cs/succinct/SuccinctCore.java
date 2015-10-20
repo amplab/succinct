@@ -243,7 +243,7 @@ public abstract class SuccinctCore implements Serializable {
    * @param i Index into inverted alphabet map
    * @return Value of inverted alphabet map at specified index.
    */
-  public abstract long lookupC(long i);
+  public abstract int lookupC(long i);
 
   /**
    * Binary Search for a value withing NPA.
