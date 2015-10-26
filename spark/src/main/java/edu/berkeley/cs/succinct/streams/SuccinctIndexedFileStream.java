@@ -88,20 +88,22 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
       throw new ArrayIndexOutOfBoundsException(
         "Record does not exist: recordId = " + recordId);
     }
+
+    if (length == 0) {
+      return new byte[0];
+    }
+
     int begOffset = offsets[recordId] + offset;
     String strBuf = "";
-    try {
-      long s = lookupISA(begOffset);
-      do {
-        char nextChar = (char) alphabet.get((int) lookupC(s));
-        if (nextChar == (char) SuccinctCore.EOL || nextChar == (char) SuccinctCore.EOF)
-          break;
-        strBuf += nextChar;
-        s = lookupNPA(s);
-      } while (strBuf.length() < length);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+
+    long s = lookupISA(begOffset);
+    do {
+      char nextChar = (char) lookupC(s);
+      if (nextChar == (char) SuccinctCore.EOL || nextChar == (char) SuccinctCore.EOF)
+        break;
+      strBuf += nextChar;
+      s = lookupNPA(s);
+    } while (strBuf.length() < length);
     return strBuf.getBytes();
   }
 

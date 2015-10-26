@@ -14,9 +14,11 @@ public abstract class SuccinctCore implements Serializable {
 
   // End of Line marker
   public transient static final byte EOL = '\n';
+
   // Deserialized data-structures
   protected transient HashMap<Byte, Pair<Long, Integer>> alphabetMap;
   protected transient Map<Long, Long> contextMap;
+
   // Metadata
   private transient int originalSize;
   private transient int sampledSASize;
@@ -243,7 +245,7 @@ public abstract class SuccinctCore implements Serializable {
    * @param i Index into inverted alphabet map
    * @return Value of inverted alphabet map at specified index.
    */
-  public abstract int lookupC(long i);
+  public abstract byte lookupC(long i);
 
   /**
    * Binary Search for a value withing NPA.

@@ -296,9 +296,9 @@ public class SuccinctStream extends SuccinctCore {
    * @param i Index into inverted alphabet map
    * @return Value of inverted alphabet map at specified index.
    */
-  @Override public int lookupC(long i) {
+  @Override public byte lookupC(long i) {
     try {
-      return SerializedOperations.ArrayOps.getRank1(coloffsets, 0, getSigmaSize(), i) - 1;
+      return alphabet.get(SerializedOperations.ArrayOps.getRank1(coloffsets, 0, getSigmaSize(), i) - 1);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

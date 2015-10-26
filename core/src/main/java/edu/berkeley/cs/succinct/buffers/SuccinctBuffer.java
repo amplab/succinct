@@ -233,8 +233,9 @@ public class SuccinctBuffer extends SuccinctCore {
    * @param i Index into inverted alphabet map
    * @return Value of inverted alphabet map at specified index.
    */
-  @Override public int lookupC(long i) {
-    return SerializedOperations.ArrayOps.getRank1(coloffsets.buffer(), 0, getSigmaSize(), i) - 1;
+  @Override public byte lookupC(long i) {
+    int idx = SerializedOperations.ArrayOps.getRank1(coloffsets.buffer(), 0, getSigmaSize(), i) - 1;
+    return alphabet.get(idx);
   }
 
   /**

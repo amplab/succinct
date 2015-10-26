@@ -10,7 +10,6 @@
     <version>0.1.2</version>
   </parent>
 
-  <groupId>amplab</groupId>
   <artifactId>succinct-spark</artifactId>
   <version>0.1.2</version>
   <packaging>jar</packaging>
@@ -66,6 +65,14 @@
       <groupId>amplab</groupId>
       <artifactId>succinct-core</artifactId>
       <version>0.1.2</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>amplab</groupId>
+      <artifactId>succinct-core</artifactId>
+      <version>0.1.2</version>
+      <type>test-jar</type>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>

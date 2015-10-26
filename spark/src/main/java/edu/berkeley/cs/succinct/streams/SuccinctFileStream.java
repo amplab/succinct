@@ -72,12 +72,8 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @param i Index into succinct file.
    * @return The character at specified index.
    */
-  public char charAt(long i) {
-    try {
-      return (char) alphabet.get((int) lookupC(i));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  @Override public char charAt(long i) {
+    return (char) lookupC(lookupISA(i));
   }
 
   /**
@@ -89,16 +85,10 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    */
   @Override public byte[] extract(long offset, int len) {
     byte[] buf = new byte[len];
-    long s;
-
-    try {
-      s = lookupISA(offset);
-      for (int k = 0; k < len && k < getOriginalSize(); k++) {
-        buf[k] = alphabet.get((int) lookupC(s));
-        s = lookupNPA(s);
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    long s = lookupISA(offset);
+    for (int k = 0; k < len && k < getOriginalSize(); k++) {
+      buf[k] = lookupC(s);
+      s = lookupNPA(s);
     }
 
     return buf;
@@ -115,18 +105,14 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     String strBuf = "";
     long s;
 
-    try {
-      s = lookupISA(offset);
-      do {
-        char nextChar = (char) alphabet.get((int) lookupC(s));
-        if (nextChar == delim || nextChar == 1)
-          break;
-        strBuf += nextChar;
-        s = lookupNPA(s);
-      } while (true);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    s = lookupISA(offset);
+    do {
+      char nextChar = (char) lookupC(s);
+      if (nextChar == delim || nextChar == 1)
+        break;
+      strBuf += nextChar;
+      s = lookupNPA(s);
+    } while (true);
 
     return strBuf.getBytes();
   }
@@ -207,20 +193,16 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
   @Override public int compare(byte[] buf, int i) {
     int j = 0;
 
-    try {
-      do {
-        byte c = alphabet.get((int) lookupC(i));
-        if (buf[j] < c) {
-          return -1;
-        } else if (buf[j] > c) {
-          return 1;
-        }
-        i = (int) lookupNPA(i);
-        j++;
-      } while (j < buf.length);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    do {
+      byte c = lookupC(i);
+      if (buf[j] < c) {
+        return -1;
+      } else if (buf[j] > c) {
+        return 1;
+      }
+      i = (int) lookupNPA(i);
+      j++;
+    } while (j < buf.length);
 
     return 0;
   }
@@ -242,20 +224,16 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
       offset--;
     }
 
-    try {
-      do {
-        byte c = alphabet.get((int) lookupC(i));
-        if (buf[j] < c) {
-          return -1;
-        } else if (buf[j] > c) {
-          return 1;
-        }
-        i = (int) lookupNPA(i);
-        j++;
-      } while (j < buf.length);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    do {
+      byte c = lookupC(i);
+      if (buf[j] < c) {
+        return -1;
+      } else if (buf[j] > c) {
+        return 1;
+      }
+      i = (int) lookupNPA(i);
+      j++;
+    } while (j < buf.length);
 
     return 0;
   }

@@ -1,12 +1,11 @@
 package edu.berkeley.cs.succinct.buffers;
 
 import edu.berkeley.cs.succinct.StorageMode;
-import edu.berkeley.cs.succinct.util.CommonUtils;
-import junit.framework.TestCase;
+import edu.berkeley.cs.succinct.SuccinctCoreTest;
 
 import java.io.*;
 
-public class SuccinctBufferTest extends TestCase {
+public class SuccinctBufferTest extends SuccinctCoreTest {
 
   private String testFileRaw = this.getClass().getResource("/test_file").getFile();
   private String testFileSuccinct =
@@ -16,7 +15,6 @@ public class SuccinctBufferTest extends TestCase {
   private String testFileSA = this.getClass().getResource("/test_file.sa").getFile();
   private String testFileISA = this.getClass().getResource("/test_file.isa").getFile();
   private String testFileNPA = this.getClass().getResource("/test_file.npa").getFile();
-  private SuccinctBuffer sBuf;
 
   /**
    * Set up test.
@@ -31,73 +29,20 @@ public class SuccinctBufferTest extends TestCase {
     byte[] fileData = new byte[(int) inputFile.length()];
     DataInputStream dis = new DataInputStream(new FileInputStream(inputFile));
     dis.readFully(fileData);
-    sBuf = new SuccinctBuffer(fileData, 3);
+    sCore = new SuccinctBuffer(fileData, 3);
 
   }
 
-  /**
-   * Test method: long lookupNPA(long i)
-   *
-   * @throws Exception
-   */
-  public void testLookupNPA() throws Exception {
-    System.out.println("lookupNPA");
-
-    int sum = 0;
-    DataInputStream dIS = new DataInputStream(new FileInputStream(new File(testFileNPA)));
-    int[] testNPA = CommonUtils.readArray(dIS);
-    dIS.close();
-    for (int i = 0; i < sBuf.getOriginalSize(); i++) {
-      long npaVal = sBuf.lookupNPA(i);
-      long expected = testNPA[i];
-      assertEquals(expected, npaVal);
-      sum += npaVal;
-      sum %= sBuf.getOriginalSize();
-    }
-
-    assertEquals(sum, 0);
+  @Override protected DataInputStream getNPAInputStream() throws FileNotFoundException {
+    return new DataInputStream(new FileInputStream(new File(testFileNPA)));
   }
 
-  /**
-   * Test method: long lookupSA(long i)
-   *
-   * @throws Exception
-   */
-  public void testLookupSA() throws Exception {
-    System.out.println("lookupSA");
-
-    int sum = 0;
-    DataInputStream dIS = new DataInputStream(new FileInputStream(new File(testFileSA)));
-    int[] testSA = CommonUtils.readArray(dIS);
-    dIS.close();
-    for (int i = 0; i < sBuf.getOriginalSize(); i++) {
-      long saVal = sBuf.lookupSA(i);
-      assertEquals(testSA[i], saVal);
-      sum += saVal;
-      sum %= sBuf.getOriginalSize();
-    }
-    assertEquals(sum, 0);
+  @Override protected DataInputStream getSAInputStream() throws FileNotFoundException {
+    return new DataInputStream(new FileInputStream(new File(testFileSA)));
   }
 
-  /**
-   * Test method: long lookupISA(long i)
-   *
-   * @throws Exception
-   */
-  public void testLookupISA() throws Exception {
-    System.out.println("lookupISA");
-
-    int sum = 0;
-    DataInputStream dIS = new DataInputStream(new FileInputStream(new File(testFileISA)));
-    int[] testISA = CommonUtils.readArray(dIS);
-    dIS.close();
-    for (int i = 0; i < sBuf.getOriginalSize(); i++) {
-      long isaVal = sBuf.lookupISA(i);
-      assertEquals(testISA[i], isaVal);
-      sum += isaVal;
-      sum %= sBuf.getOriginalSize();
-    }
-    assertEquals(sum, 0);
+  @Override protected DataInputStream getISAInputStream() throws FileNotFoundException {
+    return new DataInputStream(new FileInputStream(new File(testFileISA)));
   }
 
   /**
@@ -112,7 +57,7 @@ public class SuccinctBufferTest extends TestCase {
     // Serialize data
     FileOutputStream fOut = new FileOutputStream(testFileSuccinct);
     ObjectOutputStream oos = new ObjectOutputStream(fOut);
-    oos.writeObject(sBuf);
+    oos.writeObject(sCore);
     oos.close();
 
     // Deserialize data
@@ -122,11 +67,11 @@ public class SuccinctBufferTest extends TestCase {
     ois.close();
 
     assertNotNull(sCoreRead);
-    assertEquals(sCoreRead.getOriginalSize(), sBuf.getOriginalSize());
-    for (int i = 0; i < sBuf.getOriginalSize(); i++) {
-      assertEquals(sCoreRead.lookupNPA(i), sBuf.lookupNPA(i));
-      assertEquals(sCoreRead.lookupSA(i), sBuf.lookupSA(i));
-      assertEquals(sCoreRead.lookupISA(i), sBuf.lookupISA(i));
+    assertEquals(sCore.getOriginalSize(), sCoreRead.getOriginalSize());
+    for (int i = 0; i < sCore.getOriginalSize(); i++) {
+      assertEquals(sCore.lookupNPA(i), sCoreRead.lookupNPA(i));
+      assertEquals(sCore.lookupSA(i), sCoreRead.lookupSA(i));
+      assertEquals(sCore.lookupISA(i), sCoreRead.lookupISA(i));
     }
   }
 
@@ -139,14 +84,15 @@ public class SuccinctBufferTest extends TestCase {
   public void testMemoryMap() throws Exception {
     System.out.println("memoryMap");
 
-    sBuf.writeToFile(testFileSuccinctMin);
+    ((SuccinctBuffer) sCore).writeToFile(testFileSuccinctMin);
     SuccinctBuffer sCoreRead = new SuccinctBuffer(testFileSuccinctMin, StorageMode.MEMORY_MAPPED);
+
     assertNotNull(sCoreRead);
-    assertEquals(sCoreRead.getOriginalSize(), sBuf.getOriginalSize());
-    for (int i = 0; i < sBuf.getOriginalSize(); i++) {
-      assertEquals(sCoreRead.lookupNPA(i), sBuf.lookupNPA(i));
-      assertEquals(sCoreRead.lookupSA(i), sBuf.lookupSA(i));
-      assertEquals(sCoreRead.lookupISA(i), sBuf.lookupISA(i));
+    assertEquals(sCore.getOriginalSize(), sCoreRead.getOriginalSize());
+    for (int i = 0; i < sCore.getOriginalSize(); i++) {
+      assertEquals(sCore.lookupNPA(i), sCoreRead.lookupNPA(i));
+      assertEquals(sCore.lookupSA(i), sCoreRead.lookupSA(i));
+      assertEquals(sCore.lookupISA(i), sCoreRead.lookupISA(i));
     }
   }
 
@@ -159,14 +105,15 @@ public class SuccinctBufferTest extends TestCase {
   public void testReadFromFile() throws Exception {
     System.out.println("readFromFile");
 
-    sBuf.writeToFile(testFileSuccinctMin);
+    ((SuccinctBuffer) sCore).writeToFile(testFileSuccinctMin);
     SuccinctBuffer sCoreRead = new SuccinctBuffer(testFileSuccinctMin, StorageMode.MEMORY_MAPPED);
+
     assertNotNull(sCoreRead);
-    assertEquals(sCoreRead.getOriginalSize(), sBuf.getOriginalSize());
-    for (int i = 0; i < sBuf.getOriginalSize(); i++) {
-      assertEquals(sCoreRead.lookupNPA(i), sBuf.lookupNPA(i));
-      assertEquals(sCoreRead.lookupSA(i), sBuf.lookupSA(i));
-      assertEquals(sCoreRead.lookupISA(i), sBuf.lookupISA(i));
+    assertEquals(sCore.getOriginalSize(), sCoreRead.getOriginalSize());
+    for (int i = 0; i < sCore.getOriginalSize(); i++) {
+      assertEquals(sCore.lookupNPA(i), sCoreRead.lookupNPA(i));
+      assertEquals(sCore.lookupSA(i), sCoreRead.lookupSA(i));
+      assertEquals(sCore.lookupISA(i), sCoreRead.lookupISA(i));
     }
   }
 }
