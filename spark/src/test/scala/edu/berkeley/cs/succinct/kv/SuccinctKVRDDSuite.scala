@@ -10,6 +10,10 @@ import scala.util.Random
 
 class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
 
+  def genKey(max: Int): String = String.valueOf(Math.abs(new Random().nextInt(max)))
+
+  def genInt(max: Int): Int = Math.abs(new Random().nextInt(max))
+
   test("Test get") {
     sc = new SparkContext("local", "test")
 
@@ -23,9 +27,49 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
 
     // Check
     (0 to 100).foreach(i => {
-      val key = String.valueOf(new Random().nextInt(count))
+      val key = genKey(count)
       assert(kvMap(key) === succinctKVRDD.get(key))
     })
+  }
+
+  test("Test access") {
+    sc = new SparkContext("local", "test")
+
+    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
+    val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes))
+
+    val succinctKVRDD = SuccinctKVRDD(kvRDD)
+    val kvMap = kvRDD.collect().toMap
+
+    val count = kvMap.size
+
+    // Check
+    (0 to 100).foreach(i => {
+      val key = genKey(count)
+      if (kvMap(key).nonEmpty) {
+        val offset = genInt(kvMap(key).length)
+        val length = genInt(kvMap(key).length - offset)
+        val recordData = succinctKVRDD.access(key, offset, length)
+        val expectedRecordData = new String(kvMap(key)).substring(offset, offset + length).getBytes
+        assert(expectedRecordData === recordData)
+      }
+    })
+  }
+
+  test("search") {
+    sc = new SparkContext("local", "test")
+
+    val query = "TRUCK"
+
+    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
+    val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes))
+
+    val succinctKVRDD = SuccinctKVRDD(kvRDD)
+
+    val expectedSearchResults = kvRDD.filter(t => new String(t._2).contains(query)).map(_._1).collect()
+    val searchResults = succinctKVRDD.search(query).collect()
+
+    assert(expectedSearchResults === searchResults)
   }
 
   test("Test multiple partitions") {
@@ -43,8 +87,20 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
 
     // Check
     (0 to 100).foreach(i => {
-      val key = String.valueOf(new Random().nextInt(count))
+      val key = genKey(count)
       assert(kvMap(key) === succinctKVRDD.get(key))
+    })
+
+    // Check
+    (0 to 100).foreach(i => {
+      val key = genKey(count)
+      if (kvMap(key).nonEmpty) {
+        val offset = genInt(kvMap(key).length)
+        val length = genInt(kvMap(key).length - offset)
+        val recordData = succinctKVRDD.access(key, offset, length)
+        val expectedRecordData = new String(kvMap(key)).substring(offset, offset + length).getBytes
+        assert(expectedRecordData === recordData)
+      }
     })
 
     val expectedSearchResults = kvRDD.filter(t => new String(t._2).contains(query)).map(_._1).collect()
