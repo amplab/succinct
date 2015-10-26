@@ -30,11 +30,11 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
 
     // Compute expected values
-    val data = textRDD.collect.mkString("\n")
+    val data = textRDD.collect().mkString("\n")
     val expectedSearchOffsets = search(data, query)
 
     // Compute results
-    val searchOffsets = succinctRDD.searchOffsets(query).collect.sorted
+    val searchOffsets = succinctRDD.searchOffsets(query).collect().sorted
 
     assert(searchOffsets === expectedSearchOffsets)
   }
@@ -47,8 +47,8 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
 
     // Compute expected value
-    val partitionsArray = textRDD.mapPartitions(data => Iterator(data.mkString("\n"))).collect
-    val expectedCount = partitionsArray.map(data => search(data, query).size).aggregate(0L)(_ + _, _ + _)
+    val partitionsArray = textRDD.mapPartitions(data => Iterator(data.mkString("\n"))).collect()
+    val expectedCount = partitionsArray.map(data => search(data, query).length).aggregate(0L)(_ + _, _ + _)
 
     // Compute result
     val count = succinctRDD.countOffsets(query)
@@ -65,7 +65,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
 
     // Compute expected values
-    val data = textRDD.collect.mkString("\n")
+    val data = textRDD.collect().mkString("\n")
     val expectedExtractedData = data.substring(offset, offset + length).getBytes
 
     // Compute results
@@ -82,10 +82,10 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
 
     // Compute expected values
-    val expectedSearchRecords = textRDD.filter(_.contains(query)).collect.sorted
+    val expectedSearchRecords = textRDD.filter(_.contains(query)).collect().sorted
 
     // Compute results
-    val searchRecords = succinctRDD.search(query).records().collect.map(new String(_)).sorted
+    val searchRecords = succinctRDD.search(query).records().collect().map(new String(_)).sorted
 
     assert(searchRecords === expectedSearchRecords)
   }
@@ -99,12 +99,12 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
 
     // Compute expected values
-    val expectedSearchRecords = textRDD.filter(_.contains(query)).collect.sorted
+    val expectedSearchRecords = textRDD.filter(_.contains(query)).collect().sorted
 
     // Compute results
-    val searchRecords = succinctRDD.regexSearch(query).collect.map(new String(_)).sorted
+    val searchRecords = succinctRDD.regexSearch(query).collect().map(new String(_)).sorted
 
-    assert(searchRecords.size == expectedSearchRecords.size)
+    assert(searchRecords.length == expectedSearchRecords.length)
     assert(searchRecords === expectedSearchRecords)
   }
 
@@ -115,10 +115,10 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
 
     // Compute expected values
-    val expectedCount = textRDD.count
+    val expectedCount = textRDD.count()
 
     // Compute results
-    val count = succinctRDD.count
+    val count = succinctRDD.count()
 
     assert(count === expectedCount)
   }
@@ -136,16 +136,16 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val length = 100
 
     // Compute expected values
-    val data = textRDD.collect.mkString("\n")
+    val data = textRDD.collect().mkString("\n")
     val expectedSearchOffsets = search(data, query)
 
     // Compute results
-    val searchOffsets = succinctRDD.searchOffsets(query).collect.sorted
+    val searchOffsets = succinctRDD.searchOffsets(query).collect().sorted
 
     assert(searchOffsets === expectedSearchOffsets)
 
     // Compute expected value
-    val expectedCount = expectedSearchOffsets.size
+    val expectedCount = expectedSearchOffsets.length
 
     // Compute result
     val count = succinctRDD.countOffsets(query)

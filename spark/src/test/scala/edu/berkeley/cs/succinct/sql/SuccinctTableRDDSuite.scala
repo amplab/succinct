@@ -1,7 +1,7 @@
-package edu.berkeley.cs.succinct
+package edu.berkeley.cs.succinct.sql
 
 import com.google.common.io.Files
-import edu.berkeley.cs.succinct.sql.SuccinctTableRDD
+import edu.berkeley.cs.succinct.LocalSparkContext
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{StringType, StructField, StructType}

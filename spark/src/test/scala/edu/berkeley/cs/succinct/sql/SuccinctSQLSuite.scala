@@ -79,10 +79,10 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
 
   val citiesTable = getClass.getResource("/cities.dat").getFile
   val testSchema = StructType(Seq(
-    StructField("Name", StringType, false),
-    StructField("Length", IntegerType, true),
-    StructField("Area", DoubleType, false),
-    StructField("Airport", BooleanType, true)))
+    StructField("Name", StringType, nullable = false),
+    StructField("Length", IntegerType, nullable = true),
+    StructField("Area", DoubleType, nullable = false),
+    StructField("Airport", BooleanType, nullable = true)))
 
   override def beforeAll(): Unit = {
     val baseRDD = TestSQLContext.sparkContext.textFile(getClass.getResource("/table.dat").getFile)
@@ -119,7 +119,7 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
       .select("shipmode")
       .collect()
 
-    assert(results.size === 1000)
+    assert(results.length === 1000)
   }
 
   test("sql test") {
@@ -130,15 +130,15 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
          |OPTIONS (path "$succinctTable")
       """.stripMargin.replaceAll("\n", " "))
 
-    assert(sql("SELECT * FROM succinctTable").collect().size === 1000)
+    assert(sql("SELECT * FROM succinctTable").collect().length === 1000)
   }
 
   test("Convert specific SparkSQL types to succinct") {
     val testSchema = StructType(Seq(
-      StructField("Name", StringType, false),
-      StructField("Length", IntegerType, true),
-      StructField("Area", DoubleType, false),
-      StructField("Airport", BooleanType, true)))
+      StructField("Name", StringType, nullable = false),
+      StructField("Length", IntegerType, nullable = true),
+      StructField("Area", DoubleType, nullable = false),
+      StructField("Airport", BooleanType, nullable = true)))
 
     val cityRDD = sparkContext.parallelize(Seq(
       Row("San Francisco", 12, 44.52, true),
@@ -150,7 +150,7 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
     val succinctDir = tempDir + "/succinct"
     cityDataFrame.saveAsSuccinctFiles(succinctDir)
 
-    assert(TestSQLContext.succinctFile(succinctDir).collect().size == 3)
+    assert(TestSQLContext.succinctFile(succinctDir).collect().length == 3)
 
     val cities = TestSQLContext
       .succinctFile(succinctDir)
@@ -183,7 +183,7 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
     def checkPrunes(columns: String*) = {
       val expected = cityDataFrame.select(columns.map(cityDataFrame(_)): _*).collect()
       val actual = loadedDF.select(columns.map(loadedDF(_)): _*).collect()
-      assert(actual.size === expected.size)
+      assert(actual.length === expected.length)
       expected.foreach(row => assert(row.toSeq.length == columns.length))
     }
 
@@ -234,10 +234,10 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
 
     // parse Area as float column
     val testSchema2 = StructType(Seq(
-      StructField("Name", StringType, false),
-      StructField("Length", IntegerType, true),
-      StructField("Area", FloatType, false), // changed to FloatType
-      StructField("Airport", BooleanType, true)))
+      StructField("Name", StringType, nullable = false),
+      StructField("Length", IntegerType, nullable = true),
+      StructField("Area", FloatType, nullable = false), // changed to FloatType
+      StructField("Airport", BooleanType, nullable = true)))
     val (cityDataFrame2, loadedDF2) = createTestDF(testSchema2)
 
     checkFilters(cityDataFrame2, loadedDF2, "Area",
@@ -245,10 +245,10 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
 
     // parse Area as decimal column
     val testSchema3 = StructType(Seq(
-      StructField("Name", StringType, false),
-      StructField("Length", IntegerType, true),
-      StructField("Area", DecimalType(None), false), // changed to DecimalType
-      StructField("Airport", BooleanType, true)))
+      StructField("Name", StringType, nullable = false),
+      StructField("Length", IntegerType, nullable = true),
+      StructField("Area", DecimalType(None), nullable = false), // changed to DecimalType
+      StructField("Airport", BooleanType, nullable = true)))
     val (cityDataFrame3, loadedDF3) = createTestDF(testSchema3)
 
     checkFilters(cityDataFrame3, loadedDF3, "Area",
@@ -256,10 +256,10 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
 
     // parse Length as short column
     val testSchema4 = StructType(Seq(
-      StructField("Name", StringType, false),
-      StructField("Length", ShortType, true), // Changed to ShortType
-      StructField("Area", DoubleType, false),
-      StructField("Airport", BooleanType, true)))
+      StructField("Name", StringType, nullable = false),
+      StructField("Length", ShortType, nullable = true), // Changed to ShortType
+      StructField("Area", DoubleType, nullable = false),
+      StructField("Airport", BooleanType, nullable = true)))
     val (cityDataFrame4, loadedDF4) = createTestDF(testSchema4)
 
     checkFilters(cityDataFrame4, loadedDF4, "Length",
@@ -267,10 +267,10 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
 
     // parse Length as long column
     val testSchema5 = StructType(Seq(
-      StructField("Name", StringType, false),
-      StructField("Length", LongType, true), // Changed to ShortType
-      StructField("Area", DoubleType, false),
-      StructField("Airport", BooleanType, true)))
+      StructField("Name", StringType, nullable = false),
+      StructField("Length", LongType, nullable = true), // Changed to ShortType
+      StructField("Area", DoubleType, nullable = false),
+      StructField("Airport", BooleanType, nullable = true)))
     val (cityDataFrame5, loadedDF5) = createTestDF(testSchema5)
 
     checkFilters(cityDataFrame5, loadedDF5, "Length",
