@@ -41,7 +41,7 @@ object WikiSearch {
     // Search for records
     val searchRecords = wikiSuccinctData.search(searchQuery)
       .records()
-      .toStringRDD()
+      .toStringRDD
     println("10 lines in which berkeley appears: ")
     searchRecords.top(10).foreach(println)
 
