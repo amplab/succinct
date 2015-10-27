@@ -21,16 +21,16 @@ object TableSearch {
     val ctx = new SparkContext(new SparkConf().setAppName("TableSearch"))
     val sqlCtx = new SQLContext(ctx)
     val partitions = if (args.length > 1) args(1).toInt else 1
-    val csvData = ctx.textFile(dataPath, partitions)
+    val csvData = ctx.textFile(dataPath)
       .map(_.split('|').toSeq)
     val firstRecord = csvData.first()
     val schema = StructType(firstRecord.map(StructField(_, StringType)))
-    val tableRDD = csvData.filter(_ != firstRecord).map(Row.fromSeq(_))
+    val tableRDD = csvData.filter(_ != firstRecord).map(Row.fromSeq(_)).repartition(partitions)
 
     val dataFrame = sqlCtx.createDataFrame(tableRDD, schema)
     val tempDir = Files.createTempDir()
     val succinctDir = tempDir + "/succinct"
-    dataFrame.saveAsSuccinctFiles(succinctDir)
+    dataFrame.write.format("edu.berkeley.cs.succinct.sql").save(succinctDir)
 
     val succinctDataFrame = sqlCtx.succinctFile(succinctDir)
 

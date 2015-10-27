@@ -26,7 +26,7 @@ object WikiSearch {
     val sparkConf = new SparkConf().setAppName("WikiSearch")
     val ctx = new SparkContext(sparkConf)
 
-    val wikiData = ctx.textFile(dataPath, partitions).map(_.getBytes)
+    val wikiData = ctx.textFile(dataPath).map(_.getBytes).repartition(partitions)
     val wikiSuccinctData = SuccinctRDD(wikiData).persist()
 
     // Count all occurrences
