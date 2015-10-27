@@ -1,9 +1,7 @@
-
-
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
-  "org.apache.spark" % "spark-core_2.10" % "1.3.1",
-  "org.apache.spark" % "spark-sql_2.10" % "1.3.1"
+  "org.apache.spark" % "spark-core_2.10" % "1.4.0",
+  "org.apache.spark" % "spark-sql_2.10" % "1.4.0"
 )
 
 resolvers ++= Seq(

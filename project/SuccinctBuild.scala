@@ -1,4 +1,7 @@
-
+import sbt._
+import Keys._
+import sbtassembly.Plugin._
+import AssemblyKeys._
 
 object SuccinctBuild extends Build {
 
@@ -41,15 +44,15 @@ object SuccinctBuild extends Build {
     test in assembly := {},
 
     mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) => {
-      case PathList("javax", "servlet", xs@_*) => MergeStrategy.first
-      case PathList(ps@_*) if ps.last endsWith ".html" => MergeStrategy.first
-      case "application.conf" => MergeStrategy.concat
-      case "reference.conf" => MergeStrategy.concat
-      case "log4j.properties" => MergeStrategy.discard
-      case m if m.toLowerCase.endsWith("manifest.mf") => MergeStrategy.discard
-      case m if m.toLowerCase.matches("meta-inf.*\\.sf$") => MergeStrategy.discard
-      case _ => MergeStrategy.first
-    }
+        case PathList("javax", "servlet", xs@_*) => MergeStrategy.first
+        case PathList(ps@_*) if ps.last endsWith ".html" => MergeStrategy.first
+        case "application.conf" => MergeStrategy.concat
+        case "reference.conf" => MergeStrategy.concat
+        case "log4j.properties" => MergeStrategy.discard
+        case m if m.toLowerCase.endsWith("manifest.mf") => MergeStrategy.discard
+        case m if m.toLowerCase.matches("meta-inf.*\\.sf$") => MergeStrategy.discard
+        case _ => MergeStrategy.first
+      }
     }
   )
 
