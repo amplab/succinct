@@ -76,7 +76,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
 
       override def hasNext: Boolean = recordIds.hasNext
 
-      override def next(): K = keys(recordIds.next)
+      override def next(): K = keys(recordIds.next())
     }
   }
 

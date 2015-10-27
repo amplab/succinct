@@ -141,7 +141,7 @@ public class SuccinctStream extends SuccinctCore {
       wavelettree[i] = null;
       if (wavelettreeSize != 0) {
         // Map wavelettree
-        wavelettree[i] = new WaveletTreeStream(is, is.getPos(), wavelettreeSize);
+        wavelettree[i] = new WaveletTreeStream(is, is.getPos());
         is.seek(is.getPos() + wavelettreeSize);
       }
     }

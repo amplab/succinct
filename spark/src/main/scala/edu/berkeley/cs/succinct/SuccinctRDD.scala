@@ -205,12 +205,12 @@ object SuccinctRDD {
       val partitionSize = partition.aggregate(0L)((sum, record) => sum + (record.length + 1), _ + _)
       Iterator((idx, partitionSize))
     }
-    ).collect.sorted.map(_._2)
+    ).collect().sorted.map(_._2)
 
     val partitionRecordCounts = inputRDD.mapPartitionsWithIndex((idx, partition) => {
       val partitionRecordCount = partition.size
       Iterator((idx, partitionRecordCount))
-    }).collect.sorted.map(_._2)
+    }).collect().sorted.map(_._2)
 
     val partitionOffsets = partitionSizes.scanLeft(0L)(_ + _)
     val partitionFirstRecordIds = partitionRecordCounts.scanLeft(0L)(_ + _)
@@ -262,13 +262,13 @@ object SuccinctRDD {
     while (dataIter.hasNext) {
       val curRecord = dataIter.next()
       buffers += curRecord
-      partitionSize += (curRecord.size + 1)
+      partitionSize += (curRecord.length + 1)
       offsets += offset
       offset += (curRecord.length + 1)
     }
 
     val rawBufferOS = new ByteArrayOutputStream(partitionSize)
-    for (i <- 0 to buffers.size - 1) {
+    for (i <- buffers.indices) {
       val curRecord = buffers(i)
       rawBufferOS.write(curRecord)
       rawBufferOS.write(SuccinctCore.EOL)

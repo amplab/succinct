@@ -84,7 +84,7 @@ public class DictionaryOpsTest extends TestCase {
     for (int i = 0; i < 2048; i++) {
       if ((int) (Math.random() * 2) == 1) {
         B.setBit(i);
-        test.add(Long.valueOf(i));
+        test.add((long) i);
       }
     }
 
@@ -93,8 +93,7 @@ public class DictionaryOpsTest extends TestCase {
     FSDataInputStream is = TestUtils.getStream(dBuf);
     RandomAccessByteStream bs = new RandomAccessByteStream(is, 0, dBuf.limit());
     for (int i = 0; i < test.size(); i++) {
-      assertEquals(SerializedOperations.DictionaryOps.getSelect1(bs, 0, i),
-        test.get(i).longValue());
+      assertEquals(SerializedOperations.DictionaryOps.getSelect1(bs, 0, i), (long) test.get(i));
     }
     is.close();
   }
@@ -113,7 +112,7 @@ public class DictionaryOpsTest extends TestCase {
       if ((int) (Math.random() * 2) == 1) {
         B.setBit(i);
       } else {
-        test.add(Long.valueOf(i));
+        test.add((long) i);
       }
     }
 
@@ -122,8 +121,7 @@ public class DictionaryOpsTest extends TestCase {
     FSDataInputStream is = TestUtils.getStream(dBuf);
     RandomAccessByteStream bs = new RandomAccessByteStream(is, 0, dBuf.limit());
     for (int i = 0; i < test.size(); i++) {
-      assertEquals(SerializedOperations.DictionaryOps.getSelect0(bs, 0, i),
-        test.get(i).longValue());
+      assertEquals(SerializedOperations.DictionaryOps.getSelect0(bs, 0, i), (long) test.get(i));
     }
     is.close();
   }

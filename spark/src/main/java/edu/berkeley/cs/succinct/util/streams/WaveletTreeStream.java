@@ -12,19 +12,16 @@ public class WaveletTreeStream {
 
   private FSDataInputStream stream;
   private long startPos;
-  private int size;
 
-  public WaveletTreeStream(FSDataInputStream stream, long startPos, int size) throws IOException {
+  public WaveletTreeStream(FSDataInputStream stream, long startPos) throws IOException {
     this.stream = stream;
     this.startPos = startPos;
-    this.size = size;
   }
 
 
   public long lookup(int contextPos, int cellPos, int startIdx, int endIdx) throws IOException {
     stream.seek(startPos);
-    long wTreeVal = waveletTreeLookup(contextPos, cellPos, startIdx, endIdx);
-    return wTreeVal;
+    return waveletTreeLookup(contextPos, cellPos, startIdx, endIdx);
   }
 
   private long waveletTreeLookup(int contextPos, int cellPos, int startIdx, int endIdx)

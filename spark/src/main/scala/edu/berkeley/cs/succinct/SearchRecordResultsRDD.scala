@@ -49,7 +49,7 @@ class SearchRecordResultsRDD(val succinctRDD: SuccinctRDD,
    * Converts to an RDD of String representation.
    * @return An RDD of strings.
    */
-  def toStringRDD(): RDD[String] = {
+  def toStringRDD: RDD[String] = {
     map(new String(_))
   }
 }

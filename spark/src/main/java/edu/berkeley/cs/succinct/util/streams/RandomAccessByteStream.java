@@ -106,15 +106,6 @@ public class RandomAccessByteStream {
     return stream.getPos() - startPos;
   }
 
-  public long absolutePosition() throws IOException {
-    return stream.getPos();
-  }
-
-  public RandomAccessByteStream absolutePosition(long pos) throws IOException {
-    stream.seek(pos);
-    return this;
-  }
-
   public RandomAccessByteStream position(long pos) throws IOException {
     if (pos >= limit) {
       throw new ArrayIndexOutOfBoundsException(

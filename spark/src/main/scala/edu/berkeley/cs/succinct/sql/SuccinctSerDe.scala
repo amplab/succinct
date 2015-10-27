@@ -11,7 +11,7 @@ import scala.collection.mutable.ListBuffer
  */
 class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int]) extends Serializable {
 
-  override def toString(): String = {
+  override def toString: String = {
     separators.map(_.toInt).mkString(",")
   }
 
@@ -50,7 +50,7 @@ class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int
             digsAfterDec = dType.precision - dType.scale
           }
           digsBeforeDec = limits(elemIdx)
-          val formatString = s"%0${digsBeforeDec}.${digsAfterDec}f"
+          val formatString = s"%0$digsBeforeDec.${digsAfterDec}f"
           formatString.format(elem.toString.toDouble)
         case StringType => elem.toString
         case other => throw new IllegalArgumentException(s"Unexpected type. ${schema(elemIdx).dataType}")
@@ -98,9 +98,9 @@ class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int
    * @return The de-serialized [[Row]].
    */
   private[succinct] def deserializeRow(
-                                        data: Array[Byte],
-                                        requiredColumns: Map[String, Boolean]): Row = {
-    if (data.length == 0 || !requiredColumns.map(_._2).reduce((a, b) => a | b)) return Row()
+      data: Array[Byte],
+      requiredColumns: Map[String, Boolean]): Row = {
+    if (data.length == 0 || !requiredColumns.values.reduce((a, b) => a | b)) return Row()
     val requiredFieldTypes = schema.fields.filter(field => requiredColumns(field.name)).map(_.dataType)
     val fieldNames = schema.fields.map(_.name)
     var i = 0

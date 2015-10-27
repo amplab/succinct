@@ -18,7 +18,7 @@ class SuccinctRDDImpl private[succinct](
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
-  val partitionOffsetRanges = partitionsRDD.map(_.partitionOffsetRange).collect.sorted
+  val partitionOffsetRanges = partitionsRDD.map(_.partitionOffsetRange).collect().sorted
 
   /** Set the name for the RDD; By default set to "SuccinctRDD" */
   override def setName(_name: String): this.type = {
@@ -58,11 +58,11 @@ class SuccinctRDDImpl private[succinct](
     val startPartitionRanges = partitionOffsetRanges.filter(_.contains(offset))
     val endPartitionRanges = partitionOffsetRanges.filter(_.contains(offset + length))
 
-    if (startPartitionRanges.size != 1) {
+    if (startPartitionRanges.length != 1) {
       throw new ArrayIndexOutOfBoundsException("Invalid offset = " + offset)
     }
 
-    if (endPartitionRanges.size != 1) {
+    if (endPartitionRanges.length != 1) {
       throw new ArrayIndexOutOfBoundsException("Invalid length = " + length)
     }
 
@@ -79,7 +79,7 @@ class SuccinctRDDImpl private[succinct](
           null
         }
       }
-      ).filter(buf => (buf != null)).collect()
+      ).filter(buf => buf != null).collect()
       values(0)
     } else {
       val startLength: Int = (startPartitionRange.end() - offset).toInt
@@ -92,7 +92,7 @@ class SuccinctRDDImpl private[succinct](
         } else {
           null
         }
-      }).filter(buf => (buf != null)).collect
+      }).filter(buf => buf != null).collect()
       values(0) ++ values(1)
     }
   }

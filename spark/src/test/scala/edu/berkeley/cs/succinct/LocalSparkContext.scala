@@ -5,7 +5,7 @@ import org.scalatest.{BeforeAndAfterEach, Suite}
 
 // TODO: delete this file and use the version from Spark once SPARK-750 is fixed.
 
-/** Manages a local `sc` {@link SparkContext} variable, correctly stopping it after each test. */
+/** Manages a local `sc`  variable, correctly stopping it after each test. */
 trait LocalSparkContext extends BeforeAndAfterEach {
   self: Suite =>
 

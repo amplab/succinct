@@ -196,7 +196,6 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
         return new Integer[0];
       }
     }
-    int numRanges = ranges.size();
 
     Collections.sort(ranges, new RangeSizeComparator());
 

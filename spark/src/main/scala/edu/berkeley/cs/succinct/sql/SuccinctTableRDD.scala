@@ -198,7 +198,7 @@ object SuccinctTableRDD {
       case _: Double => "%.2f".format(data.asInstanceOf[Double]).length
       case _: java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal].longValue.toString.length
       case _: String => data.asInstanceOf[String].length
-      case _: UTF8String => data.asInstanceOf[UTF8String].length
+      case _: UTF8String => data.asInstanceOf[UTF8String].length()
       case other => throw new IllegalArgumentException(s"Unexpected type.")
     }
   }
@@ -278,22 +278,18 @@ object SuccinctTableRDD {
         if (a.asInstanceOf[java.math.BigDecimal].compareTo(b.asInstanceOf[java.math.BigDecimal]) < 0) a
         else b
       case _: BigDecimal => if (a.asInstanceOf[BigDecimal] < b.asInstanceOf[BigDecimal]) a else b
-      case _: Decimal => {
-        b match {
+      case _: Decimal => b match {
           case _: java.math.BigDecimal => minValue(a.asInstanceOf[Decimal].toJavaBigDecimal, b)
           case _: BigDecimal => minValue(a.asInstanceOf[Decimal].toBigDecimal, b)
           case _: Decimal => minValue(a, b)
           case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
         }
-      }
       case _: String => if (a.asInstanceOf[String] < b.asInstanceOf[String]) a else b
-      case _: UTF8String => {
-        b match {
+      case _: UTF8String => b match {
           case _: String => minValue(a.asInstanceOf[UTF8String].toString(), b)
           case _: UTF8String => minValue(a.asInstanceOf[UTF8String].toString(), b.asInstanceOf[UTF8String].toString())
           case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
         }
-      }
       case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
     }
   }
@@ -313,22 +309,18 @@ object SuccinctTableRDD {
         if (a.asInstanceOf[java.math.BigDecimal].compareTo(b.asInstanceOf[java.math.BigDecimal]) > 0) a
         else b
       case _: BigDecimal => if (a.asInstanceOf[BigDecimal] > b.asInstanceOf[BigDecimal]) a else b
-      case _: Decimal => {
-        b match {
+      case _: Decimal => b match {
           case _: java.math.BigDecimal => maxValue(a.asInstanceOf[Decimal].toJavaBigDecimal, b)
           case _: BigDecimal => maxValue(a.asInstanceOf[Decimal].toBigDecimal, b)
           case _: Decimal => maxValue(a, b)
           case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
         }
-      }
       case _: String => if (a.asInstanceOf[String] > b.asInstanceOf[String]) a else b
-      case _: UTF8String => {
-        b match {
+      case _: UTF8String => b match {
           case _: String => maxValue(a.asInstanceOf[UTF8String].toString(), b)
           case _: UTF8String => maxValue(a.asInstanceOf[UTF8String].toString(), b.asInstanceOf[UTF8String].toString())
           case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
         }
-      }
       case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
     }
   }

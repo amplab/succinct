@@ -395,7 +395,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @param is Stream to read data structures from.
    * @throws IOException
    */
-  @Override public void readFromStream(DataInputStream is) {
+  @Override public void readFromStream(DataInputStream is) throws IOException {
     throw new UnsupportedOperationException("Cannot read SuccinctStream from another stream.");
   }
 

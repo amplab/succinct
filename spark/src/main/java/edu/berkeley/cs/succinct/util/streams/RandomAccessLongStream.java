@@ -60,10 +60,6 @@ public class RandomAccessLongStream {
     return position(0);
   }
 
-  public long limit() {
-    return limit;
-  }
-
   public void close() throws IOException {
     stream.close();
   }
