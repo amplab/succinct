@@ -92,12 +92,21 @@ public abstract class RegExExecutor {
       RegExMatch leftEntry = leftIterator.next();
       lowerBoundEntry.setOffset(leftEntry.end());
       RegExMatch rightEntry = right.ceiling(lowerBoundEntry);
+
       if (rightEntry == null)
         break;
-      long distance = rightEntry.getOffset() - leftEntry.getOffset();
-      if (succinctFile == null || succinctFile.sameRecord(leftEntry.getOffset(), rightEntry.getOffset())) {
+
+      // Greedy match
+      RegExMatch lastMatch = null;
+      while (rightEntry != null && succinctFile.sameRecord(leftEntry.getOffset(), rightEntry.getOffset())) {
+        lastMatch = rightEntry;
+        rightEntry = right.higher(rightEntry);
+      }
+
+      if (lastMatch != null) {
+        long distance = lastMatch.getOffset() - leftEntry.getOffset();
         wildcardRes
-          .add(new RegExMatch(leftEntry.getOffset(), (int) distance + rightEntry.getLength()));
+          .add(new RegExMatch(leftEntry.getOffset(), (int) distance + lastMatch.getLength()));
       }
     }
 
