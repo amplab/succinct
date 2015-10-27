@@ -58,12 +58,11 @@ public class BitMap {
     assert (pos >= 0 && pos < this.size);
     assert (val >= 0);
 
-    long s = pos;
-    long e = s + (bits - 1);
-    if ((s / 64) == (e / 64)) {
-      this.data[(int) (s / 64L)] |= (val << (63L - e % 64));
+    long e = (long) pos + (bits - 1);
+    if (((long) pos / 64) == (e / 64)) {
+      this.data[(int) ((long) pos / 64L)] |= (val << (63L - e % 64));
     } else {
-      this.data[(int) (s / 64L)] |= (val >>> (e % 64 + 1));
+      this.data[(int) ((long) pos / 64L)] |= (val >>> (e % 64 + 1));
       this.data[(int) (e / 64L)] |= (val << (63L - e % 64));
     }
   }

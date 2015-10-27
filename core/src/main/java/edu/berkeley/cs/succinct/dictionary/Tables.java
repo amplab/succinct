@@ -48,8 +48,7 @@ public class Tables {
         offsetBits[i] = offsetBits[16 - i];
       }
       decodeTable[i] = new int[C16[i]];
-      HashMap<Integer, Integer> encodeRow = new HashMap<Integer, Integer>();
-      encodeTable.add(encodeRow);
+      encodeTable.add(new HashMap<Integer, Integer>());
       q[i] = 0;
     }
     q[16] = 1;

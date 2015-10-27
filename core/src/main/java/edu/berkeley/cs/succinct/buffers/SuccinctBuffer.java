@@ -937,11 +937,9 @@ public class SuccinctBuffer extends SuccinctCore {
     coffBuf.rewind();
     this.coff = ThreadSafeIntBuffer.fromIntBuffer(coffBuf.asIntBuffer());
 
-    int sum = 0;
     wavelettree = new ThreadSafeByteBuffer[contextsSize];
     for (int i = 0; i < contextsSize; i++) {
       int wavelettreeSize = is.readInt();
-      sum += wavelettreeSize;
       wavelettree[i] = null;
       if (wavelettreeSize != 0) {
         ByteBuffer wavelettreeBuf = ByteBuffer.allocate(wavelettreeSize);

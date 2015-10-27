@@ -78,15 +78,14 @@ public class DictionaryOpsTest extends TestCase {
     for (int i = 0; i < 2048; i++) {
       if ((int) (Math.random() * 2) == 1) {
         B.setBit(i);
-        test.add(Long.valueOf(i));
+        test.add((long) i);
       }
     }
 
     Dictionary D = new Dictionary(B);
     ByteBuffer dBuf = D.getByteBuffer();
     for (int i = 0; i < test.size(); i++) {
-      assertEquals(SerializedOperations.DictionaryOps.getSelect1(dBuf, 0, i),
-        test.get(i).longValue());
+      assertEquals(SerializedOperations.DictionaryOps.getSelect1(dBuf, 0, i), (long) test.get(i));
     }
   }
 
@@ -104,15 +103,14 @@ public class DictionaryOpsTest extends TestCase {
       if ((int) (Math.random() * 2) == 1) {
         B.setBit(i);
       } else {
-        test.add(Long.valueOf(i));
+        test.add((long) i);
       }
     }
 
     Dictionary D = new Dictionary(B);
     ByteBuffer dBuf = D.getByteBuffer();
     for (int i = 0; i < test.size(); i++) {
-      assertEquals(SerializedOperations.DictionaryOps.getSelect0(dBuf, 0, i),
-        test.get(i).longValue());
+      assertEquals(SerializedOperations.DictionaryOps.getSelect0(dBuf, 0, i), (long) test.get(i));
     }
   }
 }

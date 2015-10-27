@@ -60,8 +60,8 @@ public class SuccinctShell {
         System.out.println("Result size = " + results.length);
         System.out.print("Search[" + cmdArray[1] + "] = {");
         if (results.length < 10) {
-          for (int i = 0; i < results.length; i++) {
-            System.out.print(results[i] + ", ");
+          for (Long result : results) {
+            System.out.print(result + ", ");
           }
           System.out.println("}");
         } else {
@@ -130,8 +130,7 @@ public class SuccinctShell {
         break;
       } else {
         System.err
-          .println("Unknown command. Command must be one of: count, search, extract, quit.");
-        continue;
+          .println("Unknown command. Command must be one of: count, search, regex, extract, quit.");
       }
     }
   }

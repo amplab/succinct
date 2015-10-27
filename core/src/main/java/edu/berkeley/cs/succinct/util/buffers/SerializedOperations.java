@@ -231,7 +231,7 @@ public class SerializedOperations {
       long r;
       int pos = 0;
       int blockClass, blockOffset;
-      long sel = 0;
+      long sel;
       int lastBlock;
       long rankL12, posL12;
 
@@ -366,7 +366,7 @@ public class SerializedOperations {
       long r;
       int pos = 0;
       int blockClass, blockOffset;
-      long sel = 0;
+      long sel;
       int lastBlock;
       long rankL12, posL12;
 

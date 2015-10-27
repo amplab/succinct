@@ -11,7 +11,6 @@ public class QSufSortTest extends TestCase {
 
   private String testFileRaw = this.getClass().getResource("/test_file").getFile();
   private String testFileSA = this.getClass().getResource("/test_file.sa").getFile();
-  private String testFileISA = this.getClass().getResource("/test_file.isa").getFile();
   private QSufSort instance;
   private int fileSize;
 

@@ -24,7 +24,7 @@ public class DictionaryUtilsTest extends TestCase {
     assertEquals(CommonUtils.DictionaryUtils.GETRANKL2(0), 0);
 
     for (long i = 0; i < 1024; i++) {
-      long rankL2 = Long.valueOf(i * (1L << 22));
+      long rankL2 = i * (1L << 22);
       long n = rankL2 << 32;
       assertEquals(CommonUtils.DictionaryUtils.GETRANKL2(n), rankL2);
     }
@@ -62,7 +62,7 @@ public class DictionaryUtilsTest extends TestCase {
     assertEquals(CommonUtils.DictionaryUtils.GETPOSL2(0), 0);
 
     for (long i = 0; i < 1024; i++) {
-      long posL2 = Long.valueOf(i * (1L << 22));
+      long posL2 = i * (1L << 22);
       long n = posL2 << 31;
       assertEquals(CommonUtils.DictionaryUtils.GETPOSL2(n), posL2);
     }

@@ -1,32 +1,11 @@
 package edu.berkeley.cs.succinct.util;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class CommonUtils {
 
   public static final long two32 = 1L << 32;
-
-  /**
-   * Writes a portion of an array to output stream.
-   *
-   * @param A      Input array.
-   * @param offset Offset into array.
-   * @param length Length of sub-array.
-   * @param os     DataOutputStream to write to.
-   */
-  public static void writeArray(int[] A, int offset, int length, DataOutputStream os) {
-    try {
-      os.writeInt(length);
-      for (int i = offset; i < offset + length; i++) {
-        os.writeInt(A[i]);
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-  }
 
   /**
    * Reads an integer array from stream.
@@ -108,7 +87,7 @@ public class CommonUtils {
      * @return Level 1 rank value.
      */
     public static long GETRANKL1(long n, int i) {
-      return (((n & 0xffffffff) >>> (32 - i * 10)) & 0x3ff);
+      return ((n >>> (32 - i * 10)) & 0x3ff);
     }
 
     /**

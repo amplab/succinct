@@ -23,22 +23,6 @@ public class WaveletTreeOpsTest extends TestCase {
   public void testGetValue() throws Exception {
     System.out.println("getValue");
 
-    // TODO: Fix test
-        /*
-        ArrayList<Long> A = new ArrayList<Long>(), B = new ArrayList<Long>();
-        for(long i = 0L; i < 256L; i++) {
-            A.add(i);
-            B.add(255L - i);
-        }
-
-        WaveletTree wTree = new WaveletTree(0L, 255L, A, B);
-        ByteBuffer wTreeBuf = wTree.getByteBuffer();
-        for(int i = 0; i < 256L; i++) {
-            System.out.println("i = " + i);
-            long v = WaveletTreeOps.getValue(wTreeBuf, i, 0, 0, 255);
-            assertEquals(v, 255L - i);
-
-        }
-        */
+    // TODO: Add test
   }
 }

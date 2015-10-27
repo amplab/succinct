@@ -107,6 +107,12 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
     }
     assertEquals(9, count2);
 
+    Iterator<Integer> recordSearchIds3 = sIFile.recordSearchIdIterator("random".getBytes());
+    assertFalse(recordSearchIds3.hasNext());
+
+    Iterator<Integer> recordSearchIds4 = sIFile.recordSearchIdIterator("random int".getBytes());
+    assertFalse(recordSearchIds4.hasNext());
+
 
   }
 

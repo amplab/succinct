@@ -17,7 +17,7 @@ public class SearchRecordIterator implements Iterator<Integer> {
   public SearchRecordIterator(SearchIterator it, SuccinctIndexedFile succinctFile) {
     this.it = it;
     this.succinctFile = succinctFile;
-    this.seenSoFar = new HashSet<>();
+    this.seenSoFar = new HashSet<Integer>();
     this.lookaheadRecordId = -1;
   }
 

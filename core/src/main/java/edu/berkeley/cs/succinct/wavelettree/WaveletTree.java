@@ -173,9 +173,7 @@ public class WaveletTree {
     int size = findSizeOfSerializedTree(root);
     if (size == 0)
       return null;
-    ByteBuffer waveletTreeBuf =
-      (ByteBuffer) getWaveletTreeByteBuffer(root, ByteBuffer.allocate(size)).flip();
-    return waveletTreeBuf;
+    return (ByteBuffer) getWaveletTreeByteBuffer(root, ByteBuffer.allocate(size)).flip();
   }
 
   public static class WaveletNode {

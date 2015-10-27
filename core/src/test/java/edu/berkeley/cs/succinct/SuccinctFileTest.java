@@ -93,18 +93,18 @@ abstract public class SuccinctFileTest extends TestCase {
     byte[] query1 = "int".getBytes();
     Long[] positions1 = sFile.search(query1);
     assertEquals(43, positions1.length);
-    for (int i = 0; i < positions1.length; i++) {
+    for (Long aPositions1 : positions1) {
       for (int j = 0; j < query1.length; j++) {
-        assertEquals(query1[j], fileData[((int) (positions1[i] + j))]);
+        assertEquals(query1[j], fileData[((int) (aPositions1 + j))]);
       }
     }
 
     byte[] query2 = "include".getBytes();
     Long[] positions2 = sFile.search(query2);
     assertEquals(9, positions2.length);
-    for (int i = 0; i < positions2.length; i++) {
+    for (Long aPositions2 : positions2) {
       for (int j = 0; j < query2.length; j++) {
-        assertEquals(query2[j], fileData[((int) (positions2[i] + j))]);
+        assertEquals(query2[j], fileData[((int) (aPositions2 + j))]);
       }
     }
 

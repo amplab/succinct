@@ -70,18 +70,6 @@ public class RegExMatch implements Comparable<RegExMatch> {
     return offset + length;
   }
 
-  public boolean adjacentAfter(RegExMatch r) {
-    return offset == r.end();
-  }
-
-  public boolean adjacentBefore(RegExMatch r) {
-    return r.getOffset() == end();
-  }
-
-  public boolean after(RegExMatch r) {
-    return offset >= r.end();
-  }
-
   public boolean before(RegExMatch r) {
     return end() <= r.getOffset();
   }

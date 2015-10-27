@@ -87,12 +87,12 @@ public class BitMapTest extends TestCase {
     for (int i = 0; i < 2048; i++) {
       if ((int) (Math.random() * 2) == 1) {
         instance.setBit(i);
-        test.add(Long.valueOf(i));
+        test.add((long) i);
       }
     }
 
     for (int i = 0; i < test.size(); i++) {
-      assertEquals(instance.getSelect1(i), test.get(i).longValue());
+      assertEquals(instance.getSelect1(i), (long)test.get(i));
     }
   }
 
@@ -110,12 +110,12 @@ public class BitMapTest extends TestCase {
       if ((int) (Math.random() * 2) == 1) {
         instance.setBit(i);
       } else {
-        test.add(Long.valueOf(i));
+        test.add((long) i);
       }
     }
 
     for (int i = 0; i < test.size(); i++) {
-      assertEquals(instance.getSelect0(i), test.get(i).longValue());
+      assertEquals(instance.getSelect0(i), (long) test.get(i));
     }
   }
 
@@ -139,7 +139,7 @@ public class BitMapTest extends TestCase {
     }
 
     for (int i = 0; i < test.size(); i++) {
-      assertEquals(instance.getRank1(i), test.get(i).longValue());
+      assertEquals(instance.getRank1(i), (long) test.get(i));
     }
   }
 
@@ -164,7 +164,7 @@ public class BitMapTest extends TestCase {
     }
 
     for (int i = 0; i < test.size(); i++) {
-      assertEquals(instance.getRank0(i), test.get(i).longValue());
+      assertEquals(instance.getRank0(i), (long) test.get(i));
     }
   }
 

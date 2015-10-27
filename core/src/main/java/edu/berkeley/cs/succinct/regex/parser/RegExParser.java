@@ -333,7 +333,7 @@ public class RegExParser {
       m += nextChar();
     }
 
-    if (m == "") {
+    if (m.equals("")) {
       return BLANK;
     }
 
