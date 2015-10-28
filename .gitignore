@@ -24,3 +24,6 @@ dist/
 project/project
 project/target
 .history
+
+# Maven tmps
+*.versionsBackup
