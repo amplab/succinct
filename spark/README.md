@@ -129,7 +129,7 @@ val succinctKVRDD = SuccinctKVRDD(kvRDD).cache
 // Fetch keys corresponding to values containing the string "Succinct"
 val keys = succinctKVRDD.search("Succinct")
 
-// Fetch the value correspodning to key 0
+// Fetch the value corresponding to key 0
 val value = succinctKVRDD.get(0)
 ```
 
@@ -226,7 +226,3 @@ support partitions of sizes greater than 2GB yet.**
 The [KV Search](src/main/scala/edu/berkeley/cs/succinct/examples/KVSearch.scala)
 and [Table Search](src/main/scala/edu/berkeley/cs/succinct/examples/TableSearch.scala)
 examples are executed similarly.
-
-```
-./bin/table-search [num-partitions]
-```
