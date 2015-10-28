@@ -10,6 +10,7 @@ object SuccinctBuild extends Build {
     .settings(assemblySettings: _*)
     .settings(commonSettings: _*)
     .settings(TestSettings.settings: _*)
+    .dependsOn(core, spark)
 
   lazy val core = project.in(file("core"))
     .settings(assemblySettings: _*)
