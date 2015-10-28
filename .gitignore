@@ -11,10 +11,11 @@
 # Mac OSX
 .DS_Store
 
-# Build Directories
+# Build and Distribution Directories
 core/target/
 spark/target/
 target/
+dist/
 
 # vim tmps
 .*sw*
