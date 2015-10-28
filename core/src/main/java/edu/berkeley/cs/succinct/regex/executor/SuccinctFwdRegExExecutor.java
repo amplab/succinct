@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct.regex.executor;
 
+import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctFile;
 import edu.berkeley.cs.succinct.regex.SuccinctRegExMatch;
 import edu.berkeley.cs.succinct.regex.parser.*;
@@ -48,7 +49,7 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
           case DOT: {
             for (byte b : alphabet) {
               char c = (char) b;
-              if (c == '\n' || c == (char) 1) {
+              if ((b == SuccinctCore.EOL) || (b == SuccinctCore.EOF || (b == SuccinctCore.EOA))) {
                 continue;
               }
               Range range = succinctFile.fwdSearch(String.valueOf(c).getBytes());
@@ -138,6 +139,11 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
    */
   private TreeSet<SuccinctRegExMatch> regexConcat(RegEx r, SuccinctRegExMatch leftMatch) {
     TreeSet<SuccinctRegExMatch> concatResults = new TreeSet<SuccinctRegExMatch>();
+
+    if (leftMatch.empty()) {
+      return concatResults;
+    }
+
     switch (r.getRegExType()) {
       case Blank: {
         break;
@@ -158,7 +164,7 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
           case DOT: {
             for (byte b : alphabet) {
               char c = (char) b;
-              if (c == '\n' || c == (char) 1) {
+              if ((b == SuccinctCore.EOL) || (b == SuccinctCore.EOF || (b == SuccinctCore.EOA))) {
                 continue;
               }
               Range range = succinctFile
