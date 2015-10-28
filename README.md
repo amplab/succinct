@@ -38,7 +38,7 @@ using Maven by adding the following dependency information to your pom.xml file:
 
 ```xml
 <dependency>
-    <groupId>edu.berkeley.cs.succinct</groupId>
+    <groupId>amplab</groupId>
     <artifactId>succinct-core</artifactId>
     <version>0.1.2</version>
 </dependency>
@@ -46,7 +46,9 @@ using Maven by adding the following dependency information to your pom.xml file:
 
 ## Succinct-Spark
 The Succinct-Spark module contains Spark and Spark SQL intefaces for Succinct,
-exposes a compressed, queryable RDD `SuccinctRDD`. We also expose Succinct
+exposes a compressed, queryable RDD `SuccinctRDD`, which allows manipulating 
+unstructured data, and a `SuccinctKVRDD` for querying semi-structured data
+that can be represented as key-value pairs. We also expose Succinct
 as a DataSource in Spark SQL as an experimental feature. More details on the
 Succinct-Spark module can be found [here](spark/README.md).
 
@@ -59,7 +61,7 @@ using Maven by adding the following dependency information to your pom.xml file:
 
 ```xml
 <dependency>
-    <groupId>edu.berkeley.cs.succinct</groupId>
+    <groupId>amplab</groupId>
     <artifactId>succinct-spark</artifactId>
     <version>0.1.2</version>
 </dependency>
@@ -68,12 +70,12 @@ using Maven by adding the following dependency information to your pom.xml file:
 #### SBT and Spark-Packages
 
 Add the dependency to your SBT project by adding the following to `build.sbt` 
-(see the [Spark Packages listing](http://spark-packages.org/package/amplab/succinct-spark)
+(see the [Spark Packages listing](http://spark-packages.org/package/amplab/succinct)
 for spark-submit and Maven instructions):
 
 ```
 resolvers += "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
-libraryDependencies += "edu.berkeley.cs.succinct" % "succinct-spark" % "0.1.2"
+libraryDependencies += "amplab" % "succinct" % "0.1.2"
 ```
 
 The succinct-spark jar file can also be added to a Spark shell using the 
@@ -81,5 +83,5 @@ The succinct-spark jar file can also be added to a Spark shell using the
 spark shell:
 
 ```
-$ bin/spark-shell --jars succinct-spark_2.10-0.1.2.jar
+$ bin/spark-shell --jars succinct-0.1.2.jar
 ```
