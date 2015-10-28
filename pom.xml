@@ -44,6 +44,7 @@
   <modules>
     <module>core</module>
     <module>spark</module>
+    <module>assembly</module>
   </modules>
 
   <build>
