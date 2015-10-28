@@ -30,7 +30,7 @@ if [ "$JAR_COUNT" -gt "1" ]; then
   exit 1
 fi
 
-WIKI_DATA="file://$SUCCINCT_SPARK_PREFIX/src/main/resources/wiki.dat"
+WIKI_DATA="file://$SUCCINCT_SPARK_PREFIX/src/test/resources/wiki.dat"
 SPARK_MASTER=${MASTER:-"local[*]"}
 
 $SPARK_HOME/bin/spark-submit \

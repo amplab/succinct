@@ -30,7 +30,7 @@ if [ "$JAR_COUNT" -gt "1" ]; then
   exit 1
 fi
 
-TABLE_DATA="file://$SUCCINCT_SPARK_PREFIX/src/main/resources/table.dat"
+TABLE_DATA="file://$SUCCINCT_SPARK_PREFIX/src/test/resources/table.dat"
 SPARK_MASTER=${MASTER:-"local[*]"}
 
 $SPARK_HOME/bin/spark-submit \
