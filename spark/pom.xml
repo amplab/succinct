@@ -7,11 +7,11 @@
   <parent>
     <groupId>amplab</groupId>
     <artifactId>succinct</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
   </parent>
 
   <artifactId>succinct-spark</artifactId>
-  <version>0.1.2</version>
+  <version>0.1.3</version>
   <packaging>jar</packaging>
   <name>Succinct-Spark</name>
   <url>http://succinct.cs.berkeley.edu</url>
@@ -64,13 +64,13 @@
     <dependency>
       <groupId>amplab</groupId>
       <artifactId>succinct-core</artifactId>
-      <version>0.1.2</version>
+      <version>0.1.3</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>amplab</groupId>
       <artifactId>succinct-core</artifactId>
-      <version>0.1.2</version>
+      <version>0.1.3</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>

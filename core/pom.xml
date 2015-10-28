@@ -7,12 +7,12 @@
   <parent>
     <groupId>amplab</groupId>
     <artifactId>succinct</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
   </parent>
 
   <groupId>amplab</groupId>
   <artifactId>succinct-core</artifactId>
-  <version>0.1.2</version>
+  <version>0.1.3</version>
   <packaging>jar</packaging>
   <name>Succinct-Core</name>
   <url>http://succinct.cs.berkeley.edu/</url>
