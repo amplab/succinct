@@ -177,6 +177,10 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    * @return Range into SA.
    */
   @Override public Range continueBwdSearch(byte[] buf, Range range) {
+    if (range.empty()) {
+      return range;
+    }
+
     Range newRange = new Range(range.first, range.second);
     int m = buf.length;
     long c1, c2;
@@ -293,7 +297,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    */
   @Override public Range continueFwdSearch(byte[] buf, Range range, int offset) {
 
-    if (buf.length == 0) {
+    if (buf.length == 0 || range.empty()) {
       return range;
     }
 
