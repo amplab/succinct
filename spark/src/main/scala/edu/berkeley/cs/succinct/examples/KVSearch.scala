@@ -7,7 +7,7 @@ object KVSearch {
 
   val searchQuery = "Berkeley"
 
-  val regexQuery = "(berkeley|stanford).edu"
+  val regexQuery = "(Bill|William) Clinton"
 
   def main(args: Array[String]) = {
 

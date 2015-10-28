@@ -11,7 +11,7 @@ object WikiSearch {
   val extractOffset = 0
   val extractLength = 100
   val searchQuery = "Berkeley"
-  val regexQuery = "(berkeley|stanford).edu"
+  val regexQuery = "(Bill|William) Clinton"
 
   def main(args: Array[String]) = {
 
