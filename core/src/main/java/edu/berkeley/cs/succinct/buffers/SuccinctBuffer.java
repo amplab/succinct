@@ -345,14 +345,14 @@ public class SuccinctBuffer extends SuccinctCore {
 
     alphabetArray[0] = input[(int) SA.getVal(0)];
     alphabetMap.put(alphabetArray[0], new Pair<Long, Integer>(0L, 0));
-    long i;
+    int i;
     for (i = 1; i < getAlphaSize() - 1; i++) {
-      long sel = CinvIndex.get((int) i - 1);
-      alphabetArray[(int) i] = input[(int) SA.getVal((int) sel)];
-      alphabetMap.put(alphabetArray[(int) i], new Pair<Long, Integer>(sel, (int) i));
+      long sel = CinvIndex.get(i - 1);
+      alphabetArray[i] = input[(int) SA.getVal((int) sel)];
+      alphabetMap.put(alphabetArray[i], new Pair<Long, Integer>(sel, i));
     }
-    alphabetMap.put((byte) -126, new Pair<Long, Integer>((long) input.length, (int) i));
-    alphabetArray[(int) i] = (byte) -126;
+    alphabetMap.put(SuccinctCore.EOA, new Pair<Long, Integer>((long) input.length, i));
+    alphabetArray[i] = SuccinctCore.EOA;
 
     // Serialize cmap
     alphabetmap = ThreadSafeByteBuffer.allocate(alphabetMap.size() * (1 + 8 + 4));

@@ -12,6 +12,9 @@ public abstract class SuccinctCore implements Serializable {
   // End of File marker
   public transient static final byte EOF = -127;
 
+  // END of Alphabet marker
+  public transient static final byte EOA = -126;
+
   // End of Line marker
   public transient static final byte EOL = '\n';
 
