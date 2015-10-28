@@ -86,5 +86,24 @@ public class RegExParserTest extends TestCase {
     assertEquals(((RegExPrimitive) rRE3.getInternal()).getPrimitiveStr(), "a");
     assertEquals(rRE3.getMin(), 1);
     assertEquals(rRE3.getMax(), 2);
+
+    // Parse wildcard in the beginning and end
+    RegExParser wildcardParser1 = new RegExParser(".*abc.*");
+    RegEx wildcardRegEx1 = wildcardParser1.parse();
+    assertEquals(RegExType.Primitive, wildcardRegEx1.getRegExType());
+    RegExPrimitive pRE1 = (RegExPrimitive) wildcardRegEx1;
+    assertEquals("abc", pRE1.getPrimitiveStr());
+    assertEquals(RegExPrimitive.PrimitiveType.MGRAM, pRE1.getPrimitiveType());
+
+    // Parse wild card in the middle
+    RegExParser wildcardParser2 = new RegExParser("a.*b");
+    RegEx wildcardRegEx2 = wildcardParser2.parse();
+    assertEquals(RegExType.Wildcard, wildcardRegEx2.getRegExType());
+    RegExWildcard wRE1 = (RegExWildcard) wildcardRegEx2;
+    assertEquals(RegExType.Primitive, wRE1.getLeft().getRegExType());
+    assertEquals("a", ((RegExPrimitive) wRE1.getLeft()).getPrimitiveStr());
+    assertEquals(RegExType.Primitive, wRE1.getRight().getRegExType());
+    assertEquals("b", ((RegExPrimitive) wRE1.getRight()).getPrimitiveStr());
+
   }
 }
