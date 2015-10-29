@@ -49,7 +49,7 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
       if (kvMap(key).nonEmpty) {
         val offset = genInt(kvMap(key).length)
         val length = genInt(kvMap(key).length - offset)
-        val recordData = succinctKVRDD.access(key, offset, length)
+        val recordData = succinctKVRDD.extract(key, offset, length)
         val expectedRecordData = new String(kvMap(key)).substring(offset, offset + length).getBytes
         assert(expectedRecordData === recordData)
       }
@@ -97,7 +97,7 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
       if (kvMap(key).nonEmpty) {
         val offset = genInt(kvMap(key).length)
         val length = genInt(kvMap(key).length - offset)
-        val recordData = succinctKVRDD.access(key, offset, length)
+        val recordData = succinctKVRDD.extract(key, offset, length)
         val expectedRecordData = new String(kvMap(key)).substring(offset, offset + length).getBytes
         assert(expectedRecordData === recordData)
       }
