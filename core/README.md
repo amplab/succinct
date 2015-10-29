@@ -1,5 +1,4 @@
-Succinct-Core
-=============
+# Succinct-Core
 
 Java implementation of Succinct's core algorithms. This library provides the
 core algorithms for Succinct as described in the [NSDI'15 paper](https://www.usenix.org/conference/nsdi15/technical-sessions/presentation/agarwal).

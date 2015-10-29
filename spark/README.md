@@ -1,5 +1,4 @@
-Succinct-Spark
-==============
+# Succinct-Spark
 
 [Spark](http://spark.apache.org/) and 
 [Spark SQL](http://spark.apache.org/docs/latest/sql-programming-guide.html) 
