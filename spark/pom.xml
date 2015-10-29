@@ -16,13 +16,6 @@
   <name>Succinct-Spark</name>
   <url>http://succinct.cs.berkeley.edu</url>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <scala.version>2.10.4</scala.version>
-    <scala.binary.version>2.10</scala.binary.version>
-    <scalatest.version>2.2.1</scalatest.version>
-  </properties>
-
   <reporting>
     <plugins>
       <plugin>
@@ -64,25 +57,25 @@
     <dependency>
       <groupId>amplab</groupId>
       <artifactId>succinct-core</artifactId>
-      <version>0.1.3</version>
+      <version>${project.version}</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>amplab</groupId>
       <artifactId>succinct-core</artifactId>
-      <version>0.1.3</version>
+      <version>${project.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_2.10</artifactId>
-      <version>1.4.1</version>
+      <version>${spark.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-sql_2.10</artifactId>
-      <version>1.4.1</version>
+      <version>${spark.version}</version>
     </dependency>
   </dependencies>
 
