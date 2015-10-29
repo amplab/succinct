@@ -32,7 +32,7 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
     })
   }
 
-  test("Test access") {
+  test("Test extract") {
     sc = new SparkContext("local", "test")
 
     val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)

@@ -53,7 +53,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   }
 
   /** Random access into the value corresponding to a key. **/
-  private[kv] def access(key: K, offset: Int, length: Int): Array[Byte] = {
+  private[kv] def extract(key: K, offset: Int, length: Int): Array[Byte] = {
     val pos = findKey(key)
     if (pos < 0 || pos > numKeys) null else valueBuffer.accessRecord(pos, offset, length)
   }

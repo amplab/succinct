@@ -32,7 +32,7 @@ object KVSearch {
     println("Value corresponding to key 0 = " + new String(value))
 
     // Random access into a value
-    val valueData = succinctKV.access(0, 1, 3)
+    val valueData = succinctKV.extract(0, 1, 3)
     println("Value data for key 0 at offset 1 and length 3 = " + new String(valueData))
 
     // Search on values

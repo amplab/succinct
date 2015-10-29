@@ -82,8 +82,8 @@ abstract class SuccinctKVRDD[K: ClassTag](
    * @param length Number of bytes to be fetched.
    * @return Extracted bytes from the value corresponding to given key.
    */
-  def access(key: K, offset: Int, length: Int): Array[Byte] = {
-    val values = partitionsRDD.map(buf => buf.access(key, offset, length)).filter(v => v != null)
+  def extract(key: K, offset: Int, length: Int): Array[Byte] = {
+    val values = partitionsRDD.map(buf => buf.extract(key, offset, length)).filter(v => v != null)
       .collect()
     if (values.length > 1) {
       throw new IllegalStateException(s"Key ${key.toString} returned ${values.length} values")
