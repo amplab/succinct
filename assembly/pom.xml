@@ -84,7 +84,6 @@
         <configuration>
           <finalName>succinct-${project.version}</finalName>
           <appendAssemblyId>false</appendAssemblyId>
-          <outputDirectory>${}</outputDirectory>
         </configuration>
       </plugin>
     </plugins>
