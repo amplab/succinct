@@ -11,5 +11,5 @@ config_bin="`cd "$config_bin"; pwd`"
 this="$config_bin/$script"
 
 export SUCCINCT_SPARK_PREFIX="`dirname "$this"`"/..
-export SUCCINCT_SPARK_HOME="${SUCCINCT_PREFIX}"
-export SUCCINCT_SPARK_CONF_DIR="${SUCCINCT_CONF_DIR:-"$SUCCINCT_HOME/conf"}"
+export SUCCINCT_SPARK_HOME="${SUCCINCT_SPARK_PREFIX}"
+export SUCCINCT_SPARK_CONF_DIR="${SUCCINCT_CONF_DIR:-"$SUCCINCT_SPARK_HOME/conf"}"
