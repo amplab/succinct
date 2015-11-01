@@ -34,7 +34,7 @@ class SuccinctTableRDDImpl private[succinct](
 
   val recordCount = partitionsRDD.map(_.count).aggregate(0L)(_ + _,  _ + _)
 
-  /** Overrides [[RDD]]]'s compute to return an iterator over Succinct's representation of rows. */
+  /** Overrides compute to return an iterator over Succinct's representation of rows. */
   override def compute(split: Partition, context: TaskContext): Iterator[Row] = {
     val succinctIterator = firstParent[SuccinctTablePartition].iterator(split, context)
     if (succinctIterator.hasNext) {

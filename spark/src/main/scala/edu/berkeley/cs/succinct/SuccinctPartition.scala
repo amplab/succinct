@@ -12,7 +12,7 @@ import org.apache.spark.storage.StorageLevel
 import scala.collection.JavaConversions._
 
 /**
- * A simple wrapper around SuccinctIndexedFile to enable partitions in SuccinctRDD to exploit
+ * A simple wrapper around `SuccinctIndexedFile` to enable partitions in SuccinctRDD to exploit
  * operations directly supported on succinct's compressed representation of data.
  */
 class SuccinctPartition(

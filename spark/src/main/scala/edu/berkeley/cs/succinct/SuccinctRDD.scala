@@ -101,7 +101,7 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
    * Provides random access into the RDD; extracts specified number of bytes starting at specified
    * offset into the original RDD.
    *
-   * @param offset Offset into orginal RDD.
+   * @param offset Offset into original RDD.
    * @param length Number of bytes to be fetched.
    * @return The extracted data.
    */
