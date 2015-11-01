@@ -87,17 +87,17 @@ val searchOffsets = wikiSuccinctData.searchOffsets("Berkeley")
 println("First 10 locations in the RDD where Berkeley occurs: ")
 searchOffsets.take(10).foreach(println)
 
-// Find all occurrences of the regular expression "(berkeley|stanford)\.edu"
-val regexOccurrences = wikiSuccinctData.regexSearchOffsets("(stanford|berkeley)\.edu").collect()
-println("# of matches for the regular expression (stanford|berkeley)\.edu = " + regexOffsets.count)
+// Find all occurrences of the regular expression "(berkeley|stanford)\\.edu"
+val regexOccurrences = wikiSuccinctData.regexSearchOffsets("(stanford|berkeley)\\.edu").collect()
+println("# of matches for the regular expression (stanford|berkeley)\\.edu = " + regexOffsets.count)
 
 // Fetch all records that contain the string "Succinct"
 val succinctRecords = succinctTextRDD.search("Succinct").records.toStringRDD
 
 // Perform a regex search to find all records containing a particular entry
-val regexResults = wikiSuccinctData.regexSearch("(stanford|berkeley)\.edu")
+val regexResults = wikiSuccinctData.regexSearch("(stanford|berkeley)\\.edu")
       .map(new String(_))
-println("# of records containing the regular expression (stanford|berkeley)\.edu = " + regexResults.count)
+println("# of records containing the regular expression (stanford|berkeley)\\.edu = " + regexResults.count)
 ```
 
 #### Input Constraints
@@ -141,21 +141,22 @@ val wikiKVData = wikiData.zipWithIndex().map(t => (t._2, t._1)).repartition(part
 
 val succinctKV = SuccinctKVRDD(wikiKVData).persist()
 
-// Get a particular value
+// Get the value for key 0
 val value = succinctKV.get(0)
 println("Value corresponding to key 0 = " + new String(value))
 
-// Random access into a value
+// Fetch 3 bytes at offset 1 for the value corresponding to key = 0
 val valueData = succinctKV.extract(0, 1, 3)
 println("Value data for key 0 at offset 1 and length 3 = " + new String(valueData))
 
-// Search on values
-val keys = succinctKV.search(searchQuery)
+// Search for values containing "Berkley", and fetch corresponding keys
+val keys = succinctKV.search("Berkeley")
 println("First 10 keys matching the search query:")
 keys.take(10).foreach(println)
 
-// Regex search on values
-val regexKeys = succinctKV.regexSearch(regexQuery)
+// Regex search to find values containing matches of "(stanford|berkeley)\\.edu", 
+// and fetch the corresponding of keys
+val regexKeys = succinctKV.regexSearch("(stanford|berkeley)\\.edu")
 println("First 10 keys matching the regex query:")
 regexKeys.take(10).foreach(println)
 ``` 
