@@ -29,11 +29,11 @@ object WikiSearch {
     val wikiData = ctx.textFile(dataPath).map(_.getBytes).repartition(partitions)
     val wikiSuccinctData = SuccinctRDD(wikiData).persist()
 
-    // Count all occurrences
+    // Count the number of occurrences of searchQuery in text
     val count = wikiSuccinctData.countOffsets(searchQuery)
     println(s"# of times $searchQuery appears in text = " + count)
 
-    // Find all offsets
+    // Find all offsets of occurrences of searchQuery in text
     val searchOffsets = wikiSuccinctData.searchOffsets(searchQuery)
     println(s"First 10 locations in RDD where $searchQuery occurs: ")
     searchOffsets.take(10).foreach(println)
