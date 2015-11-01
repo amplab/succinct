@@ -18,7 +18,7 @@ import scala.Array._
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * Extends `RDD[Row]` to a [[SuccinctTableRDD]], which stores each partition as a [[SuccinctIndexedFile]].
+ * Extends `RDD[Row]` to a [[SuccinctTableRDD]], which stores each partition as a `SuccinctIndexedFile`.
  * [[SuccinctTableRDD]] exposes a table interface, allowing search and count operations on any
  * column based on a matching pattern.
  *
@@ -47,7 +47,7 @@ abstract class SuccinctTableRDD(@transient sc: SparkContext,
   }
 
   /**
-   * Saves the [[SuccinctIndexedFile]] partitions to disk by serializing them.
+   * Saves the [[SuccinctTablePartition]]s to disk by serializing them.
    *
    * @param path Path to save the serialized partitions to.
    */
