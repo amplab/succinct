@@ -68,20 +68,37 @@ the record type.
 import edu.berkeley.cs.succinct.SuccinctRDD
 
 // Read text data from file; sc is the SparkContext
-val textRDD = sc.textFile("README.md")
+val wikiData = ctx.textFile("/path/to/data").map(_.getBytes)
 
-// Convert the textRDD to a SuccinctRDD after serializing each record into an
+// Convert the wikiRDD to a SuccinctRDD after serializing each record into an
 // array of bytes. Persist the RDD in memory to perform in-memory queries.
-val succinctTextRDD = SuccinctRDD(textRDD.map(_.getBytes)).cache
+val wikiSuccinctData = SuccinctRDD(wikiData).persist()
 
-// Count the number of records containing "Succinct" in the data
-val succinctCount = succinctTextRDD.count("Succinct")
+// Count the number of occurrences of "Berkeley" in text
+val berkeleyOccCount = wikiSuccinctData.countOffsets("Berkeley")
+println("# of times Berkeley appears in text = " + berkeleyOccCount)
+
+// Count the number of occurrences of "Berkeley" in text
+val stanfordOccCount = wikiSuccinctData.countOffsets("Berkeley")
+println("# of times Berkeley appears in text = " + stanfordOccCount)
+
+// Find all offsets of occurrences of "Berkeley" in text
+val searchOffsets = wikiSuccinctData.searchOffsets("Berkeley")
+println("First 10 locations in the RDD where Berkeley occurs: ")
+searchOffsets.take(10).foreach(println)
+
+// Find all occurrences of the regular expression "(berkeley|stanford)\.edu"
+val regexOccurrences = wikiSuccinctData.regexSearchOffsets("(stanford|berkeley)\.edu").collect()
+println("# of matches for the regular expression (stanford|berkeley)\.edu = " + regexOffsets.count)
 
 // Fetch all records that contain the string "Succinct"
-val succinctRecords = succinctTextRDD.search("Succinct").collect
-```
+val succinctRecords = succinctTextRDD.search("Succinct").records.toStringRDD
 
-More examples of the SuccinctRDD API can be found [here](src/main/scala/edu/berkeley/cs/succinct/examples/WikiSearch.scala).
+// Perform a regex search to find all records containing a particular entry
+val regexResults = wikiSuccinctData.regexSearch("(stanford|berkeley)\.edu")
+      .map(new String(_))
+println("# of records containing the regular expression (stanford|berkeley)\.edu = " + regexResults.count)
+```
 
 #### Input Constraints
 
@@ -102,10 +119,10 @@ import edu.berkeley.cs.succinct.SuccinctRDD
 import org.apache.spark.storage.StorageLevel
 
 // Construct the succinct RDD as before, and save it as follows
-succinctTextRDD.save("/README.md.succinct")
+succinctTextRDD.save("/path/to/data")
 
 // Load into memory again as follows; sc is the SparkContext
-val loadedSuccinctRDD = SuccinctRDD(sc, "/README.md.succinct", StorageLevel.MEMORY_ONLY)
+val loadedSuccinctRDD = SuccinctRDD(sc, "/path/to/data", StorageLevel.MEMORY_ONLY)
 ```
 
 ### SuccinctKVRDD API
@@ -119,20 +136,29 @@ bytes.
 ```scala
 import edu.berkeley.cs.succinct.kv.SuccinctKVRDD
 
-// Create a set of key value pairs; sc is the SparkContext
-val kvRDD = sc.textFile("README.md").zipWithIndex.map(t => (t._2, t._1.getBytes))
+val wikiData = ctx.textFile(dataPath, partitions).map(_.getBytes)
+val wikiKVData = wikiData.zipWithIndex().map(t => (t._2, t._1)).repartition(partitions)
 
-// Convert the kvRDD to a SuccinctKVRDD.
-val succinctKVRDD = SuccinctKVRDD(kvRDD).cache
+val succinctKV = SuccinctKVRDD(wikiKVData).persist()
 
-// Fetch keys corresponding to values containing the string "Succinct"
-val keys = succinctKVRDD.search("Succinct")
+// Get a particular value
+val value = succinctKV.get(0)
+println("Value corresponding to key 0 = " + new String(value))
 
-// Fetch the value corresponding to key 0
-val value = succinctKVRDD.get(0)
-```
+// Random access into a value
+val valueData = succinctKV.extract(0, 1, 3)
+println("Value data for key 0 at offset 1 and length 3 = " + new String(valueData))
 
-More examples of the SuccinctKVRDD API can be found [here](src/main/scala/edu/berkeley/cs/succinct/examples/KVSearch.scala). 
+// Search on values
+val keys = succinctKV.search(searchQuery)
+println("First 10 keys matching the search query:")
+keys.take(10).foreach(println)
+
+// Regex search on values
+val regexKeys = succinctKV.regexSearch(regexQuery)
+println("First 10 keys matching the regex query:")
+regexKeys.take(10).foreach(println)
+``` 
 
 ### DataFrame API
 
