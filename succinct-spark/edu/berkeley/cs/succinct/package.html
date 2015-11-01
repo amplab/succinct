@@ -1,0 +1,266 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>succinct - Succinct Documentation - edu.berkeley.cs.succinct</title>
+          <meta name="description" content="succinct - Succinct Documentation - edu.berkeley.cs.succinct" />
+          <meta name="keywords" content="succinct Succinct Documentation edu.berkeley.cs.succinct" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../index.html';
+            var hash = 'edu.berkeley.cs.succinct.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../../../lib/package_big.png" />
+        <p id="owner"><a href="../../../package.html" class="extype" name="edu">edu</a>.<a href="../../package.html" class="extype" name="edu.berkeley">berkeley</a>.<a href="../package.html" class="extype" name="edu.berkeley.cs">cs</a></p>
+        <h1>succinct</h1>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">succinct</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="edu.berkeley.cs.succinct.LocalSparkContext" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="LocalSparkContextextendsBeforeAndAfterEach"></a>
+      <a id="LocalSparkContext:LocalSparkContext"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="LocalSparkContext.html"><span class="name">LocalSparkContext</span></a><span class="result"> extends <span class="extype" name="org.scalatest.BeforeAndAfterEach">BeforeAndAfterEach</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Manages a local <code>sc</code>  variable, correctly stopping it after each test.</p>
+    </li><li name="edu.berkeley.cs.succinct.SearchRecordIdResultsRDD" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SearchRecordIdResultsRDDextendsRDD[Long]"></a>
+      <a id="SearchRecordIdResultsRDD:SearchRecordIdResultsRDD"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="SearchRecordIdResultsRDD.html"><span class="name">SearchRecordIdResultsRDD</span></a><span class="result"> extends <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4>
+      <p class="comment cmt">A container RDD for the search results as record ids in a SuccinctRDD.</p>
+    </li><li name="edu.berkeley.cs.succinct.SearchRecordResultsRDD" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SearchRecordResultsRDDextendsRDD[Array[Byte]]"></a>
+      <a id="SearchRecordResultsRDD:SearchRecordResultsRDD"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="SearchRecordResultsRDD.html"><span class="name">SearchRecordResultsRDD</span></a><span class="result"> extends <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]]</span>
+      </span>
+      </h4>
+      <p class="comment cmt">A container RDD for the search results (i.</p>
+    </li><li name="edu.berkeley.cs.succinct.SuccinctPartition" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SuccinctPartitionextendsAnyRef"></a>
+      <a id="SuccinctPartition:SuccinctPartition"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="SuccinctPartition.html"><span class="name">SuccinctPartition</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A simple wrapper around <code>SuccinctIndexedFile</code> to enable partitions in SuccinctRDD to exploit
+operations directly supported on succinct's compressed representation of data.</p>
+    </li><li name="edu.berkeley.cs.succinct.SuccinctRDD" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="SuccinctRDDextendsRDD[Array[Byte]]"></a>
+      <a id="SuccinctRDD:SuccinctRDD"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="SuccinctRDD.html"><span class="name">SuccinctRDD</span></a><span class="result"> extends <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]]</span>
+      </span>
+      </h4>
+      <p class="comment cmt">Extends <code>RDD[Array[Byte]]</code> to a SuccinctRDD, which stores encodes each partition of the parent
+RDD using Succinct.</p>
+    </li><li name="edu.berkeley.cs.succinct.SuccinctRDDSuite" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SuccinctRDDSuiteextendsFunSuitewithLocalSparkContext"></a>
+      <a id="SuccinctRDDSuite:SuccinctRDDSuite"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="SuccinctRDDSuite.html"><span class="name">SuccinctRDDSuite</span></a><span class="result"> extends <span class="extype" name="org.scalatest.FunSuite">FunSuite</span> with <a href="LocalSparkContext.html" class="extype" name="edu.berkeley.cs.succinct.LocalSparkContext">LocalSparkContext</a></span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="edu.berkeley.cs.succinct.LocalSparkContext" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="LocalSparkContext"></a>
+      <a id="LocalSparkContext:LocalSparkContext"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="LocalSparkContext$.html"><span class="name">LocalSparkContext</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="edu.berkeley.cs.succinct.SuccinctPartition" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SuccinctPartition"></a>
+      <a id="SuccinctPartition:SuccinctPartition"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="SuccinctPartition$.html"><span class="name">SuccinctPartition</span></a>
+      </span>
+      </h4>
+      <p class="comment cmt">Factory for <a href="SuccinctPartition.html" class="extype" name="edu.berkeley.cs.succinct.SuccinctPartition">SuccinctPartition</a> instances *</p>
+    </li><li name="edu.berkeley.cs.succinct.SuccinctRDD" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SuccinctRDD"></a>
+      <a id="SuccinctRDD:SuccinctRDD"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="SuccinctRDD$.html"><span class="name">SuccinctRDD</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Factory for <a href="SuccinctRDD.html" class="extype" name="edu.berkeley.cs.succinct.SuccinctRDD">SuccinctRDD</a> instances</p>
+    </li><li name="edu.berkeley.cs.succinct.examples" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="examples"></a>
+      <a id="examples:examples"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="examples/package.html"><span class="name">examples</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="edu.berkeley.cs.succinct.impl" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="impl"></a>
+      <a id="impl:impl"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="impl/package.html"><span class="name">impl</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="edu.berkeley.cs.succinct.kv" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="kv"></a>
+      <a id="kv:kv"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="kv/package.html"><span class="name">kv</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="edu.berkeley.cs.succinct.sql" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="sql"></a>
+      <a id="sql:sql"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="sql/package.html"><span class="name">sql</span></a>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../../../lib/template.js"></script>
+    </body>
+      </html>

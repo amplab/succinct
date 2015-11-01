@@ -1,0 +1,1763 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>SuccinctKVRDDSuite - Succinct Documentation - edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite</title>
+          <meta name="description" content="SuccinctKVRDDSuite - Succinct Documentation - edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite" />
+          <meta name="keywords" content="SuccinctKVRDDSuite Succinct Documentation edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../../index.html';
+            var hash = 'edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="type">
+      <div id="definition">
+        <img src="../../../../../lib/class_big.png" />
+        <p id="owner"><a href="../../../../package.html" class="extype" name="edu">edu</a>.<a href="../../../package.html" class="extype" name="edu.berkeley">berkeley</a>.<a href="../../package.html" class="extype" name="edu.berkeley.cs">cs</a>.<a href="../package.html" class="extype" name="edu.berkeley.cs.succinct">succinct</a>.<a href="package.html" class="extype" name="edu.berkeley.cs.succinct.kv">kv</a></p>
+        <h1>SuccinctKVRDDSuite</h1>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <span class="name">SuccinctKVRDDSuite</span><span class="result"> extends <span class="extype" name="org.scalatest.FunSuite">FunSuite</span> with <a href="../LocalSparkContext.html" class="extype" name="edu.berkeley.cs.succinct.LocalSparkContext">LocalSparkContext</a></span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><a href="../LocalSparkContext.html" class="extype" name="edu.berkeley.cs.succinct.LocalSparkContext">LocalSparkContext</a>, <span class="extype" name="org.scalatest.BeforeAndAfterEach">BeforeAndAfterEach</span>, <span class="extype" name="org.scalatest.SuiteMixin">SuiteMixin</span>, <span class="extype" name="org.scalatest.FunSuite">FunSuite</span>, <span class="extype" name="org.scalatest.FunSuiteLike">FunSuiteLike</span>, <span class="extype" name="org.scalatest.Documenting">Documenting</span>, <span class="extype" name="org.scalatest.Alerting">Alerting</span>, <span class="extype" name="org.scalatest.Notifying">Notifying</span>, <span class="extype" name="org.scalatest.Informing">Informing</span>, <span class="extype" name="org.scalatest.TestRegistration">TestRegistration</span>, <span class="extype" name="org.scalatest.Suite">Suite</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="org.scalatest.AbstractSuite">AbstractSuite</span>, <span class="extype" name="org.scalatest.Assertions">Assertions</span>, <span class="extype" name="org.scalactic.TripleEquals">TripleEquals</span>, <span class="extype" name="org.scalactic.TripleEqualsSupport">TripleEqualsSupport</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite"><span>SuccinctKVRDDSuite</span></li><li class="in" name="edu.berkeley.cs.succinct.LocalSparkContext"><span>LocalSparkContext</span></li><li class="in" name="org.scalatest.BeforeAndAfterEach"><span>BeforeAndAfterEach</span></li><li class="in" name="org.scalatest.SuiteMixin"><span>SuiteMixin</span></li><li class="in" name="org.scalatest.FunSuite"><span>FunSuite</span></li><li class="in" name="org.scalatest.FunSuiteLike"><span>FunSuiteLike</span></li><li class="in" name="org.scalatest.Documenting"><span>Documenting</span></li><li class="in" name="org.scalatest.Alerting"><span>Alerting</span></li><li class="in" name="org.scalatest.Notifying"><span>Notifying</span></li><li class="in" name="org.scalatest.Informing"><span>Informing</span></li><li class="in" name="org.scalatest.TestRegistration"><span>TestRegistration</span></li><li class="in" name="org.scalatest.Suite"><span>Suite</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="org.scalatest.AbstractSuite"><span>AbstractSuite</span></li><li class="in" name="org.scalatest.Assertions"><span>Assertions</span></li><li class="in" name="org.scalactic.TripleEquals"><span>TripleEquals</span></li><li class="in" name="org.scalactic.TripleEqualsSupport"><span>TripleEqualsSupport</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;():edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite"></a>
+      <a id="&lt;init&gt;:SuccinctKVRDDSuite"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">new</span>
+      </span>
+      <span class="symbol">
+        <span class="name">SuccinctKVRDDSuite</span><span class="params">()</span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.scalatest.Assertions.AssertionsHelper" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="AssertionsHelperextendsAnyRef"></a>
+      <a id="AssertionsHelper:AssertionsHelper"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <span class="name">AssertionsHelper</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="org.scalactic.TripleEqualsSupport.CheckingEqualizer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CheckingEqualizer[L]extendsAnyRef"></a>
+      <a id="CheckingEqualizer[L]:CheckingEqualizer[L]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <span class="name">CheckingEqualizer</span><span class="tparams">[<span name="L">L</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEqualsSupport.Equalizer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Equalizer[L]extendsAnyRef"></a>
+      <a id="Equalizer[L]:Equalizer[L]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Equalizer</span><span class="tparams">[<span name="L">L</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEqualsSupport.LegacyCheckingEqualizer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="LegacyCheckingEqualizer[L]extendsAnyRef"></a>
+      <a id="LegacyCheckingEqualizer[L]:LegacyCheckingEqualizer[L]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <span class="name">LegacyCheckingEqualizer</span><span class="tparams">[<span name="L">L</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEqualsSupport.LegacyEqualizer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="LegacyEqualizer[L]extendsAnyRef"></a>
+      <a id="LegacyEqualizer[L]:LegacyEqualizer[L]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <span class="name">LegacyEqualizer</span><span class="tparams">[<span name="L">L</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalatest.Suite.NoArgTest" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="NoArgTestextends()=&gt;org.scalatest.OutcomewithTestData"></a>
+      <a id="NoArgTest:NoArgTest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <span class="name">NoArgTest</span><span class="result"> extends () ⇒ <span class="extype" name="org.scalatest.Outcome">Outcome</span> with <span class="extype" name="org.scalatest.TestData">TestData</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Suite</dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!=(x$1:AnyRef):Boolean"></a>
+      <a id="!=(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.Any#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!=(x$1:Any):Boolean"></a>
+      <a id="!=(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.scalactic.TripleEqualsSupport#!==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!==[T](right:org.scalactic.TripleEqualsSupport.Spread[T]):org.scalactic.TripleEqualsSupport.TripleEqualsInvocationOnSpread[T]"></a>
+      <a id="!==[T](Spread[T]):TripleEqualsInvocationOnSpread[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq$eq" class="name">!==</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="right">right: <span class="extype" name="org.scalactic.TripleEqualsSupport.Spread">Spread</span>[<span class="extype" name="org.scalactic.TripleEqualsSupport.!==.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.scalactic.TripleEqualsSupport.TripleEqualsInvocationOnSpread">TripleEqualsInvocationOnSpread</span>[<span class="extype" name="org.scalactic.TripleEqualsSupport.!==.T">T</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEqualsSupport#!==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!==(right:Null):org.scalactic.TripleEqualsSupport.TripleEqualsInvocation[Null]"></a>
+      <a id="!==(Null):TripleEqualsInvocation[Null]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq$eq" class="name">!==</span><span class="params">(<span name="right">right: <span class="extype" name="scala.Null">Null</span></span>)</span><span class="result">: <span class="extype" name="org.scalactic.TripleEqualsSupport.TripleEqualsInvocation">TripleEqualsInvocation</span>[<span class="extype" name="scala.Null">Null</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEqualsSupport#!==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!==[T](right:T):org.scalactic.TripleEqualsSupport.TripleEqualsInvocation[T]"></a>
+      <a id="!==[T](T):TripleEqualsInvocation[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq$eq" class="name">!==</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="right">right: <span class="extype" name="org.scalactic.TripleEqualsSupport.!==.T">T</span></span>)</span><span class="result">: <span class="extype" name="org.scalactic.TripleEqualsSupport.TripleEqualsInvocation">TripleEqualsInvocation</span>[<span class="extype" name="org.scalactic.TripleEqualsSupport.!==.T">T</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEqualsSupport</dd></dl></div>
+    </li><li name="scala.AnyRef###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="##():Int"></a>
+      <a id="##():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="==(x$1:AnyRef):Boolean"></a>
+      <a id="==(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.Any#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="==(x$1:Any):Boolean"></a>
+      <a id="==(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.scalactic.TripleEqualsSupport#===" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="===[T](right:org.scalactic.TripleEqualsSupport.Spread[T]):org.scalactic.TripleEqualsSupport.TripleEqualsInvocationOnSpread[T]"></a>
+      <a id="===[T](Spread[T]):TripleEqualsInvocationOnSpread[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq$eq" class="name">===</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="right">right: <span class="extype" name="org.scalactic.TripleEqualsSupport.Spread">Spread</span>[<span class="extype" name="org.scalactic.TripleEqualsSupport.===.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.scalactic.TripleEqualsSupport.TripleEqualsInvocationOnSpread">TripleEqualsInvocationOnSpread</span>[<span class="extype" name="org.scalactic.TripleEqualsSupport.===.T">T</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEqualsSupport#===" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="===(right:Null):org.scalactic.TripleEqualsSupport.TripleEqualsInvocation[Null]"></a>
+      <a id="===(Null):TripleEqualsInvocation[Null]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq$eq" class="name">===</span><span class="params">(<span name="right">right: <span class="extype" name="scala.Null">Null</span></span>)</span><span class="result">: <span class="extype" name="org.scalactic.TripleEqualsSupport.TripleEqualsInvocation">TripleEqualsInvocation</span>[<span class="extype" name="scala.Null">Null</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEqualsSupport#===" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="===[T](right:T):org.scalactic.TripleEqualsSupport.TripleEqualsInvocation[T]"></a>
+      <a id="===[T](T):TripleEqualsInvocation[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq$eq" class="name">===</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="right">right: <span class="extype" name="org.scalactic.TripleEqualsSupport.===.T">T</span></span>)</span><span class="result">: <span class="extype" name="org.scalactic.TripleEqualsSupport.TripleEqualsInvocation">TripleEqualsInvocation</span>[<span class="extype" name="org.scalactic.TripleEqualsSupport.===.T">T</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEqualsSupport</dd></dl></div>
+    </li><li name="edu.berkeley.cs.succinct.LocalSparkContext#afterEach" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="afterEach():Unit"></a>
+      <a id="afterEach():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">afterEach</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../LocalSparkContext.html" class="extype" name="edu.berkeley.cs.succinct.LocalSparkContext">LocalSparkContext</a> → BeforeAndAfterEach</dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#alert" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="alert:org.scalatest.Alerter"></a>
+      <a id="alert:Alerter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">alert</span><span class="result">: <span class="extype" name="org.scalatest.Alerter">Alerter</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>FunSuiteLike → Alerting</dd></dl></div>
+    </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="asInstanceOf[T0]:T0"></a>
+      <a id="asInstanceOf[T0]:T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assert" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assert(condition:Boolean,clue:Any):Unit"></a>
+      <a id="assert(Boolean,Any):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">assert</span><span class="params">(<span name="condition">condition: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="clue">clue: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@macroImpl</span><span class="args">(<span>
+      
+      <span class="defval" name="`macro`(&quot;versionFormat&quot; = 1, &quot;className&quot; = &quot;org.scalatest.AssertionsMacro&quot;, &quot;methodName&quot; = &quot;assertWithClue&quot;, &quot;signature&quot; = List(-1, -1, -1))">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assert" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assert(condition:Boolean):Unit"></a>
+      <a id="assert(Boolean):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">assert</span><span class="params">(<span name="condition">condition: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@macroImpl</span><span class="args">(<span>
+      
+      <span class="defval" name="`macro`(&quot;versionFormat&quot; = 1, &quot;className&quot; = &quot;org.scalatest.AssertionsMacro&quot;, &quot;methodName&quot; = &quot;assert&quot;, &quot;signature&quot; = List(-1, -1))">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assertCompiles" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assertCompiles(code:String):Unit"></a>
+      <a id="assertCompiles(String):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">assertCompiles</span><span class="params">(<span name="code">code: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@macroImpl</span><span class="args">(<span>
+      
+      <span class="defval" name="`macro`(&quot;versionFormat&quot; = 1, &quot;className&quot; = &quot;org.scalatest.CompileMacro&quot;, &quot;methodName&quot; = &quot;assertCompilesImpl&quot;, &quot;signature&quot; = List(-1, -1))">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assertDoesNotCompile" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assertDoesNotCompile(code:String):Unit"></a>
+      <a id="assertDoesNotCompile(String):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">assertDoesNotCompile</span><span class="params">(<span name="code">code: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@macroImpl</span><span class="args">(<span>
+      
+      <span class="defval" name="`macro`(&quot;versionFormat&quot; = 1, &quot;className&quot; = &quot;org.scalatest.CompileMacro&quot;, &quot;methodName&quot; = &quot;assertDoesNotCompileImpl&quot;, &quot;signature&quot; = List(-1, -1))">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assertResult" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assertResult(expected:Any)(actual:Any):Unit"></a>
+      <a id="assertResult(Any)(Any):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">assertResult</span><span class="params">(<span name="expected">expected: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="params">(<span name="actual">actual: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assertResult" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assertResult(expected:Any,clue:Any)(actual:Any):Unit"></a>
+      <a id="assertResult(Any,Any)(Any):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">assertResult</span><span class="params">(<span name="expected">expected: <span class="extype" name="scala.Any">Any</span></span>, <span name="clue">clue: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="params">(<span name="actual">actual: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assertTypeError" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assertTypeError(code:String):Unit"></a>
+      <a id="assertTypeError(String):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">assertTypeError</span><span class="params">(<span name="code">code: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@macroImpl</span><span class="args">(<span>
+      
+      <span class="defval" name="`macro`(&quot;versionFormat&quot; = 1, &quot;className&quot; = &quot;org.scalatest.CompileMacro&quot;, &quot;methodName&quot; = &quot;assertTypeErrorImpl&quot;, &quot;signature&quot; = List(-1, -1))">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assertionsHelper" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assertionsHelper:Assertions.this.AssertionsHelper"></a>
+      <a id="assertionsHelper:AssertionsHelper"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">assertionsHelper</span><span class="result">: <a href="#AssertionsHelperextendsAnyRef" class="extmbr" name="edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite.AssertionsHelper">AssertionsHelper</a></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assume" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assume(condition:Boolean,clue:Any):Unit"></a>
+      <a id="assume(Boolean,Any):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">assume</span><span class="params">(<span name="condition">condition: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="clue">clue: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@macroImpl</span><span class="args">(<span>
+      
+      <span class="defval" name="`macro`(&quot;versionFormat&quot; = 1, &quot;className&quot; = &quot;org.scalatest.AssertionsMacro&quot;, &quot;methodName&quot; = &quot;assumeWithClue&quot;, &quot;signature&quot; = List(-1, -1, -1))">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assume" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assume(condition:Boolean):Unit"></a>
+      <a id="assume(Boolean):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">assume</span><span class="params">(<span name="condition">condition: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@macroImpl</span><span class="args">(<span>
+      
+      <span class="defval" name="`macro`(&quot;versionFormat&quot; = 1, &quot;className&quot; = &quot;org.scalatest.AssertionsMacro&quot;, &quot;methodName&quot; = &quot;assume&quot;, &quot;signature&quot; = List(-1, -1))">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.scalatest.BeforeAndAfterEach#beforeEach" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="beforeEach():Unit"></a>
+      <a id="beforeEach():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">beforeEach</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>BeforeAndAfterEach</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#cancel" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="cancel(cause:Throwable):Nothing"></a>
+      <a id="cancel(Throwable):Nothing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cancel</span><span class="params">(<span name="cause">cause: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Nothing">Nothing</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#cancel" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="cancel(message:String,cause:Throwable):Nothing"></a>
+      <a id="cancel(String,Throwable):Nothing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cancel</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="cause">cause: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Nothing">Nothing</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#cancel" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="cancel(message:String):Nothing"></a>
+      <a id="cancel(String):Nothing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cancel</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Nothing">Nothing</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#cancel" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="cancel():Nothing"></a>
+      <a id="cancel():Nothing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cancel</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Nothing">Nothing</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="clone():Object"></a>
+      <a id="clone():AnyRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.scalactic.TripleEquals#conversionCheckedConstraint" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="conversionCheckedConstraint[A,B](implicitequivalenceOfA:org.scalactic.Equivalence[A],implicitcnv:B=&gt;A):org.scalactic.Constraint[A,B]"></a>
+      <a id="conversionCheckedConstraint[A,B](Equivalence[A],(B)⇒A):Constraint[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">conversionCheckedConstraint</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="equivalenceOfA">equivalenceOfA: <span class="extype" name="org.scalactic.Equivalence">Equivalence</span>[<span class="extype" name="org.scalactic.TripleEquals.conversionCheckedConstraint.A">A</span>]</span>, <span name="cnv">cnv: (<span class="extype" name="org.scalactic.TripleEquals.conversionCheckedConstraint.B">B</span>) ⇒ <span class="extype" name="org.scalactic.TripleEquals.conversionCheckedConstraint.A">A</span></span>)</span><span class="result">: <span class="extype" name="org.scalactic.Constraint">Constraint</span>[<span class="extype" name="org.scalactic.TripleEquals.conversionCheckedConstraint.A">A</span>, <span class="extype" name="org.scalactic.TripleEquals.conversionCheckedConstraint.B">B</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEquals → TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEquals#convertEquivalenceToAToBConstraint" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="convertEquivalenceToAToBConstraint[A,B](equivalenceOfB:org.scalactic.Equivalence[B])(implicitev:&lt;:&lt;[A,B]):org.scalactic.Constraint[A,B]"></a>
+      <a id="convertEquivalenceToAToBConstraint[A,B](Equivalence[B])(&lt;:&lt;[A,B]):Constraint[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">convertEquivalenceToAToBConstraint</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="equivalenceOfB">equivalenceOfB: <span class="extype" name="org.scalactic.Equivalence">Equivalence</span>[<span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToAToBConstraint.B">B</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ev">ev: <span class="extype" name="scala.Predef.&lt;:&lt;">&lt;:&lt;</span>[<span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToAToBConstraint.A">A</span>, <span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToAToBConstraint.B">B</span>]</span>)</span><span class="result">: <span class="extype" name="org.scalactic.Constraint">Constraint</span>[<span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToAToBConstraint.A">A</span>, <span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToAToBConstraint.B">B</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEquals → TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEquals#convertEquivalenceToAToBConversionConstraint" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="convertEquivalenceToAToBConversionConstraint[A,B](equivalenceOfB:org.scalactic.Equivalence[B])(implicitev:A=&gt;B):org.scalactic.Constraint[A,B]"></a>
+      <a id="convertEquivalenceToAToBConversionConstraint[A,B](Equivalence[B])((A)⇒B):Constraint[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">convertEquivalenceToAToBConversionConstraint</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="equivalenceOfB">equivalenceOfB: <span class="extype" name="org.scalactic.Equivalence">Equivalence</span>[<span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToAToBConversionConstraint.B">B</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ev">ev: (<span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToAToBConversionConstraint.A">A</span>) ⇒ <span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToAToBConversionConstraint.B">B</span></span>)</span><span class="result">: <span class="extype" name="org.scalactic.Constraint">Constraint</span>[<span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToAToBConversionConstraint.A">A</span>, <span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToAToBConversionConstraint.B">B</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEquals → TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEquals#convertEquivalenceToBToAConstraint" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="convertEquivalenceToBToAConstraint[A,B](equivalenceOfA:org.scalactic.Equivalence[A])(implicitev:&lt;:&lt;[B,A]):org.scalactic.Constraint[A,B]"></a>
+      <a id="convertEquivalenceToBToAConstraint[A,B](Equivalence[A])(&lt;:&lt;[B,A]):Constraint[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">convertEquivalenceToBToAConstraint</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="equivalenceOfA">equivalenceOfA: <span class="extype" name="org.scalactic.Equivalence">Equivalence</span>[<span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToBToAConstraint.A">A</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ev">ev: <span class="extype" name="scala.Predef.&lt;:&lt;">&lt;:&lt;</span>[<span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToBToAConstraint.B">B</span>, <span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToBToAConstraint.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.scalactic.Constraint">Constraint</span>[<span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToBToAConstraint.A">A</span>, <span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToBToAConstraint.B">B</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEquals → TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEquals#convertEquivalenceToBToAConversionConstraint" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="convertEquivalenceToBToAConversionConstraint[A,B](equivalenceOfA:org.scalactic.Equivalence[A])(implicitev:B=&gt;A):org.scalactic.Constraint[A,B]"></a>
+      <a id="convertEquivalenceToBToAConversionConstraint[A,B](Equivalence[A])((B)⇒A):Constraint[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">convertEquivalenceToBToAConversionConstraint</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="equivalenceOfA">equivalenceOfA: <span class="extype" name="org.scalactic.Equivalence">Equivalence</span>[<span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToBToAConversionConstraint.A">A</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ev">ev: (<span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToBToAConversionConstraint.B">B</span>) ⇒ <span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToBToAConversionConstraint.A">A</span></span>)</span><span class="result">: <span class="extype" name="org.scalactic.Constraint">Constraint</span>[<span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToBToAConversionConstraint.A">A</span>, <span class="extype" name="org.scalactic.TripleEquals.convertEquivalenceToBToAConversionConstraint.B">B</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEquals → TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEquals#convertToCheckingEqualizer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="convertToCheckingEqualizer[T](left:T):TripleEquals.this.CheckingEqualizer[T]"></a>
+      <a id="convertToCheckingEqualizer[T](T):CheckingEqualizer[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">convertToCheckingEqualizer</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="left">left: <span class="extype" name="org.scalactic.TripleEquals.convertToCheckingEqualizer.T">T</span></span>)</span><span class="result">: <a href="#CheckingEqualizer[L]extendsAnyRef" class="extmbr" name="edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite.CheckingEqualizer">CheckingEqualizer</a>[<span class="extype" name="org.scalactic.TripleEquals.convertToCheckingEqualizer.T">T</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEquals → TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEquals#convertToEqualizer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="convertToEqualizer[T](left:T):TripleEquals.this.Equalizer[T]"></a>
+      <a id="convertToEqualizer[T](T):Equalizer[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">convertToEqualizer</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="left">left: <span class="extype" name="org.scalactic.TripleEquals.convertToEqualizer.T">T</span></span>)</span><span class="result">: <a href="#Equalizer[L]extendsAnyRef" class="extmbr" name="edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite.Equalizer">Equalizer</a>[<span class="extype" name="org.scalactic.TripleEquals.convertToEqualizer.T">T</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEquals → TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEquals#convertToLegacyCheckingEqualizer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="convertToLegacyCheckingEqualizer[T](left:T):TripleEquals.this.LegacyCheckingEqualizer[T]"></a>
+      <a id="convertToLegacyCheckingEqualizer[T](T):LegacyCheckingEqualizer[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">convertToLegacyCheckingEqualizer</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="left">left: <span class="extype" name="org.scalactic.TripleEquals.convertToLegacyCheckingEqualizer.T">T</span></span>)</span><span class="result">: <a href="#LegacyCheckingEqualizer[L]extendsAnyRef" class="extmbr" name="edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite.LegacyCheckingEqualizer">LegacyCheckingEqualizer</a>[<span class="extype" name="org.scalactic.TripleEquals.convertToLegacyCheckingEqualizer.T">T</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEquals → TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEquals#convertToLegacyEqualizer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="convertToLegacyEqualizer[T](left:T):TripleEquals.this.LegacyEqualizer[T]"></a>
+      <a id="convertToLegacyEqualizer[T](T):LegacyEqualizer[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">convertToLegacyEqualizer</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="left">left: <span class="extype" name="org.scalactic.TripleEquals.convertToLegacyEqualizer.T">T</span></span>)</span><span class="result">: <a href="#LegacyEqualizer[L]extendsAnyRef" class="extmbr" name="edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite.LegacyEqualizer">LegacyEqualizer</a>[<span class="extype" name="org.scalactic.TripleEquals.convertToLegacyEqualizer.T">T</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEquals → TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEqualsSupport#defaultEquality" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="defaultEquality[A]:org.scalactic.Equality[A]"></a>
+      <a id="defaultEquality[A]:Equality[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">defaultEquality</span><span class="tparams">[<span name="A">A</span>]</span><span class="result">: <span class="extype" name="org.scalactic.Equality">Equality</span>[<span class="extype" name="org.scalactic.TripleEqualsSupport.defaultEquality.A">A</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEqualsSupport</dd></dl></div>
+    </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="eq(x$1:AnyRef):Boolean"></a>
+      <a id="eq(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(x$1:Any):Boolean"></a>
+      <a id="equals(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.scalatest.Suite#execute" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="execute:Unit"></a>
+      <a id="execute:Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">execute</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Suite</dd></dl></div>
+    </li><li name="org.scalatest.Suite#execute" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="execute(testName:String,configMap:org.scalatest.ConfigMap,color:Boolean,durations:Boolean,shortstacks:Boolean,fullstacks:Boolean,stats:Boolean):Unit"></a>
+      <a id="execute(String,ConfigMap,Boolean,Boolean,Boolean,Boolean,Boolean):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">execute</span><span class="params">(<span name="testName">testName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="configMap">configMap: <span class="extype" name="org.scalatest.ConfigMap">ConfigMap</span></span>, <span name="color">color: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="durations">durations: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="shortstacks">shortstacks: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="fullstacks">fullstacks: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="stats">stats: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Suite</dd></dl></div>
+    </li><li name="org.scalatest.Suite#expectedTestCount" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="expectedTestCount(filter:org.scalatest.Filter):Int"></a>
+      <a id="expectedTestCount(Filter):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expectedTestCount</span><span class="params">(<span name="filter">filter: <span class="extype" name="org.scalatest.Filter">Filter</span></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Suite → AbstractSuite</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#fail" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fail(cause:Throwable):Nothing"></a>
+      <a id="fail(Throwable):Nothing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fail</span><span class="params">(<span name="cause">cause: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Nothing">Nothing</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#fail" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fail(message:String,cause:Throwable):Nothing"></a>
+      <a id="fail(String,Throwable):Nothing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fail</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="cause">cause: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Nothing">Nothing</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#fail" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fail(message:String):Nothing"></a>
+      <a id="fail(String):Nothing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fail</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Nothing">Nothing</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#fail" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fail():Nothing"></a>
+      <a id="fail():Nothing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fail</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Nothing">Nothing</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="finalize():Unit"></a>
+      <a id="finalize():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[java.lang.Throwable]</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite#genInt" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="genInt(max:Int):Int"></a>
+      <a id="genInt(Int):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">genInt</span><span class="params">(<span name="max">max: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite#genKey" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="genKey(max:Int):String"></a>
+      <a id="genKey(Int):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">genKey</span><span class="params">(<span name="max">max: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getClass():Class[_]"></a>
+      <a id="getClass():Class[_]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <a id="hashCode():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#ignore" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ignore(testName:String,testTags:org.scalatest.Tag*)(testFun:=&gt;Unit):Unit"></a>
+      <a id="ignore(String,Tag*)(⇒Unit):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ignore</span><span class="params">(<span name="testName">testName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="testTags">testTags: <span class="extype" name="org.scalatest.Tag">Tag</span>*</span>)</span><span class="params">(<span name="testFun">testFun: ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>FunSuiteLike</dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#info" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="info:org.scalatest.Informer"></a>
+      <a id="info:Informer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">info</span><span class="result">: <span class="extype" name="org.scalatest.Informer">Informer</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>FunSuiteLike → Informing</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#intercept" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="intercept[T&lt;:AnyRef](f:=&gt;Any)(implicitmanifest:scala.reflect.Manifest[T]):T"></a>
+      <a id="intercept[T&lt;:AnyRef](⇒Any)(Manifest[T]):T"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">intercept</span><span class="tparams">[<span name="T">T &lt;: <span class="extype" name="scala.AnyRef">AnyRef</span></span>]</span><span class="params">(<span name="f">f: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="manifest">manifest: <span class="extype" name="scala.reflect.Manifest">Manifest</span>[<span class="extype" name="org.scalatest.Assertions.intercept.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.scalatest.Assertions.intercept.T">T</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.scalactic.TripleEquals#lowPriorityConversionCheckedConstraint" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="lowPriorityConversionCheckedConstraint[A,B](implicitequivalenceOfB:org.scalactic.Equivalence[B],implicitcnv:A=&gt;B):org.scalactic.Constraint[A,B]"></a>
+      <a id="lowPriorityConversionCheckedConstraint[A,B](Equivalence[B],(A)⇒B):Constraint[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lowPriorityConversionCheckedConstraint</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="equivalenceOfB">equivalenceOfB: <span class="extype" name="org.scalactic.Equivalence">Equivalence</span>[<span class="extype" name="org.scalactic.TripleEquals.lowPriorityConversionCheckedConstraint.B">B</span>]</span>, <span name="cnv">cnv: (<span class="extype" name="org.scalactic.TripleEquals.lowPriorityConversionCheckedConstraint.A">A</span>) ⇒ <span class="extype" name="org.scalactic.TripleEquals.lowPriorityConversionCheckedConstraint.B">B</span></span>)</span><span class="result">: <span class="extype" name="org.scalactic.Constraint">Constraint</span>[<span class="extype" name="org.scalactic.TripleEquals.lowPriorityConversionCheckedConstraint.A">A</span>, <span class="extype" name="org.scalactic.TripleEquals.lowPriorityConversionCheckedConstraint.B">B</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEquals → TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEquals#lowPriorityTypeCheckedConstraint" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="lowPriorityTypeCheckedConstraint[A,B](implicitequivalenceOfB:org.scalactic.Equivalence[B],implicitev:&lt;:&lt;[A,B]):org.scalactic.Constraint[A,B]"></a>
+      <a id="lowPriorityTypeCheckedConstraint[A,B](Equivalence[B],&lt;:&lt;[A,B]):Constraint[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lowPriorityTypeCheckedConstraint</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="equivalenceOfB">equivalenceOfB: <span class="extype" name="org.scalactic.Equivalence">Equivalence</span>[<span class="extype" name="org.scalactic.TripleEquals.lowPriorityTypeCheckedConstraint.B">B</span>]</span>, <span name="ev">ev: <span class="extype" name="scala.Predef.&lt;:&lt;">&lt;:&lt;</span>[<span class="extype" name="org.scalactic.TripleEquals.lowPriorityTypeCheckedConstraint.A">A</span>, <span class="extype" name="org.scalactic.TripleEquals.lowPriorityTypeCheckedConstraint.B">B</span>]</span>)</span><span class="result">: <span class="extype" name="org.scalactic.Constraint">Constraint</span>[<span class="extype" name="org.scalactic.TripleEquals.lowPriorityTypeCheckedConstraint.A">A</span>, <span class="extype" name="org.scalactic.TripleEquals.lowPriorityTypeCheckedConstraint.B">B</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEquals → TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#markup" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="markup:org.scalatest.Documenter"></a>
+      <a id="markup:Documenter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">markup</span><span class="result">: <span class="extype" name="org.scalatest.Documenter">Documenter</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>FunSuiteLike → Documenting</dd></dl></div>
+    </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ne(x$1:AnyRef):Boolean"></a>
+      <a id="ne(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.scalatest.Suite#nestedSuites" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="nestedSuites:scala.collection.immutable.IndexedSeq[org.scalatest.Suite]"></a>
+      <a id="nestedSuites:IndexedSeq[Suite]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nestedSuites</span><span class="result">: <span class="extype" name="scala.collection.immutable.IndexedSeq">IndexedSeq</span>[<span class="extype" name="org.scalatest.Suite">Suite</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Suite → AbstractSuite</dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#note" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="note:org.scalatest.Notifier"></a>
+      <a id="note:Notifier"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">note</span><span class="result">: <span class="extype" name="org.scalatest.Notifier">Notifier</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>FunSuiteLike → Notifying</dd></dl></div>
+    </li><li name="scala.AnyRef#notify" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notify():Unit"></a>
+      <a id="notify():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notifyAll" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notifyAll():Unit"></a>
+      <a id="notifyAll():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.scalatest.Suite#pending" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="pending:org.scalatest.PendingNothing"></a>
+      <a id="pending:PendingNothing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">pending</span><span class="result">: <span class="extype" name="org.scalatest.PendingNothing">PendingNothing</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Suite</dd></dl></div>
+    </li><li name="org.scalatest.Suite#pendingUntilFixed" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="pendingUntilFixed(f:=&gt;Unit):Unit"></a>
+      <a id="pendingUntilFixed(⇒Unit):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">pendingUntilFixed</span><span class="params">(<span name="f">f: ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Suite</dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#registerIgnoredTest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="registerIgnoredTest(testText:String,testTags:org.scalatest.Tag*)(testFun:=&gt;Unit):Unit"></a>
+      <a id="registerIgnoredTest(String,Tag*)(⇒Unit):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">registerIgnoredTest</span><span class="params">(<span name="testText">testText: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="testTags">testTags: <span class="extype" name="org.scalatest.Tag">Tag</span>*</span>)</span><span class="params">(<span name="testFun">testFun: ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>FunSuiteLike → TestRegistration</dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#registerTest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="registerTest(testText:String,testTags:org.scalatest.Tag*)(testFun:=&gt;Unit):Unit"></a>
+      <a id="registerTest(String,Tag*)(⇒Unit):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">registerTest</span><span class="params">(<span name="testText">testText: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="testTags">testTags: <span class="extype" name="org.scalatest.Tag">Tag</span>*</span>)</span><span class="params">(<span name="testFun">testFun: ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>FunSuiteLike → TestRegistration</dd></dl></div>
+    </li><li name="org.scalatest.Suite#rerunner" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="rerunner:Option[String]"></a>
+      <a id="rerunner:Option[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rerunner</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Suite → AbstractSuite</dd></dl></div>
+    </li><li name="edu.berkeley.cs.succinct.LocalSparkContext#resetSparkContext" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="resetSparkContext():Unit"></a>
+      <a id="resetSparkContext():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">resetSparkContext</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../LocalSparkContext.html" class="extype" name="edu.berkeley.cs.succinct.LocalSparkContext">LocalSparkContext</a></dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#run" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="run(testName:Option[String],args:org.scalatest.Args):org.scalatest.Status"></a>
+      <a id="run(Option[String],Args):Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">run</span><span class="params">(<span name="testName">testName: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="args">args: <span class="extype" name="org.scalatest.Args">Args</span></span>)</span><span class="result">: <span class="extype" name="org.scalatest.Status">Status</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>FunSuiteLike → Suite → AbstractSuite</dd></dl></div>
+    </li><li name="org.scalatest.AbstractSuite#run" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="run(testName:Option[String],reporter:org.scalatest.Reporter,stopper:org.scalatest.Stopper,filter:org.scalatest.Filter,configMap:Map[String,Any],distributor:Option[org.scalatest.Distributor],tracker:org.scalatest.Tracker):org.scalatest.Status"></a>
+      <a id="run(Option[String],Reporter,Stopper,Filter,Map[String,Any],Option[Distributor],Tracker):Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">run</span><span class="params">(<span name="testName">testName: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="reporter">reporter: <span class="extype" name="org.scalatest.Reporter">Reporter</span></span>, <span name="stopper">stopper: <span class="extype" name="org.scalatest.Stopper">Stopper</span></span>, <span name="filter">filter: <span class="extype" name="org.scalatest.Filter">Filter</span></span>, <span name="configMap">configMap: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Any">Any</span>]</span>, <span name="distributor">distributor: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="org.scalatest.Distributor">Distributor</span>]</span>, <span name="tracker">tracker: <span class="extype" name="org.scalatest.Tracker">Tracker</span></span>)</span><span class="result">: <span class="extype" name="org.scalatest.Status">Status</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AbstractSuite</dd></dl></div>
+    </li><li name="org.scalatest.Suite#runNestedSuites" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="runNestedSuites(args:org.scalatest.Args):org.scalatest.Status"></a>
+      <a id="runNestedSuites(Args):Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">runNestedSuites</span><span class="params">(<span name="args">args: <span class="extype" name="org.scalatest.Args">Args</span></span>)</span><span class="result">: <span class="extype" name="org.scalatest.Status">Status</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Suite → AbstractSuite</dd></dl></div>
+    </li><li name="org.scalatest.BeforeAndAfterEach#runTest" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="runTest(testName:String,args:org.scalatest.Args):org.scalatest.Status"></a>
+      <a id="runTest(String,Args):Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">runTest</span><span class="params">(<span name="testName">testName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="args">args: <span class="extype" name="org.scalatest.Args">Args</span></span>)</span><span class="result">: <span class="extype" name="org.scalatest.Status">Status</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>BeforeAndAfterEach → SuiteMixin</dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#runTests" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="runTests(testName:Option[String],args:org.scalatest.Args):org.scalatest.Status"></a>
+      <a id="runTests(Option[String],Args):Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">runTests</span><span class="params">(<span name="testName">testName: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="args">args: <span class="extype" name="org.scalatest.Args">Args</span></span>)</span><span class="result">: <span class="extype" name="org.scalatest.Status">Status</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>FunSuiteLike → Suite → AbstractSuite</dd></dl></div>
+    </li><li name="edu.berkeley.cs.succinct.LocalSparkContext#sc" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="sc:org.apache.spark.SparkContext"></a>
+      <a id="sc:SparkContext"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">var</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sc</span><span class="result">: <span class="extype" name="org.apache.spark.SparkContext">SparkContext</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../LocalSparkContext.html" class="extype" name="edu.berkeley.cs.succinct.LocalSparkContext">LocalSparkContext</a></dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#styleName" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="styleName:String"></a>
+      <a id="styleName:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">styleName</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>FunSuiteLike → Suite → AbstractSuite</dd></dl></div>
+    </li><li name="org.scalatest.Suite#suiteId" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="suiteId:String"></a>
+      <a id="suiteId:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">suiteId</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Suite</dd></dl></div>
+    </li><li name="org.scalatest.Suite#suiteName" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="suiteName:String"></a>
+      <a id="suiteName:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">suiteName</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Suite</dd></dl></div>
+    </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
+      <a id="synchronized[T0](⇒T0):T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#tags" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="tags:Map[String,Set[String]]"></a>
+      <a id="tags:Map[String,Set[String]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">tags</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>FunSuiteLike → Suite → AbstractSuite</dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#test" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="test(testName:String,testTags:org.scalatest.Tag*)(testFun:=&gt;Unit):Unit"></a>
+      <a id="test(String,Tag*)(⇒Unit):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">test</span><span class="params">(<span name="testName">testName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="testTags">testTags: <span class="extype" name="org.scalatest.Tag">Tag</span>*</span>)</span><span class="params">(<span name="testFun">testFun: ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>FunSuiteLike</dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#testDataFor" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="testDataFor(testName:String,theConfigMap:org.scalatest.ConfigMap):org.scalatest.TestData"></a>
+      <a id="testDataFor(String,ConfigMap):TestData"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">testDataFor</span><span class="params">(<span name="testName">testName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="theConfigMap">theConfigMap: <span class="extype" name="org.scalatest.ConfigMap">ConfigMap</span></span>)</span><span class="result">: <span class="extype" name="org.scalatest.TestData">TestData</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>FunSuiteLike → Suite</dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#testNames" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="testNames:Set[String]"></a>
+      <a id="testNames:Set[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">testNames</span><span class="result">: <span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>FunSuiteLike → Suite → AbstractSuite</dd></dl></div>
+    </li><li name="org.scalatest.FunSuiteLike#testsFor" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="testsFor(unit:Unit):Unit"></a>
+      <a id="testsFor(Unit):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">testsFor</span><span class="params">(<span name="unit">unit: <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>FunSuiteLike</dd></dl></div>
+    </li><li name="org.scalatest.FunSuite#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <a id="toString():String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>FunSuite → AnyRef → Any</dd></dl></div>
+    </li><li name="org.scalatest.Assertions#trap" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="trap[T](f:=&gt;T):Throwable"></a>
+      <a id="trap[T](⇒T):Throwable"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">trap</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="f">f: ⇒ <span class="extype" name="org.scalatest.Assertions.trap.T">T</span></span>)</span><span class="result">: <span class="extype" name="scala.Throwable">Throwable</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="org.scalactic.TripleEquals#typeCheckedConstraint" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="typeCheckedConstraint[A,B](implicitequivalenceOfA:org.scalactic.Equivalence[A],implicitev:&lt;:&lt;[B,A]):org.scalactic.Constraint[A,B]"></a>
+      <a id="typeCheckedConstraint[A,B](Equivalence[A],&lt;:&lt;[B,A]):Constraint[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">typeCheckedConstraint</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="equivalenceOfA">equivalenceOfA: <span class="extype" name="org.scalactic.Equivalence">Equivalence</span>[<span class="extype" name="org.scalactic.TripleEquals.typeCheckedConstraint.A">A</span>]</span>, <span name="ev">ev: <span class="extype" name="scala.Predef.&lt;:&lt;">&lt;:&lt;</span>[<span class="extype" name="org.scalactic.TripleEquals.typeCheckedConstraint.B">B</span>, <span class="extype" name="org.scalactic.TripleEquals.typeCheckedConstraint.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.scalactic.Constraint">Constraint</span>[<span class="extype" name="org.scalactic.TripleEquals.typeCheckedConstraint.A">A</span>, <span class="extype" name="org.scalactic.TripleEquals.typeCheckedConstraint.B">B</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEquals → TripleEqualsSupport</dd></dl></div>
+    </li><li name="org.scalactic.TripleEquals#unconstrainedEquality" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="unconstrainedEquality[A,B](implicitequalityOfA:org.scalactic.Equality[A]):org.scalactic.Constraint[A,B]"></a>
+      <a id="unconstrainedEquality[A,B](Equality[A]):Constraint[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">unconstrainedEquality</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="equalityOfA">equalityOfA: <span class="extype" name="org.scalactic.Equality">Equality</span>[<span class="extype" name="org.scalactic.TripleEquals.unconstrainedEquality.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.scalactic.Constraint">Constraint</span>[<span class="extype" name="org.scalactic.TripleEquals.unconstrainedEquality.A">A</span>, <span class="extype" name="org.scalactic.TripleEquals.unconstrainedEquality.B">B</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TripleEquals → TripleEqualsSupport</dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait():Unit"></a>
+      <a id="wait():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long,x$2:Int):Unit"></a>
+      <a id="wait(Long,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long):Unit"></a>
+      <a id="wait(Long):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.scalatest.Assertions#withClue" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withClue[T](clue:Any)(fun:=&gt;T):T"></a>
+      <a id="withClue[T](Any)(⇒T):T"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withClue</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="clue">clue: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="params">(<span name="fun">fun: ⇒ <span class="extype" name="org.scalatest.Assertions.withClue.T">T</span></span>)</span><span class="result">: <span class="extype" name="org.scalatest.Assertions.withClue.T">T</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd></dl></div>
+    </li><li name="org.scalatest.Suite#withFixture" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withFixture(test:Suite.this.NoArgTest):org.scalatest.Outcome"></a>
+      <a id="withFixture(NoArgTest):Outcome"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withFixture</span><span class="params">(<span name="test">test: <a href="#NoArgTestextends()=&gt;org.scalatest.OutcomewithTestData" class="extmbr" name="edu.berkeley.cs.succinct.kv.SuccinctKVRDDSuite.NoArgTest">NoArgTest</a></span>)</span><span class="result">: <span class="extype" name="org.scalatest.Outcome">Outcome</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Suite → AbstractSuite</dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.scalatest.BeforeAndAfterEach#afterEach" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="afterEach(testData:org.scalatest.TestData):Unit"></a>
+      <a id="afterEach(TestData):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: Please use the afterEach(TestData) method of trait BeforeAndAfterEachTestData instead.">afterEach</span><span class="params">(<span name="testData">testData: <span class="extype" name="org.scalatest.TestData">TestData</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>BeforeAndAfterEach</dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>Please use the afterEach(TestData) method of trait BeforeAndAfterEachTestData instead.</p></dd></dl></div>
+    </li><li name="org.scalatest.BeforeAndAfterEach#afterEach" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="afterEach(configMap:org.scalatest.ConfigMap):Unit"></a>
+      <a id="afterEach(ConfigMap):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: Please use the afterEach(TestData) method of trait BeforeAndAfterEachTestData instead.">afterEach</span><span class="params">(<span name="configMap">configMap: <span class="extype" name="org.scalatest.ConfigMap">ConfigMap</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>BeforeAndAfterEach</dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>Please use the afterEach(TestData) method of trait BeforeAndAfterEachTestData instead.</p></dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assert" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assert(o:Option[String]):Unit"></a>
+      <a id="assert(Option[String]):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: This method has been deprecated in favor of macro assertion and will be removed in a future version of ScalaTest. If you need this, please copy the source code into your own trait instead.">assert</span><span class="params">(<span name="o">o: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>This method has been deprecated in favor of macro assertion and will be removed in a future version of ScalaTest. If you need this, please copy the source code into your own trait instead.</p></dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assert" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assert(o:Option[String],clue:Any):Unit"></a>
+      <a id="assert(Option[String],Any):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: This method has been deprecated in favor of macro assertion and will be removed in a future version of ScalaTest. If you need this, please copy the source code into your own trait instead.">assert</span><span class="params">(<span name="o">o: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="clue">clue: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>This method has been deprecated in favor of macro assertion and will be removed in a future version of ScalaTest. If you need this, please copy the source code into your own trait instead.</p></dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assume" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assume(o:Option[String]):Unit"></a>
+      <a id="assume(Option[String]):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: This method has been deprecated in favor of macro assumption and will be removed in a future version of ScalaTest. If you need this, please copy the source code into your own trait instead.">assume</span><span class="params">(<span name="o">o: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>This method has been deprecated in favor of macro assumption and will be removed in a future version of ScalaTest. If you need this, please copy the source code into your own trait instead.</p></dd></dl></div>
+    </li><li name="org.scalatest.Assertions#assume" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="assume(o:Option[String],clue:Any):Unit"></a>
+      <a id="assume(Option[String],Any):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: This method has been deprecated in favor of macro assumption and will be removed in a future version of ScalaTest. If you need this, please copy the source code into your own trait instead.">assume</span><span class="params">(<span name="o">o: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="clue">clue: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>This method has been deprecated in favor of macro assumption and will be removed in a future version of ScalaTest. If you need this, please copy the source code into your own trait instead.</p></dd></dl></div>
+    </li><li name="org.scalatest.BeforeAndAfterEach#beforeEach" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="beforeEach(testData:org.scalatest.TestData):Unit"></a>
+      <a id="beforeEach(TestData):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: Please use the beforeEach(TestData) method of trait BeforeAndAfterEachTestData instead.">beforeEach</span><span class="params">(<span name="testData">testData: <span class="extype" name="org.scalatest.TestData">TestData</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>BeforeAndAfterEach</dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>Please use the beforeEach(TestData) method of trait BeforeAndAfterEachTestData instead.</p></dd></dl></div>
+    </li><li name="org.scalatest.BeforeAndAfterEach#beforeEach" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="beforeEach(configMap:org.scalatest.ConfigMap):Unit"></a>
+      <a id="beforeEach(ConfigMap):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: Please use the beforeEach(TestData) method of trait BeforeAndAfterEachTestData instead.">beforeEach</span><span class="params">(<span name="configMap">configMap: <span class="extype" name="org.scalatest.ConfigMap">ConfigMap</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>BeforeAndAfterEach</dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>Please use the beforeEach(TestData) method of trait BeforeAndAfterEachTestData instead.</p></dd></dl></div>
+    </li><li name="org.scalatest.Assertions#expect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="expect(expected:Any)(actual:Any):Unit"></a>
+      <a id="expect(Any)(Any):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: This expect method has been deprecated. Please replace all invocations of expect with an identical invocation of assertResult instead.">expect</span><span class="params">(<span name="expected">expected: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="params">(<span name="actual">actual: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>This expect method has been deprecated. Please replace all invocations of expect with an identical invocation of assertResult instead.</p></dd></dl></div>
+    </li><li name="org.scalatest.Assertions#expect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="expect(expected:Any,clue:Any)(actual:Any):Unit"></a>
+      <a id="expect(Any,Any)(Any):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: This expect method has been deprecated. Please replace all invocations of expect with an identical invocation of assertResult instead.">expect</span><span class="params">(<span name="expected">expected: <span class="extype" name="scala.Any">Any</span></span>, <span name="clue">clue: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="params">(<span name="actual">actual: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>This expect method has been deprecated. Please replace all invocations of expect with an identical invocation of assertResult instead.</p></dd></dl></div>
+    </li><li name="org.scalatest.Assertions#expectResult" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="expectResult(expected:Any)(actual:Any):Unit"></a>
+      <a id="expectResult(Any)(Any):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: This expectResult method has been deprecated. Please replace all invocations of expectResult with an identical invocation of assertResult instead.">expectResult</span><span class="params">(<span name="expected">expected: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="params">(<span name="actual">actual: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>This expectResult method has been deprecated. Please replace all invocations of expectResult with an identical invocation of assertResult instead.</p></dd></dl></div>
+    </li><li name="org.scalatest.Assertions#expectResult" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="expectResult(expected:Any,clue:Any)(actual:Any):Unit"></a>
+      <a id="expectResult(Any,Any)(Any):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: This expectResult method has been deprecated. Please replace all invocations of expectResult with an identical invocation of assertResult instead.">expectResult</span><span class="params">(<span name="expected">expected: <span class="extype" name="scala.Any">Any</span></span>, <span name="clue">clue: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="params">(<span name="actual">actual: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Assertions</dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>This expectResult method has been deprecated. Please replace all invocations of expectResult with an identical invocation of assertResult instead.</p></dd></dl></div>
+    </li></ol>
+            </div>
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="edu.berkeley.cs.succinct.LocalSparkContext">
+              <h3>Inherited from <a href="../LocalSparkContext.html" class="extype" name="edu.berkeley.cs.succinct.LocalSparkContext">LocalSparkContext</a></h3>
+            </div><div class="parent" name="org.scalatest.BeforeAndAfterEach">
+              <h3>Inherited from <span class="extype" name="org.scalatest.BeforeAndAfterEach">BeforeAndAfterEach</span></h3>
+            </div><div class="parent" name="org.scalatest.SuiteMixin">
+              <h3>Inherited from <span class="extype" name="org.scalatest.SuiteMixin">SuiteMixin</span></h3>
+            </div><div class="parent" name="org.scalatest.FunSuite">
+              <h3>Inherited from <span class="extype" name="org.scalatest.FunSuite">FunSuite</span></h3>
+            </div><div class="parent" name="org.scalatest.FunSuiteLike">
+              <h3>Inherited from <span class="extype" name="org.scalatest.FunSuiteLike">FunSuiteLike</span></h3>
+            </div><div class="parent" name="org.scalatest.Documenting">
+              <h3>Inherited from <span class="extype" name="org.scalatest.Documenting">Documenting</span></h3>
+            </div><div class="parent" name="org.scalatest.Alerting">
+              <h3>Inherited from <span class="extype" name="org.scalatest.Alerting">Alerting</span></h3>
+            </div><div class="parent" name="org.scalatest.Notifying">
+              <h3>Inherited from <span class="extype" name="org.scalatest.Notifying">Notifying</span></h3>
+            </div><div class="parent" name="org.scalatest.Informing">
+              <h3>Inherited from <span class="extype" name="org.scalatest.Informing">Informing</span></h3>
+            </div><div class="parent" name="org.scalatest.TestRegistration">
+              <h3>Inherited from <span class="extype" name="org.scalatest.TestRegistration">TestRegistration</span></h3>
+            </div><div class="parent" name="org.scalatest.Suite">
+              <h3>Inherited from <span class="extype" name="org.scalatest.Suite">Suite</span></h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="org.scalatest.AbstractSuite">
+              <h3>Inherited from <span class="extype" name="org.scalatest.AbstractSuite">AbstractSuite</span></h3>
+            </div><div class="parent" name="org.scalatest.Assertions">
+              <h3>Inherited from <span class="extype" name="org.scalatest.Assertions">Assertions</span></h3>
+            </div><div class="parent" name="org.scalactic.TripleEquals">
+              <h3>Inherited from <span class="extype" name="org.scalactic.TripleEquals">TripleEquals</span></h3>
+            </div><div class="parent" name="org.scalactic.TripleEqualsSupport">
+              <h3>Inherited from <span class="extype" name="org.scalactic.TripleEqualsSupport">TripleEqualsSupport</span></h3>
+            </div><div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../../../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../../../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../../../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../../../../lib/template.js"></script>
+    </body>
+      </html>
