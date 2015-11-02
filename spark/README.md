@@ -70,15 +70,15 @@ import edu.berkeley.cs.succinct._
 // Read text data from file; sc is the SparkContext
 val wikiData = ctx.textFile("/path/to/data").map(_.getBytes)
 
-// Convert the wikiRDD to a SuccinctRDD after serializing each record into an
-// array of bytes. Persist the RDD in memory to perform in-memory queries.
+// Converts the wikiData RDD to a SuccinctRDD, serializing each record into an
+// array of bytes. We persist the RDD in memory to perform in-memory queries.
 val wikiSuccinctData = wikiData.succinct.persist()
 
-// Count the number of occurrences of "Berkeley" in text
+// Count the number of occurrences of "Berkeley" in the RDD
 val berkeleyOccCount = wikiSuccinctData.count("Berkeley")
 println("# of times Berkeley appears in text = " + berkeleyOccCount)
 
-// Find all offsets of occurrences of "Berkeley" in text
+// Find all offsets of occurrences of "Berkeley" in the RDD
 val searchOffsets = wikiSuccinctData.search("Berkeley")
 println("First 10 locations in the RDD where Berkeley occurs: ")
 searchOffsets.take(10).foreach(println)
