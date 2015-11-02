@@ -22,7 +22,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     results.toArray
   }
 
-  test("Test searchOffsets") {
+  test("Test search") {
     sc = new SparkContext("local", "test")
 
     val query = "int"
@@ -34,12 +34,12 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val expectedSearchOffsets = search(data, query)
 
     // Compute results
-    val searchOffsets = succinctRDD.searchOffsets(query).collect().sorted
+    val searchOffsets = succinctRDD.search(query).collect().sorted
 
     assert(searchOffsets === expectedSearchOffsets)
   }
 
-  test("Test countOffsets") {
+  test("Test count") {
     sc = new SparkContext("local", "test")
 
     val query = "int"
@@ -51,7 +51,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val expectedCount = partitionsArray.map(data => search(data, query).length).aggregate(0L)(_ + _, _ + _)
 
     // Compute result
-    val count = succinctRDD.countOffsets(query)
+    val count = succinctRDD.count(query)
 
     assert(count === expectedCount)
   }
@@ -74,22 +74,6 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     assert(extractedData === expectedExtractedData)
   }
 
-  test("Test search") {
-    sc = new SparkContext("local", "test")
-
-    val query = "int"
-    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
-    val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
-
-    // Compute expected values
-    val expectedSearchRecords = textRDD.filter(_.contains(query)).collect().sorted
-
-    // Compute results
-    val searchRecords = succinctRDD.search(query).records().collect().map(new String(_)).sorted
-
-    assert(searchRecords === expectedSearchRecords)
-  }
-
   test("Test regexSearch") {
     sc = new SparkContext("local", "test")
 
@@ -99,13 +83,14 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
 
     // Compute expected values
-    val expectedSearchRecords = textRDD.filter(_.contains(query)).collect().sorted
+    val data = textRDD.collect().mkString("\n")
+    val expectedSearchOffsets = search(data, query)
 
     // Compute results
-    val searchRecords = succinctRDD.regexSearch(query).collect().map(new String(_)).sorted
+    val searchOffsets = succinctRDD.regexSearch(query).map(_.getOffset).collect().sorted
 
-    assert(searchRecords.length == expectedSearchRecords.length)
-    assert(searchRecords === expectedSearchRecords)
+    assert(searchOffsets.length == expectedSearchOffsets.length)
+    assert(searchOffsets === expectedSearchOffsets)
   }
 
   test("Test RDD count") {
@@ -140,7 +125,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val expectedSearchOffsets = search(data, query)
 
     // Compute results
-    val searchOffsets = succinctRDD.searchOffsets(query).collect().sorted
+    val searchOffsets = succinctRDD.search(query).collect().sorted
 
     assert(searchOffsets === expectedSearchOffsets)
 
@@ -148,7 +133,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val expectedCount = expectedSearchOffsets.length
 
     // Compute result
-    val count = succinctRDD.countOffsets(query)
+    val count = succinctRDD.count(query)
 
     assert(count === expectedCount)
 

@@ -63,8 +63,8 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
    * @param query The search query.
    * @return The RDD of iterables over recordIds into each partition.
    */
-  def searchOffsets(query: Array[Byte]): RDD[Long] = {
-    partitionsRDD.flatMap(_.searchOffsets(query))
+  def search(query: Array[Byte]): RDD[Long] = {
+    partitionsRDD.flatMap(_.search(query))
   }
 
   /**
@@ -73,8 +73,8 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
    * @param query The search query.
    * @return The RDD of recordIds.
    */
-  def searchOffsets(query: String): RDD[Long] = {
-    searchOffsets(query.getBytes("utf-8"))
+  def search(query: String): RDD[Long] = {
+    search(query.getBytes("utf-8"))
   }
 
   /**
@@ -83,8 +83,8 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
    * @param query The count query.
    * @return The count of the number of occurrences of the query.
    */
-  def countOffsets(query: Array[Byte]): Long = {
-    partitionsRDD.map(_.countOffsets(query)).aggregate(0L)(_ + _, _ + _)
+  def count(query: Array[Byte]): Long = {
+    partitionsRDD.map(_.count(query)).aggregate(0L)(_ + _, _ + _)
   }
 
   /**
@@ -93,8 +93,8 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
    * @param query The count query.
    * @return The count of the number of occurrences of the query.
    */
-  def countOffsets(query: String): Long = {
-    countOffsets(query.getBytes("utf-8"))
+  def count(query: String): Long = {
+    count(query.getBytes("utf-8"))
   }
 
   /**
@@ -110,46 +110,14 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
   /**
    * Searches for the input regular expression within each RDD and
    * returns results as (offset, length) pairs.
+   *
    * The query must be UTF-8 encoded.
    *
    * @param query The regular expression search query.
    * @return RDD of matched pattern occurrences.
    */
-  def regexSearchOffsets(query: String): RDD[RegExMatch] = {
-    partitionsRDD.flatMap(_.regexSearchOffsets(query))
-  }
-
-  /**
-   * Searches for all records that match a query and
-   * returns results as recordIds relative to each partition.
-   *
-   * @param query The search query.
-   * @return The SearchRecordIdResultsRDD corresponding to the search query.
-   */
-  def search(query: Array[Byte]): SearchRecordIdResultsRDD = {
-    new SearchRecordIdResultsRDD(this, query)
-  }
-
-  /**
-   * Searches for all records that match a query and
-   * returns results as recordIds relative to each partition.
-   *
-   * @param query The search query.
-   * @return The SearchRecordIdResultsRDD corresponding to the search query.
-   */
-  def search(query: String): SearchRecordIdResultsRDD = {
-    search(query.getBytes("utf-8"))
-  }
-
-  /**
-   * Searches of all records that contains a regular expression search
-   * query and returns all such records.
-   *
-   * @param query The regular expression search query.
-   * @return The RDD containing all records that match the regular expression search.
-   */
-  def regexSearch(query: String): RDD[Array[Byte]] = {
-    partitionsRDD.flatMap(_.regexSearchRecords(query))
+  def regexSearch(query: String): RDD[RegExMatch] = {
+    partitionsRDD.flatMap(_.regexSearch(query))
   }
 
   /**
