@@ -108,14 +108,14 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
 
     val tempDir = Files.createTempDir()
     val succinctDir = tempDir + "/succinct"
-    df.saveAsSuccinctFiles(succinctDir)
-    val loadedDF = TestSQLContext.succinctFile(succinctDir)
+    df.saveAsSuccinctTable(succinctDir)
+    val loadedDF = TestSQLContext.succinctTable(succinctDir)
     (df, loadedDF) // (expected, actual: succinct loaded)
   }
 
   test("dsl test") {
     val results = TestSQLContext
-      .succinctFile(succinctTable)
+      .succinctTable(succinctTable)
       .select("shipmode")
       .collect()
 
@@ -148,30 +148,30 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
 
     val tempDir = Files.createTempDir()
     val succinctDir = tempDir + "/succinct"
-    cityDataFrame.saveAsSuccinctFiles(succinctDir)
+    cityDataFrame.saveAsSuccinctTable(succinctDir)
 
-    assert(TestSQLContext.succinctFile(succinctDir).collect().length == 3)
+    assert(TestSQLContext.succinctTable(succinctDir).collect().length == 3)
 
     val cities = TestSQLContext
-      .succinctFile(succinctDir)
+      .succinctTable(succinctDir)
       .select("Name")
       .collect()
     assert(cities.map(_(0)).toSet === Set("San Francisco", "Palo Alto", "Munich"))
 
     val lengths = TestSQLContext
-      .succinctFile(succinctDir)
+      .succinctTable(succinctDir)
       .select("Length")
       .collect()
     assert(lengths.map(_(0)).toSet === Set(12, 12, 8))
 
     val areas = TestSQLContext
-      .succinctFile(succinctDir)
+      .succinctTable(succinctDir)
       .select("Area")
       .collect()
     assert(areas.map(_(0)).toSet === Set(44.52, 22.33, 3.14))
 
     val airports = TestSQLContext
-      .succinctFile(succinctDir)
+      .succinctTable(succinctDir)
       .select("Airport")
       .collect()
     assert(airports.map(_(0)).toSet === Set(true, false, true))

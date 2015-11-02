@@ -43,7 +43,7 @@ class DefaultSource
     }
 
     if (doSave) {
-      data.saveAsSuccinctFiles(path)
+      data.saveAsSuccinctTable(path)
     }
     createRelation(sqlContext, parameters, data.schema)
   }
