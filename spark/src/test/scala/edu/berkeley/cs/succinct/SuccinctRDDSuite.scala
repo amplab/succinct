@@ -162,4 +162,20 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     assert(originalEntries === newEntries)
   }
 
+  test("Test save and load in memory 2") {
+    sc = new SparkContext("local", "test")
+
+    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile).map(_.getBytes)
+    val tmpDir = Files.createTempDir()
+    val succinctDir = tmpDir + "/succinct"
+    textRDD.saveAsSuccinctFile(succinctDir)
+
+    val succinctRDD = textRDD.succinct
+
+    val originalEntries = succinctRDD.collect()
+    val newEntries = sc.succinctFile(succinctDir).collect()
+
+    assert(originalEntries === newEntries)
+  }
+
 }
