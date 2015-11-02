@@ -112,6 +112,50 @@ abstract class SuccinctKVRDD[K: ClassTag](
   }
 
   /**
+   * Search for a term across values, and return the total number of occurrences.
+   *
+   * @param query The search term.
+   * @return Count of the number of occurrences.
+   */
+  def count(query: Array[Byte]): Long = {
+    partitionsRDD.map(_.count(query)).aggregate(0L)(_ + _, _ + _)
+  }
+
+  /**
+   * Search for a term across values, and return the total number of occurrences.
+   *
+   * @param query The search term.
+   * @return Count of the number of occurrences.
+   */
+  def count(query: String): Long = {
+    count(query.getBytes("utf-8"))
+  }
+
+  /**
+   * Search for a term across values and return offsets for the matches relative to the beginning of
+   * the value. The result is a collection of (key, offset) pairs, where the offset is relative to
+   * the beginning of the corresponding value.
+   *
+   * @param query The search term.
+   * @return An RDD of (key, offset) pairs.
+   */
+  def searchOffsets(query: Array[Byte]): RDD[(K, Int)] = {
+    partitionsRDD.flatMap(_.searchOffsets(query))
+  }
+
+  /**
+   * Search for a term across values and return offsets for the matches relative to the beginning of
+   * the value. The result is a collection of (key, offset) pairs, where the offset is relative to
+   * the beginning of the corresponding value.
+   *
+   * @param query The search term.
+   * @return An RDD of (key, offset) pairs.
+   */
+  def searchOffsets(query: String): RDD[(K, Int)] = {
+    searchOffsets(query.getBytes("utf-8"))
+  }
+
+  /**
    * Search for a regular expression across values, and return matched keys.
    *
    * @param query The regex query.

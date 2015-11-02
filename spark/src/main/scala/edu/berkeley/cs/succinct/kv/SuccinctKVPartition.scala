@@ -69,6 +69,27 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
     }
   }
 
+  /** Search across values, and return the number of occurrences of a particular query. **/
+  private[kv] def count(query: Array[Byte]): Long = {
+    valueBuffer.count(query)
+  }
+
+  /** Search across values, and return the key, match offset (relative to each value) pairs. **/
+  private[kv] def searchOffsets(query: Array[Byte]): Iterator[(K, Int)] = {
+    new Iterator[(K, Int)] {
+      val searchIterator = valueBuffer.searchIterator(query)
+
+      override def hasNext: Boolean = searchIterator.hasNext
+
+      override def next(): (K, Int) = {
+        val offset = searchIterator.next().toInt
+        val recordId = valueBuffer.offsetToRecordId(offset)
+        val key = keys(recordId)
+        (key, offset - valueBuffer.getRecordOffset(recordId))
+      }
+    }
+  }
+
   /** Regex search across values, and return all keys for matched values. **/
   private[kv] def regexSearch(query: String): Iterator[K] = {
     new Iterator[K] {
