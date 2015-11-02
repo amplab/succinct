@@ -24,7 +24,15 @@ public interface SuccinctIndexedFile extends SuccinctFile {
   int getNumRecords();
 
   /**
-   * Get the ith record.
+   * Get the offset for a given recordId
+   *
+   * @param recordId The record id.
+   * @return The corresponding offset.
+   */
+  int getRecordOffset(int recordId);
+
+  /**
+   * Get the record for a given recordId.
    *
    * @param recordId The record id.
    * @return The corresponding record.

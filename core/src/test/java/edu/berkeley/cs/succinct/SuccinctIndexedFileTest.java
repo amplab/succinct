@@ -12,6 +12,19 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
   protected byte[] fileData;
 
   /**
+   * Test method: int getRecordOffset(int recordId)
+   *
+   * @throws Exception
+   */
+  public void testGetRecordOffset() throws Exception {
+    System.out.println("getRecordOffset");
+
+    for (int i = 0; i < offsets.length; i++) {
+      assertEquals(offsets[i], sIFile.getRecordOffset(i));
+    }
+  }
+
+  /**
    * Test method: byte[] getRecord(int recordId)
    *
    * @throws Exception

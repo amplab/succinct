@@ -79,8 +79,23 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    *
    * @return The number of records.
    */
-  public int getNumRecords() {
+  @Override public int getNumRecords() {
     return offsets.length;
+  }
+
+  /**
+   * Get the offset for a given recordId
+   *
+   * @param recordId The record id.
+   * @return The corresponding offset.
+   */
+  @Override public int getRecordOffset(int recordId) {
+    if (recordId >= offsets.length || recordId < 0) {
+      throw new ArrayIndexOutOfBoundsException(
+        "Record does not exist: recordId = " + recordId);
+    }
+
+    return offsets[recordId];
   }
 
   /**

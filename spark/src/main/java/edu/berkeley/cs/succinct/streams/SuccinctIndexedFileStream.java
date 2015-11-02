@@ -70,6 +70,15 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
     return offsets.length;
   }
 
+  @Override public int getRecordOffset(int recordId) {
+    if (recordId >= offsets.length || recordId < 0) {
+      throw new ArrayIndexOutOfBoundsException(
+        "Record does not exist: recordId = " + recordId);
+    }
+
+    return offsets[recordId];
+  }
+
   @Override public byte[] getRecord(int recordId) {
     if (recordId >= offsets.length || recordId < 0) {
       throw new ArrayIndexOutOfBoundsException(
