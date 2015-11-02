@@ -32,7 +32,7 @@ object TableSearch {
     val succinctDir = tempDir + "/succinct"
     dataFrame.write.format("edu.berkeley.cs.succinct.sql").save(succinctDir)
 
-    val succinctDataFrame = sqlCtx.succinctFile(succinctDir)
+    val succinctDataFrame = sqlCtx.succinctTable(succinctDir)
 
     // Search for "TRUCK" for attribute shipmode
     val attrName = "shipmode"
