@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.examples
 
-import edu.berkeley.cs.succinct.SuccinctRDD
+import edu.berkeley.cs.succinct._
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
@@ -27,7 +27,7 @@ object WikiSearch {
     val ctx = new SparkContext(sparkConf)
 
     val wikiData = ctx.textFile(dataPath).map(_.getBytes).repartition(partitions)
-    val wikiSuccinctData = SuccinctRDD(wikiData).persist()
+    val wikiSuccinctData = wikiData.succinct
 
     // Count the number of occurrences of searchQuery in text
     val count = wikiSuccinctData.count(searchQuery)
