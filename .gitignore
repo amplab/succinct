@@ -16,6 +16,7 @@ core/target/
 spark/target/
 target/
 dist/
+docs/
 
 # vim tmps
 .*sw*
