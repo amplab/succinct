@@ -27,7 +27,7 @@ object SuccinctBuild extends Build {
 
   lazy val commonSettings = Seq(
     name := "succinct",
-    version := "0.1.3",
+    version := "0.1.4",
     organization := "amplab",
     scalaVersion := "2.10.4",
 
