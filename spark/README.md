@@ -65,39 +65,31 @@ the record type.
 `SuccinctRDD` can be used as follows:
 
 ```scala
-import edu.berkeley.cs.succinct.SuccinctRDD
+import edu.berkeley.cs.succinct._
 
 // Read text data from file; sc is the SparkContext
 val wikiData = ctx.textFile("/path/to/data").map(_.getBytes)
 
 // Convert the wikiRDD to a SuccinctRDD after serializing each record into an
 // array of bytes. Persist the RDD in memory to perform in-memory queries.
-val wikiSuccinctData = SuccinctRDD(wikiData).persist()
+val wikiSuccinctData = wikiData.succinct.persist()
 
 // Count the number of occurrences of "Berkeley" in text
-val berkeleyOccCount = wikiSuccinctData.countOffsets("Berkeley")
+val berkeleyOccCount = wikiSuccinctData.count("Berkeley")
 println("# of times Berkeley appears in text = " + berkeleyOccCount)
 
-// Count the number of occurrences of "Berkeley" in text
-val stanfordOccCount = wikiSuccinctData.countOffsets("Berkeley")
-println("# of times Berkeley appears in text = " + stanfordOccCount)
-
 // Find all offsets of occurrences of "Berkeley" in text
-val searchOffsets = wikiSuccinctData.searchOffsets("Berkeley")
+val searchOffsets = wikiSuccinctData.search("Berkeley")
 println("First 10 locations in the RDD where Berkeley occurs: ")
 searchOffsets.take(10).foreach(println)
 
 // Find all occurrences of the regular expression "(berkeley|stanford)\\.edu"
-val regexOccurrences = wikiSuccinctData.regexSearchOffsets("(stanford|berkeley)\\.edu").collect()
-println("# of matches for the regular expression (stanford|berkeley)\\.edu = " + regexOffsets.count)
+val regexOccurrences = wikiSuccinctData.regexSearch("(stanford|berkeley)\\.edu").collect()
+println("# of matches for the regular expression (stanford|berkeley)\\.edu = " + regexOccurrences.count)
 
-// Fetch all records that contain the string "Succinct"
-val succinctRecords = succinctTextRDD.search("Succinct").records.toStringRDD
-
-// Perform a regex search to find all records containing a particular entry
-val regexResults = wikiSuccinctData.regexSearch("(stanford|berkeley)\\.edu")
-      .map(new String(_))
-println("# of records containing the regular expression (stanford|berkeley)\\.edu = " + regexResults.count)
+// Extract 10 bytes at offset 5 in the RDD
+val extractedData = wikiSuccinctData.extract(5, 10)
+println("Extracted data = [" + new String(extractedData) + "]")
 ```
 
 #### Input Constraints
@@ -115,14 +107,16 @@ and persisted on disk after construcion completes, to be able to re-use
 the constructed data-structures without trigerring re-construction:
 
 ```scala
-import edu.berkeley.cs.succinct.SuccinctRDD
-import org.apache.spark.storage.StorageLevel
+import edu.berkeley.cs.succinct._
 
-// Construct the succinct RDD as before, and save it as follows
-succinctTextRDD.save("/path/to/data")
+// Read text data from file; sc is the SparkContext
+val wikiData = ctx.textFile("/path/to/data").map(_.getBytes)
+
+// Construct the succinct RDD and save it as follows
+wikiData.saveAsSuccinctFile("/path/to/data")
 
 // Load into memory again as follows; sc is the SparkContext
-val loadedSuccinctRDD = SuccinctRDD(sc, "/path/to/data", StorageLevel.MEMORY_ONLY)
+val loadedSuccinctRDD = sc.succinctFile("/path/to/data")
 ```
 
 ### SuccinctKVRDD API
@@ -137,29 +131,55 @@ bytes.
 import edu.berkeley.cs.succinct.kv.SuccinctKVRDD
 
 val wikiData = ctx.textFile(dataPath, partitions).map(_.getBytes)
-val wikiKVData = wikiData.zipWithIndex().map(t => (t._2, t._1)).repartition(partitions)
+val wikiKVData = wikiData.zipWithIndex().map(t => (t.\_2, t.\_1))
 
-val succinctKV = SuccinctKVRDD(wikiKVData).persist()
+val succinctKVRDD = wikiKVData.succinctKV
 
 // Get the value for key 0
-val value = succinctKV.get(0)
+val value = succinctKVRDD.get(0)
 println("Value corresponding to key 0 = " + new String(value))
 
 // Fetch 3 bytes at offset 1 for the value corresponding to key = 0
-val valueData = succinctKV.extract(0, 1, 3)
+val valueData = succinctKVRDD.extract(0, 1, 3)
 println("Value data for key 0 at offset 1 and length 3 = " + new String(valueData))
 
+// count the number of occurrences of "Berkeley" accross all values
+val count = succinctKVRDD.count("Berkeley")
+println("Number of times Berkeley occurs in the values: " + count)
+
+// Get the individual occurrences of Berkeley as offsets into each value
+val searchOffsets = succinctKVRDD.searchOffsets("Berkeley")
+println("First 10 matches for Berkeley as (key, offset) pairs: ")
+searchOffsets.take(10).foreach(println)
+
 // Search for values containing "Berkley", and fetch corresponding keys
-val keys = succinctKV.search("Berkeley")
+val keys = succinctKVRDD.search("Berkeley")
 println("First 10 keys matching the search query:")
 keys.take(10).foreach(println)
 
 // Regex search to find values containing matches of "(stanford|berkeley)\\.edu", 
 // and fetch the corresponding of keys
-val regexKeys = succinctKV.regexSearch("(stanford|berkeley)\\.edu")
+val regexKeys = succinctKVRDD.regexSearch("(stanford|berkeley)\\.edu")
 println("First 10 keys matching the regex query:")
 regexKeys.take(10).foreach(println)
 ``` 
+
+Similar to the flat-file interface, we suggest that the KV data be persisted to 
+disk for repeated-use scenarios:
+
+```scala
+import edu.berkeley.cs.succinct.kv._
+
+// Read data from file; sc is the SparkContext
+val wikiData = ctx.textFile("/path/to/data").map(_.getBytes)
+val wikiKVData = wikiData.zipWithIndex().map(t => (t.\_2, t.\_1))
+
+// Construct the SuccinctKVRDD and save it as follows
+wikiKVData.saveAsSuccinctKV("/path/to/data")
+
+// Load into memory again as follows; sc is the SparkContext
+val loadedSuccinctKVRDD = sc.succinctKV("/path/to/data")
+```
 
 ### DataFrame API
 
@@ -217,7 +237,7 @@ val cityRDD = sparkContext.parallelize(Seq(
 val cityDataFrame = sqlContext.createDataFrame(cityRDD, citySchema)
 
 // Save the DataFrame in the "Succinct" format
-cityDataFrame.saveAsSuccinctFiles("/path/to/data")
+cityDataFrame.write.format("edu.berkeley.cs.succinct.sql").save("/path/to/data")
 
 // Read the Succinct DataFrame from the saved path
 val succinctCities = sqlContext.succinctFile("/path/to/data")
