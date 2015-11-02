@@ -6,7 +6,7 @@ directly on a compressed representation of data. This repository maintains the
 Java implementations of Succinct's core algorithms, and applications that 
 exploit them, such as a [Spark](http://spark.apache.org/) binding for Succinct.
 
-The master branch is in version 0.1.3.
+The master branch is in version 0.1.4.
 
 ## Building Succinct
 
@@ -40,7 +40,7 @@ using Maven by adding the following dependency information to your pom.xml file:
 <dependency>
     <groupId>amplab</groupId>
     <artifactId>succinct-core</artifactId>
-    <version>0.1.3</version>
+    <version>0.1.4</version>
 </dependency>
 ```
 
@@ -63,7 +63,7 @@ using Maven by adding the following dependency information to your pom.xml file:
 <dependency>
     <groupId>amplab</groupId>
     <artifactId>succinct-spark</artifactId>
-    <version>0.1.3</version>
+    <version>0.1.4</version>
 </dependency>
 ```
 
@@ -75,7 +75,7 @@ for spark-submit and Maven instructions):
 
 ```
 resolvers += "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
-libraryDependencies += "amplab" % "succinct" % "0.1.3"
+libraryDependencies += "amplab" % "succinct" % "0.1.4"
 ```
 
 The succinct-spark jar file can also be added to a Spark shell using the 
@@ -83,5 +83,5 @@ The succinct-spark jar file can also be added to a Spark shell using the
 spark shell:
 
 ```
-$ bin/spark-shell --jars succinct-0.1.3.jar
+$ bin/spark-shell --jars succinct-0.1.4.jar
 ```
