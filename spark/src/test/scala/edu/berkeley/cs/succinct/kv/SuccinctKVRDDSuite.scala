@@ -6,6 +6,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.storage.StorageLevel
 import org.scalatest.FunSuite
 
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
@@ -14,10 +15,23 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
 
   def genInt(max: Int): Int = Math.abs(new Random().nextInt(max))
 
+  def search(data: String, str: String): Array[Int] = {
+    var lastIndex = 0
+    val results: ArrayBuffer[Int] = new ArrayBuffer[Int]()
+    while (lastIndex != -1) {
+      lastIndex = data.indexOf(str, lastIndex)
+      if (lastIndex != -1) {
+        results += lastIndex
+        lastIndex += str.length
+      }
+    }
+    results.toArray
+  }
+
   test("Test get") {
     sc = new SparkContext("local", "test")
 
-    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
+    val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
     val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes))
 
     val succinctKVRDD = SuccinctKVRDD(kvRDD)
@@ -35,7 +49,7 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
   test("Test extract") {
     sc = new SparkContext("local", "test")
 
-    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
+    val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
     val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes))
 
     val succinctKVRDD = SuccinctKVRDD(kvRDD)
@@ -56,18 +70,53 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
     })
   }
 
-  test("search") {
+  test("Test search") {
     sc = new SparkContext("local", "test")
 
     val query = "TRUCK"
 
-    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
+    val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
     val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes))
 
     val succinctKVRDD = SuccinctKVRDD(kvRDD)
 
-    val expectedSearchResults = kvRDD.filter(t => new String(t._2).contains(query)).map(_._1).collect()
-    val searchResults = succinctKVRDD.search(query).collect()
+    val expectedSearchResults = kvRDD.filter(t => new String(t._2).contains(query)).map(_._1).collect().sorted
+    val searchResults = succinctKVRDD.search(query).collect().sorted
+
+    assert(expectedSearchResults === searchResults)
+  }
+
+  test("Test count") {
+    sc = new SparkContext("local", "test")
+
+    val query = "TRUCK"
+
+    val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
+    val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes))
+    val kvMap = kvRDD.collect().toMap
+
+    val succinctKVRDD = SuccinctKVRDD(kvRDD)
+
+    val expectedCount = kvMap.flatMap(t => search(new String(t._2), query)).size
+    val count = succinctKVRDD.count(query)
+
+    assert(expectedCount === count)
+  }
+
+  test("Test searchOffsets") {
+    sc = new SparkContext("local", "test")
+
+    val query = "TRUCK"
+
+    val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
+    val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes))
+    val kvMap = kvRDD.collect().toMap
+
+    val succinctKVRDD = SuccinctKVRDD(kvRDD)
+
+    val expectedSearchResults = kvMap.flatMap(t =>
+      search(new String(t._2), query).map(offset => (t._1, offset))).toArray.sorted
+    val searchResults = succinctKVRDD.searchOffsets(query).collect().sorted
 
     assert(expectedSearchResults === searchResults)
   }
@@ -77,7 +126,7 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
 
     val query = "TRUCK"
 
-    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile).repartition(5)
+    val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile).repartition(5)
     val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes))
 
     val succinctKVRDD = SuccinctKVRDD(kvRDD)
@@ -85,13 +134,13 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
 
     val count = kvMap.size
 
-    // Check
+    // Check get
     (0 to 100).foreach(i => {
       val key = genKey(count)
       assert(kvMap(key) === succinctKVRDD.get(key))
     })
 
-    // Check
+    // Check extract
     (0 to 100).foreach(i => {
       val key = genKey(count)
       if (kvMap(key).nonEmpty) {
@@ -103,16 +152,25 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
       }
     })
 
-    val expectedSearchResults = kvRDD.filter(t => new String(t._2).contains(query)).map(_._1).collect()
-    val searchResults = succinctKVRDD.search(query).collect()
+    // Check search
+    val expectedSearchResults = kvRDD.filter(t => new String(t._2).contains(query)).map(_._1).collect().sorted
+    val searchResults = succinctKVRDD.search(query).collect().sorted
 
     assert(expectedSearchResults === searchResults)
+
+    // Check searchOffsets
+    val expectedSearchOffsets = kvMap.flatMap(t =>
+      search(new String(t._2), query).map(offset => (t._1, offset))).toArray.sorted
+    val searchOffsets = succinctKVRDD.searchOffsets(query).collect().sorted
+
+    assert(expectedSearchOffsets === searchOffsets)
+
   }
 
   test("Test save and load in memory") {
     sc = new SparkContext("local", "test")
 
-    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
+    val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
     val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes))
     val succinctKVRDD = SuccinctKVRDD(kvRDD)
 
