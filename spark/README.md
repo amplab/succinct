@@ -123,7 +123,7 @@ val loadedSuccinctRDD = sc.succinctFile("/path/to/data")
 
 The `SuccinctKVRDD` implements the `RDD[(K, Array[Byte]]` interface, where key
 can be of the specified (_ordered_) type while the value is a serialized array of 
-bytes.  
+bytes.
 
 `SuccinctKVRDD` can be used as follows:
 
