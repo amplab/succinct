@@ -6,11 +6,11 @@ import AssemblyKeys._
 object SuccinctBuild extends Build {
 
   lazy val root = project.in(file("."))
-    .aggregate(core, spark)
+    .aggregate(core, serde, spark)
     .settings(assemblySettings: _*)
     .settings(commonSettings: _*)
     .settings(TestSettings.settings: _*)
-    .dependsOn(core, spark)
+    .dependsOn(core, serde, spark)
 
   lazy val core = project.in(file("core"))
     .settings(assemblySettings: _*)
@@ -18,12 +18,19 @@ object SuccinctBuild extends Build {
     .settings(TestSettings.settings: _*)
     .settings(name := "succinct-core")
 
+  lazy val serde = project.in(file("serde"))
+    .settings(assemblySettings: _*)
+    .settings(commonSettings: _*)
+    .settings(TestSettings.settings: _*)
+    .settings(name := "succinct-serde")
+
   lazy val spark = project.in(file("spark"))
     .settings(assemblySettings: _*)
     .settings(commonSettings: _*)
     .settings(TestSettings.settings: _*)
     .settings(name := "succinct-spark")
     .dependsOn(core)
+    .dependsOn(serde)
 
   lazy val commonSettings = Seq(
     name := "succinct",
