@@ -4,8 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.berkeley.cs.succinct.DataType;
 import edu.berkeley.cs.succinct.DeserializationException;
+import edu.berkeley.cs.succinct.PrimitiveDeserializer;
 import edu.berkeley.cs.succinct.block.json.FieldMapping;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,9 +33,10 @@ public class JsonDeserializer implements ObjectDeserializer<String> {
       byte curDelimiter = data[curOffset++];
       String fieldKey = fieldMapping.getField(curDelimiter);
       DataType fieldType = fieldMapping.getDataType(fieldKey);
-      Object fieldValue = readField(data, curOffset, curDelimiter, fieldType );
+      byte[] fieldValueBytes = extractField(data, curOffset, curDelimiter);
+      Object fieldValue = PrimitiveDeserializer.deserializePrimitive(fieldValueBytes, fieldType);
       add(jsonMap, fieldKey, fieldValue);
-      curOffset += (fieldValue.length() + 1); // Skip the field data, and the end delimiter
+      curOffset += (fieldValueBytes.length + 1); // Skip the field data, and the end delimiter
     }
 
     String jsonString;
@@ -61,6 +64,14 @@ public class JsonDeserializer implements ObjectDeserializer<String> {
     } else {
       map.put(key, value);
     }
+  }
+
+  private byte[] extractField(byte[] data, int startOffset, byte delimiter) {
+    int i = startOffset;
+    while (data[i] != delimiter) {
+      i++;
+    }
+    return Arrays.copyOfRange(data, startOffset, i);
   }
 
   private Object readField(byte[] data, int startOffset, byte delimiter, DataType dataType) {

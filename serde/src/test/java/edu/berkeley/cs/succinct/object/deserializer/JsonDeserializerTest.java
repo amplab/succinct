@@ -23,8 +23,8 @@ public class JsonDeserializerTest extends TestCase {
     byte[] jsonSerializedData2 = new byte[] {-118, 'a', 'b', 'c', -118, -117, 'd', 'e', 'f', -117,
       -119, '1', '8', -119};
 
-    String expectedJsonString1 = "{\"name\":\"abc\", \"age\":\"18\"}";
-    String expectedJsonString2 = "{\"name\": {\"first\":\"abc\", \"last\":\"def\"}, \"age\":\"18\"}";
+    String expectedJsonString1 = "{\"name\":\"abc\", \"age\":18}";
+    String expectedJsonString2 = "{\"name\": {\"first\":\"abc\", \"last\":\"def\"}, \"age\":18}";
 
     FieldMapping mapping = new FieldMapping();
     mapping.put("name", (byte) -120, DataType.STRING);
@@ -34,11 +34,9 @@ public class JsonDeserializerTest extends TestCase {
 
     JsonDeserializer deserializer = new JsonDeserializer(mapping);
     String jsonString1 = deserializer.deserialize(jsonSerializedData1);
-    System.out.println("jsonString1 = " + jsonString1);
     assertJsonEquals(expectedJsonString1, jsonString1);
 
     String jsonString2 = deserializer.deserialize(jsonSerializedData2);
-    System.out.println("jsonString1 = " + jsonString2);
     assertJsonEquals(expectedJsonString2, jsonString2);
   }
 }
