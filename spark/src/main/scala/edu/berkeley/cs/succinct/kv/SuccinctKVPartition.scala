@@ -18,7 +18,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
 
   val numKeys = keys.length
 
-  private[kv] def iterator: Iterator[(K, Array[Byte])] = {
+  private[succinct] def iterator: Iterator[(K, Array[Byte])] = {
     new Iterator[(K, Array[Byte])] {
       var currentRecordId = 0
 
@@ -34,7 +34,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   }
 
   /** Find the index of a particular key using binary search. **/
-  private[kv] def findKey(key: K): Int = {
+  private[succinct] def findKey(key: K): Int = {
     var (low, high) = (0, numKeys - 1)
 
     while (low <= high)
@@ -47,19 +47,19 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   }
 
   /** Get the value corresponding to a key. **/
-  private[kv] def get(key: K): Array[Byte] = {
+  private[succinct] def get(key: K): Array[Byte] = {
     val pos = findKey(key)
     if (pos < 0 || pos > numKeys) null else valueBuffer.getRecord(pos)
   }
 
   /** Random access into the value corresponding to a key. **/
-  private[kv] def extract(key: K, offset: Int, length: Int): Array[Byte] = {
+  private[succinct] def extract(key: K, offset: Int, length: Int): Array[Byte] = {
     val pos = findKey(key)
     if (pos < 0 || pos > numKeys) null else valueBuffer.accessRecord(pos, offset, length)
   }
 
   /** Search across values, and return all keys for matched values. **/
-  private[kv] def search(query: Array[Byte]): Iterator[K] = {
+  private[succinct] def search(query: Array[Byte]): Iterator[K] = {
     new Iterator[K] {
       val recordIds = valueBuffer.recordSearchIdIterator(query)
 
@@ -70,12 +70,12 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   }
 
   /** Search across values, and return the number of occurrences of a particular query. **/
-  private[kv] def count(query: Array[Byte]): Long = {
+  private[succinct] def count(query: Array[Byte]): Long = {
     valueBuffer.count(query)
   }
 
   /** Search across values, and return the key, match offset (relative to each value) pairs. **/
-  private[kv] def searchOffsets(query: Array[Byte]): Iterator[(K, Int)] = {
+  private[succinct] def searchOffsets(query: Array[Byte]): Iterator[(K, Int)] = {
     new Iterator[(K, Int)] {
       val searchIterator = valueBuffer.searchIterator(query)
 
@@ -91,7 +91,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   }
 
   /** Regex search across values, and return all keys for matched values. **/
-  private[kv] def regexSearch(query: String): Iterator[K] = {
+  private[succinct] def regexSearch(query: String): Iterator[K] = {
     new Iterator[K] {
       val recordIds = valueBuffer.recordSearchRegexIds(query).iterator
 
@@ -102,10 +102,10 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   }
 
   /** Get the number of KV pairs in this partition. **/
-  private[kv] def count: Long = numKeys
+  private[succinct] def count: Long = numKeys
 
   /** Write the partition data to output stream. **/
-  private[kv] def writeToStream(dataStream: DataOutputStream) = {
+  private[succinct] def writeToStream(dataStream: DataOutputStream) = {
     valueBuffer.writeToStream(dataStream)
     val objectOutputStream = new ObjectOutputStream(dataStream)
     objectOutputStream.writeObject(keys)
