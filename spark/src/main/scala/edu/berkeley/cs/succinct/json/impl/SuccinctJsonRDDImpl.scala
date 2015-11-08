@@ -1,18 +1,15 @@
-package edu.berkeley.cs.succinct.kv.impl
+package edu.berkeley.cs.succinct.json.impl
 
-import edu.berkeley.cs.succinct.kv.{SuccinctKVPartition, SuccinctKVRDD}
+import edu.berkeley.cs.succinct.json.{SuccinctJsonPartition, SuccinctJsonRDD}
 import org.apache.spark.OneToOneDependency
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 
-import scala.reflect.ClassTag
+class SuccinctJsonRDDImpl private[succinct](val partitionsRDD: RDD[SuccinctJsonPartition],
+                                            val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+  extends SuccinctJsonRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
-class SuccinctKVRDDImpl[K: ClassTag] private[succinct](
-    val partitionsRDD: RDD[SuccinctKVPartition[K]],
-    val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
-  extends SuccinctKVRDD[K](partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
-
-  /** Set the name for the RDD; By default set to "SuccinctKVRDD" */
+  /** Set the name for the RDD; By default set to "SuccinctJsonRDD" */
   override def setName(_name: String): this.type = {
     if (partitionsRDD.name != null) {
       partitionsRDD.setName(partitionsRDD.name + ", " + _name)
@@ -22,12 +19,12 @@ class SuccinctKVRDDImpl[K: ClassTag] private[succinct](
     this
   }
 
-  setName("SuccinctKVRDD")
+  setName("SuccinctJsonRDD")
 
   /**
-   * Persists the Succinct partitions at the specified storage level, ignoring any existing target
-   * storage level.
-   */
+    * Persists the Succinct partitions at the specified storage level, ignoring any existing target
+    * storage level.
+    */
   override def persist(newLevel: StorageLevel): this.type = {
     partitionsRDD.persist(newLevel)
     this
