@@ -27,6 +27,11 @@
       <artifactId>succinct-spark</artifactId>
       <version>0.1.6-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>amplab</groupId>
+      <artifactId>succinct-serde</artifactId>
+      <version>0.1.4</version>
+    </dependency>
   </dependencies>
 
   <build>
