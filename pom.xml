@@ -40,6 +40,7 @@
     <scala.binary.version>2.10</scala.binary.version>
     <scalatest.version>2.2.1</scalatest.version>
     <trove4j.version>3.0.3</trove4j.version>
+    <jackson.version>2.4.4</jackson.version>
     <junit.version>3.8.1</junit.version>
     <spark.version>1.4.1</spark.version>
   </properties>
@@ -47,6 +48,7 @@
   <modules>
     <module>core</module>
     <module>spark</module>
+    <module>serde</module>
     <module>assembly</module>
   </modules>
 
