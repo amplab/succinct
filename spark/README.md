@@ -128,7 +128,7 @@ bytes.
 `SuccinctKVRDD` can be used as follows:
 
 ```scala
-import edu.berkeley.cs.succinct.kv.SuccinctKVRDD
+import edu.berkeley.cs.succinct.kv._
 
 val wikiData = ctx.textFile(dataPath, partitions).map(_.getBytes)
 val wikiKVData = wikiData.zipWithIndex().map(t => (t.\_2, t.\_1))
