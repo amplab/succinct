@@ -73,6 +73,13 @@ public class JsonBlockSerializer implements BlockSerializer<String> {
       ValueNode valueNode = (ValueNode) jsonNode;
       if (!fieldMapping.containsField(currentPath)) {
         fieldMapping.put(currentPath, delimiters[currentDelimiterIdx++], getNodeType(jsonNode));
+      } else {
+        DataType existingType = fieldMapping.getDataType(currentPath);
+        DataType newType = getNodeType(valueNode);
+        if (existingType != newType) {
+          DataType encapsulatingType = DataType.encapsulatingType(existingType, newType);
+          fieldMapping.updateType(currentPath, encapsulatingType);
+        }
       }
       try {
         byte fieldByte = fieldMapping.getDelimiter(currentPath);
@@ -82,7 +89,6 @@ public class JsonBlockSerializer implements BlockSerializer<String> {
       } catch (IOException e) {
         throw new SerializationException(e.getMessage());
       }
-      // map.put(currentPath, valueNode.asText());
     }
   }
 
@@ -95,6 +101,10 @@ public class JsonBlockSerializer implements BlockSerializer<String> {
       return DataType.INT;
     } else if (node.isLong()) {
       return DataType.LONG;
+    } else if (node.isFloat()) {
+      return DataType.FLOAT;
+    } else if (node.isDouble()) {
+      return DataType.DOUBLE;
     } else {
       throw new UnsupportedOperationException("JSON DataType not supported.");
     }
