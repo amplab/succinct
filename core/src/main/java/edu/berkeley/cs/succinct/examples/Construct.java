@@ -24,7 +24,7 @@ public class Construct {
       type = args[2];
     }
 
-    if (type == "file") {
+    if (type.equals("file")) {
       if (args[0].endsWith(".succinct")) {
         succinctFileBuffer = new SuccinctFileBuffer(args[0], StorageMode.MEMORY_ONLY);
       } else {
@@ -40,7 +40,7 @@ public class Construct {
 
         succinctFileBuffer = new SuccinctFileBuffer(fileData);
       }
-    } else if (type == "indexed-file") {
+    } else if (type.equals("indexed-file")) {
       if (args[0].endsWith(".succinct")) {
         succinctFileBuffer = new SuccinctIndexedFileBuffer(args[0], StorageMode.MEMORY_ONLY);
       } else {
@@ -67,6 +67,8 @@ public class Construct {
         }
         succinctFileBuffer = new SuccinctIndexedFileBuffer(fileData, offsets);
       }
+    } else {
+      throw new UnsupportedOperationException("Unsupported mode: " + type);
     }
 
     assert succinctFileBuffer != null;
