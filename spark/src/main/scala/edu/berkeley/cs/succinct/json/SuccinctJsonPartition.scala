@@ -54,6 +54,10 @@ class SuccinctJsonPartition(ids: Array[Long], valueBuffer: SuccinctIndexedFile,
     search(query)
   }
 
+  private[succinct] def jSearch(query: String): Iterator[Long] = {
+    search(query.getBytes)
+  }
+
   override private[succinct] def writeToStream(dataStream: DataOutputStream): Unit = {
     super.writeToStream(dataStream)
     val objectOutputStream = new ObjectOutputStream(dataStream)
