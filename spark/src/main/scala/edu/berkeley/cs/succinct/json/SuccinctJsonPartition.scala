@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.json
 
-import java.io.{ObjectInputStream, ObjectOutputStream, DataOutputStream}
+import java.io.{DataOutputStream, ObjectInputStream, ObjectOutputStream}
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.`object`.deserializer.JsonDeserializer
@@ -24,14 +24,25 @@ class SuccinctJsonPartition(ids: Array[Long], valueBuffer: SuccinctIndexedFile,
 
       override def hasNext: Boolean = curRecordId < ids.length
 
-      override def next(): String = jsonDeserializer.deserialize(ids(curRecordId),
-        valueBuffer.getRecord(curRecordId))
+      override def next(): String = {
+        val json = jsonDeserializer.deserialize(ids(curRecordId),
+          getDocBytes(curRecordId))
+        curRecordId += 1
+        json
+      }
     }
   }
 
+  private[succinct] def getDocBytes(recordId: Int): Array[Byte] = {
+    val start = valueBuffer.getRecordOffset(recordId)
+    val end = if (recordId == valueBuffer.getNumRecords - 1) valueBuffer.getSize - 1
+      else valueBuffer.getRecordOffset(recordId + 1)
+    valueBuffer.extract(start, end - start)
+  }
+
   private[succinct] def jGet(id: Long): String = {
-    val doc = get(id)
-    if (doc == null) null else jsonDeserializer.deserialize(id, doc)
+    val pos = findKey(id)
+    if (pos < 0 || pos > numKeys) null else jsonDeserializer.deserialize(id, getDocBytes(pos))
   }
 
   private[succinct] def jSearch(field: String, value: String): Iterator[Long] = {

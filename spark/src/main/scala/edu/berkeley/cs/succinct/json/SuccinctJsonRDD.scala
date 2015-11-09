@@ -1,11 +1,12 @@
 package edu.berkeley.cs.succinct.json
 
-import scala.collection.JavaConversions._
 import edu.berkeley.cs.succinct.block.json.{FieldMapping, JsonBlockSerializer}
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.json.impl.SuccinctJsonRDDImpl
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{Dependency, Partition, SparkContext, TaskContext}
+
+import scala.collection.JavaConversions._
 
 abstract class SuccinctJsonRDD(@transient sc: SparkContext,
     @transient deps: Seq[Dependency[_]])
@@ -67,17 +68,19 @@ abstract class SuccinctJsonRDD(@transient sc: SparkContext,
 
 object SuccinctJsonRDD {
   def apply(inputRDD: RDD[String]): SuccinctJsonRDD = {
-    val partitionsRDD = inputRDD.mapPartitions(createSuccinctJsonPartition)
+    val idOffsets = inputRDD.mapPartitions(it => Iterator(it.length)).collect().scanLeft(0L)(_ + _)
+    val partitionsRDD = inputRDD.mapPartitionsWithIndex((idx, it) =>
+      createSuccinctJsonPartition(it, idOffsets(idx), idOffsets(idx + 1) - 1))
     new SuccinctJsonRDDImpl(partitionsRDD)
   }
 
-  def createSuccinctJsonPartition(dataIter: Iterator[String]): Iterator[SuccinctJsonPartition] = {
+  def createSuccinctJsonPartition(dataIter: Iterator[String], idBegin: Long, idEnd: Long):
+    Iterator[SuccinctJsonPartition] = {
     val serializer = new JsonBlockSerializer((-120 to -1).toArray.map(_.toByte))
     val serializedData = serializer.serialize(dataIter)
     val valueBuffer = new SuccinctIndexedFileBuffer(serializedData.getData,
       serializedData.getOffsets)
     val fieldMapping = serializedData.getMetadata.asInstanceOf[FieldMapping]
-    // TODO: Fix
-    Iterator(new SuccinctJsonPartition(null, valueBuffer, fieldMapping))
+    Iterator(new SuccinctJsonPartition((idBegin to idEnd).toArray, valueBuffer, fieldMapping))
   }
 }
