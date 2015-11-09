@@ -84,14 +84,4 @@ public class JsonDeserializer implements ObjectDeserializer<String> {
     return Arrays.copyOfRange(data, startOffset, i);
   }
 
-  private Object readField(byte[] data, int startOffset, byte delimiter, DataType dataType) {
-    int i = startOffset;
-    String field = "";
-    while (data[i] != delimiter) {
-      field += (char) data[i++];
-    }
-    return field;
-  }
-
-
 }
