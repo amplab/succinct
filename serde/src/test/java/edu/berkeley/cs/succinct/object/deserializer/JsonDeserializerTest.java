@@ -23,7 +23,7 @@ public class JsonDeserializerTest extends TestCase {
     byte[] jsonSerializedData2 = new byte[] {-118, 'a', 'b', 'c', -118, -117, 'd', 'e', 'f', -117,
       -119, '1', '6', '.', '5', -119};
 
-    String expectedJsonString1 = "{\"name\":\"abc\", \"age\":18.0}";g
+    String expectedJsonString1 = "{\"name\":\"abc\", \"age\":18.0}";
     String expectedJsonString2 = "{\"name\": {\"first\":\"abc\", \"last\":\"def\"}, \"age\":16.5}";
 
     FieldMapping mapping = new FieldMapping();
