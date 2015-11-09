@@ -53,6 +53,15 @@ public interface SuccinctFile extends Serializable {
   byte[] extractUntil(long offset, byte delim);
 
   /**
+   * Perform a range search to obtain SA range between two given queries.
+   *
+   * @param buf1 The beginning of the range.
+   * @param buf2 The end of the range.
+   * @return The range into SA.
+   */
+  Range rangeSearch(byte[] buf1, byte[] buf2);
+
+  /**
    * Perform backward search to obtain SA range for a query.
    *
    * @param buf Input query.

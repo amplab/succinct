@@ -137,6 +137,17 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
   }
 
   /**
+   * Perform a range search to obtain SA range between two given queries.
+   *
+   * @param buf1 The beginning of the range.
+   * @param buf2 The end of the range.
+   * @return The range into SA.
+   */
+  @Override public Range rangeSearch(byte[] buf1, byte[] buf2) {
+    return new Range(fwdSearch(buf1).begin(), fwdSearch(buf2).end());
+  }
+
+  /**
    * Perform backward search to obtain SA range for a query.
    *
    * @param buf Input query.
@@ -152,7 +163,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
       range.second =
         alphabetMap.get((alphabet.get(alphabetMap.get(buf[m - 1]).second + 1))).first - 1;
     } else {
-      return range;
+      return new Range(0L, -1L);
     }
 
     for (int i = m - 2; i >= 0; i--) {
@@ -160,10 +171,19 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
         c1 = alphabetMap.get(buf[i]).first;
         c2 = alphabetMap.get((alphabet.get(alphabetMap.get(buf[i]).second + 1))).first - 1;
       } else {
-        return range;
+        return new Range(0L, -1L);
       }
+
+      if (c1 > c2) {
+        return new Range(0L, -1L);
+      }
+
       range.first = binSearchNPA(range.first, c1, c2, false);
       range.second = binSearchNPA(range.second, c1, c2, true);
+
+      if (range.first > range.second) {
+        return new Range(0L, -1L);
+      }
     }
 
     return range;
@@ -190,10 +210,19 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
         c1 = alphabetMap.get(buf[i]).first;
         c2 = alphabetMap.get((alphabet.get(alphabetMap.get(buf[i]).second + 1))).first - 1;
       } else {
-        return newRange;
+        return new Range(0L, -1L);
       }
+
+      if (c1 > c2) {
+        return new Range(0L, -1L);
+      }
+
       newRange.first = binSearchNPA(newRange.first, c1, c2, false);
       newRange.second = binSearchNPA(newRange.second, c1, c2, true);
+
+      if (newRange.first > newRange.second) {
+        return new Range(0L, -1L);
+      }
     }
     return newRange;
   }

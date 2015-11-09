@@ -250,10 +250,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
         case RangeSearch: {
           byte[] queryBegin = queries[qid][0];
           byte[] queryEnd = queries[qid][1];
-          Range rangeBegin, rangeEnd;
-          rangeBegin = bwdSearch(queryBegin);
-          rangeEnd = bwdSearch(queryEnd);
-          range = new Range(rangeBegin.first, rangeEnd.second);
+          range = rangeSearch(queryBegin, queryEnd);
           break;
         }
         default: {
