@@ -46,6 +46,9 @@ class SuccinctJsonPartition(ids: Array[Long], valueBuffer: SuccinctIndexedFile,
   }
 
   private[succinct] def jSearch(field: String, value: String): Iterator[Long] = {
+    if (!fieldMapping.containsField(field)) {
+      return Iterator()
+    }
     val delim = fieldMapping.getDelimiter(field)
     val query: Array[Byte] = delim +: value.getBytes :+ delim
     search(query)
