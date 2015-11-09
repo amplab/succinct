@@ -1,0 +1,4 @@
+{"name": {"first": "Anurag", "last": "Khandelwal"}, "age": 25, "location": {"city": "Berkeley", "state": "CA"}}
+{"name": "Cookie Monster", "Location" : "Sesame Street", "weigth" : 42.2}
+{"name": {"first": "Bilbo", "last": "Baggins"}, "age": 111, "location": {"city": "Shire"}}
+{"name": {"first": "Charles", "middle": "X", "last": "Xaviers"}, "additional" : {"professional": {"skills" : "telekinesis"}}}
