@@ -34,6 +34,14 @@ public class PrimitiveDeserializer {
     return Long.parseLong(new String(data));
   }
 
+  public static Float deserializeFloat(byte[] data) throws DeserializationException {
+    return Float.parseFloat(new String(data));
+  }
+
+  public static Double deserializeDouble(byte[] data) throws DeserializationException {
+    return Double.parseDouble(new String(data));
+  }
+
   public static Object deserializePrimitive(byte[] field, DataType dataType)
     throws DeserializationException {
     switch (dataType) {
@@ -43,6 +51,8 @@ public class PrimitiveDeserializer {
       case SHORT: return PrimitiveDeserializer.deserializeShort(field);
       case INT: return PrimitiveDeserializer.deserializeInt(field);
       case LONG: return PrimitiveDeserializer.deserializeLong(field);
+      case FLOAT: return PrimitiveDeserializer.deserializeFloat(field);
+      case DOUBLE: return PrimitiveDeserializer.deserializeDouble(field);
       default: throw new DeserializationException("Deserialize using custom deserializer.");
     }
   }

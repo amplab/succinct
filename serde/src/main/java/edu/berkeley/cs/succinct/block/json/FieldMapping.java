@@ -30,6 +30,10 @@ public class FieldMapping {
     delimiter2fieldMap.put(delimiter, field);
   }
 
+  public void updateType(String field, DataType dataType) {
+    field2TypeMap.put(field, dataType);
+  }
+
   public byte getDelimiter(String field) {
     return field2DelimiterMap.get(field);
   }
