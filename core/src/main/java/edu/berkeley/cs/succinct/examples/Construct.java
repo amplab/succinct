@@ -62,7 +62,9 @@ public class Construct {
           }
         }
         int[] offsets = new int[positions.size()];
-
+        for (int i = 0; i < offsets.length; i++) {
+          offsets[i] = positions.get(i);
+        }
         succinctFileBuffer = new SuccinctIndexedFileBuffer(fileData, offsets);
       }
     }
