@@ -37,7 +37,7 @@ abstract class SuccinctJsonRDD(@transient sc: SparkContext,
   override def compute(split: Partition, context: TaskContext): Iterator[String] = {
     val succinctIterator = firstParent[SuccinctJsonPartition].iterator(split, context)
     if (succinctIterator.hasNext) {
-      succinctIterator.next().iterator
+      succinctIterator.next().jIterator
     } else {
       Iterator[String]()
     }

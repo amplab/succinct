@@ -18,19 +18,20 @@ class SuccinctJsonPartition(ids: Array[Long], valueBuffer: SuccinctIndexedFile,
 
   val jsonDeserializer: JsonDeserializer = new JsonDeserializer(fieldMapping)
 
-  override private[succinct] def iterator: Iterator[String] = {
+  private[succinct] def jIterator: Iterator[String] = {
     new Iterator[String] {
       var curRecordId = 0
 
       override def hasNext: Boolean = curRecordId < ids.length
 
-      override def next(): String = jsonDeserializer.deserialize(valueBuffer.getRecord(curRecordId))
+      override def next(): String = jsonDeserializer.deserialize(ids(curRecordId),
+        valueBuffer.getRecord(curRecordId))
     }
   }
 
   private[succinct] def jGet(id: Long): String = {
     val doc = get(id)
-    if (doc == null) null else jsonDeserializer.deserialize(doc)
+    if (doc == null) null else jsonDeserializer.deserialize(id, doc)
   }
 
   private[succinct] def jSearch(field: String, value: String): Iterator[Long] = {
