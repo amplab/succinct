@@ -16,18 +16,35 @@ public class JsonDeserializer implements ObjectDeserializer<String> {
   FieldMapping fieldMapping;
   ObjectMapper mapper;
 
-
   public JsonDeserializer(FieldMapping fieldMapping) {
     this.fieldMapping = fieldMapping;
     this.mapper = new ObjectMapper();
   }
 
   @Override public String deserialize(byte[] data) throws DeserializationException {
-    if (data.length == 0) {
-      return "{}";
+    return mapToJsonString(deserializeToMap(data));
+  }
+
+  public String deserialize(long id, byte[] data) throws DeserializationException {
+    Map<String, Object> jsonMap = deserializeToMap(data);
+    jsonMap.put("id", id);
+    return mapToJsonString(jsonMap);
+  }
+
+  private String mapToJsonString(Map<String, Object> jsonMap) throws DeserializationException {
+    String jsonString;
+    try {
+      jsonString = mapper.writeValueAsString(jsonMap);
+    } catch (JsonProcessingException e) {
+      throw new DeserializationException(e.getMessage());
     }
 
+    return jsonString;
+  }
+
+  private Map<String, Object> deserializeToMap(byte[] data) throws DeserializationException {
     Map<String, Object> jsonMap = new HashMap<String, Object>();
+
     int curOffset = 0;
     while (curOffset < data.length) {
       byte curDelimiter = data[curOffset++];
@@ -39,14 +56,7 @@ public class JsonDeserializer implements ObjectDeserializer<String> {
       curOffset += (fieldValueBytes.length + 1); // Skip the field data, and the end delimiter
     }
 
-    String jsonString;
-    try {
-      jsonString = mapper.writeValueAsString(jsonMap);
-    } catch (JsonProcessingException e) {
-      throw new DeserializationException(e.getMessage());
-    }
-
-    return jsonString;
+    return jsonMap;
   }
 
   private void add(Map<String, Object> map, String key, Object value) {
