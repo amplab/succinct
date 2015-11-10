@@ -1,13 +1,16 @@
 package edu.berkeley.cs.succinct
 
 import com.google.common.io.Files
-import org.apache.spark.SparkContext
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.storage.StorageLevel
 import org.scalatest.FunSuite
 
 import scala.collection.mutable.ArrayBuffer
 
 class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
+
+  val conf = new SparkConf().setAppName("test").setMaster("local")
+    .set("spark.driver.allowMultipleContexts", "true")
 
   def search(data: String, str: String): Array[Long] = {
     var lastIndex = 0L
@@ -23,7 +26,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test search") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val query = "int"
     val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
@@ -40,7 +43,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test count") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val query = "int"
     val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
@@ -57,7 +60,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test extract") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val offset = 100
     val length = 100
@@ -75,7 +78,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test regexSearch") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     // TODO: Add more tests
     val query = "int"
@@ -94,7 +97,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test RDD count") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
     val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
@@ -111,7 +114,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
   test("Test multiple partitions") {
     // TODO: Add tests
 
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile).repartition(5)
     val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
@@ -147,7 +150,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test save and load in memory") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
     val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes)).persist()
@@ -163,7 +166,7 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test save and load in memory 2") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile).map(_.getBytes)
     val tmpDir = Files.createTempDir()
