@@ -1,5 +1,8 @@
 package edu.berkeley.cs.succinct.json
 
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path}
+
 import collection.JavaConversions._
 
 import edu.berkeley.cs.succinct.block.json.{FieldMapping, JsonBlockSerializer}
@@ -99,6 +102,33 @@ abstract class SuccinctJsonRDD(@transient sc: SparkContext,
     */
   def search(query: String): RDD[Long] = {
     partitionsRDD.flatMap(_.jSearch(query))
+  }
+
+  /**
+    * Saves the SuccinctJsonRDD at the specified path.
+    *
+    * @param location The path where the SuccinctJsonRDD should be stored.
+    */
+  def save(location: String): Unit = {
+    val path = new Path(location)
+    val fs = FileSystem.get(path.toUri, new Configuration())
+    if (!fs.exists(path)) {
+      fs.mkdirs(path)
+    }
+
+    partitionsRDD.zipWithIndex().foreach(entry => {
+      val i = entry._2
+      val partition = entry._1
+      val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
+      val path = new Path(partitionLocation)
+      val fs = FileSystem.get(path.toUri, new Configuration())
+      val os = fs.create(path)
+      partition.writeToStream(os)
+      os.close()
+    })
+
+    val successPath = new Path(location.stripSuffix("/") + "/_SUCCESS")
+    fs.create(successPath).close()
   }
 }
 
