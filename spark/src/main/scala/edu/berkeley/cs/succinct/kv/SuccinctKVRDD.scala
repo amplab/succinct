@@ -166,9 +166,9 @@ abstract class SuccinctKVRDD[K: ClassTag](
   }
 
   /**
-   * Saves the SuccinctRDD at the specified path.
+   * Saves the SuccinctKVRDD at the specified path.
    *
-   * @param location The path where the SuccinctRDD should be stored.
+   * @param location The path where the SuccinctKVRDD should be stored.
    */
   def save(location: String): Unit = {
     val path = new Path(location)
