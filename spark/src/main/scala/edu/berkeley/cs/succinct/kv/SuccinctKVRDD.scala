@@ -211,11 +211,11 @@ object SuccinctKVRDD {
   }
 
   /**
-   * Reads a SuccinctRDD from disk.
+   * Reads a SuccinctKVRDD from disk.
    *
    * @param sc The spark context
-   * @param location The path to read the SuccinctRDD from.
-   * @return The SuccinctRDD.
+   * @param location The path to read the SuccinctKVRDD from.
+   * @return The SuccinctKVRDD.
    */
   def apply[K: ClassTag](sc: SparkContext, location: String, storageLevel: StorageLevel)
       (implicit ordering: Ordering[K])
