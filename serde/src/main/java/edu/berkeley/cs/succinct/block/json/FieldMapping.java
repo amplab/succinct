@@ -2,10 +2,11 @@ package edu.berkeley.cs.succinct.block.json;
 
 import edu.berkeley.cs.succinct.DataType;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FieldMapping {
+public class FieldMapping implements Serializable {
   private Map<Byte, String> delimiter2fieldMap;
   private Map<String, Byte> field2DelimiterMap;
   private Map<String, DataType> field2TypeMap;
