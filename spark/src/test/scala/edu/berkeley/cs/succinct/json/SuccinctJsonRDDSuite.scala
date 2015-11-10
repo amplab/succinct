@@ -2,11 +2,12 @@ package edu.berkeley.cs.succinct.json
 
 import java.io.IOException
 
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.google.common.io.Files
 import edu.berkeley.cs.succinct.LocalSparkContext
-import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.FunSuite
 
 import scala.util.Random
@@ -15,15 +16,19 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
 
   val conf = new SparkConf().setAppName("test").setMaster("local")
     .set("spark.driver.allowMultipleContexts", "true")
+  val mapper = new ObjectMapper
 
   def genId(max: Int): Long = Math.abs(new Random().nextInt(max))
 
   @throws(classOf[IOException])
   def assertJsonEquals(json1: String, json2: String) {
-    val mapper = new ObjectMapper
     val tree1: JsonNode = mapper.readTree(json1)
     val tree2: JsonNode = mapper.readTree(json2)
     assert(tree1 === tree2)
+  }
+
+  def addId(json: String, id: Long): String = {
+    mapper.writeValueAsString(mapper.readTree(json).asInstanceOf[ObjectNode].put("id", id))
   }
 
   test("get") {
@@ -32,10 +37,10 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
     val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile)
 
     val succinctJsonRDD = SuccinctJsonRDD(jsonRDD)
-    val jsonList = jsonRDD.collect()
+    val jsonList = jsonRDD.collect().zipWithIndex.map(entry => addId(entry._1, entry._2))
 
     // Check
-    (0 to jsonList.length).foreach(i => {
+    jsonList.indices.foreach(i => {
       assertJsonEquals(jsonList(i), succinctJsonRDD.get(i))
     })
   }
@@ -91,13 +96,13 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
   test("multiple partitions") {
     sc = new SparkContext(conf)
 
-    val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile).repartition(5)
+    val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile, 5)
 
     val succinctJsonRDD = SuccinctJsonRDD(jsonRDD)
-    val jsonList = jsonRDD.collect()
+    val jsonList = jsonRDD.zipWithIndex.collect().map(entry => addId(entry._1, entry._2))
 
     // Check get
-    (0 to jsonList.length).foreach(i => {
+    jsonList.indices.foreach(i => {
       assertJsonEquals(jsonList(i), succinctJsonRDD.get(i))
     })
 
