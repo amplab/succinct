@@ -2,7 +2,7 @@ package edu.berkeley.cs.succinct.kv
 
 import com.google.common.io.Files
 import edu.berkeley.cs.succinct.LocalSparkContext
-import org.apache.spark.SparkContext
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.storage.StorageLevel
 import org.scalatest.FunSuite
 
@@ -10,6 +10,9 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
+
+  val conf = new SparkConf().setAppName("test").setMaster("local")
+    .set("spark.driver.allowMultipleContexts", "true")
 
   def genKey(max: Int): String = String.valueOf(Math.abs(new Random().nextInt(max)))
 
@@ -29,7 +32,7 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test get") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
     val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes))
@@ -47,7 +50,7 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test extract") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
     val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes))
@@ -71,7 +74,7 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test search") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val query = "TRUCK"
 
@@ -87,7 +90,7 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test count") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val query = "TRUCK"
 
@@ -104,7 +107,7 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test searchOffsets") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val query = "TRUCK"
 
@@ -122,7 +125,7 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test multiple partitions") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val query = "TRUCK"
 
@@ -168,7 +171,7 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test save and load in memory") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
     val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes))
@@ -191,7 +194,7 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("Test save and load in memory 2") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
     val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1.getBytes))

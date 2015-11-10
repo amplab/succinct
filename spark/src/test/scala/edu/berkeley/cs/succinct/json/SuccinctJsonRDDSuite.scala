@@ -5,13 +5,16 @@ import java.io.IOException
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.google.common.io.Files
 import edu.berkeley.cs.succinct.LocalSparkContext
-import org.apache.spark.SparkContext
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.storage.StorageLevel
 import org.scalatest.FunSuite
 
 import scala.util.Random
 
 class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
+
+  val conf = new SparkConf().setAppName("test").setMaster("local")
+    .set("spark.driver.allowMultipleContexts", "true")
 
   def genId(max: Int): Long = Math.abs(new Random().nextInt(max))
 
@@ -24,7 +27,7 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("get") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile)
 
@@ -38,7 +41,7 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("filter") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile)
 
@@ -62,7 +65,7 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("search") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile)
 
@@ -86,7 +89,7 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("multiple partitions") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile).repartition(5)
 
@@ -133,7 +136,7 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("save and load in memory") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile).repartition(5)
     val succinctJsonRDD = SuccinctJsonRDD(jsonRDD)
@@ -151,7 +154,7 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
   }
 
   test("save and load in memory 2") {
-    sc = new SparkContext("local", "test")
+    sc = new SparkContext(conf)
 
     val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile).repartition(5)
     val succinctJsonRDD = jsonRDD.succinctJson
