@@ -1,15 +1,15 @@
 package edu.berkeley.cs.succinct.json
 
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path}
-
-import collection.JavaConversions._
-
 import edu.berkeley.cs.succinct.block.json.{FieldMapping, JsonBlockSerializer}
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.json.impl.SuccinctJsonRDDImpl
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
 import org.apache.spark.rdd.RDD
+import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{Dependency, Partition, SparkContext, TaskContext}
+
+import scala.collection.JavaConversions._
 
 /**
   * A compressed RDD containing a collection of JSON documents, represented using Succinct's data
@@ -139,6 +139,30 @@ object SuccinctJsonRDD {
     val partitionsRDD = inputRDD.mapPartitionsWithIndex((idx, it) =>
       createSuccinctJsonPartition(it, idOffsets(idx), idOffsets(idx + 1) - 1))
     new SuccinctJsonRDDImpl(partitionsRDD)
+  }
+
+  /**
+    * Reads a SuccinctKVRDD from disk.
+    *
+    * @param sc The spark context
+    * @param location The path to read the SuccinctKVRDD from.
+    * @return The SuccinctKVRDD.
+    */
+  def apply(sc: SparkContext, location: String, storageLevel: StorageLevel): SuccinctJsonRDD = {
+    val locationPath = new Path(location)
+    val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
+    val status = fs.listStatus(locationPath, new PathFilter {
+      override def accept(path: Path): Boolean = {
+        path.getName.startsWith("part-")
+      }
+    })
+    val numPartitions = status.length
+    val succinctPartitions = sc.parallelize(0 to numPartitions - 1, numPartitions)
+      .mapPartitionsWithIndex[SuccinctJsonPartition]((i, partition) => {
+      val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
+      Iterator(SuccinctJsonPartition(partitionLocation, storageLevel))
+    }).cache()
+    new SuccinctJsonRDDImpl(succinctPartitions)
   }
 
   def createSuccinctJsonPartition(dataIter: Iterator[String], idBegin: Long, idEnd: Long):
