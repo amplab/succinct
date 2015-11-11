@@ -9,6 +9,7 @@ import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.Range;
 import edu.berkeley.cs.succinct.util.SearchIterator;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Map;
@@ -123,17 +124,17 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    */
   @Override public byte[] extractUntil(long offset, byte delim) {
 
-    String strBuf = "";
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
     long s = lookupISA(offset);
     do {
-      char nextChar = (char) lookupC(s);
-      if (nextChar == delim || nextChar == (char)SuccinctCore.EOF)
+      byte nextByte = lookupC(s);
+      if (nextByte == delim || nextByte == SuccinctCore.EOF)
         break;
-      strBuf += nextChar;
+      out.write(nextByte);
       s = lookupNPA(s);
     } while (true);
 
-    return strBuf.getBytes();
+    return out.toByteArray();
   }
 
   /**
