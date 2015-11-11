@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct.streams;
 
+import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctFile;
 import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.SuccinctRegEx;
@@ -9,6 +10,7 @@ import edu.berkeley.cs.succinct.util.SearchIterator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -102,19 +104,19 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @return Extracted data.
    */
   @Override public byte[] extractUntil(long offset, byte delim) {
-    String strBuf = "";
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
     long s;
 
     s = lookupISA(offset);
     do {
-      char nextChar = (char) lookupC(s);
-      if (nextChar == delim || nextChar == 1)
+      byte nextByte = lookupC(s);
+      if (nextByte == delim || nextByte == SuccinctCore.EOF)
         break;
-      strBuf += nextChar;
+      out.write(nextByte);
       s = lookupNPA(s);
     } while (true);
 
-    return strBuf.getBytes();
+    return out.toByteArray();
   }
 
   /**

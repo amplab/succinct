@@ -10,6 +10,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
 
@@ -103,17 +104,19 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
     }
 
     int begOffset = offsets[recordId] + offset;
-    String strBuf = "";
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
 
     long s = lookupISA(begOffset);
+    int numBytesRead = 0;
     do {
-      char nextChar = (char) lookupC(s);
-      if (nextChar == (char) SuccinctCore.EOL || nextChar == (char) SuccinctCore.EOF)
+      byte nextByte = lookupC(s);
+      if (nextByte == SuccinctCore.EOL || nextByte == SuccinctCore.EOF)
         break;
-      strBuf += nextChar;
+      out.write(nextByte);
+      numBytesRead++;
       s = lookupNPA(s);
-    } while (strBuf.length() < length);
-    return strBuf.getBytes();
+    } while (numBytesRead < length);
+    return out.toByteArray();
   }
 
   public Integer[] recordSearchIds(byte[] query) {
