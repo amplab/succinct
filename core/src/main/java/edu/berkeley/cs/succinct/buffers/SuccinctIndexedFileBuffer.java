@@ -128,17 +128,19 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     }
 
     int begOffset = offsets[recordId] + offset;
-    String strBuf = "";
-    long s = lookupISA(begOffset);
-    do {
-      char nextChar = (char) lookupC(s);
-      if (nextChar == (char) SuccinctCore.EOL || nextChar == (char) SuccinctCore.EOF)
-        break;
-      strBuf += nextChar;
-      s = lookupNPA(s);
-    } while (strBuf.length() < length);
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-    return strBuf.getBytes();
+    long s = lookupISA(begOffset);
+    int numBytesRead = 0;
+    do {
+      byte nextByte = lookupC(s);
+      if (nextByte == SuccinctCore.EOL || nextByte == SuccinctCore.EOF)
+        break;
+      out.write(nextByte);
+      numBytesRead++;
+      s = lookupNPA(s);
+    } while (numBytesRead < length);
+    return out.toByteArray();
   }
 
   /**
