@@ -52,15 +52,6 @@ abstract class SuccinctKVRDD[K: ClassTag](
   }
 
   /**
-   * Count the number of KV-pairs in the SuccinctKVRDD.
-   *
-   * @return The number of KV-pairs in the SuccinctKVRDD.
-   */
-  override def count(): Long = {
-    partitionsRDD.map(_.count).aggregate(0L)(_ + _, _ + _)
-  }
-
-  /**
    * Get the value for a given key.
    *
    * @param key Input key.

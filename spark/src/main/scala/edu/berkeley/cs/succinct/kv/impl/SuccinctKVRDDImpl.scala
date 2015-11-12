@@ -12,6 +12,8 @@ class SuccinctKVRDDImpl[K: ClassTag] private[succinct](
     val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctKVRDD[K](partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
+  val recordCount: Long = partitionsRDD.map(_.count).aggregate(0L)(_ + _, _ + _)
+
   /** Set the name for the RDD; By default set to "SuccinctKVRDD" */
   override def setName(_name: String): this.type = {
     if (partitionsRDD.name != null) {
@@ -43,5 +45,14 @@ class SuccinctKVRDDImpl[K: ClassTag] private[succinct](
   override def cache(): this.type = {
     partitionsRDD.persist(targetStorageLevel)
     this
+  }
+
+  /**
+    * Count the number of KV-pairs in the SuccinctKVRDD.
+    *
+    * @return The number of KV-pairs in the SuccinctKVRDD.
+    */
+  override def count(): Long = {
+    recordCount
   }
 }
