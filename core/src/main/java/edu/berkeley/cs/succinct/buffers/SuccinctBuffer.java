@@ -8,7 +8,7 @@ import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.qsufsort.QSufSort;
 import edu.berkeley.cs.succinct.util.CommonUtils;
 import edu.berkeley.cs.succinct.util.container.Pair;
-import edu.berkeley.cs.succinct.util.buffer.SerializedOperations;
+import edu.berkeley.cs.succinct.util.serops.SerializedOperations;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeByteBuffer;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeIntBuffer;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeLongBuffer;

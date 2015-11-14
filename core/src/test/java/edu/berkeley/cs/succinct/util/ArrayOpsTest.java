@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.util;
 
-import edu.berkeley.cs.succinct.util.buffer.SerializedOperations;
+import edu.berkeley.cs.succinct.util.serops.SerializedOperations;
 import junit.framework.TestCase;
 
 import java.nio.LongBuffer;
