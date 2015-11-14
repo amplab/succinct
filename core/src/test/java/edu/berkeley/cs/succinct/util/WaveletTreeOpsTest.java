@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.util;
 
-import edu.berkeley.cs.succinct.dictionary.Tables;
+import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import junit.framework.TestCase;
 
 public class WaveletTreeOpsTest extends TestCase {

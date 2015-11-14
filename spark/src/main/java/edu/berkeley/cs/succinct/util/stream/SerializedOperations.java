@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.util.stream;
 
-import edu.berkeley.cs.succinct.dictionary.Tables;
+import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import edu.berkeley.cs.succinct.util.CommonUtils;
 
 import java.io.IOException;

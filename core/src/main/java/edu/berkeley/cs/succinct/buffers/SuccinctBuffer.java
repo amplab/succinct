@@ -2,17 +2,19 @@ package edu.berkeley.cs.succinct.buffers;
 
 import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctCore;
-import edu.berkeley.cs.succinct.bitmap.BMArray;
-import edu.berkeley.cs.succinct.bitmap.BitMap;
-import edu.berkeley.cs.succinct.dictionary.Tables;
-import edu.berkeley.cs.succinct.qsufsort.QSufSort;
+import edu.berkeley.cs.succinct.util.bitmap.BMArray;
+import edu.berkeley.cs.succinct.util.bitmap.BitMap;
+import edu.berkeley.cs.succinct.util.dictionary.Tables;
+import edu.berkeley.cs.succinct.util.qsufsort.QSufSort;
 import edu.berkeley.cs.succinct.util.CommonUtils;
 import edu.berkeley.cs.succinct.util.container.Pair;
-import edu.berkeley.cs.succinct.util.serops.SerializedOperations;
+import edu.berkeley.cs.succinct.util.serops.ArrayOps;
+import edu.berkeley.cs.succinct.util.serops.BMArrayOps;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeByteBuffer;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeIntBuffer;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeLongBuffer;
-import edu.berkeley.cs.succinct.wavelettree.WaveletTree;
+import edu.berkeley.cs.succinct.util.serops.WaveletTreeOps;
+import edu.berkeley.cs.succinct.util.wavelettree.WaveletTree;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TLongLongHashMap;
 
@@ -139,13 +141,13 @@ public class SuccinctBuffer extends SuccinctCore {
     long colOff, rowOff;
 
     // Search columnoffset
-    colId = SerializedOperations.ArrayOps.getRank1(coloffsets.buffer(), 0, getSigmaSize(), i) - 1;
+    colId = ArrayOps.getRank1(coloffsets.buffer(), 0, getSigmaSize(), i) - 1;
 
     // Get columnoffset
     colOff = coloffsets.get(colId);
 
     // Search celloffsets
-    cellId = SerializedOperations.ArrayOps
+    cellId = ArrayOps
       .getRank1(celloffsets.buffer(), coff.get(colId), colsizes.get(colId), i - colOff) - 1;
 
     // Get position within cell
@@ -161,13 +163,13 @@ public class SuccinctBuffer extends SuccinctCore {
     contextSize = rowsizes.get(rowId);
 
     // Get context position
-    contextPos = SerializedOperations.ArrayOps
+    contextPos = ArrayOps
       .getRank1(necrow.buffer(), roff.get(rowId), rowsizes.get(rowId), colId) - 1;
 
     long cellValue = cellOff;
 
     if (wavelettree[rowId] != null) {
-      cellValue = SerializedOperations.WaveletTreeOps
+      cellValue = WaveletTreeOps
         .getValue((ByteBuffer) wavelettree[rowId].rewind(), contextPos, cellOff, 0,
           contextSize - 1);
       wavelettree[rowId].rewind();
@@ -194,7 +196,7 @@ public class SuccinctBuffer extends SuccinctCore {
       i = lookupNPA(i);
       numHops++;
     }
-    long sampledValue = SerializedOperations.BMArrayOps
+    long sampledValue = BMArrayOps
       .getVal(sa.buffer(), (int) (i / getSamplingRate()), getSampledSABits());
 
     if (sampledValue < numHops) {
@@ -218,7 +220,7 @@ public class SuccinctBuffer extends SuccinctCore {
     }
 
     int sampleIdx = (int) (i / getSamplingRate());
-    long pos = SerializedOperations.BMArrayOps.getVal(isa.buffer(), sampleIdx, getSampledSABits());
+    long pos = BMArrayOps.getVal(isa.buffer(), sampleIdx, getSampledSABits());
     i -= (sampleIdx * getSamplingRate());
     while (i != 0) {
       pos = lookupNPA(pos);
@@ -234,7 +236,7 @@ public class SuccinctBuffer extends SuccinctCore {
    * @return Value of inverted alphabet map at specified index.
    */
   @Override public byte lookupC(long i) {
-    int idx = SerializedOperations.ArrayOps.getRank1(coloffsets.buffer(), 0, getSigmaSize(), i) - 1;
+    int idx = ArrayOps.getRank1(coloffsets.buffer(), 0, getSigmaSize(), i) - 1;
     return alphabet.get(idx);
   }
 

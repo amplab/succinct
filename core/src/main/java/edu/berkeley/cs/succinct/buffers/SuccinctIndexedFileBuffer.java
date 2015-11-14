@@ -3,7 +3,7 @@ package edu.berkeley.cs.succinct.buffers;
 import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
-import edu.berkeley.cs.succinct.dictionary.Tables;
+import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.container.Range;
 import edu.berkeley.cs.succinct.util.iterator.SearchIterator;

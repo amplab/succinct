@@ -1,6 +1,6 @@
-package edu.berkeley.cs.succinct.dictionary;
+package edu.berkeley.cs.succinct.util.dictionary;
 
-import edu.berkeley.cs.succinct.bitmap.BitMap;
+import edu.berkeley.cs.succinct.util.bitmap.BitMap;
 import junit.framework.TestCase;
 
 import java.nio.ByteBuffer;

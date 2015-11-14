@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.util.stream;
 
-import edu.berkeley.cs.succinct.bitmap.BitMap;
+import edu.berkeley.cs.succinct.util.bitmap.BitMap;
 import junit.framework.TestCase;
 import org.apache.hadoop.fs.FSDataInputStream;
 

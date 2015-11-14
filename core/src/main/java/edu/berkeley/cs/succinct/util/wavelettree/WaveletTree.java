@@ -1,7 +1,7 @@
-package edu.berkeley.cs.succinct.wavelettree;
+package edu.berkeley.cs.succinct.util.wavelettree;
 
-import edu.berkeley.cs.succinct.bitmap.BitMap;
-import edu.berkeley.cs.succinct.dictionary.Dictionary;
+import edu.berkeley.cs.succinct.util.bitmap.BitMap;
+import edu.berkeley.cs.succinct.util.dictionary.Dictionary;
 import gnu.trove.list.array.TLongArrayList;
 
 import java.nio.ByteBuffer;

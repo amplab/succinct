@@ -1,9 +1,9 @@
 package edu.berkeley.cs.succinct.util;
 
-import edu.berkeley.cs.succinct.bitmap.BitMap;
-import edu.berkeley.cs.succinct.dictionary.Dictionary;
-import edu.berkeley.cs.succinct.dictionary.Tables;
-import edu.berkeley.cs.succinct.util.serops.SerializedOperations;
+import edu.berkeley.cs.succinct.util.bitmap.BitMap;
+import edu.berkeley.cs.succinct.util.dictionary.Dictionary;
+import edu.berkeley.cs.succinct.util.dictionary.Tables;
+import edu.berkeley.cs.succinct.util.serops.DictionaryOps;
 import junit.framework.TestCase;
 
 import java.nio.ByteBuffer;
@@ -39,7 +39,7 @@ public class DictionaryOpsTest extends TestCase {
     Dictionary D = new Dictionary(B);
     ByteBuffer dBuf = D.getByteBuffer();
     for (int i = 0; i < 2048; i++) {
-      assertEquals(SerializedOperations.DictionaryOps.getRank1(dBuf, 0, i), D.getRank1(i));
+      assertEquals(DictionaryOps.getRank1(dBuf, 0, i), D.getRank1(i));
     }
   }
 
@@ -61,7 +61,7 @@ public class DictionaryOpsTest extends TestCase {
     Dictionary D = new Dictionary(B);
     ByteBuffer dBuf = D.getByteBuffer();
     for (int i = 0; i < 2048; i++) {
-      assertEquals(SerializedOperations.DictionaryOps.getRank0(dBuf, 0, i), D.getRank0(i));
+      assertEquals(DictionaryOps.getRank0(dBuf, 0, i), D.getRank0(i));
     }
   }
 
@@ -85,7 +85,7 @@ public class DictionaryOpsTest extends TestCase {
     Dictionary D = new Dictionary(B);
     ByteBuffer dBuf = D.getByteBuffer();
     for (int i = 0; i < test.size(); i++) {
-      assertEquals(SerializedOperations.DictionaryOps.getSelect1(dBuf, 0, i), (long) test.get(i));
+      assertEquals(DictionaryOps.getSelect1(dBuf, 0, i), (long) test.get(i));
     }
   }
 
@@ -110,7 +110,7 @@ public class DictionaryOpsTest extends TestCase {
     Dictionary D = new Dictionary(B);
     ByteBuffer dBuf = D.getByteBuffer();
     for (int i = 0; i < test.size(); i++) {
-      assertEquals(SerializedOperations.DictionaryOps.getSelect0(dBuf, 0, i), (long) test.get(i));
+      assertEquals(DictionaryOps.getSelect0(dBuf, 0, i), (long) test.get(i));
     }
   }
 }

@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.qsufsort;
+package edu.berkeley.cs.succinct.util.qsufsort;
 
 import edu.berkeley.cs.succinct.util.CommonUtils;
 import junit.framework.TestCase;

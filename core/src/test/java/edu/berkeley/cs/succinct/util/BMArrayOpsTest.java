@@ -1,7 +1,7 @@
 package edu.berkeley.cs.succinct.util;
 
-import edu.berkeley.cs.succinct.bitmap.BMArray;
-import edu.berkeley.cs.succinct.util.serops.SerializedOperations;
+import edu.berkeley.cs.succinct.util.bitmap.BMArray;
+import edu.berkeley.cs.succinct.util.serops.BMArrayOps;
 import junit.framework.TestCase;
 
 import java.nio.LongBuffer;
@@ -32,7 +32,7 @@ public class BMArrayOpsTest extends TestCase {
 
     LongBuffer bBuf = bmArray.getLongBuffer();
     for (int i = 0; i < 1000; i++) {
-      assertEquals(SerializedOperations.BMArrayOps.getVal(bBuf, i, 64), i);
+      assertEquals(BMArrayOps.getVal(bBuf, i, 64), i);
     }
 
   }

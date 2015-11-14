@@ -1,8 +1,8 @@
 package edu.berkeley.cs.succinct.util.stream;
 
-import edu.berkeley.cs.succinct.bitmap.BitMap;
-import edu.berkeley.cs.succinct.dictionary.Dictionary;
-import edu.berkeley.cs.succinct.dictionary.Tables;
+import edu.berkeley.cs.succinct.util.bitmap.BitMap;
+import edu.berkeley.cs.succinct.util.dictionary.Dictionary;
+import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import junit.framework.TestCase;
 import org.apache.hadoop.fs.FSDataInputStream;
 

@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.bitmap;
+package edu.berkeley.cs.succinct.util.bitmap;
 
 import java.nio.LongBuffer;
 

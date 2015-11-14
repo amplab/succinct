@@ -1,7 +1,7 @@
 package edu.berkeley.cs.succinct.util;
 
-import edu.berkeley.cs.succinct.bitmap.BitMap;
-import edu.berkeley.cs.succinct.util.serops.SerializedOperations;
+import edu.berkeley.cs.succinct.util.bitmap.BitMap;
+import edu.berkeley.cs.succinct.util.serops.BitMapOps;
 import junit.framework.TestCase;
 
 import java.nio.LongBuffer;
@@ -40,7 +40,7 @@ public class BitMapOpsTest extends TestCase {
     LongBuffer bBuf = instance.getLongBuffer();
     for (int i = 0; i < 1000; i++) {
       long expResult = test.get(i);
-      long result = SerializedOperations.BitMapOps.getBit(bBuf, i);
+      long result = BitMapOps.getBit(bBuf, i);
       assertEquals(expResult, result);
     }
   }
@@ -59,7 +59,7 @@ public class BitMapOpsTest extends TestCase {
     instance.setValPos(pos, 1000, bits);
     LongBuffer bBuf = instance.getLongBuffer();
     long expResult = 1000L;
-    long result = SerializedOperations.BitMapOps.getValPos(bBuf, pos, bits);
+    long result = BitMapOps.getValPos(bBuf, pos, bits);
     assertEquals(expResult, result);
   }
 
