@@ -130,6 +130,49 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
   }
 
   /**
+    * Bulk append data to SuccinctJsonRDD; returns a new SuccinctJsonRDD, with the newly appended
+    * data encoded as Succinct data structures. The original RDD is removed from memory after this
+    * operation.
+    *
+    * @param data The data to be appended.
+    * @param preservePartitioning Preserves the partitioning for the appended data if true;
+    *                             repartitions the data otherwise.
+    * @return A new SuccinctJsonRDD containing the newly appended data.
+    */
+  def bulkAppend(data: RDD[Array[Byte]], preservePartitioning: Boolean): SuccinctRDD = {
+    val countPerPartition: Double = count().toDouble / partitionsRDD.partitions.length.toDouble
+    val nNewPartitions: Int = Math.ceil(data.count() / countPerPartition).toInt
+
+    def partition(data: RDD[Array[Byte]]): RDD[Array[Byte]] = {
+      if (preservePartitioning) data
+      else data.repartition(nNewPartitions)
+    }
+
+    val partitionSizes = data.mapPartitionsWithIndex((idx, partition) => {
+      val partitionSize = partition.aggregate(0L)((sum, record) => sum + (record.length + 1), _ + _)
+      Iterator((idx, partitionSize))
+    }
+    ).collect().sorted.map(_._2)
+
+    val partitionRecordCounts = data.mapPartitionsWithIndex((idx, partition) => {
+      val partitionRecordCount = partition.size
+      Iterator((idx, partitionRecordCount))
+    }).collect().sorted.map(_._2)
+
+    val originalSize = partitionsRDD.map(_.sizeInBytes).aggregate(0L)(_ + _, _ + _)
+    val originalCount = count()
+
+    val partitionOffsets = partitionSizes.map(_ + originalSize).scanLeft(0L)(_ + _)
+    val partitionFirstRecordIds = partitionRecordCounts.map(_ + originalCount).scanLeft(0L)(_ + _)
+    val newPartitions = partition(data)
+      .mapPartitionsWithIndex((i, p) =>
+        SuccinctRDD.createSuccinctPartition(partitionOffsets(i), partitionFirstRecordIds(i), p))
+    val newSuccinctRDDPartitions = partitionsRDD.union(newPartitions).cache()
+    partitionsRDD.unpersist()
+    new SuccinctRDDImpl(newSuccinctRDDPartitions)
+  }
+
+  /**
    * Saves the SuccinctRDD at the specified path.
    *
    * @param location The path where the SuccinctRDD should be stored.

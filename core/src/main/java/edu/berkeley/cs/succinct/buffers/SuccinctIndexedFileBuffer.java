@@ -5,9 +5,9 @@ import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
-import edu.berkeley.cs.succinct.util.Range;
-import edu.berkeley.cs.succinct.util.SearchIterator;
-import edu.berkeley.cs.succinct.util.SearchRecordIterator;
+import edu.berkeley.cs.succinct.util.container.Range;
+import edu.berkeley.cs.succinct.util.iterator.SearchIterator;
+import edu.berkeley.cs.succinct.util.iterator.SearchRecordIterator;
 
 import java.io.*;
 import java.nio.ByteBuffer;

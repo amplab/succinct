@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.regex;
 
-import edu.berkeley.cs.succinct.util.Range;
+import edu.berkeley.cs.succinct.util.container.Range;
 
 public class SuccinctRegExMatch extends Range {
 

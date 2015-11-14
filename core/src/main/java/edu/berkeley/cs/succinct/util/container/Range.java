@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.util;
+package edu.berkeley.cs.succinct.util.container;
 
 import java.io.Serializable;
 

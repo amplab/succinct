@@ -105,6 +105,35 @@ abstract class SuccinctJsonRDD(@transient sc: SparkContext,
   }
 
   /**
+    * Bulk append data to SuccinctJsonRDD; returns a new SuccinctJsonRDD, with the newly appended
+    * data encoded as Succinct data structures. The original RDD is removed from memory after this
+    * operation.
+    *
+    * @param data The data to be appended.
+    * @param preservePartitioning Preserves the partitioning for the appended data if true;
+    *                             repartitions the data otherwise.
+    * @return A new SuccinctJsonRDD containing the newly appended data.
+    */
+  def bulkAppend(data: RDD[String], preservePartitioning: Boolean): SuccinctJsonRDD = {
+    val countPerPartition: Double = count().toDouble / partitionsRDD.partitions.length.toDouble
+    val nNewPartitions: Int = Math.ceil(data.count() / countPerPartition).toInt
+
+    def partition(data: RDD[String]): RDD[String] = {
+      if (preservePartitioning) data
+      else data.repartition(nNewPartitions)
+    }
+
+    val idOffsets = data.mapPartitions(it => Iterator(it.length))
+      .collect().scanLeft(0L)(_ + _).map(_ + count())
+    val newPartitions = partition(data)
+      .mapPartitionsWithIndex((idx, it) =>
+        SuccinctJsonRDD.createSuccinctJsonPartition(it, idOffsets(idx), idOffsets(idx + 1) - 1))
+    val newSuccinctRDDPartitions = partitionsRDD.union(newPartitions).cache()
+    partitionsRDD.unpersist()
+    new SuccinctJsonRDDImpl(newSuccinctRDDPartitions)
+  }
+
+  /**
     * Saves the SuccinctJsonRDD at the specified path.
     *
     * @param location The path where the SuccinctJsonRDD should be stored.

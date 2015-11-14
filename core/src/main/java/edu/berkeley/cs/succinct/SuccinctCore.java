@@ -1,7 +1,7 @@
 package edu.berkeley.cs.succinct;
 
 import edu.berkeley.cs.succinct.dictionary.Tables;
-import edu.berkeley.cs.succinct.util.Pair;
+import edu.berkeley.cs.succinct.util.container.Pair;
 
 import java.io.Serializable;
 import java.util.HashMap;

@@ -6,8 +6,8 @@ import edu.berkeley.cs.succinct.SuccinctFile;
 import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.SuccinctRegEx;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
-import edu.berkeley.cs.succinct.util.Range;
-import edu.berkeley.cs.succinct.util.SearchIterator;
+import edu.berkeley.cs.succinct.util.container.Range;
+import edu.berkeley.cs.succinct.util.iterator.SearchIterator;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;

@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.util.buffers;
+package edu.berkeley.cs.succinct.util.buffer;
 
 import java.nio.Buffer;
 import java.nio.ByteOrder;

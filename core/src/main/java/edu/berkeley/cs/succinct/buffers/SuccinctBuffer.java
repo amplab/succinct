@@ -7,11 +7,11 @@ import edu.berkeley.cs.succinct.bitmap.BitMap;
 import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.qsufsort.QSufSort;
 import edu.berkeley.cs.succinct.util.CommonUtils;
-import edu.berkeley.cs.succinct.util.Pair;
-import edu.berkeley.cs.succinct.util.buffers.SerializedOperations;
-import edu.berkeley.cs.succinct.util.buffers.ThreadSafeByteBuffer;
-import edu.berkeley.cs.succinct.util.buffers.ThreadSafeIntBuffer;
-import edu.berkeley.cs.succinct.util.buffers.ThreadSafeLongBuffer;
+import edu.berkeley.cs.succinct.util.container.Pair;
+import edu.berkeley.cs.succinct.util.buffer.SerializedOperations;
+import edu.berkeley.cs.succinct.util.buffer.ThreadSafeByteBuffer;
+import edu.berkeley.cs.succinct.util.buffer.ThreadSafeIntBuffer;
+import edu.berkeley.cs.succinct.util.buffer.ThreadSafeLongBuffer;
 import edu.berkeley.cs.succinct.wavelettree.WaveletTree;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TLongLongHashMap;
@@ -1155,7 +1155,7 @@ public class SuccinctBuffer extends SuccinctCore {
   }
 
   /**
-   * Reposition all byte buffers to their respective starting positions.
+   * Reposition all byte buffer to their respective starting positions.
    */
   protected void resetBuffers() {
     metadata.order(ByteOrder.BIG_ENDIAN).rewind();

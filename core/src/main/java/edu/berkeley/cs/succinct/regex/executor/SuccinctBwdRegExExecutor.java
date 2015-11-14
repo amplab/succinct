@@ -4,7 +4,7 @@ import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctFile;
 import edu.berkeley.cs.succinct.regex.SuccinctRegExMatch;
 import edu.berkeley.cs.succinct.regex.parser.*;
-import edu.berkeley.cs.succinct.util.Range;
+import edu.berkeley.cs.succinct.util.container.Range;
 
 import java.util.TreeSet;
 

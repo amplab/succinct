@@ -1,6 +1,7 @@
-package edu.berkeley.cs.succinct.util;
+package edu.berkeley.cs.succinct.util.iterator;
 
 import edu.berkeley.cs.succinct.SuccinctCore;
+import edu.berkeley.cs.succinct.util.container.Range;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;

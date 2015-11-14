@@ -1,7 +1,7 @@
 package edu.berkeley.cs.succinct;
 
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
-import edu.berkeley.cs.succinct.util.Range;
+import edu.berkeley.cs.succinct.util.container.Range;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

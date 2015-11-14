@@ -5,6 +5,7 @@ import java.io.DataOutputStream
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.regex.RegExMatch
 import edu.berkeley.cs.succinct.streams.SuccinctIndexedFileStream
+import edu.berkeley.cs.succinct.util.container.Range
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.storage.StorageLevel
@@ -21,10 +22,10 @@ class SuccinctPartition(
     partitionFirstRecordId: Long) {
 
   /** Returns the range of recordIds for which this partition is responsible (both inclusive) */
-  private[succinct] def partitionOffsetRange: edu.berkeley.cs.succinct.util.Range = {
+  private[succinct] def partitionOffsetRange: Range = {
     // Adjust for 1 extra byte for the EOF byte
     val endOffset = partitionOffset + succinctIndexedFile.getSize - 2
-    new edu.berkeley.cs.succinct.util.Range(partitionOffset, endOffset)
+    new Range(partitionOffset, endOffset)
   }
 
   /** Iterator over all records in the partition. */
@@ -77,6 +78,10 @@ class SuccinctPartition(
   /** Obtain the total number of records in the partition */
   private[succinct] def count: Long = {
     succinctIndexedFile.getNumRecords
+  }
+
+  private[succinct] def sizeInBytes: Int = {
+    succinctIndexedFile.getSize
   }
 
   /** Write partition to output stream */

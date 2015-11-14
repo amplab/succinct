@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.util.buffers;
+package edu.berkeley.cs.succinct.util.buffer;
 
 import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.util.CommonUtils;

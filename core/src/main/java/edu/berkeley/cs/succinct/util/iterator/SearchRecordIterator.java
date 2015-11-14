@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.util;
+package edu.berkeley.cs.succinct.util.iterator;
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 

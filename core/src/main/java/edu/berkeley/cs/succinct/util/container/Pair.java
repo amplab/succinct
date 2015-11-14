@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.util;
+package edu.berkeley.cs.succinct.util.container;
 
 public class Pair<T1, T2> {
 
