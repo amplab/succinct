@@ -20,7 +20,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
   protected transient long endOfIndexedFileStream;
 
   /**
-   * Constructor to map a file containing Succinct data structures via streams.
+   * Constructor to map a file containing Succinct data structures via stream.
    *
    * @param filePath Path of the file.
    * @param conf     Configuration for the filesystem.
@@ -40,7 +40,7 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
   }
 
   /**
-   * Constructor to map a file containing Succinct data structures via streams.
+   * Constructor to map a file containing Succinct data structures via stream.
    *
    * @param filePath Path of the file.
    * @throws IOException

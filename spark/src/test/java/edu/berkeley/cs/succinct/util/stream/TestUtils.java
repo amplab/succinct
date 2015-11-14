@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.util.streams;
+package edu.berkeley.cs.succinct.util.stream;
 
 import com.google.common.io.Files;
 import org.apache.hadoop.conf.Configuration;

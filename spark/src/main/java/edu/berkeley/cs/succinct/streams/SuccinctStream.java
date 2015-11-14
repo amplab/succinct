@@ -3,7 +3,7 @@ package edu.berkeley.cs.succinct.streams;
 import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.dictionary.Tables;
 import edu.berkeley.cs.succinct.util.container.Pair;
-import edu.berkeley.cs.succinct.util.streams.*;
+import edu.berkeley.cs.succinct.util.stream.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -37,7 +37,7 @@ public class SuccinctStream extends SuccinctCore {
   private transient Configuration conf;
 
   /**
-   * Constructor to map a file containing Succinct data structures via streams.
+   * Constructor to map a file containing Succinct data structures via stream.
    *
    * @param filePath Path of the file.
    * @param conf     Configuration for the filesystem.
@@ -153,7 +153,7 @@ public class SuccinctStream extends SuccinctCore {
   }
 
   /**
-   * Constructor to map a file containing Succinct data structures via streams
+   * Constructor to map a file containing Succinct data structures via stream
    *
    * @param filePath Path of the file.
    * @throws IOException
@@ -337,7 +337,7 @@ public class SuccinctStream extends SuccinctCore {
   }
 
   /**
-   * Close all underlying streams.
+   * Close all underlying stream.
    */
   void close() throws IOException {
     originalStream.close();

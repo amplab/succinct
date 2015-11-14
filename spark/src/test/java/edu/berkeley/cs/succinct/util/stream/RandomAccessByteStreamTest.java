@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.util.streams;
+package edu.berkeley.cs.succinct.util.stream;
 
 import junit.framework.TestCase;
 import org.apache.hadoop.fs.FSDataInputStream;

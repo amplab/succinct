@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.util.streams;
+package edu.berkeley.cs.succinct.util.stream;
 
 import edu.berkeley.cs.succinct.bitmap.BitMap;
 import edu.berkeley.cs.succinct.dictionary.Dictionary;

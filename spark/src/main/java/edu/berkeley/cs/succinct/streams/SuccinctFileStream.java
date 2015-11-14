@@ -24,7 +24,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
   protected transient long endOfFileStream;
 
   /**
-   * Constructor to map a file containing Succinct data structures via streams.
+   * Constructor to map a file containing Succinct data structures via stream.
    *
    * @param filePath Path of the file.
    * @param conf     Configuration for the filesystem.
@@ -36,7 +36,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
   }
 
   /**
-   * Constructor to map a file containing Succinct data structures via streams
+   * Constructor to map a file containing Succinct data structures via stream
    *
    * @param filePath Path of the file.
    * @throws IOException
