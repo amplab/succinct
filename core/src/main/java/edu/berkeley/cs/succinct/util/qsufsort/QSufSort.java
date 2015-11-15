@@ -21,8 +21,6 @@ public class QSufSort {
    */
   private int h;
 
-  private int start;
-
   /**
    * Calculate minimum and maximum value for an array.
    *
@@ -53,7 +51,6 @@ public class QSufSort {
     MinMax minmax = minmax(input);
     I = new int[input.length + 1];
     V = new int[input.length + 1];
-    this.start = 0;
     for (int i = 0; i < input.length; i++)
       V[i] = input[i];
     suffixSort(input.length, minmax.max + 1, minmax.min);
@@ -113,7 +110,7 @@ public class QSufSort {
             I[pi + sl] = sl; /* combine sorted groups before pi. */
             sl = 0;
           }
-          pk = V[start + s] + 1; /*
+          pk = V[s] + 1; /*
                                             * pk-1 is last position of unsorted
                                             * group.
                                             */
@@ -128,8 +125,8 @@ public class QSufSort {
 
     for (i = 0; i <= n; ++i) {
             /* reconstruct suffix array from inverse. */
-      if (V[start + i] > 0) {
-        I[V[start + i] - 1] = i;
+      if (V[i] > 0) {
+        I[V[i] - 1] = i;
       }
     }
   }
@@ -205,13 +202,13 @@ public class QSufSort {
     int g;
 
     g = pm; /* group number. */
-    V[start + I[pl]] = g; /* update group number of first position. */
+    V[I[pl]] = g; /* update group number of first position. */
     if (pl == pm)
       I[pl] = -1; /* one element, sorted group. */
     else
       do
                 /* more than one element, unsorted group. */
-        V[start + I[++pl]] = g; /* update group numbers. */ while (pl < pm);
+        V[I[++pl]] = g; /* update group numbers. */ while (pl < pm);
 
   }
 
@@ -262,7 +259,7 @@ public class QSufSort {
       pa = pb; /* continue sorting rest of the subarray. */
     }
     if (pa == pn) { /* check if last part is single element. */
-      V[start + I[pa]] = pa;
+      V[I[pa]] = pa;
       I[pa] = -1; /* sorted group. */
     }
   }
@@ -284,17 +281,17 @@ public class QSufSort {
     for (pi = 0; pi < k; ++pi)
       I[pi] = -1; /* mark linked lists empty. */
     for (i = 0; i <= n; ++i) {
-      V[start + i] = I[c = V[start + i]]; /* insert in linked list. */
+      V[i] = I[c = V[i]]; /* insert in linked list. */
       I[c] = i;
     }
     for (pi = k - 1, i = n; pi >= 0; --pi) {
-      d = V[start + (c = I[pi])]; /* c is position, d is next in list. */
-      V[start + c] = g = i; /* last position equals group number. */
+      d = V[(c = I[pi])]; /* c is position, d is next in list. */
+      V[c] = g = i; /* last position equals group number. */
       if (d >= 0) { /* if more than one element in group. */
         I[i--] = c; /* p is permutation for the sorted x. */
         do {
-          d = V[start + (c = d)]; /* next in linked list. */
-          V[start + c] = g; /* group number in x. */
+          d = V[(c = d)]; /* next in linked list. */
+          V[c] = g; /* group number in x. */
           I[i--] = c; /* permutation in p. */
         } while (d >= 0);
       } else
@@ -333,20 +330,20 @@ public class QSufSort {
       ++s; /* s is number of bits in old symbol. */
     e = Integer.MAX_VALUE >> s; /* e is for overflow checking. */
     for (b = d = r = 0; r < n && d <= e && (c = d << s | (k - l)) <= q; ++r) {
-      b = b << s | (V[start + r] - l + 1); /*
+      b = b << s | (V[r] - l + 1); /*
                                                   * b is start of x in chunk
                                                   * alphabet.
                                                   */
       d = c; /* d is max symbol in chunk alphabet. */
     }
     m = (1 << (r - 1) * s) - 1; /* m masks off top old symbol from chunk. */
-    V[start + n] = l - 1; /* emulate zero terminator. */
+    V[n] = l - 1; /* emulate zero terminator. */
     if (d <= n) { /* if bucketing possible, compact alphabet. */
       for (pi = 0; pi <= d; ++pi)
         I[pi] = 0; /* zero transformation table. */
       for (pi = r, c = b; pi <= n; ++pi) {
         I[c] = 1; /* mark used chunk symbol. */
-        c = (c & m) << s | (V[start + pi] - l + 1); /*
+        c = (c & m) << s | (V[pi] - l + 1); /*
                                                              * shift in next old
                                                              * symbol in chunk.
                                                              */
@@ -359,36 +356,36 @@ public class QSufSort {
         if (I[pi] != 0)
           I[pi] = j++; /* j is new alphabet size. */
       for (pi = 0, pj = r, c = b; pj <= n; ++pi, ++pj) {
-        V[start + pi] = I[c]; /* transform to new alphabet. */
-        c = (c & m) << s | (V[start + pj] - l + 1); /*
+        V[pi] = I[c]; /* transform to new alphabet. */
+        c = (c & m) << s | (V[pj] - l + 1); /*
                                                              * shift in next old
                                                              * symbol in chunk.
                                                              */
       }
       while (pi < n) { /* handle last r-1 positions. */
-        V[start + pi++] = I[c]; /* transform to new alphabet. */
+        V[pi++] = I[c]; /* transform to new alphabet. */
         c = (c & m) << s; /* shift right-end zero in chunk. */
       }
     } else { /* bucketing not possible, don't compact. */
       for (pi = 0, pj = r, c = b; pj <= n; ++pi, ++pj) {
-        V[start + pi] = c; /* transform to new alphabet. */
-        c = (c & m) << s | (V[start + pj] - l + 1); /*
+        V[pi] = c; /* transform to new alphabet. */
+        c = (c & m) << s | (V[pj] - l + 1); /*
                                                              * shift in next old
                                                              * symbol in chunk.
                                                              */
       }
       while (pi < n) { /* handle last r-1 positions. */
-        V[start + pi++] = c; /* transform to new alphabet. */
+        V[pi++] = c; /* transform to new alphabet. */
         c = (c & m) << s; /* shift right-end zero in chunk. */
       }
       j = d + 1; /* new alphabet size. */
     }
-    V[start + n] = 0; /* end-of-string symbol is zero. */
+    V[n] = 0; /* end-of-string symbol is zero. */
     return j; /* return new alphabet size. */
   }
 
   private int KEY(int p) {
-    return V[start + I[p] + h];
+    return V[I[p] + h];
   }
 
   private void SWAP(int a, int b) {
