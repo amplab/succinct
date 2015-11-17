@@ -59,4 +59,14 @@ public class CommonUtilsTest extends TestCase {
     assertEquals(CommonUtils.popCount(0xFFFF0000L), 16);
     assertEquals(CommonUtils.popCount(~1L), 63);
   }
+
+  public void testNumBlocks() throws Exception {
+    assertEquals(0, CommonUtils.numBlocks(0, 5));
+    for (int i = 1; i <= 5; i++) {
+      assertEquals(1, CommonUtils.numBlocks(i, 5));
+    }
+    assertEquals(2, CommonUtils.numBlocks(6, 5));
+    assertEquals(52, CommonUtils.numBlocks(256, 5));
+    assertEquals(51, CommonUtils.numBlocks(255, 5));
+  }
 }

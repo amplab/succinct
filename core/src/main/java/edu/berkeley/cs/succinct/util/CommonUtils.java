@@ -1,8 +1,5 @@
 package edu.berkeley.cs.succinct.util;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-
 public class CommonUtils {
 
   public static final long two32 = 1L << 32;
@@ -43,6 +40,17 @@ public class CommonUtils {
    */
   public static int popCount(long n) {
     return Long.bitCount(n);
+  }
+
+  /**
+   * Counts the number of blocks of a specified size required to hold given size of data.
+   *
+   * @param n Size of data.
+   * @param blockSize Size of each block.
+   * @return Number of blocks required to hold the data.
+   */
+  public static int numBlocks(int n, int blockSize) {
+    return n % blockSize == 0 ? n / blockSize : n / blockSize + 1;
   }
 
 }
