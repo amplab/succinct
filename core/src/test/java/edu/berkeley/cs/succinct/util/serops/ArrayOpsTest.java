@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.util;
+package edu.berkeley.cs.succinct.util.serops;
 
 import edu.berkeley.cs.succinct.util.serops.ArrayOps;
 import junit.framework.TestCase;

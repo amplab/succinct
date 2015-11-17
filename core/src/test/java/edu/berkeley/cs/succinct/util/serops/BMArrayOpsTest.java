@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.util;
+package edu.berkeley.cs.succinct.util.serops;
 
 import edu.berkeley.cs.succinct.util.bitmap.BMArray;
 import edu.berkeley.cs.succinct.util.serops.BMArrayOps;
