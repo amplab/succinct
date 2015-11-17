@@ -1,7 +1,6 @@
 package edu.berkeley.cs.succinct.util.serops;
 
 import edu.berkeley.cs.succinct.util.bitmap.BMArray;
-import edu.berkeley.cs.succinct.util.serops.BMArrayOps;
 import junit.framework.TestCase;
 
 import java.nio.LongBuffer;
