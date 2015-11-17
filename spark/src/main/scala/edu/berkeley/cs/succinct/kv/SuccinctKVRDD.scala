@@ -166,7 +166,7 @@ abstract class SuccinctKVRDD[K: ClassTag](
     *                             repartitions the data otherwise.
     * @return A new SuccinctKVRDD containing the newly appended data.
     */
-  def bulkAppend(data: RDD[(K, Array[Byte])], preservePartitioning: Boolean): SuccinctKVRDD[K]
+  def bulkAppend(data: RDD[(K, Array[Byte])], preservePartitioning: Boolean = false): SuccinctKVRDD[K]
 
   /**
    * Saves the SuccinctKVRDD at the specified path.

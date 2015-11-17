@@ -139,7 +139,7 @@ abstract class SuccinctRDD(@transient sc: SparkContext,
     *                             repartitions the data otherwise.
     * @return A new SuccinctJsonRDD containing the newly appended data.
     */
-  def bulkAppend(data: RDD[Array[Byte]], preservePartitioning: Boolean): SuccinctRDD = {
+  def bulkAppend(data: RDD[Array[Byte]], preservePartitioning: Boolean = false): SuccinctRDD = {
     val countPerPartition: Double = count().toDouble / partitionsRDD.partitions.length.toDouble
     val nNewPartitions: Int = Math.ceil(data.count() / countPerPartition).toInt
 
