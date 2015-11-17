@@ -1,5 +1,9 @@
 package edu.berkeley.cs.succinct.util.qsufsort;
 
+import gnu.trove.set.hash.TByteHashSet;
+
+import java.util.Arrays;
+
 public class QSufSort {
   /**
    * group array, ultimately suffix array.
@@ -12,6 +16,11 @@ public class QSufSort {
   private int V[];
 
   /**
+   * stores the alphabet for the input.
+   */
+  private byte[] alphabet;
+
+  /**
    * number of symbols aggregated by transform.
    */
   private int r;
@@ -22,38 +31,29 @@ public class QSufSort {
   private int h;
 
   /**
-   * Calculate minimum and maximum value for an array.
-   *
-   * @param input Input byte array.
-   * @return MinMax object populated with minimum and maximum values.
-   */
-  static MinMax minmax(byte[] input) {
-    int max = input[0];
-    int min = max;
-
-    for (int i = 1; i < input.length; i++) {
-      final int v = input[i];
-      if (v > max)
-        max = v;
-      if (v < min)
-        min = v;
-    }
-
-    return new MinMax(min, max);
-  }
-
-  /**
    * Builds suffix array from input byte array.
    *
    * @param input Input byte array.
    */
   public final void buildSuffixArray(byte[] input) {
-    MinMax minmax = minmax(input);
+    int max = input[0];
+    int min = max;
+
     I = new int[input.length + 1];
     V = new int[input.length + 1];
-    for (int i = 0; i < input.length; i++)
+    TByteHashSet alphabetSet = new TByteHashSet();
+    for (int i = 0; i < input.length; i++) {
       V[i] = input[i];
-    suffixSort(input.length, minmax.max + 1, minmax.min);
+      if (V[i] > max)
+        max = V[i];
+      if (V[i] < min)
+        min = V[i];
+      alphabetSet.add(input[i]);
+    }
+    alphabet = alphabetSet.toArray();
+    Arrays.sort(alphabet);
+
+    suffixSort(input.length, max + 1, min);
   }
 
   /**
@@ -72,6 +72,24 @@ public class QSufSort {
    */
   public final int[] getISA() {
     return V;
+  }
+
+  /**
+   * Get the alphabet.
+   *
+   * @return The alphabet.
+   */
+  public byte[] getAlphabet() {
+    return alphabet;
+  }
+
+  /**
+   * Get the alphabet size.
+   *
+   * @return The alphabet size.
+   */
+  public int getAlphabetSize() {
+    return alphabet.length;
   }
 
   /**
@@ -110,10 +128,7 @@ public class QSufSort {
             I[pi + sl] = sl; /* combine sorted groups before pi. */
             sl = 0;
           }
-          pk = V[s] + 1; /*
-                                            * pk-1 is last position of unsorted
-                                            * group.
-                                            */
+          pk = V[s] + 1; /* pk-1 is last position of unsorted group. */
           sortSplit(pi, pk - pi);
           pi = pk; /* next group. */
         }
@@ -124,9 +139,10 @@ public class QSufSort {
     }
 
     for (i = 0; i <= n; ++i) {
-            /* reconstruct suffix array from inverse. */
+      /* reconstruct suffix array from inverse. */
       if (V[i] > 0) {
-        I[V[i] - 1] = i;
+        V[i]--;
+        I[V[i]] = i;
       }
     }
   }
@@ -145,7 +161,7 @@ public class QSufSort {
     int f, v, s, t;
 
     if (n < 7) { /* multi-selection sort smallest arrays. */
-      select_sort_split(p, n);
+      selectSortSplit(p, n);
       return;
     }
 
@@ -193,7 +209,7 @@ public class QSufSort {
   }
 
   /**
-   * Subroutine for {@link #select_sort_split(int, int)} and
+   * Subroutine for {@link #selectSortSplit(int, int)} and
    * {@link #sortSplit(int, int)}. Sets group numbers for a group whose
    * lowest position in {@link #I} is <code>pl</code> and highest position is
    * <code>pm</code>.
@@ -239,7 +255,7 @@ public class QSufSort {
    * Quadratic sorting method to use for small subarrays. To be able to update
    * group numbers consistently, a variant of selection sorting is used.
    */
-  private void select_sort_split(int p, int n) {
+  private void selectSortSplit(int p, int n) {
     int pa, pb, pi, pn;
     int f, v;
 
@@ -398,41 +414,5 @@ public class QSufSort {
     return (KEY(a) < KEY(b) ?
       (KEY(b) < KEY(c) ? (b) : KEY(a) < KEY(c) ? (c) : (a)) :
       (KEY(b) > KEY(c) ? (b) : KEY(a) > KEY(c) ? (c) : (a)));
-  }
-
-  /**
-   * {@inheritDoc}
-   * <p/>
-   * Additional constraints enforced by qsufsort algorithm:
-   * <ul>
-   * <li>non-negative (&ge;0) symbols in the input</li>
-   * <li>length >= 2</li>
-   * </ul>
-   * <p/>
-   */
-
-  final static class MinMax {
-    public final int min;
-    public final int max;
-
-    /**
-     * Constructor to initalize MinMax container
-     *
-     * @param min Minimum value.
-     * @param max Maximum value.
-     */
-    MinMax(int min, int max) {
-      this.min = min;
-      this.max = max;
-    }
-
-    /**
-     * Computes range using minimum and maximum values.
-     *
-     * @return Range between max and min.
-     */
-    public int range() {
-      return max - min;
-    }
   }
 }
