@@ -31,7 +31,7 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
     mapper.writeValueAsString(mapper.readTree(json).asInstanceOf[ObjectNode].put("id", id))
   }
 
-  test("get") {
+  test("Test get") {
     sc = new SparkContext(conf)
 
     val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile)
@@ -45,7 +45,7 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
     })
   }
 
-  test("filter") {
+  test("Test filter") {
     sc = new SparkContext(conf)
 
     val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile)
@@ -69,7 +69,7 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
     assert(res5.isEmpty)
   }
 
-  test("search") {
+  test("Test search") {
     sc = new SparkContext(conf)
 
     val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile)
@@ -93,7 +93,7 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
     assert(res5.isEmpty)
   }
 
-  test("multiple partitions") {
+  test("Test multiple partitions") {
     sc = new SparkContext(conf)
 
     val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile, 5)
@@ -140,7 +140,17 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
 
   }
 
-  test("save and load in memory") {
+  test("Test bulkAppend") {
+    sc = new SparkContext(conf)
+
+    val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile).repartition(5)
+    val succinctJsonRDD = SuccinctJsonRDD(jsonRDD)
+    val newSuccinctJsonRDD = succinctJsonRDD.bulkAppend(jsonRDD)
+
+    assert(jsonRDD.count * 2 == newSuccinctJsonRDD.count())
+  }
+
+  test("Test save and load in memory") {
     sc = new SparkContext(conf)
 
     val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile).repartition(5)
@@ -158,7 +168,7 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
     assert(originalJson === newJson)
   }
 
-  test("save and load in memory 2") {
+  test("Test save and load in memory 2") {
     sc = new SparkContext(conf)
 
     val jsonRDD = sc.textFile(getClass.getResource("/people.json").getFile).repartition(5)

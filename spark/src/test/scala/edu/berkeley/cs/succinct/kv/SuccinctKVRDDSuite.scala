@@ -170,6 +170,20 @@ class SuccinctKVRDDSuite extends FunSuite with LocalSparkContext {
 
   }
 
+  test("Test bulkAppend") {
+    sc = new SparkContext(conf)
+
+    // TODO: Add more tests
+    val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
+    val kvRDD = textRDD.zipWithIndex().map(t => (t._2, t._1.getBytes))
+    val succinctKVRDD = SuccinctKVRDD(kvRDD)
+    val count = kvRDD.count
+    val newData = kvRDD.map(t => (t._1 + count, t._2))
+    val newSuccinctKVRDD = succinctKVRDD.bulkAppend(newData)
+
+    assert(kvRDD.count() * 2 == newSuccinctKVRDD.count())
+  }
+
   test("Test save and load in memory") {
     sc = new SparkContext(conf)
 

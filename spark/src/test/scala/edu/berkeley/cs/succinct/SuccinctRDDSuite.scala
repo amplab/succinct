@@ -96,6 +96,17 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
     assert(searchOffsets === expectedSearchOffsets)
   }
 
+  test("Test bulkAppend") {
+    sc = new SparkContext(conf)
+
+    // TODO: Add more tests
+    val textRDD = sc.textFile(getClass.getResource("/raw.dat").getFile)
+    val succinctRDD = SuccinctRDD(textRDD.map(_.getBytes))
+    val newSuccinctRDD = succinctRDD.bulkAppend(textRDD.map(_.getBytes))
+
+    assert(textRDD.count() * 2 == newSuccinctRDD.count())
+  }
+
   test("Test RDD count") {
     sc = new SparkContext(conf)
 
