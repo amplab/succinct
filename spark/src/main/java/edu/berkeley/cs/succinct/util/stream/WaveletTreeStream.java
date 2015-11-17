@@ -6,7 +6,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 
 import java.io.IOException;
 
-import static edu.berkeley.cs.succinct.util.CommonUtils.DictionaryUtils.*;
+import static edu.berkeley.cs.succinct.util.DictionaryUtils.*;
 
 public class WaveletTreeStream {
 

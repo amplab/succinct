@@ -6,7 +6,7 @@ import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 
-import static edu.berkeley.cs.succinct.util.CommonUtils.DictionaryUtils.*;
+import static edu.berkeley.cs.succinct.util.DictionaryUtils.*;
 
 public class DictionaryOps {
 

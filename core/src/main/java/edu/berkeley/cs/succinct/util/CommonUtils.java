@@ -8,28 +8,6 @@ public class CommonUtils {
   public static final long two32 = 1L << 32;
 
   /**
-   * Reads an integer array from stream.
-   *
-   * @param is DataInputStream to read data from.
-   * @return Array read from stream.
-   */
-  public static int[] readArray(DataInputStream is) {
-    int[] A = null;
-
-    try {
-      int length = is.readInt();
-      A = new int[length];
-      for (int i = 0; i < length; i++) {
-        A[i] = is.readInt();
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-    return A;
-  }
-
-  /**
    * Get the integer logarithm to base 2.
    *
    * @param n Input integer.
@@ -65,51 +43,6 @@ public class CommonUtils {
    */
   public static int popCount(long n) {
     return Long.bitCount(n);
-  }
-
-  public static class DictionaryUtils {
-
-    /**
-     * Get Level 2 rank encoded in 64 bit integer.
-     *
-     * @param n 64 bit integer.
-     * @return Level 2 rank value.
-     */
-    public static long GETRANKL2(long n) {
-      return (n >>> 32);
-    }
-
-    /**
-     * Get ith Level 1 rank encoded in 64 bit integer.
-     *
-     * @param n 64 bit integer.
-     * @param i Index of encoded rank value.
-     * @return Level 1 rank value.
-     */
-    public static long GETRANKL1(long n, int i) {
-      return ((n >>> (32 - i * 10)) & 0x3ff);
-    }
-
-    /**
-     * Get position offset associated with Level 2 rank encoded in 64 bit integer.
-     *
-     * @param n 64 bit integer.
-     * @return Position offset.
-     */
-    public static long GETPOSL2(long n) {
-      return (n >>> 31);
-    }
-
-    /**
-     * Get position offset associated with ith Level 1 rank encoded in 64 bit integer.
-     *
-     * @param n 64 bit integer.
-     * @param i Index of encoded position offset.
-     * @return Position offset.
-     */
-    public static long GETPOSL1(long n, int i) {
-      return (((n & 0x7fffffff) >>> (31 - i * 10)) & 0x3ff);
-    }
   }
 
 }

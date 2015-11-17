@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct.util.dictionary;
 
+import edu.berkeley.cs.succinct.util.DictionaryUtils;
 import edu.berkeley.cs.succinct.util.bitmap.BitMap;
 import edu.berkeley.cs.succinct.util.CommonUtils;
 
@@ -133,30 +134,30 @@ public class Dictionary {
     int rem = ((i % 2048) / 512);
     int blockClass, blockOffset;
 
-    long res = this.rankL3[l3Idx] + CommonUtils.DictionaryUtils.GETRANKL2(rankL12[l2Idx]);
-    long pos = this.posL3[l3Idx] + CommonUtils.DictionaryUtils.GETPOSL2(posL12[l2Idx]);
+    long res = this.rankL3[l3Idx] + DictionaryUtils.GETRANKL2(rankL12[l2Idx]);
+    long pos = this.posL3[l3Idx] + DictionaryUtils.GETPOSL2(posL12[l2Idx]);
 
     switch (rem) {
       case 1:
-        res += CommonUtils.DictionaryUtils.GETRANKL1(rankL12[l2Idx], 1);
-        pos += CommonUtils.DictionaryUtils.GETPOSL1(posL12[l2Idx], 1);
+        res += DictionaryUtils.GETRANKL1(rankL12[l2Idx], 1);
+        pos += DictionaryUtils.GETPOSL1(posL12[l2Idx], 1);
         break;
 
       case 2:
         res +=
-          CommonUtils.DictionaryUtils.GETRANKL1(rankL12[l2Idx], 1) + CommonUtils.DictionaryUtils
+          DictionaryUtils.GETRANKL1(rankL12[l2Idx], 1) + DictionaryUtils
             .GETRANKL1(rankL12[l2Idx], 2);
-        pos += CommonUtils.DictionaryUtils.GETPOSL1(posL12[l2Idx], 1) + CommonUtils.DictionaryUtils
+        pos += DictionaryUtils.GETPOSL1(posL12[l2Idx], 1) + DictionaryUtils
           .GETPOSL1(posL12[l2Idx], 2);
         break;
 
       case 3:
         res +=
-          CommonUtils.DictionaryUtils.GETRANKL1(rankL12[l2Idx], 1) + CommonUtils.DictionaryUtils
-            .GETRANKL1(rankL12[l2Idx], 2) + CommonUtils.DictionaryUtils
+          DictionaryUtils.GETRANKL1(rankL12[l2Idx], 1) + DictionaryUtils
+            .GETRANKL1(rankL12[l2Idx], 2) + DictionaryUtils
             .GETRANKL1(rankL12[l2Idx], 3);
-        pos += CommonUtils.DictionaryUtils.GETPOSL1(posL12[l2Idx], 1) + CommonUtils.DictionaryUtils
-          .GETPOSL1(posL12[l2Idx], 2) + CommonUtils.DictionaryUtils.GETPOSL1(posL12[l2Idx], 3);
+        pos += DictionaryUtils.GETPOSL1(posL12[l2Idx], 1) + DictionaryUtils
+          .GETPOSL1(posL12[l2Idx], 2) + DictionaryUtils.GETPOSL1(posL12[l2Idx], 3);
         break;
 
       default:

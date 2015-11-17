@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct;
 
-import edu.berkeley.cs.succinct.util.CommonUtils;
+import edu.berkeley.cs.succinct.util.IOUtils;
 import junit.framework.TestCase;
 
 import java.io.DataInputStream;
@@ -40,7 +40,7 @@ abstract public class SuccinctCoreTest extends TestCase {
 
     int sum = 0;
     DataInputStream dIS = getNPAInputStream();
-    int[] testNPA = CommonUtils.readArray(dIS);
+    int[] testNPA = IOUtils.readArray(dIS);
     dIS.close();
     for (int i = 0; i < sCore.getOriginalSize(); i++) {
       long npaVal = sCore.lookupNPA(i);
@@ -62,7 +62,7 @@ abstract public class SuccinctCoreTest extends TestCase {
 
     int sum = 0;
     DataInputStream dIS = getSAInputStream();
-    int[] testSA = CommonUtils.readArray(dIS);
+    int[] testSA = IOUtils.readArray(dIS);
     dIS.close();
     for (int i = 0; i < sCore.getOriginalSize(); i++) {
       long saVal = sCore.lookupSA(i);
@@ -83,7 +83,7 @@ abstract public class SuccinctCoreTest extends TestCase {
 
     int sum = 0;
     DataInputStream dIS = getISAInputStream();
-    int[] testISA = CommonUtils.readArray(dIS);
+    int[] testISA = IOUtils.readArray(dIS);
     dIS.close();
     for (int i = 0; i < sCore.getOriginalSize(); i++) {
       long isaVal = sCore.lookupISA(i);

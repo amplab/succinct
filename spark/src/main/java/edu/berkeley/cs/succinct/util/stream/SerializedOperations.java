@@ -5,7 +5,7 @@ import edu.berkeley.cs.succinct.util.CommonUtils;
 
 import java.io.IOException;
 
-import static edu.berkeley.cs.succinct.util.CommonUtils.DictionaryUtils.*;
+import static edu.berkeley.cs.succinct.util.DictionaryUtils.*;
 
 public class SerializedOperations {
 
