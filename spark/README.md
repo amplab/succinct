@@ -240,7 +240,7 @@ val cityDataFrame = sqlContext.createDataFrame(cityRDD, citySchema)
 cityDataFrame.write.format("edu.berkeley.cs.succinct.sql").save("/path/to/data")
 
 // Read the Succinct DataFrame from the saved path
-val succinctCities = sqlContext.succinctFile("/path/to/data")
+val succinctCities = sqlContext.succinctTable("/path/to/data")
 
 // Filter and prune
 val bigCities = succinctCities.filter("Area >= 22.0").select("Name").collect
