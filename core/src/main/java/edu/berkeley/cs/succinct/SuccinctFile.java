@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct;
 
+import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.container.Range;
 
@@ -8,7 +9,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.Set;
 
 public interface SuccinctFile extends Serializable {
 
@@ -166,7 +167,7 @@ public interface SuccinctFile extends Serializable {
    * @return All locations and lengths of matching patterns in original input.
    * @throws RegExParsingException
    */
-  Map<Long, Integer> regexSearch(String query) throws RegExParsingException;
+  Set<RegExMatch> regexSearch(String query) throws RegExParsingException;
 
   /**
    * Reads Succinct data structures from a DataInputStream.

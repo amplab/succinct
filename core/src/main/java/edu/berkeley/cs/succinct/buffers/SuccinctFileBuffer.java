@@ -423,15 +423,8 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    * @return All locations and lengths of matching patterns in original input.
    * @throws RegExParsingException
    */
-  @Override public Map<Long, Integer> regexSearch(String query) throws RegExParsingException {
+  @Override public Set<RegExMatch> regexSearch(String query) throws RegExParsingException {
     SuccinctRegEx succinctRegEx = new SuccinctRegEx(this, query);
-
-    Set<RegExMatch> chunkResults = succinctRegEx.compute();
-    Map<Long, Integer> results = new TreeMap<Long, Integer>();
-    for (RegExMatch result : chunkResults) {
-      results.put(result.getOffset(), result.getLength());
-    }
-
-    return results;
+    return succinctRegEx.compute();
   }
 }

@@ -15,9 +15,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
 
@@ -390,16 +388,9 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @return All locations and lengths of matching patterns in original input.
    * @throws RegExParsingException
    */
-  @Override public Map<Long, Integer> regexSearch(String query) throws RegExParsingException {
+  @Override public Set<RegExMatch> regexSearch(String query) throws RegExParsingException {
     SuccinctRegEx succinctRegEx = new SuccinctRegEx(this, query);
-
-    Set<RegExMatch> chunkResults = succinctRegEx.compute();
-    Map<Long, Integer> results = new TreeMap<Long, Integer>();
-    for (RegExMatch result : chunkResults) {
-      results.put(result.getOffset(), result.getLength());
-    }
-
-    return results;
+    return succinctRegEx.compute();
   }
 
   /**

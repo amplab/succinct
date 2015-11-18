@@ -1,9 +1,10 @@
 package edu.berkeley.cs.succinct;
 
+import edu.berkeley.cs.succinct.regex.RegExMatch;
 import junit.framework.TestCase;
 
 import java.util.Iterator;
-import java.util.Map;
+import java.util.Set;
 
 abstract public class SuccinctFileTest extends TestCase {
 
@@ -167,10 +168,10 @@ abstract public class SuccinctFileTest extends TestCase {
    * @param exp     Expression to check against.
    * @return The check result.
    */
-  private boolean checkResults(Map<Long, Integer> results, String exp) {
-    for (Long offset : results.keySet()) {
+  private boolean checkResults(Set<RegExMatch> results, String exp) {
+    for (RegExMatch m : results) {
       for (int i = 0; i < exp.length(); i++) {
-        if (fileData[offset.intValue() + i] != exp.charAt(i)) {
+        if (fileData[((int) (m.getOffset() + i))] != exp.charAt(i)) {
           return false;
         }
       }
@@ -186,18 +187,18 @@ abstract public class SuccinctFileTest extends TestCase {
    * @param exp2    Second expression to check against.
    * @return The check result.
    */
-  private boolean checkResultsUnion(Map<Long, Integer> results, String exp1, String exp2) {
-    for (Long offset : results.keySet()) {
+  private boolean checkResultsUnion(Set<RegExMatch> results, String exp1, String exp2) {
+    for (RegExMatch m : results) {
       boolean flagFirst = true;
       boolean flagSecond = true;
       for (int i = 0; i < exp1.length(); i++) {
-        if (fileData[offset.intValue() + i] != exp1.charAt(i)) {
+        if (fileData[(int) (m.getOffset() + i)] != exp1.charAt(i)) {
           flagFirst = false;
         }
       }
 
       for (int i = 0; i < exp2.length(); i++) {
-        if (fileData[offset.intValue() + i] != exp2.charAt(i)) {
+        if (fileData[(int) (m.getOffset() + i)] != exp2.charAt(i)) {
           flagSecond = false;
         }
       }
@@ -215,10 +216,10 @@ abstract public class SuccinctFileTest extends TestCase {
    * @param exp     Expression to check against.
    * @return The check result.
    */
-  private boolean checkResultsRepeat(Map<Long, Integer> results, String exp) {
-    for (Long offset : results.keySet()) {
-      for (int i = 0; i < results.get(offset); i++) {
-        if (fileData[offset.intValue() + i] != exp.charAt(i % exp.length())) {
+  private boolean checkResultsRepeat(Set<RegExMatch> results, String exp) {
+    for (RegExMatch m : results) {
+      for (int i = 0; i < m.getLength(); i++) {
+        if (fileData[((int) (m.getOffset() + i))] != exp.charAt(i % exp.length())) {
           return false;
         }
       }
@@ -234,22 +235,22 @@ abstract public class SuccinctFileTest extends TestCase {
   public void testRegexSearch() throws Exception {
     System.out.println("regexSearch");
 
-    Map<Long, Integer> primitiveResults1 = sFile.regexSearch("c");
+    Set<RegExMatch> primitiveResults1 = sFile.regexSearch("c");
     assertTrue(checkResults(primitiveResults1, "c"));
 
-    Map<Long, Integer> primitiveResults2 = sFile.regexSearch("in");
+    Set<RegExMatch> primitiveResults2 = sFile.regexSearch("in");
     assertTrue(checkResults(primitiveResults2, "in"));
 
-    Map<Long, Integer> primitiveResults3 = sFile.regexSearch("out");
+    Set<RegExMatch> primitiveResults3 = sFile.regexSearch("out");
     assertTrue(checkResults(primitiveResults3, "out"));
 
-    Map<Long, Integer> unionResults = sFile.regexSearch("in|out");
+    Set<RegExMatch> unionResults = sFile.regexSearch("in|out");
     assertTrue(checkResultsUnion(unionResults, "in", "out"));
 
-    Map<Long, Integer> concatResults = sFile.regexSearch("c(in|out)");
+    Set<RegExMatch> concatResults = sFile.regexSearch("c(in|out)");
     assertTrue(checkResultsUnion(concatResults, "cin", "cout"));
 
-    Map<Long, Integer> repeatResults = sFile.regexSearch("c+");
+    Set<RegExMatch> repeatResults = sFile.regexSearch("c+");
     assertTrue(checkResultsRepeat(repeatResults, "c"));
   }
 }

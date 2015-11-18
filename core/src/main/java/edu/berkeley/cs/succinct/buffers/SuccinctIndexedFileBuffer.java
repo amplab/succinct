@@ -3,6 +3,7 @@ package edu.berkeley.cs.succinct.buffers;
 import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
+import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.container.Range;
@@ -213,10 +214,10 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @throws RegExParsingException
    */
   @Override public Integer[] recordSearchRegexIds(String query) throws RegExParsingException {
-    Map<Long, Integer> regexOffsetResults = regexSearch(query);
+    Set<RegExMatch> regexOffsetResults = regexSearch(query);
     Set<Integer> recordIds = new HashSet<Integer>();
-    for (Long offset : regexOffsetResults.keySet()) {
-      int recordId = offsetToRecordId(offset.intValue());
+    for (RegExMatch m : regexOffsetResults) {
+      int recordId = offsetToRecordId((int) m.getOffset());
       if (!recordIds.contains(recordId)) {
         recordIds.add(recordId);
       }
