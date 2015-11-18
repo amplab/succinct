@@ -167,8 +167,10 @@ object SuccinctRDD {
    * @param inputRDD The input RDD.
    * @return The SuccinctRDD.
    */
-  def apply(inputRDD: RDD[Array[Byte]]): SuccinctRDD = {
-
+  def apply(
+      inputRDD: RDD[Array[Byte]], 
+      storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY):
+   SuccinctRDD = {
     val partitionSizes = inputRDD.mapPartitionsWithIndex((idx, partition) => {
       val partitionSize = partition.aggregate(0L)((sum, record) => sum + (record.length + 1), _ + _)
       Iterator((idx, partitionSize))
@@ -185,7 +187,7 @@ object SuccinctRDD {
 
     val succinctPartitions = inputRDD.mapPartitionsWithIndex((i, p) =>
       createSuccinctPartition(partitionOffsets(i), partitionFirstRecordIds(i), p)).cache()
-    new SuccinctRDDImpl(succinctPartitions)
+    new SuccinctRDDImpl(succinctPartitions, storageLevel)
   }
 
   /**
@@ -209,7 +211,7 @@ object SuccinctRDD {
       val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
       Iterator(SuccinctPartition(partitionLocation, storageLevel))
     })
-    new SuccinctRDDImpl(succinctPartitions)
+    new SuccinctRDDImpl(succinctPartitions, storageLevel)
   }
 
   /**
