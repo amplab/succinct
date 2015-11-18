@@ -4,6 +4,7 @@ import java.io.{DataOutputStream, ObjectInputStream, ObjectOutputStream}
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
+import edu.berkeley.cs.succinct.regex.RegExMatch
 import edu.berkeley.cs.succinct.streams.SuccinctIndexedFileStream
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -69,6 +70,20 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
     }
   }
 
+  /** Search across values, and return all (key, value) pairs for matched values. **/
+  private[succinct] def searchAndGet(query: Array[Byte]): Iterator[(K, Array[Byte])] = {
+    new Iterator[(K, Array[Byte])] {
+      val recordIds = valueBuffer.recordSearchIdIterator(query)
+
+      override def hasNext: Boolean = recordIds.hasNext
+
+      override def next(): (K, Array[Byte]) = {
+        val recordId = recordIds.next()
+        (keys(recordId), valueBuffer.getRecord(recordId))
+      }
+    }
+  }
+
   /** Search across values, and return the number of occurrences of a particular query. **/
   private[succinct] def count(query: Array[Byte]): Long = {
     valueBuffer.count(query)
@@ -98,6 +113,24 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
       override def hasNext: Boolean = recordIds.hasNext
 
       override def next(): K = keys(recordIds.next())
+    }
+  }
+
+  /** Regex search across values, and regurn the key, match (relative to each value) pairs. **/
+  private[succinct] def regexMatch(query: String): Iterator[(K, RegExMatch)] = {
+    new Iterator[(K, RegExMatch)] {
+      val matches = valueBuffer.regexSearch(query).iterator()
+
+      override def hasNext: Boolean = matches.hasNext
+
+      override def next(): (K, RegExMatch) = {
+        val m = matches.next()
+        val offset = m.getOffset.toInt
+        val recordId = valueBuffer.offsetToRecordId(offset)
+        val key = keys(recordId)
+        m.setOffset(offset - valueBuffer.getRecordOffset(recordId))
+        (key, m)
+      }
     }
   }
 

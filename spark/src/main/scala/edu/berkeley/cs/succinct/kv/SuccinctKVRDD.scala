@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.kv.impl.SuccinctKVRDDImpl
 import edu.berkeley.cs.succinct.SuccinctCore
+import edu.berkeley.cs.succinct.regex.RegExMatch
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
 import org.apache.spark.rdd.RDD
@@ -103,6 +104,26 @@ abstract class SuccinctKVRDD[K: ClassTag](
   }
 
   /**
+    * Search for a term across values, and return matched key-value pairs.
+    *
+    * @param query The search term.
+    * @return An RDD of matched key-value pairs.
+    */
+  def filterByValue(query: Array[Byte]): RDD[(K, Array[Byte])] = {
+    partitionsRDD.flatMap(_.searchAndGet(query))
+  }
+
+  /**
+    * Search for a term across values, and return matched key-value pairs.
+    *
+    * @param query The search term.
+    * @return An RDD of matched key-value pairs.
+    */
+  def filterByValue(query: String): RDD[(K, Array[Byte])] = {
+    filterByValue(query.getBytes("utf-8"))
+  }
+
+  /**
    * Search for a term across values, and return the total number of occurrences.
    *
    * @param query The search term.
@@ -154,6 +175,19 @@ abstract class SuccinctKVRDD[K: ClassTag](
    */
   def regexSearch(query: String): RDD[K] = {
     partitionsRDD.flatMap(_.regexSearch(query))
+  }
+
+  /**
+    * Search for a regular expression across values, and return matches relative to the beginning of
+    * the value. The result is a collection of (key, RegExMatch) pairs, where the RegExMatch
+    * encapsulates the offset relative to the beginning of the corresponding value, and the length
+    * of the match.
+    *
+    * @param query The regex query.
+    * @return An RDD of matched keys.
+    */
+  def regexMatch(query: String): RDD[(K, RegExMatch)] = {
+    partitionsRDD.flatMap(_.regexMatch(query))
   }
 
   /**

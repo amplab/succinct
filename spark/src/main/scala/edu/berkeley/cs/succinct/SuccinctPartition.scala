@@ -69,10 +69,7 @@ class SuccinctPartition(
    * regex search query
    */
   private[succinct] def regexSearch(query: String): Iterator[RegExMatch] = {
-    succinctIndexedFile.regexSearch(query)
-      .toMap
-      .map(t => new RegExMatch(t._1, t._2))
-      .iterator
+    succinctIndexedFile.regexSearch(query).iterator
   }
 
   /** Obtain the total number of records in the partition */
