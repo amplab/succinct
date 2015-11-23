@@ -12,9 +12,7 @@ import edu.berkeley.cs.succinct.util.iterator.SearchIterator;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
 
