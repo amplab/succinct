@@ -185,6 +185,11 @@ val loadedSuccinctKVRDD = sc.succinctKV("/path/to/data")
 
 `SuccinctJsonRDD` provides support for JSON documents, and enables queries over a compressed, disributed JSON dataset.
 
+When an RDD of JSON strings is converted to a `SuccinctJsonRDD`, each document is assigned a unique `id` field. All documents are indexed by this `id` field, and enable the following operations:
+
+* The `get` operation returns a JSON document given its `id`.
+* `search` and `filter` operations yeild an RDD of ids corresponding to a search term or a field value, respectively.
+
 `SuccinctJsonRDD` can be used as follows:
 
 ```scala
@@ -194,7 +199,7 @@ val jsonData = sc.textFile("/path/to/data")
 
 val succinctJsonRDD = jsonData.succinctJson
 
-// Get a particular value
+// Get a particular JSON document
 val value = succinctJsonRDD.get(0)
 println("Value corresponding to Ids 0 = " + new String(value))
 

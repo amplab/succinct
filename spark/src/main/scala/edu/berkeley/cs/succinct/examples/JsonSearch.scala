@@ -26,7 +26,7 @@ object JsonSearch {
 
     val succinctJsonRDD = jsonData.succinctJson
 
-    // Get a particular value
+    // Get a particular JSON document
     val value = succinctJsonRDD.get(0)
     println("Value corresponding to Ids 0 = " + new String(value))
 
