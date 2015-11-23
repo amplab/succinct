@@ -237,4 +237,8 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
 
     return recordIds.toArray(new Integer[recordIds.size()]);
   }
+
+  @Override public int getCompressedSize() {
+    return super.getCompressedSize() + (offsets.length + 1) * 4;
+  }
 }
