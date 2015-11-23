@@ -40,12 +40,12 @@ public class SuccinctFileBufferTest extends SuccinctFileTest {
     // Deserialize data
     FileInputStream fIn = new FileInputStream(testFileSuccinct);
     ObjectInputStream ois = new ObjectInputStream(fIn);
-    SuccinctFile sBufRead = (SuccinctFileBuffer) ois.readObject();
+    SuccinctFile sFileRead = (SuccinctFileBuffer) ois.readObject();
     ois.close();
 
-    assertNotNull(sBufRead);
-    assertEquals(sFile.getSize(), sBufRead.getSize());
+    assertNotNull(sFileRead);
+    assertEquals(sFile.getSize(), sFileRead.getSize());
     assertTrue(Arrays.equals(sFile.extract(0, sFile.getSize()),
-      sBufRead.extract(0, sBufRead.getSize())));
+      sFileRead.extract(0, sFileRead.getSize())));
   }
 }
