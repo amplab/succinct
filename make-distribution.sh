@@ -3,7 +3,7 @@
 # Script to create zip distribution for Spark Packages
 ##
 
-VERSION=0.1.6
+VERSION=0.1.7-SNAPSHOT
 SUCCINCT_HOME="$(cd "`dirname "$0"`"; pwd)"
 DIST_DIR="$SUCCINCT_HOME/dist"
 JAR_FILE=succinct-${VERSION}.jar
