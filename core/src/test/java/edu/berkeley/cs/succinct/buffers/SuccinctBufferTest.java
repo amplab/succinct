@@ -68,6 +68,7 @@ public class SuccinctBufferTest extends SuccinctCoreTest {
 
     assertNotNull(sCoreRead);
     assertEquals(sCore.getOriginalSize(), sCoreRead.getOriginalSize());
+    assertEquals(sCore.getCompressedSize(), sCoreRead.getCompressedSize());
     for (int i = 0; i < sCore.getOriginalSize(); i++) {
       assertEquals(sCore.lookupNPA(i), sCoreRead.lookupNPA(i));
       assertEquals(sCore.lookupSA(i), sCoreRead.lookupSA(i));
