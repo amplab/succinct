@@ -68,7 +68,7 @@ the record type.
 import edu.berkeley.cs.succinct._
 
 // Read text data from file; sc is the SparkContext
-val wikiData = ctx.textFile("/path/to/data").map(_.getBytes)
+val wikiData = sc.textFile("/path/to/data").map(_.getBytes)
 
 // Converts the wikiData RDD to a SuccinctRDD, serializing each record into an
 // array of bytes. We persist the RDD in memory to perform in-memory queries.
@@ -110,7 +110,7 @@ the constructed data-structures without trigerring re-construction:
 import edu.berkeley.cs.succinct._
 
 // Read text data from file; sc is the SparkContext
-val wikiData = ctx.textFile("/path/to/data").map(_.getBytes)
+val wikiData = sc.textFile("/path/to/data").map(_.getBytes)
 
 // Construct the succinct RDD and save it as follows
 wikiData.saveAsSuccinctFile("/path/to/data")
@@ -130,7 +130,7 @@ bytes.
 ```scala
 import edu.berkeley.cs.succinct.kv._
 
-val wikiData = ctx.textFile(dataPath, partitions).map(_.getBytes)
+val wikiData = sc.textFile("/path/to/data").map(_.getBytes)
 val wikiKVData = wikiData.zipWithIndex().map(t => (t.\_2, t.\_1))
 
 val succinctKVRDD = wikiKVData.succinctKV
@@ -171,7 +171,7 @@ disk for repeated-use scenarios:
 import edu.berkeley.cs.succinct.kv._
 
 // Read data from file; sc is the SparkContext
-val wikiData = ctx.textFile("/path/to/data").map(_.getBytes)
+val wikiData = sc.textFile("/path/to/data").map(_.getBytes)
 val wikiKVData = wikiData.zipWithIndex().map(t => (t.\_2, t.\_1))
 
 // Construct the SuccinctKVRDD and save it as follows
@@ -179,6 +179,49 @@ wikiKVData.saveAsSuccinctKV("/path/to/data")
 
 // Load into memory again as follows; sc is the SparkContext
 val loadedSuccinctKVRDD = sc.succinctKV("/path/to/data")
+```
+
+### SuccinctJsonRDD API
+
+`SuccinctJsonRDD` provides support for JSON documents, and enables queries over a compressed, disributed JSON dataset.
+
+`SuccinctJsonRDD` can be used as follows:
+
+```scala
+import edu.berkeley.cs.succinct.json._
+
+val jsonData = sc.textFile("/path/to/data")
+
+val succinctJsonRDD = jsonData.succinctJson
+
+// Get a particular value
+val value = succinctJsonRDD.get(0)
+println("Value corresponding to Ids 0 = " + new String(value))
+
+// Search across JSON Documents
+val ids1 = succinctJsonRDD.search("Cookie")
+println("Ids matching the search query:")
+ids1.foreach(println)
+
+// Filter on attributes
+val ids2 = succinctJsonRDD.filter("location.city", "Berkeley")
+println("Ids matching the filter query:")
+ids2.foreach(println)
+``` 
+
+For repeated-use scenarios, persist the `SuccinctJsonRDD` to disk as follows:
+
+```scala
+import edu.berkeley.cs.succinct.kv._
+
+// Read data from file; sc is the SparkContext
+val jsonData = sc.textFile("/path/to/data")
+
+// Construct the SuccinctKVRDD and save it as follows
+jsonData.saveAsSuccinctJson("/path/to/data")
+
+// Load into memory again as follows; sc is the SparkContext
+val loadedSuccinctJsonRDD = sc.succinctJson("/path/to/data")
 ```
 
 ### DataFrame API
