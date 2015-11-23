@@ -7,11 +7,11 @@
   <parent>
     <groupId>amplab</groupId>
     <artifactId>succinct</artifactId>
-    <version>0.1.6-SNAPSHOT</version>
+    <version>0.1.6</version>
   </parent>
 
   <artifactId>succinct-serde</artifactId>
-  <version>0.1.6-SNAPSHOT</version>
+  <version>0.1.6</version>
   <packaging>jar</packaging>
   <name>Succinct-SerDe</name>
   <url>http://succinct.cs.berkeley.edu/</url>
