@@ -15,7 +15,8 @@ import scala.reflect.ClassTag
 /**
  * The implementation for a single SuccinctKVRDD partition.
  */
-class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctIndexedFile)(implicit ordering: Ordering[K]) {
+class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctIndexedFile)
+    (implicit ordering: Ordering[K]) {
 
   val numKeys = keys.length
 
@@ -147,8 +148,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
 }
 
 object SuccinctKVPartition {
-  def apply[K: ClassTag](
-    partitionLocation: String, storageLevel: StorageLevel)
+  def apply[K: ClassTag](partitionLocation: String, storageLevel: StorageLevel)
     (implicit ordering: Ordering[K])
   : SuccinctKVPartition[K] = {
 
