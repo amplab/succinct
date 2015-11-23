@@ -244,7 +244,8 @@ object SuccinctKVRDD {
     (implicit ordering: Ordering[K])
   : SuccinctKVRDD[K] = {
     val partitionsRDD = inputRDD.sortByKey().mapPartitions(createSuccinctKVPartition[K]).cache()
-    new SuccinctKVRDDImpl[K](partitionsRDD)
+    val firstKeys = partitionsRDD.map(_.firstKey).collect()
+    new SuccinctKVRDDImpl[K](partitionsRDD, firstKeys)
   }
 
   /**
@@ -270,7 +271,8 @@ object SuccinctKVRDD {
         val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
         Iterator(SuccinctKVPartition[K](partitionLocation, storageLevel))
       }).cache()
-    new SuccinctKVRDDImpl[K](succinctPartitions)
+    val firstKeys = succinctPartitions.map(_.firstKey).collect()
+    new SuccinctKVRDDImpl[K](succinctPartitions, firstKeys)
   }
 
   /**

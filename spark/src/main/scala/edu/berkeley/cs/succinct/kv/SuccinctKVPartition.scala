@@ -54,6 +54,11 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
     if (pos < 0 || pos > numKeys) null else valueBuffer.getRecord(pos)
   }
 
+  /** Get the values corresponding to an array of keys. **/
+  private[succinct] def multiget(keys: Array[K]): Array[(K, Array[Byte])] = {
+    keys.map(k => (k, get(k)))
+  }
+
   /** Random access into the value corresponding to a key. **/
   private[succinct] def extract(key: K, offset: Int, length: Int): Array[Byte] = {
     val pos = findKey(key)
@@ -144,6 +149,9 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
     val objectOutputStream = new ObjectOutputStream(dataStream)
     objectOutputStream.writeObject(keys)
   }
+
+  /** Returns the first key in the partition. **/
+  private[succinct] def firstKey: K = keys(0)
 
 }
 
