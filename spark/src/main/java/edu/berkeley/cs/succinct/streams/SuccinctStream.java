@@ -1,8 +1,8 @@
 package edu.berkeley.cs.succinct.streams;
 
 import edu.berkeley.cs.succinct.SuccinctCore;
-import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import edu.berkeley.cs.succinct.util.container.Pair;
+import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import edu.berkeley.cs.succinct.util.stream.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -334,6 +334,10 @@ public class SuccinctStream extends SuccinctCore {
     }
 
     return flag ? ep : sp;
+  }
+
+  @Override public int getCompressedSize() {
+    return (int) endOfCoreStream;
   }
 
   /**

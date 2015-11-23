@@ -35,9 +35,9 @@ public class SuccinctBuffer extends SuccinctCore {
 
   // Serialized data structures
   protected transient ThreadSafeByteBuffer metadata;
+  protected transient ThreadSafeByteBuffer alphabet;
   protected transient ThreadSafeByteBuffer alphabetmap;
   protected transient ThreadSafeLongBuffer contextmap;
-  protected transient ThreadSafeByteBuffer alphabet;
   protected transient ThreadSafeLongBuffer sa;
   protected transient ThreadSafeLongBuffer isa;
   protected transient ThreadSafeLongBuffer neccol;
@@ -51,6 +51,25 @@ public class SuccinctBuffer extends SuccinctCore {
   protected transient ThreadSafeIntBuffer coff;
   protected transient ThreadSafeByteBuffer[] wavelettree;
   protected transient StorageMode storageMode;
+
+  /**
+   * Get the compressed size for the Succinct encoded data structures.
+   *
+   * @return The total size in bytes for the Succinct encoded data structures.
+   */
+  @Override public int getCompressedSize() {
+    int totSize = 40 + metadata.limit() + alphabetmap.limit() + alphabet.limit()
+      + (contextmap.limit() + sa.limit() + isa.limit() + neccol.limit() + necrow.limit()
+      + rowoffsets.limit() + coloffsets.limit() + celloffsets.limit()) * 8
+      + (rowsizes.limit() + colsizes.limit() + roff.limit() + coff.limit()) * 4;
+
+    for (ThreadSafeByteBuffer w : wavelettree) {
+      if (w != null)
+        totSize += w.limit();
+    }
+
+    return totSize;
+  }
 
   /**
    * Default constructor.

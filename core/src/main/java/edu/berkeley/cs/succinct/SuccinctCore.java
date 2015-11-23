@@ -261,4 +261,11 @@ public abstract class SuccinctCore implements Serializable {
    */
   public abstract long binSearchNPA(long val, long startIdx, long endIdx, boolean flag);
 
+  /**
+   * Get the compressed size for the Succinct encoded data structures.
+   *
+   * @return The total size in bytes for the Succinct encoded data structures.
+   */
+  public abstract int getCompressedSize();
+
 }
