@@ -14,7 +14,6 @@ public class DictionaryTest extends TestCase {
    */
   public void setUp() throws Exception {
     super.setUp();
-    Tables.init();
   }
 
   /**

@@ -1,6 +1,5 @@
 package edu.berkeley.cs.succinct.util.serops;
 
-import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import junit.framework.TestCase;
 
 public class WaveletTreeOpsTest extends TestCase {
@@ -12,7 +11,6 @@ public class WaveletTreeOpsTest extends TestCase {
    */
   public void setUp() throws Exception {
     super.setUp();
-    Tables.init();
   }
 
   /**

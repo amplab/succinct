@@ -1,6 +1,5 @@
 package edu.berkeley.cs.succinct.util.wavelettree;
 
-import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import gnu.trove.list.array.TLongArrayList;
 import junit.framework.TestCase;
 
@@ -13,7 +12,6 @@ public class WaveletTreeTest extends TestCase {
    */
   public void setUp() throws Exception {
     super.setUp();
-    Tables.init();
   }
 
   /**

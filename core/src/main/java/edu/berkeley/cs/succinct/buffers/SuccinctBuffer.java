@@ -2,18 +2,17 @@ package edu.berkeley.cs.succinct.buffers;
 
 import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctCore;
+import edu.berkeley.cs.succinct.util.CommonUtils;
 import edu.berkeley.cs.succinct.util.bitmap.BMArray;
 import edu.berkeley.cs.succinct.util.bitmap.BitMap;
-import edu.berkeley.cs.succinct.util.dictionary.Tables;
-import edu.berkeley.cs.succinct.util.suffixarray.QSufSort;
-import edu.berkeley.cs.succinct.util.CommonUtils;
-import edu.berkeley.cs.succinct.util.container.Pair;
-import edu.berkeley.cs.succinct.util.serops.ArrayOps;
-import edu.berkeley.cs.succinct.util.serops.BMArrayOps;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeByteBuffer;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeIntBuffer;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeLongBuffer;
+import edu.berkeley.cs.succinct.util.container.Pair;
+import edu.berkeley.cs.succinct.util.serops.ArrayOps;
+import edu.berkeley.cs.succinct.util.serops.BMArrayOps;
 import edu.berkeley.cs.succinct.util.serops.WaveletTreeOps;
+import edu.berkeley.cs.succinct.util.suffixarray.QSufSort;
 import edu.berkeley.cs.succinct.util.wavelettree.WaveletTree;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TLongLongHashMap;
@@ -88,9 +87,6 @@ public class SuccinctBuffer extends SuccinctCore {
 
     this.setContextLen(contextLen);
 
-    // Initializing Table data
-    Tables.init();
-
     // Append the EOF byte
     int end = input.length;
     input = Arrays.copyOf(input, input.length + 1);
@@ -109,7 +105,6 @@ public class SuccinctBuffer extends SuccinctCore {
   public SuccinctBuffer(String path, StorageMode storageMode) {
     this.storageMode = storageMode;
     try {
-      Tables.init();
       if (storageMode == StorageMode.MEMORY_ONLY) {
         readFromFile(path);
       } else if (storageMode == StorageMode.MEMORY_MAPPED) {
@@ -127,7 +122,6 @@ public class SuccinctBuffer extends SuccinctCore {
    */
   public SuccinctBuffer(DataInputStream is) {
     try {
-      Tables.init();
       readFromStream(is);
     } catch (IOException e) {
       e.printStackTrace();
@@ -140,7 +134,6 @@ public class SuccinctBuffer extends SuccinctCore {
    * @param buf Input buffer to load the data from
    */
   public SuccinctBuffer(ByteBuffer buf) {
-    Tables.init();
     mapFromBuffer(buf);
   }
 
@@ -1171,7 +1164,6 @@ public class SuccinctBuffer extends SuccinctCore {
    * @throws IOException
    */
   private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-    Tables.init();
     readFromStream(new DataInputStream(ois));
   }
 

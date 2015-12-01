@@ -2,7 +2,6 @@ package edu.berkeley.cs.succinct.util.stream;
 
 import edu.berkeley.cs.succinct.util.bitmap.BitMap;
 import edu.berkeley.cs.succinct.util.dictionary.Dictionary;
-import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import junit.framework.TestCase;
 import org.apache.hadoop.fs.FSDataInputStream;
 
@@ -18,7 +17,6 @@ public class DictionaryOpsTest extends TestCase {
    */
   public void setUp() throws Exception {
     super.setUp();
-    Tables.init();
   }
 
   /**

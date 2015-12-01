@@ -1,6 +1,5 @@
 package edu.berkeley.cs.succinct;
 
-import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import edu.berkeley.cs.succinct.util.container.Pair;
 
 import java.io.Serializable;
@@ -35,7 +34,6 @@ public abstract class SuccinctCore implements Serializable {
   private transient int contextLen;
 
   public SuccinctCore() {
-    Tables.init();
   }
 
   /**

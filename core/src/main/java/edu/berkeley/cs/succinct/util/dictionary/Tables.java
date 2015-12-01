@@ -9,18 +9,9 @@ public class Tables {
   public static char[] offsetBits = new char[17];
   public static char[][] smallRank = new char[65536][16];
   public static int[][] decodeTable = new int[17][];
-  public static ArrayList<HashMap<Integer, Integer>> encodeTable =
-    new ArrayList<HashMap<Integer, Integer>>();
-  public static boolean isInitialized = false;
+  public static ArrayList<HashMap<Integer, Integer>> encodeTable = new ArrayList<>();
 
-  /**
-   * Initializes all shared tables.
-   */
-  public static synchronized void init() {
-
-    if (isInitialized)
-      return;
-
+  static {
     short[] C16 = new short[17];
     C16[0] = 2;
     offsetBits[0] = 1;
@@ -61,7 +52,5 @@ public class Tables {
         smallRank[i][j] = (char) CommonUtils.popCount(i >> (15 - j));
       }
     }
-
-    isInitialized = true;
   }
 }

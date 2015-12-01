@@ -4,7 +4,6 @@ import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.regex.RegExMatch;
-import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.container.Range;
 import edu.berkeley.cs.succinct.util.iterator.SearchIterator;
@@ -59,7 +58,6 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   public SuccinctIndexedFileBuffer(DataInputStream is) {
     try {
-      Tables.init();
       readFromStream(is);
     } catch (IOException e) {
       e.printStackTrace();
