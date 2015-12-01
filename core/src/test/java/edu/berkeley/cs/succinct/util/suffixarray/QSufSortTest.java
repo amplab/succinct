@@ -1,11 +1,14 @@
-package edu.berkeley.cs.succinct.util.qsufsort;
+package edu.berkeley.cs.succinct.util.suffixarray;
 
 import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.util.IOUtils;
 import gnu.trove.set.hash.TByteHashSet;
 import junit.framework.TestCase;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.Arrays;
 
 public class QSufSortTest extends TestCase {
