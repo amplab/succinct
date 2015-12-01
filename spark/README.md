@@ -130,9 +130,11 @@ bytes.
 ```scala
 import edu.berkeley.cs.succinct.kv._
 
+// Load data from file; sc is the SparkContext
 val wikiData = sc.textFile("/path/to/data").map(_.getBytes)
 val wikiKVData = wikiData.zipWithIndex().map(t => (t.\_2, t.\_1))
 
+// Convert to SuccinctKVRDD
 val succinctKVRDD = wikiKVData.succinctKV
 
 // Get the value for key 0
@@ -195,8 +197,10 @@ When an RDD of JSON strings is converted to a `SuccinctJsonRDD`, each document i
 ```scala
 import edu.berkeley.cs.succinct.json._
 
+// Read JSON data from file; sc is the SparkContext
 val jsonData = sc.textFile("/path/to/data")
 
+// Convert to SuccinctJsonRDD
 val succinctJsonRDD = jsonData.succinctJson
 
 // Get a particular JSON document
@@ -275,8 +279,8 @@ val citySchema = StructType(Seq(
   StructField("Area", DoubleType, false),
   StructField("Airport", BooleanType, true)))
 
-// Create an RDD of Rows with some data
-val cityRDD = sparkContext.parallelize(Seq(
+// Create an RDD of Rows with some data; sc is the SparkContext
+val cityRDD = sc.parallelize(Seq(
   Row("San Francisco", 12, 44.52, true),
   Row("Palo Alto", 12, 22.33, false),
   Row("Munich", 8, 3.14, true)))
