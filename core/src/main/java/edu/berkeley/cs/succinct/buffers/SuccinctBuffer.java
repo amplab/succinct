@@ -5,7 +5,7 @@ import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.util.bitmap.BMArray;
 import edu.berkeley.cs.succinct.util.bitmap.BitMap;
 import edu.berkeley.cs.succinct.util.dictionary.Tables;
-import edu.berkeley.cs.succinct.util.qsufsort.QSufSort;
+import edu.berkeley.cs.succinct.util.suffixarray.QSufSort;
 import edu.berkeley.cs.succinct.util.CommonUtils;
 import edu.berkeley.cs.succinct.util.container.Pair;
 import edu.berkeley.cs.succinct.util.serops.ArrayOps;
