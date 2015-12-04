@@ -297,15 +297,6 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   }
 
   /**
-   * Get the compressed size for the Succinct encoded data structures.
-   *
-   * @return The total size in bytes for the Succinct encoded data structures.
-   */
-  @Override public int getCompressedSize() {
-    return super.getCompressedSize() + (offsets.length + 1 ) * 4;
-  }
-
-  /**
    * Write Succinct data structures to a DataOutputStream.
    *
    * @param os Output stream to write data to.

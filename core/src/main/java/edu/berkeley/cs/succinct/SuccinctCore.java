@@ -3,10 +3,26 @@ package edu.berkeley.cs.succinct;
 import edu.berkeley.cs.succinct.util.container.Pair;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.logging.*;
 
 public abstract class SuccinctCore implements Serializable {
+
+  // Logger
+  public final static Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+  static {
+    final Handler consoleHandler = new ConsoleHandler();
+    consoleHandler.setFormatter(new Formatter() {
+      public String format(LogRecord record) {
+        return "[" + record.getLevel() + "] " + new Date(record.getMillis()) + " " + record
+          .getMessage() + "\n";
+      }
+    });
+    logger.setUseParentHandlers(false);
+    logger.addHandler(consoleHandler);
+    logger.setLevel(Level.OFF);
+  }
 
   // End of File marker
   public transient static final byte EOF = -127;
@@ -17,21 +33,17 @@ public abstract class SuccinctCore implements Serializable {
   // End of Line marker
   public transient static final byte EOL = '\n';
 
-  // Deserialized data-structures
-  protected transient HashMap<Byte, Pair<Long, Integer>> alphabetMap;
-  protected transient Map<Long, Long> contextMap;
-
   // Metadata
   private transient int originalSize;
-  private transient int sampledSASize;
-  private transient int alphaSize;
-  private transient int sigmaSize;
-  private transient int bits;
-  private transient int sampledSABits;
-  private transient int samplingBase;
-  private transient int samplingRate;
-  private transient int numContexts;
-  private transient int contextLen;
+  private transient int alphabetSize;
+  private transient int samplingRateSA;
+  private transient int samplingRateISA;
+  private transient int samplingRateNPA;
+  private transient int sampleBitWidth;
+
+  // Alphabet map
+  protected transient HashMap<Byte, Pair<Integer, Integer>> alphabetMap;
+  protected transient byte[] alphabet;
 
   public SuccinctCore() {
   }
@@ -55,165 +67,93 @@ public abstract class SuccinctCore implements Serializable {
   }
 
   /**
-   * Get the sampled SA size.
-   *
-   * @return The sampledSASize.
-   */
-  public int getSampledSASize() {
-    return sampledSASize;
-  }
-
-  /**
-   * Set the sampled SA size.
-   *
-   * @param sampledSASize The sampledSASize to set.
-   */
-  public void setSampledSASize(int sampledSASize) {
-    this.sampledSASize = sampledSASize;
-  }
-
-  /**
    * Get the alpha size.
    *
-   * @return The alphaSize.
+   * @return The alphabetSize.
    */
-  public int getAlphaSize() {
-    return alphaSize;
+  public int getAlphabetSize() {
+    return alphabetSize;
   }
 
   /**
    * Set the alpha size.
    *
-   * @param alphaSize The alphaSize to set.
+   * @param alphabetSize The alphabetSize to set.
    */
-  public void setAlphaSize(int alphaSize) {
-    this.alphaSize = alphaSize;
+  public void setAlphabetSize(int alphabetSize) {
+    this.alphabetSize = alphabetSize;
   }
 
   /**
-   * Get the sigma size.
-   *
-   * @return The sigmaSize.
-   */
-  public int getSigmaSize() {
-    return sigmaSize;
-  }
-
-  /**
-   * Set the sigma size.
-   *
-   * @param sigmaSize The sigmaSize to set.
-   */
-  public void setSigmaSize(int sigmaSize) {
-    this.sigmaSize = sigmaSize;
-  }
-
-  /**
-   * Get the bits.
-   *
-   * @return The bits.
-   */
-  public int getBits() {
-    return bits;
-  }
-
-  /**
-   * Set the bits.
-   *
-   * @param bits The bits to set.
-   */
-  public void setBits(int bits) {
-    this.bits = bits;
-  }
-
-  /**
-   * Get the sampled SA bits.
-   *
-   * @return The sampledSABits.
-   */
-  public int getSampledSABits() {
-    return sampledSABits;
-  }
-
-  /**
-   * Set the sampled SA bits.
-   *
-   * @param sampledSABits The sampledSABits to set.
-   */
-  public void setSampledSABits(int sampledSABits) {
-    this.sampledSABits = sampledSABits;
-  }
-
-  /**
-   * Get the sampling base.
-   *
-   * @return The samplingBase.
-   */
-  public int getSamplingBase() {
-    return samplingBase;
-  }
-
-  /**
-   * Set the sampling base.
-   *
-   * @param samplingBase The samplingBase to set.
-   */
-  public void setSamplingBase(int samplingBase) {
-    this.samplingBase = samplingBase;
-  }
-
-  /**
-   * Get the sampling rate.
+   * Get the SA sampling rate.
    *
    * @return The samplingRate.
    */
-  public int getSamplingRate() {
-    return samplingRate;
+  public int getSamplingRateSA() {
+    return samplingRateSA;
   }
 
   /**
-   * Set the sampling rate.
+   * Set the SA sampling rate.
    *
    * @param samplingRate The samplingRate to set.
    */
-  public void setSamplingRate(int samplingRate) {
-    this.samplingRate = samplingRate;
+  public void setSamplingRateSA(int samplingRate) {
+    this.samplingRateSA = samplingRate;
   }
 
   /**
-   * Get the number of contexts.
+   * Get the ISA sampling rate.
    *
-   * @return The numContexts.
+   * @return The samplingRate.
    */
-  public int getNumContexts() {
-    return numContexts;
+  public int getSamplingRateISA() {
+    return samplingRateISA;
   }
 
   /**
-   * Set the number of contexts.
+   * Set the ISA sampling rate.
    *
-   * @param numContexts The numContexts to set.
+   * @param samplingRate The samplingRate to set.
    */
-  public void setNumContexts(int numContexts) {
-    this.numContexts = numContexts;
+  public void setSamplingRateISA(int samplingRate) {
+    this.samplingRateISA = samplingRate;
   }
 
   /**
-   * Get the context length.
+   * Get the NPA sampling rate.
    *
-   * @return The contextLength.
+   * @return The samplingRate.
    */
-  public int getContextLen() {
-    return contextLen;
+  public int getSamplingRateNPA() {
+    return samplingRateNPA;
   }
 
   /**
-   * Set the context length.
+   * Set the NPA sampling rate.
    *
-   * @param contextLen The contextLen to set.
+   * @param samplingRate The samplingRate to set.
    */
-  public void setContextLen(int contextLen) {
-    this.contextLen = contextLen;
+  public void setSamplingRateNPA(int samplingRate) {
+    this.samplingRateNPA = samplingRate;
+  }
+
+  /**
+   * Get the sample bit width.
+   *
+   * @return The sample bit width.
+   */
+  public int getSampleBitWidth() {
+    return sampleBitWidth;
+  }
+
+  /**
+   * Set the sample bit width.
+   *
+   * @param sampleBitWidth The sample bit width to set.
+   */
+  public void setSampleBitWidth(int sampleBitWidth) {
+    this.sampleBitWidth = sampleBitWidth;
   }
 
   /**
@@ -258,12 +198,4 @@ public abstract class SuccinctCore implements Serializable {
    * @return Search result as an index into the NPA.
    */
   public abstract long binSearchNPA(long val, long startIdx, long endIdx, boolean flag);
-
-  /**
-   * Get the compressed size for the Succinct encoded data structures.
-   *
-   * @return The total size in bytes for the Succinct encoded data structures.
-   */
-  public abstract int getCompressedSize();
-
 }

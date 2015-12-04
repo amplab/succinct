@@ -19,22 +19,12 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
   private static final long serialVersionUID = 5879363803993345049L;
 
   /**
-   * Constructor to create SuccinctBuffer from byte array, context length and file offset.
-   *
-   * @param input      Input byte array.
-   * @param contextLen Context length.
-   */
-  public SuccinctFileBuffer(byte[] input, int contextLen) {
-    super(input, contextLen);
-  }
-
-  /**
    * Constructor to create SuccinctBuffer from byte array and file offset.
    *
-   * @param input      Input byte array.
+   * @param input Input byte array.
    */
   public SuccinctFileBuffer(byte[] input) {
-    this(input, 3);
+    super(input);
   }
 
   /**
@@ -69,10 +59,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    * @return The alphabet for the succinct file.
    */
   @Override public byte[] getAlphabet() {
-    byte[] alphabetBuf = new byte[getAlphaSize()];
-    alphabet.buffer().get(alphabetBuf);
-    alphabet.rewind();
-    return alphabetBuf;
+    return alphabet;
   }
 
   /**
@@ -98,7 +85,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    * Extract data of specified length from Succinct data structures at specified index.
    *
    * @param offset Index into original input to start extracting at.
-   * @param length    Length of data to be extracted.
+   * @param length Length of data to be extracted.
    * @return Extracted data.
    */
   @Override public byte[] extract(long offset, int length) {
@@ -159,8 +146,10 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
 
     if (alphabetMap.containsKey(buf[m - 1])) {
       range.first = alphabetMap.get(buf[m - 1]).first;
-      range.second =
-        alphabetMap.get((alphabet.get(alphabetMap.get(buf[m - 1]).second + 1))).first - 1;
+      byte nextByte = alphabetMap.get(buf[m - 1]).second + 1 == getAlphabetSize() ?
+        SuccinctCore.EOA :
+        alphabet[alphabetMap.get(buf[m - 1]).second + 1];
+      range.second = alphabetMap.get(nextByte).first - 1;
     } else {
       return new Range(0L, -1L);
     }
@@ -168,7 +157,10 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     for (int i = m - 2; i >= 0; i--) {
       if (alphabetMap.containsKey(buf[i])) {
         c1 = alphabetMap.get(buf[i]).first;
-        c2 = alphabetMap.get((alphabet.get(alphabetMap.get(buf[i]).second + 1))).first - 1;
+        byte nextByte = alphabetMap.get(buf[i]).second + 1 == getAlphabetSize() ?
+          SuccinctCore.EOA :
+          alphabet[alphabetMap.get(buf[i]).second + 1];
+        c2 = alphabetMap.get(nextByte).first - 1;
       } else {
         return new Range(0L, -1L);
       }
@@ -207,7 +199,10 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     for (int i = m - 1; i >= 0; i--) {
       if (alphabetMap.containsKey(buf[i])) {
         c1 = alphabetMap.get(buf[i]).first;
-        c2 = alphabetMap.get((alphabet.get(alphabetMap.get(buf[i]).second + 1))).first - 1;
+        byte nextByte = alphabetMap.get(buf[i]).second + 1 == getAlphabetSize() ?
+          SuccinctCore.EOA :
+          alphabet[alphabetMap.get(buf[i]).second + 1];
+        c2 = alphabetMap.get(nextByte).first - 1;
       } else {
         return new Range(0L, -1L);
       }
@@ -406,7 +401,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    * Check if the two offsets belong to the same record. This is always true for the
    * SuccinctFileBuffer.
    *
-   * @param firstOffset The first offset.
+   * @param firstOffset  The first offset.
    * @param secondOffset The second offset.
    * @return True if the two offsets belong to the same record, false otherwise.
    */
@@ -422,7 +417,6 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    * @throws RegExParsingException
    */
   @Override public Set<RegExMatch> regexSearch(String query) throws RegExParsingException {
-    SuccinctRegEx succinctRegEx = new SuccinctRegEx(this, query);
-    return succinctRegEx.compute();
+    return new SuccinctRegEx(this, query).compute();
   }
 }
