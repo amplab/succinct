@@ -29,6 +29,7 @@ public class SuccinctBufferTest extends SuccinctCoreTest {
     byte[] fileData = new byte[(int) inputFile.length()];
     DataInputStream dis = new DataInputStream(new FileInputStream(inputFile));
     dis.readFully(fileData);
+    sCore = new SuccinctBuffer(fileData);
 
   }
 
