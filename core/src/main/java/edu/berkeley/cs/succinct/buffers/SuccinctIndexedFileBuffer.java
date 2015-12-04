@@ -19,26 +19,14 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   protected transient int[] offsets;
 
   /**
-   * Constructor to initialize SuccinctIndexedBuffer from input byte array, offsets corresponding to records,
-   * context length and file offset.
-   *
-   * @param input         The input byte array.
-   * @param offsets       Offsets corresponding to records.
-   * @param contextLen    Context Length.
-   */
-  public SuccinctIndexedFileBuffer(byte[] input, int[] offsets, int contextLen) {
-    super(input, contextLen);
-    this.offsets = offsets;
-  }
-
-  /**
    * Constructor to initialize SuccinctIndexedBuffer from input byte array and offsets corresponding to records.
    *
    * @param input   The input byte array.
    * @param offsets Offsets corresponding to records.
    */
   public SuccinctIndexedFileBuffer(byte[] input, int[] offsets) {
-    this(input, offsets, 3);
+    super(input);
+    this.offsets = offsets;
   }
 
   /**
