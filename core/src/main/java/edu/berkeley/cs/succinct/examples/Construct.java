@@ -17,12 +17,14 @@ public class Construct {
       System.exit(-1);
     }
 
-    SuccinctFileBuffer succinctFileBuffer = null;
+    SuccinctFileBuffer succinctFileBuffer;
 
     String type = "file";
     if (args.length == 3) {
       type = args[2];
     }
+
+    long start = System.currentTimeMillis();
 
     if (type.equals("file")) {
       if (args[0].endsWith(".succinct")) {
@@ -71,7 +73,8 @@ public class Construct {
       throw new UnsupportedOperationException("Unsupported mode: " + type);
     }
 
-    assert succinctFileBuffer != null;
+    long end = System.currentTimeMillis();
+    System.out.println("Time to construct: " + (end - start) / 1000 + "s");
 
     succinctFileBuffer.writeToFile(args[1]);
   }
