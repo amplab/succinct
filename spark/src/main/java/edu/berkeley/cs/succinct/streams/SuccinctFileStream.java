@@ -49,13 +49,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @return The alphabet for the succinct file.
    */
   @Override public byte[] getAlphabet() {
-    byte[] alphabetBuf = new byte[getAlphaSize()];
-    try {
-      alphabet.get(alphabetBuf);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return alphabetBuf;
+    return alphabet;
   }
 
   /**
@@ -69,6 +63,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
 
   /**
    * Get the character at specified index into succinct file
+   *
    * @param i Index into succinct file.
    * @return The character at specified index.
    */
@@ -139,27 +134,37 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     int m = buf.length;
     long c1, c2;
 
-    try {
-      if (alphabetMap.containsKey(buf[m - 1])) {
-        range.first = alphabetMap.get(buf[m - 1]).first;
-        range.second =
-          alphabetMap.get((alphabet.get(alphabetMap.get(buf[m - 1]).second + 1))).first - 1;
+    if (alphabetMap.containsKey(buf[m - 1])) {
+      range.first = alphabetMap.get(buf[m - 1]).first;
+      byte nextByte = alphabetMap.get(buf[m - 1]).second + 1 == getAlphabetSize() ?
+        SuccinctCore.EOA :
+        alphabet[alphabetMap.get(buf[m - 1]).second + 1];
+      range.second = alphabetMap.get(nextByte).first - 1;
+    } else {
+      return new Range(0L, -1L);
+    }
+
+    for (int i = m - 2; i >= 0; i--) {
+      if (alphabetMap.containsKey(buf[i])) {
+        c1 = alphabetMap.get(buf[i]).first;
+        byte nextByte = alphabetMap.get(buf[i]).second + 1 == getAlphabetSize() ?
+          SuccinctCore.EOA :
+          alphabet[alphabetMap.get(buf[i]).second + 1];
+        c2 = alphabetMap.get(nextByte).first - 1;
       } else {
-        return range;
+        return new Range(0L, -1L);
       }
 
-      for (int i = m - 2; i >= 0; i--) {
-        if (alphabetMap.containsKey(buf[i])) {
-          c1 = alphabetMap.get(buf[i]).first;
-          c2 = alphabetMap.get((alphabet.get(alphabetMap.get(buf[i]).second + 1))).first - 1;
-        } else {
-          return range;
-        }
-        range.first = binSearchNPA(range.first, c1, c2, false);
-        range.second = binSearchNPA(range.second, c1, c2, true);
+      if (c1 > c2) {
+        return new Range(0L, -1L);
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+
+      range.first = binSearchNPA(range.first, c1, c2, false);
+      range.second = binSearchNPA(range.second, c1, c2, true);
+
+      if (range.first > range.second) {
+        return new Range(0L, -1L);
+      }
     }
 
     return range;
@@ -173,23 +178,35 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @return Range into SA.
    */
   @Override public Range continueBwdSearch(byte[] buf, Range range) {
+    if (range.empty()) {
+      return range;
+    }
+
     Range newRange = new Range(range.first, range.second);
     int m = buf.length;
     long c1, c2;
 
-    try {
-      for (int i = m - 1; i >= 0; i--) {
-        if (alphabetMap.containsKey(buf[i])) {
-          c1 = alphabetMap.get(buf[i]).first;
-          c2 = alphabetMap.get((alphabet.get(alphabetMap.get(buf[i]).second + 1))).first - 1;
-        } else {
-          return newRange;
-        }
-        newRange.first = binSearchNPA(newRange.first, c1, c2, false);
-        newRange.second = binSearchNPA(newRange.second, c1, c2, true);
+    for (int i = m - 1; i >= 0; i--) {
+      if (alphabetMap.containsKey(buf[i])) {
+        c1 = alphabetMap.get(buf[i]).first;
+        byte nextByte = alphabetMap.get(buf[i]).second + 1 == getAlphabetSize() ?
+          SuccinctCore.EOA :
+          alphabet[alphabetMap.get(buf[i]).second + 1];
+        c2 = alphabetMap.get(nextByte).first - 1;
+      } else {
+        return new Range(0L, -1L);
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+
+      if (c1 > c2) {
+        return new Range(0L, -1L);
+      }
+
+      newRange.first = binSearchNPA(newRange.first, c1, c2, false);
+      newRange.second = binSearchNPA(newRange.second, c1, c2, true);
+
+      if (newRange.first > newRange.second) {
+        return new Range(0L, -1L);
+      }
     }
     return newRange;
   }
@@ -373,7 +390,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * Check if the two recordIds belong to the same record. This is always true for the
    * SuccinctFileBuffer.
    *
-   * @param firstOffset The first offset.
+   * @param firstOffset  The first offset.
    * @param secondOffset The second offset.
    * @return True if the two recordIds belong to the same record, false otherwise.
    */
@@ -389,8 +406,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @throws RegExParsingException
    */
   @Override public Set<RegExMatch> regexSearch(String query) throws RegExParsingException {
-    SuccinctRegEx succinctRegEx = new SuccinctRegEx(this, query);
-    return succinctRegEx.compute();
+    return new SuccinctRegEx(this, query).compute();
   }
 
   /**
