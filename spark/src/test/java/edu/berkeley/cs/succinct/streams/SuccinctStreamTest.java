@@ -31,7 +31,7 @@ public class SuccinctStreamTest extends SuccinctCoreTest {
     DataInputStream dis = new DataInputStream(new FileInputStream(inputFile));
     dis.readFully(fileData);
 
-    SuccinctBuffer sBuf = new SuccinctBuffer(fileData, 3);
+    SuccinctBuffer sBuf = new SuccinctBuffer(fileData);
     sBuf.writeToFile(testFileSuccinct);
 
     sCore = new SuccinctStream(new Path(testFileSuccinct));
