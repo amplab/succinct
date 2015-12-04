@@ -1,6 +1,9 @@
-package edu.berkeley.cs.succinct.util.stream;
+package edu.berkeley.cs.succinct.util.stream.serops;
 
 import edu.berkeley.cs.succinct.util.bitmap.BMArray;
+import edu.berkeley.cs.succinct.util.stream.LongArrayStream;
+import edu.berkeley.cs.succinct.util.stream.TestUtils;
+import edu.berkeley.cs.succinct.util.stream.serops.BMArrayOps;
 import junit.framework.TestCase;
 import org.apache.hadoop.fs.FSDataInputStream;
 
@@ -25,7 +28,7 @@ public class BMArrayOpsTest extends TestCase {
     FSDataInputStream is = TestUtils.getStream(bBuf);
     LongArrayStream ls = new LongArrayStream(is, 0, bBuf.limit() * 8);
     for (int i = 0; i < 1000; i++) {
-      assertEquals(SerializedOperations.BMArrayOps.getVal(ls, i, 64), i);
+      assertEquals(BMArrayOps.getVal(ls, i, 64), i);
     }
     is.close();
   }

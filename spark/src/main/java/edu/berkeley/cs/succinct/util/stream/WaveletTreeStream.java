@@ -2,6 +2,7 @@ package edu.berkeley.cs.succinct.util.stream;
 
 import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import edu.berkeley.cs.succinct.util.CommonUtils;
+import edu.berkeley.cs.succinct.util.stream.serops.BitMapOps;
 import org.apache.hadoop.fs.FSDataInputStream;
 
 import java.io.IOException;
@@ -146,11 +147,11 @@ public class WaveletTreeStream {
     dictBuf.get(); // TODO: Could remove this field altogether
 
     while (true) {
-      blockClass = (int) SerializedOperations.BitMapOps.getValPos(dictBuf, pos, 4);
+      blockClass = (int) BitMapOps.getValPos(dictBuf, pos, 4);
       short offsetSize = (short) Tables.offsetBits[blockClass];
       pos += 4;
       blockOffset =
-        (int) ((blockClass == 0) ? SerializedOperations.BitMapOps.getBit(dictBuf, pos) * 16 : 0);
+        (int) ((blockClass == 0) ? BitMapOps.getBit(dictBuf, pos) * 16 : 0);
       pos += offsetSize;
 
       if (val <= (16 - (blockClass + blockOffset))) {
@@ -162,10 +163,10 @@ public class WaveletTreeStream {
       sel += 16;
     }
 
-    blockClass = (int) SerializedOperations.BitMapOps.getValPos(dictBuf, pos, 4);
+    blockClass = (int) BitMapOps.getValPos(dictBuf, pos, 4);
     pos += 4;
     blockOffset =
-      (int) SerializedOperations.BitMapOps.getValPos(dictBuf, pos, Tables.offsetBits[blockClass]);
+      (int) BitMapOps.getValPos(dictBuf, pos, Tables.offsetBits[blockClass]);
     lastBlock = Tables.decodeTable[blockClass][blockOffset];
 
     long count = 0;
@@ -273,11 +274,11 @@ public class WaveletTreeStream {
     dictBuf.get(); // TODO: Could remove this field altogether
 
     while (true) {
-      blockClass = (int) SerializedOperations.BitMapOps.getValPos(dictBuf, pos, 4);
+      blockClass = (int) BitMapOps.getValPos(dictBuf, pos, 4);
       short offsetSize = (short) Tables.offsetBits[blockClass];
       pos += 4;
       blockOffset =
-        (int) ((blockClass == 0) ? SerializedOperations.BitMapOps.getBit(dictBuf, pos) * 16 : 0);
+        (int) ((blockClass == 0) ? BitMapOps.getBit(dictBuf, pos) * 16 : 0);
       pos += offsetSize;
 
       if (val <= (blockClass + blockOffset)) {
@@ -289,10 +290,10 @@ public class WaveletTreeStream {
       sel += 16;
     }
 
-    blockClass = (int) SerializedOperations.BitMapOps.getValPos(dictBuf, pos, 4);
+    blockClass = (int) BitMapOps.getValPos(dictBuf, pos, 4);
     pos += 4;
     blockOffset =
-      (int) SerializedOperations.BitMapOps.getValPos(dictBuf, pos, Tables.offsetBits[blockClass]);
+      (int) BitMapOps.getValPos(dictBuf, pos, Tables.offsetBits[blockClass]);
     lastBlock = Tables.decodeTable[blockClass][blockOffset];
 
     long count = 0;

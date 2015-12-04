@@ -1,7 +1,10 @@
-package edu.berkeley.cs.succinct.util.stream;
+package edu.berkeley.cs.succinct.util.stream.serops;
 
 import edu.berkeley.cs.succinct.util.bitmap.BitMap;
 import edu.berkeley.cs.succinct.util.dictionary.Dictionary;
+import edu.berkeley.cs.succinct.util.stream.RandomAccessByteStream;
+import edu.berkeley.cs.succinct.util.stream.TestUtils;
+import edu.berkeley.cs.succinct.util.stream.serops.DictionaryOps;
 import junit.framework.TestCase;
 import org.apache.hadoop.fs.FSDataInputStream;
 
@@ -39,7 +42,7 @@ public class DictionaryOpsTest extends TestCase {
     FSDataInputStream is = TestUtils.getStream(dBuf);
     RandomAccessByteStream bs = new RandomAccessByteStream(is, 0, dBuf.limit());
     for (int i = 0; i < 2048; i++) {
-      assertEquals(SerializedOperations.DictionaryOps.getRank1(bs, 0, i), D.getRank1(i));
+      assertEquals(DictionaryOps.getRank1(bs, 0, i), D.getRank1(i));
     }
     is.close();
   }
@@ -64,7 +67,7 @@ public class DictionaryOpsTest extends TestCase {
     FSDataInputStream is = TestUtils.getStream(dBuf);
     RandomAccessByteStream bs = new RandomAccessByteStream(is, 0, dBuf.limit());
     for (int i = 0; i < 2048; i++) {
-      assertEquals(SerializedOperations.DictionaryOps.getRank0(bs, 0, i), D.getRank0(i));
+      assertEquals(DictionaryOps.getRank0(bs, 0, i), D.getRank0(i));
     }
     is.close();
   }
@@ -91,7 +94,7 @@ public class DictionaryOpsTest extends TestCase {
     FSDataInputStream is = TestUtils.getStream(dBuf);
     RandomAccessByteStream bs = new RandomAccessByteStream(is, 0, dBuf.limit());
     for (int i = 0; i < test.size(); i++) {
-      assertEquals(SerializedOperations.DictionaryOps.getSelect1(bs, 0, i), (long) test.get(i));
+      assertEquals(DictionaryOps.getSelect1(bs, 0, i), (long) test.get(i));
     }
     is.close();
   }
@@ -119,7 +122,7 @@ public class DictionaryOpsTest extends TestCase {
     FSDataInputStream is = TestUtils.getStream(dBuf);
     RandomAccessByteStream bs = new RandomAccessByteStream(is, 0, dBuf.limit());
     for (int i = 0; i < test.size(); i++) {
-      assertEquals(SerializedOperations.DictionaryOps.getSelect0(bs, 0, i), (long) test.get(i));
+      assertEquals(DictionaryOps.getSelect0(bs, 0, i), (long) test.get(i));
     }
     is.close();
   }

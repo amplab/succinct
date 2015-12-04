@@ -1,6 +1,8 @@
-package edu.berkeley.cs.succinct.util.stream;
+package edu.berkeley.cs.succinct.util.stream.serops;
 
 import edu.berkeley.cs.succinct.util.bitmap.BitMap;
+import edu.berkeley.cs.succinct.util.stream.RandomAccessLongStream;
+import edu.berkeley.cs.succinct.util.stream.TestUtils;
 import junit.framework.TestCase;
 import org.apache.hadoop.fs.FSDataInputStream;
 
@@ -42,7 +44,7 @@ public class BitMapOpsTest extends TestCase {
     RandomAccessLongStream ls = new RandomAccessLongStream(is, 0, bBuf.limit());
     for (int i = 0; i < 1000; i++) {
       long expResult = test.get(i);
-      long result = SerializedOperations.BitMapOps.getBit(ls, i);
+      long result = BitMapOps.getBit(ls, i);
       assertEquals(expResult, result);
     }
     is.close();
@@ -66,7 +68,7 @@ public class BitMapOpsTest extends TestCase {
     RandomAccessLongStream ls = new RandomAccessLongStream(is, 0, bBuf.limit());
 
     long expResult = 1000L;
-    long result = SerializedOperations.BitMapOps.getValPos(ls, pos, bits);
+    long result = BitMapOps.getValPos(ls, pos, bits);
     assertEquals(expResult, result);
     is.close();
   }
