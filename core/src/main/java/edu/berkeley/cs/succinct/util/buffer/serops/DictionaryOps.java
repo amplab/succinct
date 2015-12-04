@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.util.serops;
+package edu.berkeley.cs.succinct.util.buffer.serops;
 
 import edu.berkeley.cs.succinct.util.CommonUtils;
 import edu.berkeley.cs.succinct.util.dictionary.Tables;

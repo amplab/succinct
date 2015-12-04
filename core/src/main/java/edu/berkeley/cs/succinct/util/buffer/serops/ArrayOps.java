@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.util.serops;
+package edu.berkeley.cs.succinct.util.buffer.serops;
 
 import java.nio.LongBuffer;
 
