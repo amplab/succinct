@@ -173,7 +173,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @return Offsets of all matching records.
    */
   @Override public Integer[] recordSearchIds(byte[] query) {
-    Set<Integer> results = new HashSet<Integer>();
+    Set<Integer> results = new HashSet<>();
     Range range = bwdSearch(query);
 
     long sp = range.first, ep = range.second;
@@ -213,7 +213,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   @Override public Integer[] recordSearchRegexIds(String query) throws RegExParsingException {
     Set<RegExMatch> regexOffsetResults = regexSearch(query);
-    Set<Integer> recordIds = new HashSet<Integer>();
+    Set<Integer> recordIds = new HashSet<>();
     for (RegExMatch m : regexOffsetResults) {
       int recordId = offsetToRecordId((int) m.getOffset());
       if (!recordIds.contains(recordId)) {
@@ -232,14 +232,14 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   @Override public Integer[] recordMultiSearchIds(QueryType[] queryTypes, byte[][][] queries) {
     assert (queryTypes.length == queries.length);
-    Set<Integer> recordIds = new HashSet<Integer>();
+    Set<Integer> recordIds = new HashSet<>();
 
     if (queries.length == 0) {
       throw new IllegalArgumentException("recordMultiSearchIds called with empty queries");
     }
 
     // Get all ranges
-    ArrayList<Range> ranges = new ArrayList<Range>();
+    ArrayList<Range> ranges = new ArrayList<>();
     for (int qid = 0; qid < queries.length; qid++) {
       Range range;
 
@@ -270,7 +270,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
 
     // Populate the set of offsets corresponding to the first range
     Range firstRange = ranges.get(0);
-    Map<Integer, Integer> counts = new HashMap<Integer, Integer>();
+    Map<Integer, Integer> counts = new HashMap<>();
     {
       long sp = firstRange.first, ep = firstRange.second;
       for (long i = 0; i < ep - sp + 1; i++) {
