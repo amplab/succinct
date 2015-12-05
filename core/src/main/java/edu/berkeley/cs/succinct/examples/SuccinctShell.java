@@ -107,7 +107,7 @@ public class SuccinctShell {
           System.out.println();
 
           Set<RegExMatch> chunkResults = succinctRegEx.compute();
-          results = new TreeMap<Long, Integer>();
+          results = new TreeMap<>();
           for (RegExMatch result : chunkResults) {
             results.put(result.getOffset(), result.getLength());
           }

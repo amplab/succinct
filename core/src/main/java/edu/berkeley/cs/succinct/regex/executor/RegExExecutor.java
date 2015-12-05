@@ -65,11 +65,11 @@ public abstract class RegExExecutor {
   protected TreeSet<RegExMatch> allocateSet(SortType sortType) {
     switch (sortType) {
       case END_SORTED:
-        return new TreeSet<RegExMatch>(RegExMatch.END_COMPARATOR);
+        return new TreeSet<>(RegExMatch.END_COMPARATOR);
       case FRONT_SORTED:
-        return new TreeSet<RegExMatch>(RegExMatch.FRONT_COMPARATOR);
+        return new TreeSet<>(RegExMatch.FRONT_COMPARATOR);
       default:
-        return new TreeSet<RegExMatch>(RegExMatch.FRONT_COMPARATOR);
+        return new TreeSet<>(RegExMatch.FRONT_COMPARATOR);
     }
   }
 

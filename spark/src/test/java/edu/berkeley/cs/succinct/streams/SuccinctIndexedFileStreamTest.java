@@ -27,7 +27,7 @@ public class SuccinctIndexedFileStreamTest extends SuccinctIndexedFileTest {
     fileData = new byte[(int) inputFile.length()];
     DataInputStream dis = new DataInputStream(new FileInputStream(inputFile));
     dis.readFully(fileData);
-    ArrayList<Integer> positions = new ArrayList<Integer>();
+    ArrayList<Integer> positions = new ArrayList<>();
     positions.add(0);
     for (int i = 0; i < fileData.length; i++) {
       if (fileData[i] == '\n') {

@@ -30,7 +30,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    * @return The results of the regular expression.
    */
   @Override protected TreeSet<SuccinctRegExMatch> computeSuccinctly(RegEx r) {
-    TreeSet<SuccinctRegExMatch> results = new TreeSet<SuccinctRegExMatch>();
+    TreeSet<SuccinctRegExMatch> results = new TreeSet<>();
     switch (r.getRegExType()) {
       case Blank: {
         break;
@@ -124,7 +124,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    */
   private TreeSet<SuccinctRegExMatch> regexUnion(TreeSet<SuccinctRegExMatch> first,
     TreeSet<SuccinctRegExMatch> second) {
-    TreeSet<SuccinctRegExMatch> unionResults = new TreeSet<SuccinctRegExMatch>();
+    TreeSet<SuccinctRegExMatch> unionResults = new TreeSet<>();
     unionResults.addAll(first);
     unionResults.addAll(second);
     return unionResults;
@@ -138,7 +138,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    * @return Concatenation of left match with right subtree.
    */
   private TreeSet<SuccinctRegExMatch> regexConcat(RegEx r, SuccinctRegExMatch rightMatch) {
-    TreeSet<SuccinctRegExMatch> concatResults = new TreeSet<SuccinctRegExMatch>();
+    TreeSet<SuccinctRegExMatch> concatResults = new TreeSet<>();
 
     if (rightMatch.empty()) {
       return concatResults;
@@ -239,7 +239,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    * @return The results for repeat.
    */
   private TreeSet<SuccinctRegExMatch> regexRepeatOneOrMore(RegEx r) {
-    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<SuccinctRegExMatch>();
+    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<>();
     TreeSet<SuccinctRegExMatch> internalResults = computeSuccinctly(r);
     if (internalResults.isEmpty()) {
       return repeatResults;
@@ -260,7 +260,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    * @return The results for repeat.
    */
   private TreeSet<SuccinctRegExMatch> regexRepeatOneOrMore(RegEx r, SuccinctRegExMatch rightMatch) {
-    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<SuccinctRegExMatch>();
+    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<>();
     if (rightMatch.empty()) {
       return repeatResults;
     }
@@ -285,7 +285,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    * @return The results for repeat.
    */
   private TreeSet<SuccinctRegExMatch> regexRepeatZeroOrMore(RegEx r, SuccinctRegExMatch rightMatch) {
-    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<SuccinctRegExMatch>();
+    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<>();
     if (rightMatch.empty()) {
       return repeatResults;
     }
@@ -307,7 +307,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
     min = (min > 0) ? min - 1 : 0;
     max = (max > 0) ? max - 1 : 0;
 
-    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<SuccinctRegExMatch>();
+    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<>();
     TreeSet<SuccinctRegExMatch> internalResults = computeSuccinctly(r);
     if (internalResults.isEmpty()) {
       return repeatResults;
@@ -339,7 +339,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
     min = (min > 0) ? min - 1 : 0;
     max = (max > 0) ? max - 1 : 0;
 
-    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<SuccinctRegExMatch>();
+    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<>();
     if (rightMatch.empty()) {
       return repeatResults;
     }
