@@ -17,7 +17,6 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
    * @throws Exception
    */
   public void testGetRecordOffset() throws Exception {
-    System.out.println("getRecordOffset");
 
     for (int i = 0; i < offsets.length; i++) {
       assertEquals(offsets[i], sIFile.getRecordOffset(i));
@@ -30,7 +29,6 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
    * @throws Exception
    */
   public void testGetRecord() throws Exception {
-    System.out.println("getRecord");
 
     for (int i = 0; i < offsets.length; i++) {
       byte[] rec = sIFile.getRecord(i);
@@ -46,7 +44,6 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
    * @throws Exception
    */
   public void testAccessRecord() throws Exception {
-    System.out.println("accessRecord");
 
     for (int i = 0; i < offsets.length - 1; i++) {
       int recordOffset = offsets[i];
@@ -69,7 +66,6 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
    * @throws Exception
    */
   public void testRecordSearchIds() throws Exception {
-    System.out.println("recordSearchIds");
 
     Integer[] recordSearchIds1 = sIFile.recordSearchIds("int".getBytes());
     assertEquals(28, recordSearchIds1.length);
@@ -98,7 +94,6 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
    * @throws Exception
    */
   public void testRecordSearchIdIterator() throws Exception {
-    System.out.println("recordSearchIdIterator");
 
     Iterator<Integer> recordSearchIds1 = sIFile.recordSearchIdIterator("int".getBytes());
     int count1 = 0;
@@ -135,7 +130,6 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
    * @throws Exception
    */
   public void testRegexSearchIds() throws Exception {
-    System.out.println("regexSearchRecordIds");
 
     // TODO: Add more tests
     Integer[] recordsIds = sIFile.recordSearchRegexIds("int");
@@ -150,7 +144,6 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
    * @throws Exception
    */
   public void testMultiSearchIds() throws Exception {
-    System.out.println("recordMultiSearchIds");
 
     SuccinctIndexedFile.QueryType[] queryTypes = new SuccinctIndexedFile.QueryType[2];
     byte[][][] queries = new byte[2][][];

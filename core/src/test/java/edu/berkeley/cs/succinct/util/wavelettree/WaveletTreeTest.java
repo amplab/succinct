@@ -20,7 +20,6 @@ public class WaveletTreeTest extends TestCase {
    * @throws Exception
    */
   public void testGetByteBuffer() throws Exception {
-    System.out.println("getByteBuffer");
 
     WaveletTree instance1 = new WaveletTree(null);
     assertNull(instance1.getByteBuffer());

@@ -29,7 +29,6 @@ public class SuccinctFileBufferTest extends SuccinctFileTest {
   }
 
   public void testSerializeDeserialize() throws Exception {
-    System.out.println("serializeDeserialize");
 
     // Serialize data
     FileOutputStream fOut = new FileOutputStream(testFileSuccinct);

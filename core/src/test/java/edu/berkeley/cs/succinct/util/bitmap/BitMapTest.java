@@ -22,7 +22,6 @@ public class BitMapTest extends TestCase {
    * @throws Exception
    */
   public void testBitmapSize() throws Exception {
-    System.out.println("bitmapSize");
 
     BitMap instance = new BitMap(1000L);
     int expectedSize = (1000 / 64) + 1;
@@ -36,7 +35,6 @@ public class BitMapTest extends TestCase {
    * @throws Exception
    */
   public void testSetAndGetBit() throws Exception {
-    System.out.println("setAndGetBit");
 
     BitMap instance = new BitMap(1000L);
     ArrayList<Long> test = new ArrayList<Long>();
@@ -63,7 +61,6 @@ public class BitMapTest extends TestCase {
    * @throws Exception
    */
   public void testSetAndGetValPos() throws Exception {
-    System.out.println("setAndGetValPos");
 
     int pos = 60;
     int bits = 10;
@@ -80,7 +77,6 @@ public class BitMapTest extends TestCase {
    * @throws Exception
    */
   public void testGetSelect1() throws Exception {
-    System.out.println("getSelect1");
 
     BitMap instance = new BitMap(2048);
     ArrayList<Long> test = new ArrayList<Long>();
@@ -102,7 +98,6 @@ public class BitMapTest extends TestCase {
    * @throws Exception
    */
   public void testGetSelect0() throws Exception {
-    System.out.println("getSelect0");
 
     BitMap instance = new BitMap(2048);
     ArrayList<Long> test = new ArrayList<Long>();
@@ -125,7 +120,6 @@ public class BitMapTest extends TestCase {
    * @throws Exception
    */
   public void testGetRank1() throws Exception {
-    System.out.println("getRank1");
 
     BitMap instance = new BitMap(2048);
     ArrayList<Long> test = new ArrayList<Long>();
@@ -149,7 +143,6 @@ public class BitMapTest extends TestCase {
    * @throws Exception
    */
   public void testGetRank0() throws Exception {
-    System.out.println("getRank0");
 
     BitMap instance = new BitMap(2048);
     ArrayList<Long> test = new ArrayList<Long>();
@@ -174,7 +167,6 @@ public class BitMapTest extends TestCase {
    * @throws Exception
    */
   public void testClear() throws Exception {
-    System.out.println("clear");
 
     BitMap instance = new BitMap(1000L);
     for (int i = 0; i < 1000; i++) {
@@ -196,7 +188,6 @@ public class BitMapTest extends TestCase {
    * @throws Exception
    */
   public void testGetLongBuffer() throws Exception {
-    System.out.println("getLongBuffer");
 
     BitMap instance = new BitMap(1000L);
     for (int i = 0; i < 1000; i++) {

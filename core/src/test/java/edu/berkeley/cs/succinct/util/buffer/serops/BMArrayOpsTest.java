@@ -22,7 +22,6 @@ public class BMArrayOpsTest extends TestCase {
    * @throws Exception
    */
   public void testGetVal() throws Exception {
-    System.out.println("getVal");
 
     BMArray bmArray = new BMArray(1000, 64);
     for (int i = 0; i < 1000; i++) {

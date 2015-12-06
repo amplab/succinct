@@ -20,7 +20,6 @@ public class BMArrayTest extends TestCase {
    * @throws Exception
    */
   public void testSetAndGetVal() throws Exception {
-    System.out.println("getAndSetVal");
 
     BMArray instance = new BMArray(1000, 64);
 

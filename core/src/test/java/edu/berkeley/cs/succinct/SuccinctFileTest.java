@@ -17,7 +17,6 @@ abstract public class SuccinctFileTest extends TestCase {
    * @throws Exception
    */
   public void testCharAt() throws Exception {
-    System.out.println("charAt");
 
     for (int i = 0; i < sFile.getSize() - 1; i++) {
       char c = sFile.charAt(i);
@@ -31,7 +30,6 @@ abstract public class SuccinctFileTest extends TestCase {
    * @throws Exception
    */
   public void testExtract() throws Exception {
-    System.out.println("extract");
 
     byte[] buf1 = sFile.extract(0, 100);
     assertEquals(100, buf1.length);
@@ -52,7 +50,6 @@ abstract public class SuccinctFileTest extends TestCase {
    * @throws Exception
    */
   public void testExtractUntil() throws Exception {
-    System.out.println("extractUntil");
 
     byte[] buf = sFile.extractUntil(0, (byte) '\n');
     for (int i = 0; i < buf.length; i++) {
@@ -68,7 +65,6 @@ abstract public class SuccinctFileTest extends TestCase {
    * @throws Exception
    */
   public void testCount() throws Exception {
-    System.out.println("count");
 
     long count1 = sFile.count("int".getBytes());
     assertEquals(43, count1);
@@ -89,7 +85,6 @@ abstract public class SuccinctFileTest extends TestCase {
    * @throws Exception
    */
   public void testSearch() throws Exception {
-    System.out.println("search");
 
     byte[] query1 = "int".getBytes();
     Long[] positions1 = sFile.search(query1);
@@ -125,7 +120,6 @@ abstract public class SuccinctFileTest extends TestCase {
    * @throws Exception
    */
   public void testSearchIterator() throws Exception {
-    System.out.println("searchIterator");
 
     byte[] query1 = "int".getBytes();
     Iterator<Long> positions1 = sFile.searchIterator(query1);
@@ -233,7 +227,6 @@ abstract public class SuccinctFileTest extends TestCase {
    * @throws Exception
    */
   public void testRegexSearch() throws Exception {
-    System.out.println("regexSearch");
 
     Set<RegExMatch> primitiveResults1 = sFile.regexSearch("c");
     assertTrue(checkResults(primitiveResults1, "c"));

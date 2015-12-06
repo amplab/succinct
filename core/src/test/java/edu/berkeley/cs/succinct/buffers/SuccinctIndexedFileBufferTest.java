@@ -50,7 +50,6 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
    * @throws Exception
    */
   public void testSerializeDeserialize() throws Exception {
-    System.out.println("serializeDeserialize");
 
     // Serialize data
     FileOutputStream fOut = new FileOutputStream(testFileSuccinct);
@@ -78,7 +77,6 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
    * @throws Exception
    */
   public void testMemoryMap() throws Exception {
-    System.out.println("memoryMap");
 
     ((SuccinctIndexedFileBuffer) sIFile).writeToFile(testFileSuccinctMin);
     SuccinctIndexedFile sIFileRead =
@@ -98,7 +96,6 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
    * @throws Exception
    */
   public void testReadFromFile() throws Exception {
-    System.out.println("readFromFile");
 
     ((SuccinctIndexedFileBuffer) sIFile).writeToFile(testFileSuccinctMin);
     SuccinctIndexedFile sIFileRead =

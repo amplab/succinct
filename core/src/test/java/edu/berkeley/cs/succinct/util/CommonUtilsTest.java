@@ -19,7 +19,6 @@ public class CommonUtilsTest extends TestCase {
    * @throws Exception
    */
   public void testIntLog2() throws Exception {
-    System.out.println("intLog2");
 
     assertEquals(CommonUtils.intLog2(0L), 1);
     assertEquals(CommonUtils.intLog2(1L), 0);
@@ -38,7 +37,6 @@ public class CommonUtilsTest extends TestCase {
    * @throws Exception
    */
   public void testModulo() throws Exception {
-    System.out.println("modulo");
 
     assertEquals(CommonUtils.modulo(-2, 3), 1);
     assertEquals(CommonUtils.modulo(5, 2), 1);
@@ -52,7 +50,6 @@ public class CommonUtilsTest extends TestCase {
    * @throws Exception
    */
   public void testPopCount() throws Exception {
-    System.out.println("popCount");
 
     assertEquals(CommonUtils.popCount(0L), 0);
     assertEquals(CommonUtils.popCount(~0L), 64);

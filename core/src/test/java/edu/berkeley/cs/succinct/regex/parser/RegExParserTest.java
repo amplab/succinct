@@ -19,7 +19,6 @@ public class RegExParserTest extends TestCase {
    * @throws Exception
    */
   public void testParse() throws Exception {
-    System.out.println("parse");
 
     // Parse a simple multi-gram
     RegExParser mgramParser1 = new RegExParser("abcd");

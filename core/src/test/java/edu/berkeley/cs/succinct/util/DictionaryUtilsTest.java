@@ -19,7 +19,6 @@ public class DictionaryUtilsTest extends TestCase {
    * @throws Exception
    */
   public void testGETRANKL2() throws Exception {
-    System.out.println("GETRANKL2");
 
     assertEquals(DictionaryUtils.GETRANKL2(0), 0);
 
@@ -36,7 +35,6 @@ public class DictionaryUtilsTest extends TestCase {
    * @throws Exception
    */
   public void testGETRANKL1() throws Exception {
-    System.out.println("GETRANKL1");
 
     assertEquals(DictionaryUtils.GETRANKL1(0, 0), 0);
 
@@ -57,7 +55,6 @@ public class DictionaryUtilsTest extends TestCase {
    * @throws Exception
    */
   public void testGETPOSL2() throws Exception {
-    System.out.println("GETPOSL2");
 
     assertEquals(DictionaryUtils.GETPOSL2(0), 0);
 
@@ -74,7 +71,6 @@ public class DictionaryUtilsTest extends TestCase {
    * @throws Exception
    */
   public void testGETPOSL1() throws Exception {
-    System.out.println("GETPOSL1");
 
     assertEquals(DictionaryUtils.GETPOSL1(0, 0), 0);
 

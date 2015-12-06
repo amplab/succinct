@@ -15,7 +15,6 @@ abstract public class RegExExecutorTest extends TestCase {
     throws RegExParsingException;
 
   public void testExecute() throws Exception {
-    System.out.println("execute");
 
     // Test M-Gram Search
     Set<RegExMatch> r1 = runRegEx("Yo");

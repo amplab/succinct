@@ -36,7 +36,6 @@ abstract public class SuccinctCoreTest extends TestCase {
    * @throws Exception
    */
   public void testLookupNPA() throws Exception {
-    System.out.println("lookupNPA");
 
     int sum = 0;
     DataInputStream dIS = getNPAInputStream();
@@ -58,7 +57,6 @@ abstract public class SuccinctCoreTest extends TestCase {
    * @throws Exception
    */
   public void testLookupSA() throws Exception {
-    System.out.println("lookupSA");
 
     int sum = 0;
     DataInputStream dIS = getSAInputStream();
@@ -79,7 +77,6 @@ abstract public class SuccinctCoreTest extends TestCase {
    * @throws Exception
    */
   public void testLookupISA() throws Exception {
-    System.out.println("lookupISA");
 
     int sum = 0;
     DataInputStream dIS = getISAInputStream();
