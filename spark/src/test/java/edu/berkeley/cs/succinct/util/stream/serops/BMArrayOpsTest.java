@@ -3,7 +3,6 @@ package edu.berkeley.cs.succinct.util.stream.serops;
 import edu.berkeley.cs.succinct.util.bitmap.BMArray;
 import edu.berkeley.cs.succinct.util.stream.LongArrayStream;
 import edu.berkeley.cs.succinct.util.stream.TestUtils;
-import edu.berkeley.cs.succinct.util.stream.serops.BMArrayOps;
 import junit.framework.TestCase;
 import org.apache.hadoop.fs.FSDataInputStream;
 
@@ -17,7 +16,6 @@ public class BMArrayOpsTest extends TestCase {
    * @throws Exception
    */
   public void testGetVal() throws Exception {
-    System.out.println("getVal");
 
     BMArray bmArray = new BMArray(1000, 64);
     for (int i = 0; i < 1000; i++) {

@@ -13,8 +13,7 @@ public class LongArrayStreamTest extends TestCase {
    * @throws Exception
    */
   public void testGet() throws Exception {
-    System.out.println("get");
-    LongBuffer buf = LongBuffer.allocate(10);
+        LongBuffer buf = LongBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put(i);
     }
@@ -31,8 +30,7 @@ public class LongArrayStreamTest extends TestCase {
    * @throws Exception
    */
   public void testSize() throws Exception {
-    System.out.println("size");
-    LongArrayStream bs = new LongArrayStream(null, 0, 80);
+        LongArrayStream bs = new LongArrayStream(null, 0, 80);
     assertEquals(10, bs.size());
   }
 }

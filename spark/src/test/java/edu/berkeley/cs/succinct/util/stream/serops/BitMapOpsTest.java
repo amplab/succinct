@@ -26,7 +26,6 @@ public class BitMapOpsTest extends TestCase {
    * @throws Exception
    */
   public void testGetBit() throws Exception {
-    System.out.println("getBit");
 
     BitMap instance = new BitMap(1000L);
     ArrayList<Long> test = new ArrayList<Long>();
@@ -56,7 +55,6 @@ public class BitMapOpsTest extends TestCase {
    * @throws Exception
    */
   public void testGetValPos() throws Exception {
-    System.out.println("getValPos");
 
     int pos = 60;
     int bits = 10;

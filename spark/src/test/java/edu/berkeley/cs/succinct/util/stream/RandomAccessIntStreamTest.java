@@ -8,8 +8,7 @@ import java.nio.IntBuffer;
 public class RandomAccessIntStreamTest extends TestCase {
 
   public void testGet() throws Exception {
-    System.out.println("get");
-    IntBuffer buf = IntBuffer.allocate(10);
+        IntBuffer buf = IntBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put(i);
     }
@@ -21,8 +20,7 @@ public class RandomAccessIntStreamTest extends TestCase {
   }
 
   public void testGet1() throws Exception {
-    System.out.println("get1");
-    IntBuffer buf = IntBuffer.allocate(10);
+        IntBuffer buf = IntBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put(i);
     }
@@ -34,8 +32,7 @@ public class RandomAccessIntStreamTest extends TestCase {
   }
 
   public void testPosition() throws Exception {
-    System.out.println("position");
-    IntBuffer buf = IntBuffer.allocate(10);
+        IntBuffer buf = IntBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put(i);
     }
@@ -46,8 +43,7 @@ public class RandomAccessIntStreamTest extends TestCase {
   }
 
   public void testOffsetBeginning() throws Exception {
-    System.out.println("offsetBeginning");
-    IntBuffer buf = IntBuffer.allocate(20);
+        IntBuffer buf = IntBuffer.allocate(20);
     for (int i = 0; i < 20; i++) {
       buf.put(i);
     }

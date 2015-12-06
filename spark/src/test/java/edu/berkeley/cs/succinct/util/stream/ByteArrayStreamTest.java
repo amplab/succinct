@@ -13,8 +13,7 @@ public class ByteArrayStreamTest extends TestCase {
    * @throws Exception
    */
   public void testGet() throws Exception {
-    System.out.println("get");
-    ByteBuffer buf = ByteBuffer.allocate(10);
+        ByteBuffer buf = ByteBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put((byte) i);
     }
@@ -31,8 +30,7 @@ public class ByteArrayStreamTest extends TestCase {
    * @throws Exception
    */
   public void testSize() throws Exception {
-    System.out.println("size");
-    ByteArrayStream bs = new ByteArrayStream(null, 0, 10);
+        ByteArrayStream bs = new ByteArrayStream(null, 0, 10);
     assertEquals(10, bs.size());
   }
 }
