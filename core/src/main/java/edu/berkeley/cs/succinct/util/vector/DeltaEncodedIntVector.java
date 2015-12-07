@@ -32,7 +32,7 @@ public class DeltaEncodedIntVector {
   /**
    * Creates a DeltaEncodedVector from a sorted array of integers with a specified sampling rate.
    *
-   * @param elements Sorted array of integers.
+   * @param elements     Sorted array of integers.
    * @param samplingRate Sampling rate for delta encoding.
    */
   public DeltaEncodedIntVector(int[] elements, int samplingRate) {
@@ -44,9 +44,9 @@ public class DeltaEncodedIntVector {
    * Creates a DeltaEncodedVector from a sorted sequence of integers of specified length starting at
    * a specified offset an array, with a specified sampling rate.
    *
-   * @param data The larger array containing the sorted array of integers.
-   * @param startOffset The start offset into the larger array for the sorted sequence of integers.
-   * @param length The number of integers to consider in the larger array.
+   * @param data         The larger array containing the sorted array of integers.
+   * @param startOffset  The start offset into the larger array for the sorted sequence of integers.
+   * @param length       The number of integers to consider in the larger array.
    * @param samplingRate Sampling rate for delta encoding.
    */
   public DeltaEncodedIntVector(int[] data, int startOffset, int length, int samplingRate) {
@@ -57,12 +57,13 @@ public class DeltaEncodedIntVector {
   /**
    * Creates a DeltaEncodedVector from underlying data.
    *
-   * @param samples Samples for the DeltaEncodedVector.
+   * @param samples      Samples for the DeltaEncodedVector.
    * @param deltaOffsets Delta offsets for the DeltaEncodedVector.
-   * @param deltas The delta values for the DeltaEncodedVector.
+   * @param deltas       The delta values for the DeltaEncodedVector.
    * @param samplingRate Sampling rate for delta encoding.
    */
-  public DeltaEncodedIntVector(IntVector samples, IntVector deltaOffsets, BitVector deltas, int samplingRate) {
+  public DeltaEncodedIntVector(IntVector samples, IntVector deltaOffsets, BitVector deltas,
+    int samplingRate) {
     this.samples = samples;
     this.deltaOffsets = deltaOffsets;
     this.deltas = deltas;
@@ -136,12 +137,15 @@ public class DeltaEncodedIntVector {
           maxOffset = cumulativeDeltaSize;
         deltaOffsetsBuf.add(cumulativeDeltaSize);
         if (i != 0) {
-          assert(deltaCount == samplingRate - 1);
+          assert (deltaCount == samplingRate - 1);
           totalDeltaCount += deltaCount;
           deltaCount = 0;
         }
       } else {
-        assert elements[startOffset + i] > lastValue;
+        if (elements[startOffset + i] <= lastValue) {
+          throw new IllegalStateException(
+            "Delta value cannot be 0 or negative: " + (elements[startOffset + i] - lastValue));
+        }
         int delta = elements[startOffset + i] - lastValue;
         deltasBuf.add(delta);
 
@@ -204,7 +208,7 @@ public class DeltaEncodedIntVector {
    * particular sample) in the delta values for a specified number of delta values.
    *
    * @param deltaOffset The offset into the delta BitVector.
-   * @param untilIdx The index until which the prefix sum should be computed.
+   * @param untilIdx    The index until which the prefix sum should be computed.
    * @return The prefix-sum of delta values until the specified index.
    */
   private int prefixSum(int deltaOffset, int untilIdx) {

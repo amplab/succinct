@@ -61,4 +61,19 @@ public class IOUtils {
   public static DataInputStream getInputStream(String path) throws FileNotFoundException {
     return new DataInputStream(new FileInputStream(path));
   }
+
+  /**
+   * Checks for invalid bytes in the input.
+   *
+   * @param input Array of bytes.
+   * @return First offset where an invalid byte occurs; -1 if all bytes are valid.
+   */
+  public static int checkBytes(byte[] input) {
+    for (int i = 0; i < input.length; i++) {
+      if (input[i] < 0) {
+        return i;
+      }
+    }
+    return -1;
+  }
 }

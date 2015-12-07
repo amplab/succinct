@@ -4,13 +4,14 @@ import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.util.BitUtils;
 import edu.berkeley.cs.succinct.util.CommonUtils;
+import edu.berkeley.cs.succinct.util.IOUtils;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeByteBuffer;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeLongBuffer;
-import edu.berkeley.cs.succinct.util.container.Pair;
 import edu.berkeley.cs.succinct.util.buffer.serops.ArrayOps;
 import edu.berkeley.cs.succinct.util.buffer.serops.DeltaEncodedIntVectorOps;
 import edu.berkeley.cs.succinct.util.buffer.serops.IntVectorOps;
+import edu.berkeley.cs.succinct.util.container.Pair;
 import edu.berkeley.cs.succinct.util.suffixarray.QSufSort;
 import edu.berkeley.cs.succinct.util.vector.DeltaEncodedIntVector;
 import edu.berkeley.cs.succinct.util.vector.IntVector;
@@ -229,6 +230,8 @@ public class SuccinctBuffer extends SuccinctCore {
     logger.info("Constructing Succinct data structures.");
     long startTimeGlobal = System.currentTimeMillis();
 
+    assert IOUtils.checkBytes(input) == -1;
+
     {
       long startTime = System.currentTimeMillis();
 
@@ -307,6 +310,7 @@ public class SuccinctBuffer extends SuccinctCore {
       startTime = System.currentTimeMillis();
 
       // Compress NPA
+      logger.info("Compressing NPA in " + getAlphabetSize() + " columns...");
       columns = new ThreadSafeByteBuffer[getAlphabetSize()];
       for (int i = 0; i < getAlphabetSize(); i++) {
         int startOffset = (int) columnoffsets.get(i);
@@ -319,6 +323,7 @@ public class SuccinctBuffer extends SuccinctCore {
         columns[i] = ThreadSafeByteBuffer.allocate(columnSizeInBytes);
         columnVector.writeToBuffer(columns[i].buffer());
         columns[i].rewind();
+        logger.info("Compressed column " + i + ".");
       }
 
       timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
