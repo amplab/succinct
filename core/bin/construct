@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# Runs the succinct shell
+# Runs construct
 ##
 
-usage="Usage: succinct-shell [input] [output]"
+usage="Usage: construct [input] [output]"
 
 # if less than 2 args specified, show usage
 if [ $# -le 1 ]; then
