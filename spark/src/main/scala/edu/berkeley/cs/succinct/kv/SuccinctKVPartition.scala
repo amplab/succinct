@@ -13,8 +13,8 @@ import org.apache.spark.storage.StorageLevel
 import scala.reflect.ClassTag
 
 /**
- * The implementation for a single SuccinctKVRDD partition.
- */
+  * The implementation for a single SuccinctKVRDD partition.
+  */
 class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctIndexedFile)(implicit ordering: Ordering[K]) {
 
   val numKeys = keys.length
@@ -51,6 +51,11 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   private[succinct] def get(key: K): Array[Byte] = {
     val pos = findKey(key)
     if (pos < 0 || pos > numKeys) null else valueBuffer.getRecord(pos)
+  }
+
+  /** Get the values corresponding to an array of keys. **/
+  private[succinct] def multiget(keys: Array[K]): Array[(K, Array[Byte])] = {
+    keys.map(k => (k, get(k)))
   }
 
   /** Random access into the value corresponding to a key. **/
@@ -148,8 +153,8 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
 
 object SuccinctKVPartition {
   def apply[K: ClassTag](
-    partitionLocation: String, storageLevel: StorageLevel)
-    (implicit ordering: Ordering[K])
+                          partitionLocation: String, storageLevel: StorageLevel)
+                        (implicit ordering: Ordering[K])
   : SuccinctKVPartition[K] = {
 
     val path = new Path(partitionLocation)

@@ -67,6 +67,16 @@ abstract class SuccinctKVRDD[K: ClassTag](
   }
 
   /**
+    * Get the value for a given keys.
+    *
+    * @param keys Input keys.
+    * @return Values corresponding to keys (if present).
+    */
+  def multiget(keys: Array[K]): Map[K, Array[Byte]] = {
+    partitionsRDD.flatMap(_.multiget(keys)).collect().filter(_._2 != null).toMap
+  }
+
+  /**
    * Random access into the value for a given key.
    *
    * @param key Input key.
