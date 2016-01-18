@@ -1,6 +1,7 @@
 package edu.berkeley.cs.succinct.kv.impl
 
-import edu.berkeley.cs.succinct.kv.{SuccinctKVPartition, SuccinctKVRDD}
+import edu.berkeley.cs.succinct.kv.SuccinctKVRDD
+import org.apache.spark.succinct.kv.SuccinctKVPartition
 import org.apache.spark.{TaskContext, OneToOneDependency}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel

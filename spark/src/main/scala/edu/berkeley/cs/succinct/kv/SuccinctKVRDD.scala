@@ -10,6 +10,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.succinct.kv.SuccinctKVPartition
 import org.apache.spark.{Dependency, Partition, SparkContext, TaskContext}
 
 import scala.collection.mutable.ArrayBuffer
