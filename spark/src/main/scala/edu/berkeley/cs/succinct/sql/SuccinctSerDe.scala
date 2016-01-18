@@ -9,7 +9,8 @@ import scala.collection.mutable.ListBuffer
 /**
  * Object that provides serialization/de-serialization methods for each tuple.
  */
-class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int]) extends Serializable {
+class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int])
+  extends Serializable {
 
   override def toString: String = {
     separators.map(_.toInt).mkString(",")
@@ -21,7 +22,7 @@ class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int
    * @param data The [[Row]] to be serialized.
    * @return The serialized [[Row]].
    */
-  private[succinct] def serializeRow(data: Row): Array[Byte] = {
+  def serializeRow(data: Row): Array[Byte] = {
     assert(data.length == separators.length)
     assert(data.length == schema.length)
     separators.zip(Array.tabulate(data.length) { i => typeToString(i, data(i)).getBytes })
@@ -29,7 +30,7 @@ class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int
       .flatMap(_.iterator)
   }
 
-  private[succinct] def typeToString(elemIdx: Int, elem: Any): String = {
+  def typeToString(elemIdx: Int, elem: Any): String = {
     if (elem == null) {
       "NULL"
     } else {
@@ -64,7 +65,7 @@ class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int
    * @param data The serialized [[Row]].
    * @return The de-serialized [[Row]].
    */
-  private[succinct] def deserializeRow(data: Array[Byte]): Row = {
+  def deserializeRow(data: Array[Byte]): Row = {
     val fieldTypes = schema.fields.map(_.dataType)
     var i = 0
     var elemList = new ListBuffer[String]
@@ -97,7 +98,7 @@ class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int
    * @param requiredColumns Checks if a column is required or not.
    * @return The de-serialized [[Row]].
    */
-  private[succinct] def deserializeRow(
+  def deserializeRow(
       data: Array[Byte],
       requiredColumns: Map[String, Boolean]): Row = {
     if (data.length == 0 || !requiredColumns.values.reduce((a, b) => a | b)) return Row()
@@ -133,7 +134,7 @@ class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int
    * @param dataType The data-type of the element.
    * @return The type-converted data.
    */
-  private[succinct] def stringToType(elem: String, dataType: DataType): Any = {
+  def stringToType(elem: String, dataType: DataType): Any = {
     if (elem == "NULL") return null
     dataType match {
       case BooleanType => elem.equals("1")

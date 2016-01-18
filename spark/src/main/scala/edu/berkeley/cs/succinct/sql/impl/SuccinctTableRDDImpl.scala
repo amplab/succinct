@@ -10,6 +10,7 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.{Decimal, StructType}
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.succinct.sql.SuccinctTablePartition
 import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
 
 /**

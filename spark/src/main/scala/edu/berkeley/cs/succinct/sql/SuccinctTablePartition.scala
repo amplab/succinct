@@ -1,20 +1,22 @@
-package edu.berkeley.cs.succinct.sql
+package org.apache.spark.succinct.sql
 
 import java.io.DataOutputStream
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.SuccinctIndexedFile.QueryType
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
+import edu.berkeley.cs.succinct.sql.SuccinctSerDe
 import edu.berkeley.cs.succinct.streams.SuccinctIndexedFileStream
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.Row
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.util.{SizeEstimator, KnownSizeEstimation}
 
 class SuccinctTablePartition(
     succinctIndexedFile: SuccinctIndexedFile,
     succinctSerDe: SuccinctSerDe
-  ) {
+  ) extends KnownSizeEstimation {
 
   def iterator: Iterator[Row] = {
     new Iterator[Row] {
@@ -62,13 +64,17 @@ class SuccinctTablePartition(
 
   def count: Long = succinctIndexedFile.getNumRecords
 
-  private[succinct] def writeToStream(dataOutputStream: DataOutputStream): Unit = {
+  def writeToStream(dataOutputStream: DataOutputStream): Unit = {
     succinctIndexedFile.writeToStream(dataOutputStream)
+  }
+
+  override def estimatedSize: Long = {
+    succinctIndexedFile.getSuccinctIndexedFileSize + SizeEstimator.estimate(succinctSerDe)
   }
 }
 
 object SuccinctTablePartition {
-  private[succinct] def apply(
+  def apply(
       partitionLocation: String,
       succinctSerDe: SuccinctSerDe,
       storageLevel: StorageLevel): SuccinctTablePartition = {
