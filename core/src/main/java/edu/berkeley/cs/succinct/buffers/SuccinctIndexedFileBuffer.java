@@ -5,6 +5,7 @@ import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
+import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import edu.berkeley.cs.succinct.util.container.Range;
 import edu.berkeley.cs.succinct.util.iterator.SearchIterator;
 import edu.berkeley.cs.succinct.util.iterator.SearchRecordIterator;
@@ -59,6 +60,11 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   public SuccinctIndexedFileBuffer(ByteBuffer buf) {
     super(buf);
+  }
+
+  @Override public int getSuccinctSize() {
+    return super.getSuccinctSize()
+      + (12 + offsets.length * SuccinctConstants.INT_SIZE_BYTES);
   }
 
   /**

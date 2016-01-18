@@ -124,6 +124,12 @@ public class SuccinctStream extends SuccinctCore {
     return fs.open(path);
   }
 
+  @Override public int getSuccinctSize() {
+    return baseSize()
+      + (12 + 12 + SuccinctConstants.REF_SIZE_BYTES) * 3
+      + (12 + columns.length * (2 * SuccinctConstants.REF_SIZE_BYTES + 8));
+  }
+
   /**
    * Lookup NPA at specified index.
    *

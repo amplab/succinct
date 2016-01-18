@@ -8,6 +8,7 @@ public class SuccinctConstants {
   public static final int SHORT_SIZE_BTYES = 2;
   public static final int INT_SIZE_BYTES = 4;
   public static final int LONG_SIZE_BYTES = 8;
+  public static final int REF_SIZE_BYTES = 8;
 
   // Default Sampling Rates
   public static final int DEFAULT_SA_SAMPLING_RATE = 32;

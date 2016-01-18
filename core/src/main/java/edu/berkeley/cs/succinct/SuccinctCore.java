@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct;
 
+import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import edu.berkeley.cs.succinct.util.container.Pair;
 
 import java.io.Serializable;
@@ -155,6 +156,19 @@ public abstract class SuccinctCore implements Serializable {
   public void setSampleBitWidth(int sampleBitWidth) {
     this.sampleBitWidth = sampleBitWidth;
   }
+
+  protected int baseSize() {
+    return 6 * SuccinctConstants.INT_SIZE_BYTES // For constants
+      + (12 + alphabet.length * SuccinctConstants.BYTE_SIZE_BYTES) // For Byte Array
+      + (alphabetMap.size() * 64); // Upper bound for HashMap
+  }
+
+  /**
+   * Get the size (in bytes) of Succinct data structures (compressed).
+   *
+   * @return Size (in bytes) of Succinct data structures (compressed).
+   */
+  public abstract int getSuccinctSize();
 
   /**
    * Lookup NPA at specified index.
