@@ -1,9 +1,10 @@
 package edu.berkeley.cs.succinct.impl
 
-import edu.berkeley.cs.succinct.{SuccinctPartition, SuccinctRDD}
+import edu.berkeley.cs.succinct.SuccinctRDD
 import org.apache.spark.OneToOneDependency
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.succinct.SuccinctPartition
 
 /**
  * Implementation of SuccinctRDD.

@@ -10,6 +10,7 @@ import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.succinct.SuccinctPartition
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -211,7 +212,7 @@ object SuccinctRDD {
    * @return The SuccinctRDD.
    */
   def apply(
-      inputRDD: RDD[Array[Byte]], 
+      inputRDD: RDD[Array[Byte]],
       storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY):
    SuccinctRDD = {
     val partitionSizes = inputRDD.mapPartitionsWithIndex((idx, partition) => {

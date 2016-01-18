@@ -1,7 +1,8 @@
-package edu.berkeley.cs.succinct
+package org.apache.spark.succinct
 
 import java.io.DataOutputStream
 
+import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.regex.RegExMatch
 import edu.berkeley.cs.succinct.streams.SuccinctIndexedFileStream
@@ -9,6 +10,7 @@ import edu.berkeley.cs.succinct.util.container.Range
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.util.KnownSizeEstimation
 
 import scala.collection.JavaConversions._
 
@@ -19,17 +21,17 @@ import scala.collection.JavaConversions._
 class SuccinctPartition(
     succinctIndexedFile: SuccinctIndexedFile,
     partitionOffset: Long,
-    partitionFirstRecordId: Long) {
+    partitionFirstRecordId: Long) extends KnownSizeEstimation {
 
   /** Returns the range of recordIds for which this partition is responsible (both inclusive) */
-  private[succinct] def partitionOffsetRange: Range = {
+  def partitionOffsetRange: Range = {
     // Adjust for 1 extra byte for the EOF byte
     val endOffset = partitionOffset + succinctIndexedFile.getSize - 2
     new Range(partitionOffset, endOffset)
   }
 
   /** Iterator over all records in the partition. */
-  private[succinct] def iterator: Iterator[Array[Byte]] = {
+  def iterator: Iterator[Array[Byte]] = {
     new Iterator[Array[Byte]] {
       var curRecordId: Int = 0
 
@@ -44,7 +46,7 @@ class SuccinctPartition(
   }
 
   /** Obtain all occurrences in input corresponding to a search query */
-  private[succinct] def search(query: Array[Byte]): Iterator[Long] = {
+  def search(query: Array[Byte]): Iterator[Long] = {
     new Iterator[Long] {
       val it = succinctIndexedFile.searchIterator(query)
 
@@ -55,12 +57,12 @@ class SuccinctPartition(
   }
 
   /** Count all occurrences of search query in input. */
-  private[succinct] def count(query: Array[Byte]): Long = {
+  def count(query: Array[Byte]): Long = {
     succinctIndexedFile.count(query)
   }
 
   /** Random access to data at given offset to fetch given number of bytes */
-  private[succinct] def extract(offset: Long, length: Int): Array[Byte] = {
+  def extract(offset: Long, length: Int): Array[Byte] = {
     succinctIndexedFile.extract(offset - partitionOffset, length)
   }
 
@@ -68,32 +70,33 @@ class SuccinctPartition(
    * Obtain all recordIds and lengths of matches in input corresponding to a
    * regex search query
    */
-  private[succinct] def regexSearch(query: String): Iterator[RegExMatch] = {
+  def regexSearch(query: String): Iterator[RegExMatch] = {
     succinctIndexedFile.regexSearch(query).iterator
   }
 
   /** Obtain the total number of records in the partition */
-  private[succinct] def count: Long = {
+  def count: Long = {
     succinctIndexedFile.getNumRecords
   }
 
-  private[succinct] def sizeInBytes: Int = {
+  def sizeInBytes: Int = {
     succinctIndexedFile.getSize
   }
 
   /** Write partition to output stream */
-  private[succinct] def writeToStream(dataOutputStream: DataOutputStream): Unit = {
+  def writeToStream(dataOutputStream: DataOutputStream): Unit = {
     succinctIndexedFile.writeToStream(dataOutputStream)
     dataOutputStream.writeLong(partitionOffset)
     dataOutputStream.writeLong(partitionFirstRecordId)
   }
 
+  override def estimatedSize: Long = 28 + succinctIndexedFile.getSuccinctIndexedFileSize
 }
 
 /** Factory for [[SuccinctPartition]] instances **/
 object SuccinctPartition {
   /** Creates a [[SuccinctPartition]] instance from the partition location and its storageLevel **/
-  private[succinct] def apply(partitionLocation: String, storageLevel: StorageLevel) = {
+  def apply(partitionLocation: String, storageLevel: StorageLevel) = {
     val path = new Path(partitionLocation)
     val fs = FileSystem.get(path.toUri, new Configuration())
     val is = fs.open(path)
