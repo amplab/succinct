@@ -1,4 +1,4 @@
-package edu.berkeley.cs.succinct.json
+package org.apache.spark.succinct.json
 
 import java.io.{DataOutputStream, ObjectInputStream, ObjectOutputStream}
 
@@ -6,11 +6,11 @@ import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.`object`.deserializer.JsonDeserializer
 import edu.berkeley.cs.succinct.block.json.FieldMapping
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
-import edu.berkeley.cs.succinct.kv.SuccinctKVPartition
 import edu.berkeley.cs.succinct.streams.SuccinctIndexedFileStream
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.succinct.kv.SuccinctKVPartition
 
 class SuccinctJsonPartition(ids: Array[Long], valueBuffer: SuccinctIndexedFile,
                             fieldMapping: FieldMapping)
@@ -18,7 +18,7 @@ class SuccinctJsonPartition(ids: Array[Long], valueBuffer: SuccinctIndexedFile,
 
   val jsonDeserializer: JsonDeserializer = new JsonDeserializer(fieldMapping)
 
-  private[succinct] def jIterator: Iterator[String] = {
+  def jIterator: Iterator[String] = {
     new Iterator[String] {
       var curRecordId = 0
 
@@ -33,19 +33,19 @@ class SuccinctJsonPartition(ids: Array[Long], valueBuffer: SuccinctIndexedFile,
     }
   }
 
-  private[succinct] def getDocBytes(recordId: Int): Array[Byte] = {
+  def getDocBytes(recordId: Int): Array[Byte] = {
     val start = valueBuffer.getRecordOffset(recordId)
     val end = if (recordId == valueBuffer.getNumRecords - 1) valueBuffer.getSize - 1
       else valueBuffer.getRecordOffset(recordId + 1)
     valueBuffer.extract(start, end - start)
   }
 
-  private[succinct] def jGet(id: Long): String = {
+  def jGet(id: Long): String = {
     val pos = findKey(id)
     if (pos < 0 || pos > numKeys) null else jsonDeserializer.deserialize(id, getDocBytes(pos))
   }
 
-  private[succinct] def jSearch(field: String, value: String): Iterator[Long] = {
+  def jSearch(field: String, value: String): Iterator[Long] = {
     if (!fieldMapping.containsField(field)) {
       return Iterator()
     }
@@ -54,11 +54,11 @@ class SuccinctJsonPartition(ids: Array[Long], valueBuffer: SuccinctIndexedFile,
     search(query)
   }
 
-  private[succinct] def jSearch(query: String): Iterator[Long] = {
+  def jSearch(query: String): Iterator[Long] = {
     search(query.getBytes())
   }
 
-  override private[succinct] def writeToStream(dataStream: DataOutputStream): Unit = {
+  override def writeToStream(dataStream: DataOutputStream): Unit = {
     valueBuffer.writeToStream(dataStream)
     val objectOutputStream = new ObjectOutputStream(dataStream)
     objectOutputStream.writeObject(ids)

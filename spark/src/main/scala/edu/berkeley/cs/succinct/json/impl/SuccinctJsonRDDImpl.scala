@@ -1,9 +1,10 @@
 package edu.berkeley.cs.succinct.json.impl
 
-import edu.berkeley.cs.succinct.json.{SuccinctJsonPartition, SuccinctJsonRDD}
+import edu.berkeley.cs.succinct.json.SuccinctJsonRDD
 import org.apache.spark.OneToOneDependency
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.succinct.json.SuccinctJsonPartition
 
 class SuccinctJsonRDDImpl private[succinct](val partitionsRDD: RDD[SuccinctJsonPartition],
                                             val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
