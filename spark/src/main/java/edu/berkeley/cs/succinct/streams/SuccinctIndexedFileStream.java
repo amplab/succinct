@@ -4,6 +4,7 @@ import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
+import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import edu.berkeley.cs.succinct.util.container.Range;
 import edu.berkeley.cs.succinct.util.iterator.SearchIterator;
 import edu.berkeley.cs.succinct.util.iterator.SearchRecordIterator;
@@ -48,6 +49,11 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
    */
   public SuccinctIndexedFileStream(Path filePath) throws IOException {
     this(filePath, new Configuration());
+  }
+
+  @Override public int getSuccinctIndexedFileSize() {
+    return super.getSuccinctFileSize()
+      + (12 + offsets.length * SuccinctConstants.INT_SIZE_BYTES);
   }
 
   public int offsetToRecordId(int pos) {

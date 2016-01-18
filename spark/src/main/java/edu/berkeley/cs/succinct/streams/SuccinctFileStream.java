@@ -61,6 +61,10 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     return getOriginalSize();
   }
 
+  @Override public int getSuccinctFileSize() {
+    return super.getSuccinctSize();
+  }
+
   /**
    * Get the character at specified index into succinct file
    *

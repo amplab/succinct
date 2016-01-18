@@ -9,6 +9,13 @@ import java.util.Iterator;
 public interface SuccinctIndexedFile extends SuccinctFile {
 
   /**
+   * Get the size of the Succinct compressed file.
+   *
+   * @return The size of the Succinct compressed file.
+   */
+  int getSuccinctIndexedFileSize();
+
+  /**
    * Search for offset corresponding to a position in the input.
    *
    * @param pos Position in the input

@@ -62,8 +62,8 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     super(buf);
   }
 
-  @Override public int getSuccinctSize() {
-    return super.getSuccinctSize()
+  @Override public int getSuccinctIndexedFileSize() {
+    return super.getSuccinctFileSize()
       + (12 + offsets.length * SuccinctConstants.INT_SIZE_BYTES);
   }
 

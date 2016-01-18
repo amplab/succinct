@@ -71,6 +71,10 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     return getOriginalSize();
   }
 
+  @Override public int getSuccinctFileSize() {
+    return super.getSuccinctSize();
+  }
+
   /**
    * Get the character at index in file.
    *

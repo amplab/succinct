@@ -28,6 +28,13 @@ public interface SuccinctFile extends Serializable {
   int getSize();
 
   /**
+   * Get the size of the Succinct compressed file.
+   *
+   * @return The size of the Succinct compressed file.
+   */
+  int getSuccinctFileSize();
+
+  /**
    * Get character at ith index in file chunk.
    *
    * @param i Index relative to file chunk.
