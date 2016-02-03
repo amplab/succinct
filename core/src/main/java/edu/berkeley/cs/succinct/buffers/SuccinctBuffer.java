@@ -11,7 +11,6 @@ import edu.berkeley.cs.succinct.util.buffer.ThreadSafeLongBuffer;
 import edu.berkeley.cs.succinct.util.buffer.serops.ArrayOps;
 import edu.berkeley.cs.succinct.util.buffer.serops.DeltaEncodedIntVectorOps;
 import edu.berkeley.cs.succinct.util.buffer.serops.IntVectorOps;
-import edu.berkeley.cs.succinct.util.container.Pair;
 import edu.berkeley.cs.succinct.util.suffixarray.QSufSort;
 import edu.berkeley.cs.succinct.util.vector.DeltaEncodedIntVector;
 import edu.berkeley.cs.succinct.util.vector.IntVector;
@@ -23,8 +22,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.util.Arrays;
-import java.util.HashMap;
 
 public class SuccinctBuffer extends SuccinctCore {
 
@@ -189,7 +186,7 @@ public class SuccinctBuffer extends SuccinctCore {
    * @param i Index into inverted alphabet map
    * @return Value of inverted alphabet map at specified index.
    */
-  @Override public byte lookupC(long i) {
+  @Override public int lookupC(long i) {
     if (i > getOriginalSize() - 1 || i < 0) {
       throw new ArrayIndexOutOfBoundsException(
         "C index out of bounds: i = " + i + " originalSize = " + getOriginalSize());
@@ -247,17 +244,17 @@ public class SuccinctBuffer extends SuccinctCore {
 
     assert IOUtils.checkBytes(input) == -1;
 
-    {
-      long startTime = System.currentTimeMillis();
-
-      // Append the EOF byte
-      int end = input.length;
-      input = Arrays.copyOf(input, input.length + 1);
-      input[end] = EOF;
-
-      long timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
-      logger.info("Cleaned input in " + timeTaken + "s.");
-    }
+//    {
+//      long startTime = System.currentTimeMillis();
+//
+//      // Append the EOF byte
+//      int end = input.length;
+//      input = Arrays.copyOf(input, input.length + 1);
+//      input[end] = EOF;
+//
+//      long timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
+//      logger.info("Cleaned input in " + timeTaken + "s.");
+//    }
 
 
     // Scope of SA, input
@@ -272,7 +269,7 @@ public class SuccinctBuffer extends SuccinctCore {
       ISA = suffixSorter.getISA();
 
       // Set metadata
-      setOriginalSize(input.length);
+      setOriginalSize(input.length + 1);
       setSamplingRateSA(SuccinctConstants.DEFAULT_SA_SAMPLING_RATE);
       setSamplingRateISA(SuccinctConstants.DEFAULT_ISA_SAMPLING_RATE);
       setSamplingRateNPA(SuccinctConstants.DEFAULT_NPA_SAMPLING_RATE);
@@ -289,19 +286,17 @@ public class SuccinctBuffer extends SuccinctCore {
 
       // Populate column offsets and alphabetMap
       int pos = 0;
-      alphabetMap = new HashMap<>();
-      alphabetMap.put(input[SA[0]], new Pair<>(0, pos));
+      int prevSortedChar = SuccinctConstants.EOF;
       columnoffsets = ThreadSafeLongBuffer.allocate(getAlphabetSize());
       columnoffsets.put(pos, 0);
       pos++;
       for (int i = 1; i < getOriginalSize(); ++i) {
-        if (input[SA[i]] != input[SA[i - 1]]) {
-          alphabetMap.put(input[SA[i]], new Pair<>(i, pos));
+        if (input[SA[i]] != prevSortedChar) {
+          prevSortedChar = input[SA[i]];
           columnoffsets.put(pos, i);
           pos++;
         }
       }
-      alphabetMap.put(SuccinctCore.EOA, new Pair<>(getOriginalSize(), getAlphabetSize()));
       columnoffsets.rewind();
 
       timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
@@ -393,14 +388,9 @@ public class SuccinctBuffer extends SuccinctCore {
     os.writeInt(getSampleBitWidth());
     os.writeInt(getAlphabetSize());
 
-    for (Byte c : alphabetMap.keySet()) {
-      Pair<Integer, Integer> cval = alphabetMap.get(c);
-      os.write(c);
-      os.writeInt(cval.first);
-      os.writeInt(cval.second);
+    for (int i = 0; i < getAlphabetSize(); i++) {
+      os.writeInt(alphabet[i]);
     }
-
-    os.write(alphabet);
 
     ByteBuffer bufSA = ByteBuffer.allocate(sa.limit() * SuccinctConstants.LONG_SIZE_BYTES);
     bufSA.asLongBuffer().put(sa.buffer());
@@ -440,19 +430,11 @@ public class SuccinctBuffer extends SuccinctCore {
     setSampleBitWidth(is.readInt());
     setAlphabetSize(is.readInt());
 
-    // Deserialize alphabetmap
-    alphabetMap = new HashMap<>();
-    for (int i = 0; i < getAlphabetSize() + 1; i++) {
-      byte c = is.readByte();
-      int v1 = is.readInt();
-      int v2 = is.readInt();
-      alphabetMap.put(c, new Pair<>(v1, v2));
-    }
-
     // Read alphabet
-    alphabet = new byte[getAlphabetSize()];
-    int read = is.read(alphabet);
-    assert read == getAlphabetSize();
+    alphabet = new int[getAlphabetSize()];
+    for (int i = 0; i < getAlphabetSize(); i++) {
+      alphabet[i] = is.readInt();
+    }
 
     // Compute number of sampled elements
     int totalSampledBitsSA =
@@ -522,18 +504,11 @@ public class SuccinctBuffer extends SuccinctCore {
     setSampleBitWidth(buf.getInt());
     setAlphabetSize(buf.getInt());
 
-    // Deserialize alphabet map
-    alphabetMap = new HashMap<>();
-    for (int i = 0; i < getAlphabetSize() + 1; i++) {
-      byte c = buf.get();
-      int v1 = buf.getInt();
-      int v2 = buf.getInt();
-      alphabetMap.put(c, new Pair<>(v1, v2));
-    }
-
     // Read alphabet
-    alphabet = new byte[getAlphabetSize()];
-    buf.get(alphabet);
+    alphabet = new int[getAlphabetSize()];
+    for (int i = 0; i < getAlphabetSize(); i++) {
+      alphabet[i] = buf.getInt();
+    }
 
     // Compute number of sampled elements
     int totalSampledBitsSA =

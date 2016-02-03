@@ -1,6 +1,5 @@
 package edu.berkeley.cs.succinct.streams;
 
-import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
@@ -116,8 +115,8 @@ public class SuccinctIndexedFileStream extends SuccinctFileStream implements Suc
     long s = lookupISA(begOffset);
     int numBytesRead = 0;
     do {
-      byte nextByte = lookupC(s);
-      if (nextByte == SuccinctCore.EOL || nextByte == SuccinctCore.EOF)
+      int nextByte = lookupC(s);
+      if (nextByte == SuccinctConstants.EOL || nextByte == SuccinctConstants.EOF)
         break;
       out.write(nextByte);
       numBytesRead++;

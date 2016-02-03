@@ -1,11 +1,10 @@
 package edu.berkeley.cs.succinct.util.suffixarray;
 
-import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.util.IOUtils;
-import gnu.trove.set.hash.TByteHashSet;
+import edu.berkeley.cs.succinct.util.SuccinctConstants;
+import gnu.trove.set.hash.TIntHashSet;
 import junit.framework.TestCase;
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,6 +17,7 @@ public class QSufSortTest extends TestCase {
   private String testFileISA = this.getClass().getResource("/test_file.isa").getFile();
   private QSufSort instance;
   private byte[] data;
+  private int n;
 
   /**
    * Set up test.
@@ -29,25 +29,24 @@ public class QSufSortTest extends TestCase {
     instance = new QSufSort();
     File inputFile = new File(testFileRaw);
 
-    byte[] fileData = new byte[(int) inputFile.length()];
+    data = new byte[(int) inputFile.length()];
 
     DataInputStream dis = new DataInputStream(new FileInputStream(inputFile));
-    dis.readFully(fileData);
-
-    ByteArrayOutputStream out = new ByteArrayOutputStream(fileData.length + 1);
-    out.write(fileData);
-    out.write(SuccinctCore.EOF);
-    data = out.toByteArray();
+    dis.readFully(data);
+    n = data.length + 1;
 
     instance.buildSuffixArray(data);
   }
 
   public void testGetAlphabet() {
-    byte[] alphabet = instance.getAlphabet();
+    int[] alphabet = instance.getAlphabet();
 
-    TByteHashSet set = new TByteHashSet();
-    set.addAll(data);
-    byte[] expectedAlphabet = set.toArray();
+    TIntHashSet set = new TIntHashSet();
+    for (byte d: data) {
+      set.add(d);
+    }
+    set.add(SuccinctConstants.EOF);
+    int[] expectedAlphabet = set.toArray();
     Arrays.sort(expectedAlphabet);
 
     assertTrue(Arrays.equals(expectedAlphabet, alphabet));
@@ -65,12 +64,13 @@ public class QSufSortTest extends TestCase {
     DataInputStream dIS = new DataInputStream(new FileInputStream(new File(testFileSA)));
     int[] testSA = IOUtils.readArray(dIS);
     dIS.close();
-    for (int i = 0; i < data.length; i++) {
+
+    for (int i = 0; i < n; i++) {
       assertEquals(testSA[i], SA[i]);
       sum += SA[i];
-      sum %= data.length;
+      sum %= n;
     }
-    assertEquals(sum, 0L);
+    assertEquals(0L, sum);
   }
 
   /**
@@ -85,11 +85,11 @@ public class QSufSortTest extends TestCase {
     DataInputStream dIS = new DataInputStream(new FileInputStream(new File(testFileISA)));
     int[] testISA = IOUtils.readArray(dIS);
     dIS.close();
-    for (int i = 0; i < data.length; i++) {
+    for (int i = 0; i < n; i++) {
       assertEquals(testISA[i], ISA[i]);
       sum += ISA[i];
-      sum %= data.length;
+      sum %= n;
     }
-    assertEquals(sum, 0L);
+    assertEquals(0L, sum);
   }
 }

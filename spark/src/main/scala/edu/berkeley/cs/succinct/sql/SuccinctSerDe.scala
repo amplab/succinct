@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.sql
 
-import edu.berkeley.cs.succinct.SuccinctCore
+import edu.berkeley.cs.succinct.util.SuccinctConstants
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 
@@ -79,7 +79,7 @@ class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int
         if (separatorsIter.hasNext)
           nextSeparator = separatorsIter.next()
         else
-          nextSeparator = SuccinctCore.EOL
+          nextSeparator = SuccinctConstants.EOL.toByte
       } else {
         elemBuilder.append(data(i).toChar)
       }
@@ -110,13 +110,13 @@ class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int
     val elemBuilder = new StringBuilder
     val separatorsIter = separators.iterator
     var nextSeparator: Byte = if (separatorsIter.hasNext) separatorsIter.next()
-    else SuccinctCore.EOL
+    else SuccinctConstants.EOL.toByte
     while (i < data.length) {
       if (data(i) == nextSeparator) {
         if (i != 0 && requiredColumns(fieldNames(k - 1))) elemList += elemBuilder.toString
         elemBuilder.clear()
         nextSeparator = if (separatorsIter.hasNext) separatorsIter.next()
-        else SuccinctCore.EOL
+        else SuccinctConstants.EOL.toByte
         k += 1
       } else {
         elemBuilder.append(data(i).toChar)

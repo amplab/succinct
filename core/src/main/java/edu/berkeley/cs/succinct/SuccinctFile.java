@@ -18,7 +18,7 @@ public interface SuccinctFile extends Serializable {
    *
    * @return The alphabet for the succinct file.
    */
-  byte[] getAlphabet();
+  int[] getAlphabet();
 
   /**
    * Get the size of the uncompressed file.
@@ -58,7 +58,7 @@ public interface SuccinctFile extends Serializable {
    * @param delim  Delimiter at which to stop extracting.
    * @return Extracted data.
    */
-  byte[] extractUntil(long offset, byte delim);
+  byte[] extractUntil(long offset, int delim);
 
   /**
    * Perform a range search to obtain SA range between two given queries.

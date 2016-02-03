@@ -1,8 +1,9 @@
 package edu.berkeley.cs.succinct.sql.impl
 
+import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.SuccinctIndexedFile.QueryType
 import edu.berkeley.cs.succinct.sql._
-import edu.berkeley.cs.succinct.{SuccinctCore, SuccinctIndexedFile}
+import edu.berkeley.cs.succinct.util.SuccinctConstants
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.rdd.RDD
@@ -94,7 +95,7 @@ class SuccinctTableRDDImpl private[succinct](
 
   /** Implements getSeparator for [[SuccinctTableRDD]] */
   private[sql] def getSeparator(attrIdx: Int): Byte = {
-    if (attrIdx == separators.length) SuccinctCore.EOL
+    if (attrIdx == separators.length) SuccinctConstants.EOL.toByte
     else separators(attrIdx)
   }
 

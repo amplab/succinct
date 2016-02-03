@@ -1,11 +1,10 @@
 package edu.berkeley.cs.succinct;
 
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
-import edu.berkeley.cs.succinct.util.container.Pair;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.logging.*;
 
 public abstract class SuccinctCore implements Serializable {
@@ -25,15 +24,6 @@ public abstract class SuccinctCore implements Serializable {
     logger.setLevel(Level.OFF);
   }
 
-  // End of File marker
-  public transient static final byte EOF = -127;
-
-  // End of Alphabet marker
-  public transient static final byte EOA = -126;
-
-  // End of Line marker
-  public transient static final byte EOL = '\n';
-
   // Metadata
   private transient int originalSize;
   private transient int alphabetSize;
@@ -43,8 +33,7 @@ public abstract class SuccinctCore implements Serializable {
   private transient int sampleBitWidth;
 
   // Alphabet map
-  protected transient HashMap<Byte, Pair<Integer, Integer>> alphabetMap;
-  protected transient byte[] alphabet;
+  protected transient int[] alphabet;
 
   public SuccinctCore() {
   }
@@ -149,6 +138,16 @@ public abstract class SuccinctCore implements Serializable {
   }
 
   /**
+   * Find a character in the alphabet.
+   *
+   * @param c The character to find.
+   * @return The position of the character in the alphabet (if it exists), -ve value otherwise.
+   */
+  public int findCharacter(int c) {
+    return Arrays.binarySearch(alphabet, 1, alphabet.length, c);
+  }
+
+  /**
    * Set the sample bit width.
    *
    * @param sampleBitWidth The sample bit width to set.
@@ -159,8 +158,7 @@ public abstract class SuccinctCore implements Serializable {
 
   protected int baseSize() {
     return 6 * SuccinctConstants.INT_SIZE_BYTES // For constants
-      + (12 + alphabet.length * SuccinctConstants.BYTE_SIZE_BYTES) // For Byte Array
-      + (alphabetMap.size() * 64); // Upper bound for HashMap
+      + (12 + alphabet.length * SuccinctConstants.BYTE_SIZE_BYTES); // For Byte Array
   }
 
   /**
@@ -200,7 +198,7 @@ public abstract class SuccinctCore implements Serializable {
    * @param i Index into inverted alphabet map
    * @return Value of inverted alphabet map at specified index.
    */
-  public abstract byte lookupC(long i);
+  public abstract int lookupC(long i);
 
   /**
    * Binary Search for a value withing NPA.

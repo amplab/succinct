@@ -6,6 +6,8 @@ import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.kv.impl.SuccinctKVRDDImpl
 import edu.berkeley.cs.succinct.SuccinctCore
 import edu.berkeley.cs.succinct.regex.RegExMatch
+import edu.berkeley.cs.succinct.util.SuccinctConstants
+import edu.berkeley.cs.succinct.util.SuccinctConstants.EOL
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
 import org.apache.spark.rdd.RDD
@@ -306,7 +308,7 @@ object SuccinctKVRDD {
     for (i <- buffers.indices) {
       val curRecord = buffers(i)
       rawBufferOS.write(curRecord)
-      rawBufferOS.write(SuccinctCore.EOL)
+      rawBufferOS.write(SuccinctConstants.EOL)
     }
 
     val keys = keysBuffer.toArray

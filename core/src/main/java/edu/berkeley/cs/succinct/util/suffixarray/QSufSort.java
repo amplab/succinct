@@ -1,6 +1,7 @@
 package edu.berkeley.cs.succinct.util.suffixarray;
 
-import gnu.trove.set.hash.TByteHashSet;
+import edu.berkeley.cs.succinct.util.SuccinctConstants;
+import gnu.trove.set.hash.TIntHashSet;
 
 import java.util.Arrays;
 
@@ -18,7 +19,7 @@ public final class QSufSort {
   /**
    * stores the alphabet for the input.
    */
-  private byte[] alphabet;
+  private int[] alphabet;
 
   /**
    * number of symbols aggregated by transform.
@@ -36,12 +37,12 @@ public final class QSufSort {
    * @param input Input byte array.
    */
   public void buildSuffixArray(byte[] input) {
-    int max = input[0];
+    int max = SuccinctConstants.EOF;
     int min = max;
 
-    I = new int[input.length + 1];
-    V = new int[input.length + 1];
-    TByteHashSet alphabetSet = new TByteHashSet();
+    I = new int[input.length + 2];
+    V = new int[input.length + 2];
+    TIntHashSet alphabetSet = new TIntHashSet();
     for (int i = 0; i < input.length; i++) {
       V[i] = input[i];
       if (V[i] > max)
@@ -50,10 +51,17 @@ public final class QSufSort {
         min = V[i];
       alphabetSet.add(input[i]);
     }
+    V[input.length] = SuccinctConstants.EOF;
+    if (V[input.length] > max)
+      max = V[input.length];
+    if (V[input.length] < min)
+      min = V[input.length];
+    alphabetSet.add(SuccinctConstants.EOF);
+
     alphabet = alphabetSet.toArray();
     Arrays.sort(alphabet);
 
-    suffixSort(input.length, max + 1, min);
+    suffixSort(input.length + 1, max + 1, min);
   }
 
   /**
@@ -79,7 +87,7 @@ public final class QSufSort {
    *
    * @return The alphabet.
    */
-  public byte[] getAlphabet() {
+  public int[] getAlphabet() {
     return alphabet;
   }
 

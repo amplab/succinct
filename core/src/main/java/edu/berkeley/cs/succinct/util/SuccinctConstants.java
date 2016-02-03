@@ -15,4 +15,9 @@ public class SuccinctConstants {
   public static final int DEFAULT_ISA_SAMPLING_RATE = 32;
   public static final int DEFAULT_NPA_SAMPLING_RATE = 128;
 
+  // End of File marker
+  public transient static final int EOF = Byte.MIN_VALUE - 1;
+
+  // End of Line marker
+  public transient static final int EOL = '\n';
 }

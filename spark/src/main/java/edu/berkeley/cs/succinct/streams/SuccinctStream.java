@@ -4,7 +4,6 @@ import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.util.BitUtils;
 import edu.berkeley.cs.succinct.util.CommonUtils;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
-import edu.berkeley.cs.succinct.util.container.Pair;
 import edu.berkeley.cs.succinct.util.stream.DeltaEncodedIntStream;
 import edu.berkeley.cs.succinct.util.stream.LongArrayStream;
 import edu.berkeley.cs.succinct.util.stream.serops.ArrayOps;
@@ -15,7 +14,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 /**
  * Stream based implementation for Succinct algorithms
@@ -51,19 +49,11 @@ public class SuccinctStream extends SuccinctCore {
     setSampleBitWidth(is.readInt());
     setAlphabetSize(is.readInt());
 
-    // Deserialize alphabetmap
-    alphabetMap = new HashMap<>();
-    for (int i = 0; i < getAlphabetSize() + 1; i++) {
-      byte c = is.readByte();
-      int v1 = is.readInt();
-      int v2 = is.readInt();
-      alphabetMap.put(c, new Pair<>(v1, v2));
-    }
-
     // Read alphabet
-    alphabet = new byte[getAlphabetSize()];
-    int read = is.read(alphabet);
-    assert read == getAlphabetSize();
+    alphabet = new int[getAlphabetSize()];
+    for (int i = 0; i < getAlphabetSize(); i++) {
+      alphabet[i] = is.readInt();
+    }
 
     // Compute number of sampled elements
     int totalSampledBitsSA =
@@ -125,9 +115,8 @@ public class SuccinctStream extends SuccinctCore {
   }
 
   @Override public int getSuccinctSize() {
-    return baseSize()
-      + (12 + 12 + SuccinctConstants.REF_SIZE_BYTES) * 3
-      + (12 + columns.length * (2 * SuccinctConstants.REF_SIZE_BYTES + 8));
+    return baseSize() + (12 + 12 + SuccinctConstants.REF_SIZE_BYTES) * 3 + (12 + columns.length * (
+      2 * SuccinctConstants.REF_SIZE_BYTES + 8));
   }
 
   /**
@@ -217,7 +206,7 @@ public class SuccinctStream extends SuccinctCore {
    * @param i Index into inverted alphabet map
    * @return Value of inverted alphabet map at specified index.
    */
-  @Override public byte lookupC(long i) {
+  @Override public int lookupC(long i) {
 
     if (i > getOriginalSize() - 1 || i < 0) {
       throw new ArrayIndexOutOfBoundsException(

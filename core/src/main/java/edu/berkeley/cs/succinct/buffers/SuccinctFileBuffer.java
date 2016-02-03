@@ -1,11 +1,11 @@
 package edu.berkeley.cs.succinct.buffers;
 
 import edu.berkeley.cs.succinct.StorageMode;
-import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctFile;
 import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.SuccinctRegEx;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
+import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import edu.berkeley.cs.succinct.util.container.Range;
 import edu.berkeley.cs.succinct.util.iterator.SearchIterator;
 
@@ -58,7 +58,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    *
    * @return The alphabet for the succinct file.
    */
-  @Override public byte[] getAlphabet() {
+  @Override public int[] getAlphabet() {
     return alphabet;
   }
 
@@ -94,14 +94,18 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    */
   @Override public byte[] extract(long offset, int length) {
 
-    byte[] buf = new byte[length];
+    ByteArrayOutputStream out = new ByteArrayOutputStream(length);
     long s = lookupISA(offset);
     for (int k = 0; k < length && k < getOriginalSize(); k++) {
-      buf[k] = lookupC(s);
+      int nextByte = lookupC(s);
+      if (nextByte < Byte.MIN_VALUE || nextByte > Byte.MAX_VALUE) {
+        break;
+      }
+      out.write(nextByte);
       s = lookupNPA(s);
     }
 
-    return buf;
+    return out.toByteArray();
   }
 
   /**
@@ -111,13 +115,13 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    * @param delim  Delimiter at which to stop extracting.
    * @return Extracted data.
    */
-  @Override public byte[] extractUntil(long offset, byte delim) {
+  @Override public byte[] extractUntil(long offset, int delim) {
 
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     long s = lookupISA(offset);
     do {
-      byte nextByte = lookupC(s);
-      if (nextByte == delim || nextByte == SuccinctCore.EOF)
+      int nextByte = lookupC(s);
+      if (nextByte == delim || nextByte == SuccinctConstants.EOF)
         break;
       out.write(nextByte);
       s = lookupNPA(s);
@@ -148,23 +152,20 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     int m = buf.length;
     long c1, c2;
 
-    if (alphabetMap.containsKey(buf[m - 1])) {
-      range.first = alphabetMap.get(buf[m - 1]).first;
-      byte nextByte = alphabetMap.get(buf[m - 1]).second + 1 == getAlphabetSize() ?
-        SuccinctCore.EOA :
-        alphabet[alphabetMap.get(buf[m - 1]).second + 1];
-      range.second = alphabetMap.get(nextByte).first - 1;
+    int pos = findCharacter(buf[m - 1]);
+    if (pos >= 0) {
+      range.first = columnoffsets.get(pos);
+      range.second =
+        ((pos + 1) == getAlphabetSize() ? getOriginalSize() : columnoffsets.get(pos + 1)) - 1;
     } else {
       return new Range(0L, -1L);
     }
 
     for (int i = m - 2; i >= 0; i--) {
-      if (alphabetMap.containsKey(buf[i])) {
-        c1 = alphabetMap.get(buf[i]).first;
-        byte nextByte = alphabetMap.get(buf[i]).second + 1 == getAlphabetSize() ?
-          SuccinctCore.EOA :
-          alphabet[alphabetMap.get(buf[i]).second + 1];
-        c2 = alphabetMap.get(nextByte).first - 1;
+      pos = findCharacter(buf[i]);
+      if (pos >= 0) {
+        c1 = columnoffsets.get(pos);
+        c2 = ((pos + 1) == getAlphabetSize() ? getOriginalSize() : columnoffsets.get(pos + 1)) - 1;
       } else {
         return new Range(0L, -1L);
       }
@@ -201,12 +202,10 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     long c1, c2;
 
     for (int i = m - 1; i >= 0; i--) {
-      if (alphabetMap.containsKey(buf[i])) {
-        c1 = alphabetMap.get(buf[i]).first;
-        byte nextByte = alphabetMap.get(buf[i]).second + 1 == getAlphabetSize() ?
-          SuccinctCore.EOA :
-          alphabet[alphabetMap.get(buf[i]).second + 1];
-        c2 = alphabetMap.get(nextByte).first - 1;
+      int pos = findCharacter(buf[i]);
+      if (pos >= 0) {
+        c1 = columnoffsets.get(pos);
+        c2 = ((pos + 1) == getAlphabetSize() ? getOriginalSize() : columnoffsets.get(pos + 1)) - 1;
       } else {
         return new Range(0L, -1L);
       }
@@ -236,10 +235,11 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     int j = 0;
 
     do {
-      byte c = lookupC(i);
-      if (buf[j] < c) {
+      int c = lookupC(i);
+      int b = buf[j];
+      if (b < c) {
         return -1;
-      } else if (buf[j] > c) {
+      } else if (b > c) {
         return 1;
       }
       i = (int) lookupNPA(i);
@@ -267,10 +267,11 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     }
 
     do {
-      byte c = lookupC(i);
-      if (buf[j] < c) {
+      int c = lookupC(i);
+      int b = buf[j];
+      if (b < c) {
         return -1;
-      } else if (buf[j] > c) {
+      } else if (b > c) {
         return 1;
       }
       i = (int) lookupNPA(i);

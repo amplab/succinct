@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.impl.SuccinctRDDImpl
 import edu.berkeley.cs.succinct.regex.RegExMatch
+import edu.berkeley.cs.succinct.util.SuccinctConstants
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
 import org.apache.spark._
@@ -285,7 +286,7 @@ object SuccinctRDD {
     for (i <- buffers.indices) {
       val curRecord = buffers(i)
       rawBufferOS.write(curRecord)
-      rawBufferOS.write(SuccinctCore.EOL)
+      rawBufferOS.write(SuccinctConstants.EOL)
     }
 
     val succinctBuf = new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray)

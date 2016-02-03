@@ -1,7 +1,6 @@
 package edu.berkeley.cs.succinct.buffers;
 
 import edu.berkeley.cs.succinct.StorageMode;
-import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
@@ -121,19 +120,11 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     }
 
     int begOffset = offsets[recordId] + offset;
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    long s = lookupISA(begOffset);
-    int numBytesRead = 0;
-    do {
-      byte nextByte = lookupC(s);
-      if (nextByte == SuccinctCore.EOL || nextByte == SuccinctCore.EOF)
-        break;
-      out.write(nextByte);
-      numBytesRead++;
-      s = lookupNPA(s);
-    } while (numBytesRead < length);
-    return out.toByteArray();
+    int nextRecordOffset = (recordId == offsets.length - 1) ?
+      getOriginalSize() - 1 :
+      offsets[recordId + 1];
+    length = Math.min(nextRecordOffset - begOffset - 1, length);
+    return extract(begOffset, length);
   }
 
   /**
