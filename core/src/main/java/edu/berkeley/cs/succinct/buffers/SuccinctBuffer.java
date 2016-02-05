@@ -51,12 +51,10 @@ public class SuccinctBuffer extends SuccinctCore {
       columnsSize += (12 + column.capacity() * SuccinctConstants.BYTE_SIZE_BYTES);
     }
 
-    return baseSize()
-      + (12 + sa.capacity() * SuccinctConstants.LONG_SIZE_BYTES)
-      + (12 + isa.capacity() * SuccinctConstants.LONG_SIZE_BYTES)
-      + (12 + columnoffsets.capacity() * SuccinctConstants.LONG_SIZE_BYTES)
-      + (12 + columns.length * SuccinctConstants.REF_SIZE_BYTES)
-      + columnsSize;
+    return baseSize() + (12 + sa.capacity() * SuccinctConstants.LONG_SIZE_BYTES) + (12
+      + isa.capacity() * SuccinctConstants.LONG_SIZE_BYTES) + (12
+      + columnoffsets.capacity() * SuccinctConstants.LONG_SIZE_BYTES) + (12
+      + columns.length * SuccinctConstants.REF_SIZE_BYTES) + columnsSize;
   }
 
   /**
@@ -207,26 +205,38 @@ public class SuccinctBuffer extends SuccinctCore {
    */
   @Override public long binSearchNPA(long val, long startIdx, long endIdx, boolean flag) {
 
-    long sp = startIdx;
-    long ep = endIdx;
-    long m;
+    if (endIdx < startIdx)
+      return endIdx;
 
-    while (sp <= ep) {
-      m = (sp + ep) / 2;
+    int colId = ArrayOps.getRank1(columnoffsets.buffer(), 0, getAlphabetSize(), (int) startIdx) - 1;
+    long colValue = columnoffsets.get(colId);
 
-      long psi_val;
-      psi_val = lookupNPA(m);
+    int sp = (int) (startIdx - colValue);
+    int ep = (int) (endIdx - colValue);
 
-      if (psi_val == val) {
-        return m;
-      } else if (val < psi_val) {
-        ep = m - 1;
-      } else {
-        sp = m + 1;
-      }
-    }
+    int res =
+      DeltaEncodedIntVectorOps.binarySearch(columns[colId].buffer(), (int) val, sp, ep, flag);
 
-    return flag ? ep : sp;
+    return colValue + res;
+
+    /* Naive */
+    //    long m;
+    //    while (sp <= ep) {
+    //      m = (sp + ep) / 2;
+    //
+    //      long psi_val;
+    //      psi_val = lookupNPA(m);
+    //
+    //      if (psi_val == val) {
+    //        return m;
+    //      } else if (val < psi_val) {
+    //        ep = m - 1;
+    //      } else {
+    //        sp = m + 1;
+    //      }
+    //    }
+    //
+    //    return flag ? ep : sp;
   }
 
   /**
@@ -244,17 +254,17 @@ public class SuccinctBuffer extends SuccinctCore {
 
     assert IOUtils.checkBytes(input) == -1;
 
-//    {
-//      long startTime = System.currentTimeMillis();
-//
-//      // Append the EOF byte
-//      int end = input.length;
-//      input = Arrays.copyOf(input, input.length + 1);
-//      input[end] = EOF;
-//
-//      long timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
-//      logger.info("Cleaned input in " + timeTaken + "s.");
-//    }
+    //    {
+    //      long startTime = System.currentTimeMillis();
+    //
+    //      // Append the EOF byte
+    //      int end = input.length;
+    //      input = Arrays.copyOf(input, input.length + 1);
+    //      input[end] = EOF;
+    //
+    //      long timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
+    //      logger.info("Cleaned input in " + timeTaken + "s.");
+    //    }
 
 
     // Scope of SA, input
