@@ -9,6 +9,8 @@ import org.apache.spark.succinct.annot.AnnotatedSuccinctPartition
 class AnnotatedSuccinctRDDImpl private[succinct](val partitionsRDD: RDD[AnnotatedSuccinctPartition])
   extends AnnotatedSuccinctRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
+  val recordCount: Long = partitionsRDD.map(_.count).aggregate(0L)(_ + _, _ + _)
+
   /** Set the name for the RDD; By default set to "AnnotatedSuccinctRDD" */
   override def setName(_name: String): this.type = {
     if (partitionsRDD.name != null) {
@@ -39,5 +41,9 @@ class AnnotatedSuccinctRDDImpl private[succinct](val partitionsRDD: RDD[Annotate
   override def cache(): this.type = {
     partitionsRDD.persist(StorageLevel.MEMORY_ONLY)
     this
+  }
+
+  override def count(): Long = {
+    recordCount
   }
 }
