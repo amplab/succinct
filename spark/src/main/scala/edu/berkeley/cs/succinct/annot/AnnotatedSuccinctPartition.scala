@@ -111,6 +111,8 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
         .map(i => annotationBuffer.getAnnotation(ar, i))
     })
   }
+
+  def count: Int = keys.length
 }
 
 object AnnotatedSuccinctPartition {
