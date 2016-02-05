@@ -74,10 +74,11 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
     int len = ar.getNumEntries();
     int lo = 0;
     int hi = len;
+    int arrVal = -1;
 
     while (lo != hi) {
       int mid = lo + (hi - lo) / 2;
-      int arrVal = readInteger(offset, mid);
+      arrVal = readInteger(offset, mid);
       if (arrVal <= val) {
         lo = mid + 1;
       }
@@ -86,7 +87,7 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
       }
     }
 
-    return lo - 1;
+    return (arrVal == val) ? lo : lo - 1;
   }
 
   /*
