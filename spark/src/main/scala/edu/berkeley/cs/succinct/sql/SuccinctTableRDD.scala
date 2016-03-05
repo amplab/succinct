@@ -198,7 +198,6 @@ object SuccinctTableRDD {
       case _: Double => "%.2f".format(data.asInstanceOf[Double]).length
       case _: java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal].longValue.toString.length
       case _: String => data.asInstanceOf[String].length
-      case _: UTF8String => data.asInstanceOf[UTF8String].length()
       case other => throw new IllegalArgumentException(s"Unexpected type.")
     }
   }
@@ -285,11 +284,6 @@ object SuccinctTableRDD {
           case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
         }
       case _: String => if (a.asInstanceOf[String] < b.asInstanceOf[String]) a else b
-      case _: UTF8String => b match {
-          case _: String => minValue(a.asInstanceOf[UTF8String].toString(), b)
-          case _: UTF8String => minValue(a.asInstanceOf[UTF8String].toString(), b.asInstanceOf[UTF8String].toString())
-          case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
-        }
       case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
     }
   }
@@ -316,11 +310,6 @@ object SuccinctTableRDD {
           case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
         }
       case _: String => if (a.asInstanceOf[String] > b.asInstanceOf[String]) a else b
-      case _: UTF8String => b match {
-          case _: String => maxValue(a.asInstanceOf[UTF8String].toString(), b)
-          case _: UTF8String => maxValue(a.asInstanceOf[UTF8String].toString(), b.asInstanceOf[UTF8String].toString())
-          case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
-        }
       case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
     }
   }

@@ -42,7 +42,7 @@
     <trove4j.version>3.0.3</trove4j.version>
     <jackson.version>2.4.4</jackson.version>
     <junit.version>3.8.1</junit.version>
-    <spark.version>1.4.1</spark.version>
+    <spark.version>1.6.0</spark.version>
   </properties>
 
   <modules>
