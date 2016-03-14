@@ -1,6 +1,6 @@
 package org.apache.spark.succinct.annot
 
-import java.io.{DataOutputStream, ObjectInputStream, ObjectOutputStream}
+import java.io.{ObjectOutputStream, DataOutputStream, ObjectInputStream}
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
@@ -11,7 +11,7 @@ import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
 
 class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIndexedFile,
                                  annotationBuffer: AnnotatedSuccinctBuffer)
-  extends KnownSizeEstimation {
+  extends KnownSizeEstimation with Serializable {
 
   def iterator: Iterator[(String, String)] = {
     new Iterator[(String, String)] {
@@ -28,11 +28,16 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     }
   }
 
-  def writeToStream(dataStream: DataOutputStream) = {
+  def writeDocToStream(dataStream: DataOutputStream) = {
     documentBuffer.writeToStream(dataStream)
+  }
+
+  def writeAnnotToStream(dataStream: DataOutputStream) = {
     annotationBuffer.writeToStream(dataStream)
-    val objectOutputStream = new ObjectOutputStream(dataStream)
-    objectOutputStream.writeObject(keys)
+  }
+
+  def writeDocIdsToStream(objectStream: ObjectOutputStream) = {
+    objectStream.writeObject(keys)
   }
 
   override def estimatedSize: Long = {
@@ -119,15 +124,23 @@ object AnnotatedSuccinctPartition {
   def apply(partitionLocation: String)
   : AnnotatedSuccinctPartition = {
 
-    val path = new Path(partitionLocation)
-    val fs = FileSystem.get(path.toUri, new Configuration())
-    val is = fs.open(path)
-    val documentBuffer = new SuccinctIndexedFileBuffer(is)
-    val annotationBuffer = new AnnotatedSuccinctBuffer(is)
+    val pathDoc = new Path(partitionLocation + ".docbuf")
+    val pathAnnot = new Path(partitionLocation + ".anotbuf")
+    val pathDocIds = new Path(partitionLocation + ".docids")
 
-    val ois = new ObjectInputStream(is)
-    val keys = ois.readObject().asInstanceOf[Array[String]]
-    is.close()
+    val fs = FileSystem.get(pathDoc.toUri, new Configuration())
+
+    val isDoc = fs.open(pathDoc)
+    val isAnnot = fs.open(pathAnnot)
+    val isDocIds = new ObjectInputStream(fs.open(pathDocIds))
+
+    val documentBuffer = new SuccinctIndexedFileBuffer(isDoc)
+    val annotationBuffer = new AnnotatedSuccinctBuffer(isAnnot)
+    val keys = isDocIds.readObject().asInstanceOf[Array[String]]
+
+    isDoc.close()
+    isAnnot.close()
+    isDocIds.close()
 
     new AnnotatedSuccinctPartition(keys, documentBuffer, annotationBuffer)
   }
