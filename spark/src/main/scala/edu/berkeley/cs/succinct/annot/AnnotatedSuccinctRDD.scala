@@ -1,5 +1,7 @@
 package edu.berkeley.cs.succinct.annot
 
+import java.io.ObjectOutputStream
+
 import edu.berkeley.cs.succinct.annot.impl.AnnotatedSuccinctRDDImpl
 import edu.berkeley.cs.succinct.block.AnnotatedDocumentSerializer
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
@@ -87,11 +89,24 @@ abstract class AnnotatedSuccinctRDD(@transient sc: SparkContext,
       val i = entry._2
       val partition = entry._1
       val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
-      val path = new Path(partitionLocation)
-      val fs = FileSystem.get(path.toUri, new Configuration())
-      val os = fs.create(path)
-      partition.writeToStream(os)
-      os.close()
+
+      val pathDoc = new Path(partitionLocation + ".docbuf")
+      val pathAnnot = new Path(partitionLocation + ".anotbuf")
+      val pathDocIds = new Path(partitionLocation + ".docids")
+
+      val fs = FileSystem.get(pathDoc.toUri, new Configuration())
+
+      val osDoc = fs.create(pathDoc)
+      val osAnnot = fs.create(pathAnnot)
+      val osDocIds = new ObjectOutputStream(fs.create(pathDocIds))
+
+      partition.writeDocToStream(osDoc)
+      partition.writeAnnotToStream(osAnnot)
+      partition.writeDocIdsToStream(osDocIds)
+
+      osDoc.close()
+      osAnnot.close()
+      osDocIds.close()
     })
 
     val successPath = new Path(location.stripSuffix("/") + "/_SUCCESS")
@@ -122,7 +137,7 @@ object AnnotatedSuccinctRDD {
         path.getName.startsWith("part-")
       }
     })
-    val numPartitions = status.length
+    val numPartitions = status.length / 3
     val succinctPartitions = sc.parallelize(0 to numPartitions - 1, numPartitions)
       .mapPartitionsWithIndex[AnnotatedSuccinctPartition]((i, partition) => {
       val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
