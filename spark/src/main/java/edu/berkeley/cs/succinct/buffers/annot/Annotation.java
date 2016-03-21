@@ -11,7 +11,8 @@ public class Annotation implements Serializable {
   private int rEnd;
   private String metadata;
 
-  public Annotation(String docId, int id, String aClass, String aType, int rBegin, int rEnd, String metadata) {
+  public Annotation(String docId, int id, String aClass, String aType, int rBegin, int rEnd,
+    String metadata) {
     this.docId = docId;
     this.id = id;
     this.aClass = aClass;
@@ -75,5 +76,10 @@ public class Annotation implements Serializable {
 
   public void setMetadata(String metadata) {
     this.metadata = metadata;
+  }
+
+  public String toString() {
+    return "[" + getDocId() + ", " + ", " + getId() + ", " + getaClass() + ", " + getaType() + ", "
+      + getrBegin() + ", " + getrEnd() + ", " + getMetadata() + "]";
   }
 }
