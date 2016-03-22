@@ -1,16 +1,15 @@
 package org.apache.spark.succinct.annot
 
-import java.io.{DataOutputStream, ObjectInputStream, ObjectOutputStream}
+import java.io.{ObjectOutputStream, DataOutputStream, ObjectInputStream}
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.buffers.annot._
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.spark.util.KnownSizeEstimation
+import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
 
-class AnnotatedSuccinctPartition(partitionLocation: String, keys: Array[String],
-                                 documentBuffer: SuccinctIndexedFile,
+class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIndexedFile,
                                  annotationBuffer: AnnotatedSuccinctBuffer)
   extends KnownSizeEstimation with Serializable {
 
@@ -42,15 +41,9 @@ class AnnotatedSuccinctPartition(partitionLocation: String, keys: Array[String],
   }
 
   override def estimatedSize: Long = {
-    val pathDoc = new Path(partitionLocation + ".docbuf")
-    val pathAnnot = new Path(partitionLocation + ".anotbuf")
-    val pathDocIds = new Path(partitionLocation + ".docids")
-
-    val fs = FileSystem.get(pathDoc.toUri, new Configuration())
-    val docSize = fs.getFileStatus(pathDoc).getLen
-    val annotSize = fs.getFileStatus(pathAnnot).getLen
-    val docIdsSize = fs.getFileStatus(pathDocIds).getLen
-
+    val docSize = if (documentBuffer == null) 0 else documentBuffer.getSuccinctIndexedFileSize
+    val annotSize = if (annotationBuffer == null) 0 else annotationBuffer.getSuccinctFileSize
+    val docIdsSize = SizeEstimator.estimate(keys)
     docSize + annotSize + docIdsSize
   }
 
@@ -151,6 +144,6 @@ object AnnotatedSuccinctPartition {
     isAnnot.close()
     isDocIds.close()
 
-    new AnnotatedSuccinctPartition(partitionLocation, keys, documentBuffer, annotationBuffer)
+    new AnnotatedSuccinctPartition(keys, documentBuffer, annotationBuffer)
   }
 }

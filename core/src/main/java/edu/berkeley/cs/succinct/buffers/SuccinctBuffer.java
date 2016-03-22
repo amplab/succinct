@@ -45,7 +45,8 @@ public class SuccinctBuffer extends SuccinctCore {
     // Compute size of all columns
     int columnsSize = 0;
     for (ThreadSafeByteBuffer column : columns) {
-      columnsSize += (12 + column.capacity() * SuccinctConstants.BYTE_SIZE_BYTES);
+      if (column != null)
+        columnsSize += (12 + column.capacity() * SuccinctConstants.BYTE_SIZE_BYTES);
     }
 
     return baseSize() + (12 + sa.capacity() * SuccinctConstants.LONG_SIZE_BYTES) + (12
