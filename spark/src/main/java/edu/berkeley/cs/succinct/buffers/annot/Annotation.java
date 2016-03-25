@@ -79,7 +79,7 @@ public class Annotation implements Serializable {
   }
 
   public String toString() {
-    return "[" + getDocId() + ", " + ", " + getId() + ", " + getaClass() + ", " + getaType() + ", "
+    return "[" + getDocId() + ", " + getId() + ", " + getaClass() + ", " + getaType() + ", "
       + getrBegin() + ", " + getrEnd() + ", " + getMetadata() + "]";
   }
 }
