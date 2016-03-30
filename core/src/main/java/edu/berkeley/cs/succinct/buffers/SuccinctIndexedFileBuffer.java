@@ -58,7 +58,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @param buf Input buffer to load the data from
    */
   public SuccinctIndexedFileBuffer(ByteBuffer buf) {
-    super(buf);
+    mapFromBuffer(buf);
   }
 
   @Override public int getSuccinctIndexedFileSize() {
