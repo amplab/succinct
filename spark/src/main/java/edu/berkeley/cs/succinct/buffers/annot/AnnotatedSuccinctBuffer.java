@@ -6,6 +6,7 @@ import gnu.trove.list.array.TIntArrayList;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
 
@@ -17,6 +18,10 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
    * @param input   The input byte array.
    */
   public AnnotatedSuccinctBuffer(byte[] input) {
+    super(input);
+  }
+
+  public AnnotatedSuccinctBuffer(ByteBuffer input) {
     super(input);
   }
 
