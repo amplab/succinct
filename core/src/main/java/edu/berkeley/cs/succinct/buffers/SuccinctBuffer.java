@@ -34,6 +34,9 @@ public class SuccinctBuffer extends SuccinctCore {
   // Storage mode
   protected transient StorageMode storageMode;
 
+  // Data read buffer
+  private transient ByteBuffer readBuffer;
+
   /**
    * Default constructor.
    */
@@ -45,8 +48,7 @@ public class SuccinctBuffer extends SuccinctCore {
     // Compute size of all columns
     int columnsSize = 0;
     for (ThreadSafeByteBuffer column : columns) {
-      if (column != null)
-        columnsSize += (12 + column.capacity() * SuccinctConstants.BYTE_SIZE_BYTES);
+      columnsSize += (12 + column.capacity() * SuccinctConstants.BYTE_SIZE_BYTES);
     }
 
     return baseSize() + (12 + sa.capacity() * SuccinctConstants.LONG_SIZE_BYTES) + (12
@@ -118,6 +120,20 @@ public class SuccinctBuffer extends SuccinctCore {
   public SuccinctBuffer(DataInputStream is) {
     try {
       readFromStream(is);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Constructor to load the data from a DataInputStream with specified file size.
+   *
+   * @param is Input stream to load the data from
+   * @param fileSize Input stream to load the data from
+   */
+  public SuccinctBuffer(DataInputStream is, int fileSize) {
+    try {
+      readFromStream(is, fileSize);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -472,6 +488,20 @@ public class SuccinctBuffer extends SuccinctCore {
       dataChannel.read(columnBuf);
       columns[i] = ThreadSafeByteBuffer.fromByteBuffer(((ByteBuffer) columnBuf.rewind()));
     }
+  }
+
+  /**
+   * Reads Succinct data structures from a DataInputStream, with specified file size.
+   *
+   * @param is Stream to read data structures from.
+   * @param fileSize Size of the file.
+   * @throws IOException
+   */
+  public void readFromStream(DataInputStream is, int fileSize) throws IOException {
+    byte[] data = new byte[fileSize];
+    is.readFully(data);
+    readBuffer = ByteBuffer.wrap(data);
+    mapFromBuffer(readBuffer);
   }
 
   /**

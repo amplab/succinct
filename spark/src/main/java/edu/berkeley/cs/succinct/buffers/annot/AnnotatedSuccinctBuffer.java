@@ -6,7 +6,6 @@ import gnu.trove.list.array.TIntArrayList;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
 
@@ -21,18 +20,15 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
     super(input);
   }
 
-  public AnnotatedSuccinctBuffer(ByteBuffer input) {
-    super(input);
-  }
-
   /**
-   * Constructor to load the data from a DataInputStream.
+   * Constructor to load the data from a DataInputStream with specified file size.
    *
    * @param is Input stream to load the data from
+   * @param fileSize Input stream to load the data from
    */
-  public AnnotatedSuccinctBuffer(DataInputStream is) {
+  public AnnotatedSuccinctBuffer(DataInputStream is, int fileSize) {
     try {
-      readFromStream(is);
+      readFromStream(is, fileSize);
     } catch (IOException e) {
       e.printStackTrace();
     }
