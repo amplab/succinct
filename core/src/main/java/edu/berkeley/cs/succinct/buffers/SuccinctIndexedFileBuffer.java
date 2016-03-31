@@ -18,6 +18,8 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   private static final long serialVersionUID = -8357331195541317163L;
   protected transient int[] offsets;
 
+  private transient ByteBuffer readBufferIndexed;
+
   /**
    * Constructor to initialize SuccinctIndexedBuffer from input byte array and offsets corresponding to records.
    *
@@ -53,6 +55,20 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   }
 
   /**
+   * Constructor to load the data from a DataInputStream with specified file size.
+   *
+   * @param is Input stream to load the data from
+   * @param fileSize Input stream to load the data from
+   */
+  public SuccinctIndexedFileBuffer(DataInputStream is, int fileSize) {
+    try {
+      readFromStream(is, fileSize);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
    * Constructor to load the data from a ByteBuffer.
    *
    * @param buf Input buffer to load the data from
@@ -62,10 +78,10 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   }
 
   @Override public int getSuccinctIndexedFileSize() {
-
-    int offsetsLength = 0;
-    if (offsets != null)
-      offsetsLength = 12 + offsets.length * SuccinctConstants.INT_SIZE_BYTES;
+    if (readBufferIndexed != null) {
+      return readBufferIndexed.capacity();
+    }
+    int offsetsLength = 12 + offsets.length * SuccinctConstants.INT_SIZE_BYTES;
     return super.getSuccinctFileSize() + offsetsLength;
   }
 
@@ -306,6 +322,13 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     for (int i = 0; i < len; i++) {
       offsets[i] = is.readInt();
     }
+  }
+
+  @Override public void readFromStream(DataInputStream is, int fileSize) throws IOException {
+    byte[] data = new byte[fileSize];
+    is.readFully(data);
+    readBufferIndexed = ByteBuffer.wrap(data);
+    mapFromBuffer(readBufferIndexed);
   }
 
   /**

@@ -1,7 +1,6 @@
 package org.apache.spark.succinct.annot
 
 import java.io.{DataOutputStream, ObjectInputStream, ObjectOutputStream}
-import java.nio.ByteBuffer
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
@@ -41,7 +40,12 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     objectStream.writeObject(keys)
   }
 
-  override def estimatedSize: Long = SizeEstimator.estimate(keys)
+  override def estimatedSize: Long = {
+    val docSize = documentBuffer.getSuccinctIndexedFileSize
+    val annotSize = annotationBuffer.getSuccinctSize
+    val docIdsSize = SizeEstimator.estimate(keys)
+    docSize + annotSize + docIdsSize
+  }
 
   /** Find the index of a particular key using binary search. **/
   def findKey(key: String): Int = {
@@ -135,14 +139,8 @@ object AnnotatedSuccinctPartition {
     val docSize: Int = fs.getContentSummary(pathDoc).getLength.toInt
     val annotSize: Int = fs.getContentSummary(pathAnnot).getLength.toInt
 
-    val docData = new Array[Byte](docSize)
-    val annotData = new Array[Byte](annotSize)
-
-    isDoc.readFully(docData)
-    isAnnot.readFully(annotData)
-
-    val documentBuffer = new SuccinctIndexedFileBuffer(ByteBuffer.wrap(docData))
-    val annotationBuffer = new AnnotatedSuccinctBuffer(ByteBuffer.wrap(annotData))
+    val documentBuffer = new SuccinctIndexedFileBuffer(isDoc, docSize)
+    val annotationBuffer = new AnnotatedSuccinctBuffer(isAnnot, annotSize)
     val keys = isDocIds.readObject().asInstanceOf[Array[String]]
 
     isDoc.close()
