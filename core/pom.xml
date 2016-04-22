@@ -71,5 +71,10 @@
       <artifactId>trove4j</artifactId>
       <version>${trove4j.version}</version>
     </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+    </dependency>
   </dependencies>
 </project>
