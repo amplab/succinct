@@ -68,7 +68,7 @@ class SuccinctTablePartition(
     succinctIndexedFile.writeToStream(dataOutputStream)
   }
 
-  override def estimatedSize: Long = {
+  override val estimatedSize: Long = {
     succinctIndexedFile.getSuccinctIndexedFileSize + SizeEstimator.estimate(succinctSerDe)
   }
 }

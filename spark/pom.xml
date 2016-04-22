@@ -10,7 +10,7 @@
     <version>0.1.7-SNAPSHOT</version>
   </parent>
 
-  <artifactId>succinct-spark</artifactId>
+  <artifactId>succinct-spark_2.11</artifactId>
   <version>0.1.7-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Succinct-Spark</name>
@@ -50,7 +50,7 @@
     </dependency>
     <dependency>
       <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_2.10</artifactId>
+      <artifactId>scalatest_2.11</artifactId>
       <version>${scalatest.version}</version>
       <scope>test</scope>
     </dependency>
@@ -74,12 +74,12 @@
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-core_2.10</artifactId>
+      <artifactId>spark-core_2.11</artifactId>
       <version>${spark.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-sql_2.10</artifactId>
+      <artifactId>spark-sql_2.11</artifactId>
       <version>${spark.version}</version>
     </dependency>
   </dependencies>
