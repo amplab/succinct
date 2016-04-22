@@ -55,6 +55,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>amplab</groupId>
       <artifactId>succinct-core</artifactId>
       <version>${project.version}</version>
