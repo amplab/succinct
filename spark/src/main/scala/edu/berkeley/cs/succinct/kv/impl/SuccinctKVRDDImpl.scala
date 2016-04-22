@@ -88,7 +88,7 @@ class SuccinctKVRDDImpl[K: ClassTag] private[succinct](
         } else {
           Array.empty
         }
-      }, partitions, allowLocal = true)
+      }, partitions)
     results.flatten.toMap
   }
 
