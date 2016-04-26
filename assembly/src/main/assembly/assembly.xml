@@ -15,8 +15,6 @@
       <useProjectArtifact>false</useProjectArtifact>
       <excludes>
         <exclude>org.scala-lang:scala-library</exclude>
-        <exclude>org.apache.spark:spark-core_2.10</exclude>
-        <exclude>org.apache.spark:spark-sql_2.10</exclude>
       </excludes>
       <useTransitiveDependencies>false</useTransitiveDependencies>
     </dependencySet>
