@@ -65,6 +65,11 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     if (pos < 0 || pos > keys.length) null else new String(documentBuffer.getRecord(pos))
   }
 
+  def extractDocument(docId: String, offset: Int, length: Int): String = {
+    val pos = findKey(docId)
+    if (pos < 0 || pos > keys.length) null else new String(documentBuffer.accessRecord(pos, offset, length))
+  }
+
   def search(query: String): Iterator[(String, Int, Int)] = {
     new Iterator[(String, Int, Int)] {
       val searchIterator = documentBuffer.searchIterator(query.getBytes())

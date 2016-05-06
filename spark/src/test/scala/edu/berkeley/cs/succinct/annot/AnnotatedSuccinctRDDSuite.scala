@@ -32,6 +32,19 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     })
   }
 
+  test("Test extractDocument") {
+    sc = new SparkContext(conf)
+
+    val annotatedRDD = sc.parallelize(data)
+    val annotatedSuccinctRDD = AnnotatedSuccinctRDD(annotatedRDD)
+
+    // Check
+    data.map(_._1).foreach(docId => {
+      val docText = annotatedSuccinctRDD.extractDocument(docId, 9, 6)
+      assert(docText == "number")
+    })
+  }
+
   test("Test search") {
     sc = new SparkContext(conf)
 
