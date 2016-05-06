@@ -57,6 +57,14 @@ abstract class AnnotatedSuccinctRDD(@transient sc: SparkContext,
     if (values.length == 0) null else values(0)
   }
 
+  def extractDocument(documentId: String, offset: Int, length: Int): String = {
+    val values = partitionsRDD.map(buf => buf.extractDocument(documentId, offset, length)).filter(v => v != null).collect()
+    if (values.length > 1) {
+      throw new IllegalStateException(s"DocumentId ${documentId.toString} returned ${values.length} values")
+    }
+    if (values.length == 0) null else values(0)
+  }
+
   def search(query: String): RDD[(String, Int, Int)] = {
     partitionsRDD.flatMap(_.search(query))
   }
