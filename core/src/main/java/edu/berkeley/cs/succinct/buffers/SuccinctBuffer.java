@@ -2,10 +2,7 @@ package edu.berkeley.cs.succinct.buffers;
 
 import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctCore;
-import edu.berkeley.cs.succinct.util.BitUtils;
-import edu.berkeley.cs.succinct.util.CommonUtils;
-import edu.berkeley.cs.succinct.util.IOUtils;
-import edu.berkeley.cs.succinct.util.SuccinctConstants;
+import edu.berkeley.cs.succinct.util.*;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeByteBuffer;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeLongBuffer;
 import edu.berkeley.cs.succinct.util.buffer.serops.ArrayOps;
@@ -62,9 +59,35 @@ public class SuccinctBuffer extends SuccinctCore {
    *
    * @param input Input byte array.
    */
-  public SuccinctBuffer(byte[] input) {
+  public SuccinctBuffer(final byte[] input) {
     // Construct Succinct data-structures
-    construct(input);
+    construct(new InputSource() {
+      @Override public int length() {
+        return input.length;
+      }
+
+      @Override public int get(int i) {
+        return input[i];
+      }
+    });
+  }
+
+  /**
+   * Constructor to initialize SuccinctCore from input char array.
+   *
+   * @param input Input char array.
+   */
+  public SuccinctBuffer(final char[] input) {
+    // Construct Succinct data-structures
+    construct(new InputSource() {
+      @Override public int length() {
+        return input.length;
+      }
+
+      @Override public int get(int i) {
+        return input[i];
+      }
+    });
   }
 
   /**
@@ -107,7 +130,6 @@ public class SuccinctBuffer extends SuccinctCore {
   public SuccinctBuffer(ByteBuffer buf) {
     mapFromBuffer(buf);
   }
-
 
   /**
    * Lookup NPA at specified index.
@@ -218,25 +240,6 @@ public class SuccinctBuffer extends SuccinctCore {
       DeltaEncodedIntVectorOps.binarySearch(columns[colId].buffer(), (int) val, sp, ep, flag);
 
     return colValue + res;
-
-    /* Naive */
-    //    long m;
-    //    while (sp <= ep) {
-    //      m = (sp + ep) / 2;
-    //
-    //      long psi_val;
-    //      psi_val = lookupNPA(m);
-    //
-    //      if (psi_val == val) {
-    //        return m;
-    //      } else if (val < psi_val) {
-    //        ep = m - 1;
-    //      } else {
-    //        sp = m + 1;
-    //      }
-    //    }
-    //
-    //    return flag ? ep : sp;
   }
 
   /**
@@ -244,28 +247,13 @@ public class SuccinctBuffer extends SuccinctCore {
    *
    * @param input Input byte array.
    */
-  private void construct(byte[] input) {
+  private void construct(InputSource input) {
 
     // Uncompressed ISA
     int[] ISA;
 
     logger.info("Constructing Succinct data structures.");
     long startTimeGlobal = System.currentTimeMillis();
-
-    assert IOUtils.checkBytes(input) == -1;
-
-    //    {
-    //      long startTime = System.currentTimeMillis();
-    //
-    //      // Append the EOF byte
-    //      int end = input.length;
-    //      input = Arrays.copyOf(input, input.length + 1);
-    //      input[end] = EOF;
-    //
-    //      long timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
-    //      logger.info("Cleaned input in " + timeTaken + "s.");
-    //    }
-
 
     // Scope of SA, input
     {
@@ -279,7 +267,7 @@ public class SuccinctBuffer extends SuccinctCore {
       ISA = suffixSorter.getISA();
 
       // Set metadata
-      setOriginalSize(input.length + 1);
+      setOriginalSize(input.length() + 1);
       setSamplingRateSA(SuccinctConstants.DEFAULT_SA_SAMPLING_RATE);
       setSamplingRateISA(SuccinctConstants.DEFAULT_ISA_SAMPLING_RATE);
       setSamplingRateNPA(SuccinctConstants.DEFAULT_NPA_SAMPLING_RATE);
@@ -301,8 +289,8 @@ public class SuccinctBuffer extends SuccinctCore {
       columnoffsets.put(pos, 0);
       pos++;
       for (int i = 1; i < getOriginalSize(); ++i) {
-        if (input[SA[i]] != prevSortedChar) {
-          prevSortedChar = input[SA[i]];
+        if (input.get(SA[i]) != prevSortedChar) {
+          prevSortedChar = input.get(SA[i]);
           columnoffsets.put(pos, i);
           pos++;
         }

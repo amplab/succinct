@@ -1,6 +1,7 @@
 package edu.berkeley.cs.succinct.util.suffixarray;
 
 import edu.berkeley.cs.succinct.util.IOUtils;
+import edu.berkeley.cs.succinct.util.InputSource;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import gnu.trove.set.hash.TIntHashSet;
 import junit.framework.TestCase;
@@ -35,7 +36,15 @@ public class QSufSortTest extends TestCase {
     dis.readFully(data);
     n = data.length + 1;
 
-    instance.buildSuffixArray(data);
+    instance.buildSuffixArray(new InputSource() {
+      @Override public int length() {
+        return data.length;
+      }
+
+      @Override public int get(int i) {
+        return data[i];
+      }
+    });
   }
 
   public void testGetAlphabet() {

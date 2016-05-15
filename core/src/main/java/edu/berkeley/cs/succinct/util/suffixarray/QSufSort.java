@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct.util.suffixarray;
 
+import edu.berkeley.cs.succinct.util.InputSource;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -36,32 +37,32 @@ public final class QSufSort {
    *
    * @param input Input byte array.
    */
-  public void buildSuffixArray(byte[] input) {
+  public void buildSuffixArray(InputSource input) {
     int max = SuccinctConstants.EOF;
     int min = max;
 
-    I = new int[input.length + 2];
-    V = new int[input.length + 2];
+    I = new int[input.length() + 2];
+    V = new int[input.length() + 2];
     TIntHashSet alphabetSet = new TIntHashSet();
-    for (int i = 0; i < input.length; i++) {
-      V[i] = input[i];
+    for (int i = 0; i < input.length(); i++) {
+      V[i] = input.get(i);
       if (V[i] > max)
         max = V[i];
       if (V[i] < min)
         min = V[i];
-      alphabetSet.add(input[i]);
+      alphabetSet.add(input.get(i));
     }
-    V[input.length] = SuccinctConstants.EOF;
-    if (V[input.length] > max)
-      max = V[input.length];
-    if (V[input.length] < min)
-      min = V[input.length];
+    V[input.length()] = SuccinctConstants.EOF;
+    if (V[input.length()] > max)
+      max = V[input.length()];
+    if (V[input.length()] < min)
+      min = V[input.length()];
     alphabetSet.add(SuccinctConstants.EOF);
 
     alphabet = alphabetSet.toArray();
     Arrays.sort(alphabet);
 
-    suffixSort(input.length + 1, max + 1, min);
+    suffixSort(input.length() + 1, max + 1, min);
   }
 
   /**
