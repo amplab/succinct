@@ -2,19 +2,19 @@ package org.apache.spark.succinct.sql
 
 import java.io.DataOutputStream
 
-import edu.berkeley.cs.succinct.SuccinctIndexedFile
-import edu.berkeley.cs.succinct.SuccinctIndexedFile.QueryType
-import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
+import edu.berkeley.cs.succinct.SuccinctTable
+import edu.berkeley.cs.succinct.SuccinctTable.QueryType
+import edu.berkeley.cs.succinct.buffers.SuccinctTableBuffer
 import edu.berkeley.cs.succinct.sql.SuccinctSerDe
-import edu.berkeley.cs.succinct.streams.SuccinctIndexedFileStream
+import edu.berkeley.cs.succinct.streams.SuccinctTableStream
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.Row
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.util.{SizeEstimator, KnownSizeEstimation}
+import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
 
 class SuccinctTablePartition(
-    succinctIndexedFile: SuccinctIndexedFile,
+    succinctIndexedFile: SuccinctTable,
     succinctSerDe: SuccinctSerDe
   ) extends KnownSizeEstimation {
 
@@ -81,15 +81,15 @@ object SuccinctTablePartition {
     val path = new Path(partitionLocation)
     val fs = FileSystem.get(path.toUri, new Configuration())
     val is = fs.open(path)
-    val succinctIndexedFile = storageLevel match {
+    val succinctTableFile = storageLevel match {
       case StorageLevel.MEMORY_ONLY =>
-        new SuccinctIndexedFileBuffer(is)
+        new SuccinctTableBuffer(is)
       case StorageLevel.DISK_ONLY =>
-        new SuccinctIndexedFileStream(path)
+        new SuccinctTableStream(path)
       case _ =>
-        new SuccinctIndexedFileBuffer(is)
+        new SuccinctTableBuffer(is)
     }
     is.close()
-    new SuccinctTablePartition(succinctIndexedFile, succinctSerDe)
+    new SuccinctTablePartition(succinctTableFile, succinctSerDe)
   }
 }

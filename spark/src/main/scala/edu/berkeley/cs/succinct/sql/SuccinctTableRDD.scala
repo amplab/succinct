@@ -3,7 +3,7 @@ package edu.berkeley.cs.succinct.sql
 import java.io.ByteArrayOutputStream
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
-import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
+import edu.berkeley.cs.succinct.buffers.SuccinctTableBuffer
 import edu.berkeley.cs.succinct.sql.impl.SuccinctTableRDDImpl
 import edu.berkeley.cs.succinct.util.SuccinctConstants
 import org.apache.hadoop.conf.Configuration
@@ -185,7 +185,7 @@ object SuccinctTableRDD {
       rawBufferOS.write(SuccinctConstants.EOL)
     }
 
-    val succinctFile = new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray)
+    val succinctFile = new SuccinctTableBuffer(rawBufferOS.toByteArray, offsets.toArray)
     Iterator(new SuccinctTablePartition(succinctFile, succinctSerDe))
   }
 

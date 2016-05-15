@@ -2,19 +2,20 @@ package edu.berkeley.cs.succinct.buffers;
 
 import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
-import edu.berkeley.cs.succinct.SuccinctIndexedFileTest;
+import edu.berkeley.cs.succinct.SuccinctTable;
+import edu.berkeley.cs.succinct.SuccinctTableTest;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
+public class SuccinctTableBufferTest extends SuccinctTableTest {
 
-  private String testFileRaw = this.getClass().getResource("/test_file").getFile();
+  private String testFileRaw = this.getClass().getResource("/raw.dat").getFile();
   private String testFileSuccinct =
-    this.getClass().getResource("/test_file").getFile() + ".idx.succinct";
+    this.getClass().getResource("/raw.dat").getFile() + ".idx.succinct";
   private String testFileSuccinctMin =
-    this.getClass().getResource("/test_file").getFile() + ".idx.min.succinct";
+    this.getClass().getResource("/raw.dat").getFile() + ".idx.min.succinct";
 
   /**
    * Set up test.
@@ -40,7 +41,7 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
     for (int i = 0; i < offsets.length; i++) {
       offsets[i] = positions.get(i);
     }
-    sTFile = new SuccinctIndexedFileBuffer(fileData, offsets);
+    sTable = new SuccinctTableBuffer(fileData, offsets);
   }
 
   /**
@@ -54,7 +55,7 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
     // Serialize data
     FileOutputStream fOut = new FileOutputStream(testFileSuccinct);
     ObjectOutputStream oos = new ObjectOutputStream(fOut);
-    oos.writeObject(sTFile);
+    oos.writeObject(sTable);
     oos.close();
 
     // Deserialize data
@@ -64,9 +65,9 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
     ois.close();
 
     assertNotNull(sIFileRead);
-    assertEquals(sTFile.getNumRecords(), sIFileRead.getNumRecords());
-    for (int i = 0; i < sTFile.getNumRecords(); i++) {
-      assertTrue(Arrays.equals(sTFile.getRecord(i), sIFileRead.getRecord(i)));
+    assertEquals(sTable.getNumRecords(), sIFileRead.getNumRecords());
+    for (int i = 0; i < sTable.getNumRecords(); i++) {
+      assertTrue(Arrays.equals(sTable.getRecord(i), sIFileRead.getRecord(i)));
     }
   }
 
@@ -78,14 +79,14 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
    */
   public void testMemoryMap() throws Exception {
 
-    ((SuccinctIndexedFileBuffer) sTFile).writeToFile(testFileSuccinctMin);
+    sTable.writeToFile(testFileSuccinctMin);
     SuccinctIndexedFile sIFileRead =
       new SuccinctIndexedFileBuffer(testFileSuccinctMin, StorageMode.MEMORY_MAPPED);
 
     assertNotNull(sIFileRead);
-    assertEquals(sTFile.getNumRecords(), sIFileRead.getNumRecords());
-    for (int i = 0; i < sTFile.getNumRecords(); i++) {
-      assertTrue(Arrays.equals(sTFile.getRecord(i), sIFileRead.getRecord(i)));
+    assertEquals(sTable.getNumRecords(), sIFileRead.getNumRecords());
+    for (int i = 0; i < sTable.getNumRecords(); i++) {
+      assertTrue(Arrays.equals(sTable.getRecord(i), sIFileRead.getRecord(i)));
     }
   }
 
@@ -97,14 +98,36 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
    */
   public void testReadFromFile() throws Exception {
 
-    ((SuccinctIndexedFileBuffer) sTFile).writeToFile(testFileSuccinctMin);
+    sTable.writeToFile(testFileSuccinctMin);
     SuccinctIndexedFile sIFileRead =
       new SuccinctIndexedFileBuffer(testFileSuccinctMin, StorageMode.MEMORY_ONLY);
 
     assertNotNull(sIFileRead);
-    assertEquals(sTFile.getNumRecords(), sIFileRead.getNumRecords());
-    for (int i = 0; i < sTFile.getNumRecords(); i++) {
-      assertTrue(Arrays.equals(sTFile.getRecord(i), sIFileRead.getRecord(i)));
+    assertEquals(sTable.getNumRecords(), sIFileRead.getNumRecords());
+    for (int i = 0; i < sTable.getNumRecords(); i++) {
+      assertTrue(Arrays.equals(sTable.getRecord(i), sIFileRead.getRecord(i)));
+    }
+  }
+
+  /**
+   * Test method: Integer[] recordMultiSearchIds(Pair<QueryType, byte[][]>[] queries)
+   *
+   * @throws Exception
+   */
+  public void testMultiSearchIds() throws Exception {
+
+    SuccinctTable.QueryType[] queryTypes = new SuccinctTable.QueryType[2];
+    byte[][][] queries = new byte[2][][];
+    queryTypes[0] = SuccinctTable.QueryType.RangeSearch;
+    queries[0] = new byte[][] {"/*".getBytes(), "//".getBytes()};
+    queryTypes[1] = SuccinctTable.QueryType.Search;
+    queries[1] = new byte[][] {"Build".getBytes()};
+
+    Integer[] recordIds = sTable.recordMultiSearchIds(queryTypes, queries);
+    for (Integer recordId : recordIds) {
+      String currentRecord = new String(sTable.getRecord(recordId));
+      assertTrue((currentRecord.contains("/*") || currentRecord.contains("//")) && currentRecord
+        .contains("Build"));
     }
   }
 }

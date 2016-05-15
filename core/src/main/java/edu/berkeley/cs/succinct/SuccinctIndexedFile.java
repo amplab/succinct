@@ -82,23 +82,6 @@ public interface SuccinctIndexedFile extends SuccinctFile {
   Integer[] recordSearchRegexIds(String query) throws RegExParsingException;
 
   /**
-   * Perform multiple searches with different query types and return the intersection of the results.
-   *
-   * @param queryTypes The QueryType corresponding to each query
-   * @param queries    The actual query parameters associated with each query
-   * @return The record ids matching the multi-search queries.
-   */
-  Integer[] recordMultiSearchIds(QueryType[] queryTypes, byte[][][] queries);
-
-  /**
-   * Defines the types of search queries that SuccinctIndexedBuffer can handle in a recordMultiSearchIds.
-   */
-  enum QueryType {
-    Search,
-    RangeSearch
-  }
-
-  /**
    * Comparator for range objects based on the size of the range.
    */
   class RangeSizeComparator implements Comparator<Range> {

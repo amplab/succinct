@@ -1,7 +1,7 @@
 package edu.berkeley.cs.succinct.streams;
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFileTest;
-import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer;
+import edu.berkeley.cs.succinct.buffers.SuccinctTableBuffer;
 import org.apache.hadoop.fs.Path;
 
 import java.io.DataInputStream;
@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 
-public class SuccinctIndexedFileStreamTest extends SuccinctIndexedFileTest {
+public class SuccinctTableStreamTest extends SuccinctIndexedFileTest {
   private String testFileRaw = this.getClass().getResource("/raw.dat").getFile();
   private String testFileSuccinct =
     this.getClass().getResource("/raw.dat").getFile() + ".idx.succinct";
@@ -38,10 +38,10 @@ public class SuccinctIndexedFileStreamTest extends SuccinctIndexedFileTest {
     for (int i = 0; i < offsets.length; i++) {
       offsets[i] = positions.get(i);
     }
-    SuccinctIndexedFileBuffer sBuf = new SuccinctIndexedFileBuffer(fileData, offsets);
+    SuccinctTableBuffer sBuf = new SuccinctTableBuffer(fileData, offsets);
     sBuf.writeToFile(testFileSuccinct);
 
-    sTFile = new SuccinctIndexedFileStream(new Path(testFileSuccinct));
+    sTFile = new SuccinctTableStream(new Path(testFileSuccinct));
   }
 
   /**
@@ -50,6 +50,6 @@ public class SuccinctIndexedFileStreamTest extends SuccinctIndexedFileTest {
    * @throws Exception
    */
   public void tearDown() throws Exception {
-    ((SuccinctIndexedFileStream) sTFile).close();
+    ((SuccinctTableStream) sTFile).close();
   }
 }

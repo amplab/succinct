@@ -1,7 +1,7 @@
 package edu.berkeley.cs.succinct.sql.impl
 
-import edu.berkeley.cs.succinct.SuccinctIndexedFile
-import edu.berkeley.cs.succinct.SuccinctIndexedFile.QueryType
+import edu.berkeley.cs.succinct.SuccinctTable
+import edu.berkeley.cs.succinct.SuccinctTable.QueryType
 import edu.berkeley.cs.succinct.sql._
 import edu.berkeley.cs.succinct.util.SuccinctConstants
 import org.apache.hadoop.conf.Configuration
@@ -17,7 +17,7 @@ import org.apache.spark.{OneToOneDependency, Partition, TaskContext}
 /**
  * Implements [[SuccinctTableRDD]]; provides implementations for the count and search methods.
  *
- * @constructor Creates a [[SuccinctTableRDD]] from an RDD of [[SuccinctIndexedFile]] partitions,
+ * @constructor Creates a [[SuccinctTableRDD]] from an RDD of [[SuccinctTable]] partitions,
  *              the list of separators and the target storage level.
  * @param partitionsRDD The RDD of partitions (SuccinctTablePartition).
  * @param separators The list of separators for distinguishing between attributes.
