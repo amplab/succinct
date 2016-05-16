@@ -3,6 +3,7 @@ package edu.berkeley.cs.succinct.buffers;
 import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.SuccinctIndexedFileTest;
+import edu.berkeley.cs.succinct.util.Source;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -16,6 +17,22 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
   private String testFileSuccinctMin =
     this.getClass().getResource("/test_file").getFile() + ".idx.min.succinct";
 
+  byte[] data;
+  private String[] queryStrings = { "int", "include", "random", "random int" };
+  private int[] counts = { 28, 9, 0, 0 };
+
+  @Override public String getQueryString(int i) {
+    return queryStrings[i];
+  }
+
+  @Override public int getQueryStringCount(int i) {
+    return counts[i];
+  }
+
+  @Override public int numQueryStrings() {
+    return queryStrings.length;
+  }
+
   /**
    * Set up test.
    *
@@ -26,13 +43,23 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
 
     File inputFile = new File(testFileRaw);
 
-    fileData = new byte[(int) inputFile.length()];
+    data = new byte[(int) inputFile.length()];
     DataInputStream dis = new DataInputStream(new FileInputStream(inputFile));
-    dis.readFully(fileData);
-    ArrayList<Integer> positions = new ArrayList<Integer>();
+    dis.readFully(data);
+    fileData = new Source() {
+      @Override public int length() {
+        return data.length;
+      }
+
+      @Override public int get(int i) {
+        return data[i];
+      }
+    };
+
+    ArrayList<Integer> positions = new ArrayList<>();
     positions.add(0);
-    for (int i = 0; i < fileData.length; i++) {
-      if (fileData[i] == '\n') {
+    for (int i = 0; i < fileData.length(); i++) {
+      if (fileData.get(i) == '\n') {
         positions.add(i + 1);
       }
     }
@@ -40,7 +67,7 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
     for (int i = 0; i < offsets.length; i++) {
       offsets[i] = positions.get(i);
     }
-    sTFile = new SuccinctIndexedFileBuffer(fileData, offsets);
+    sIFile = new SuccinctIndexedFileBuffer(data, offsets);
   }
 
   /**
@@ -54,7 +81,7 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
     // Serialize data
     FileOutputStream fOut = new FileOutputStream(testFileSuccinct);
     ObjectOutputStream oos = new ObjectOutputStream(fOut);
-    oos.writeObject(sTFile);
+    oos.writeObject(sIFile);
     oos.close();
 
     // Deserialize data
@@ -64,9 +91,9 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
     ois.close();
 
     assertNotNull(sIFileRead);
-    assertEquals(sTFile.getNumRecords(), sIFileRead.getNumRecords());
-    for (int i = 0; i < sTFile.getNumRecords(); i++) {
-      assertTrue(Arrays.equals(sTFile.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
+    assertEquals(sIFile.getNumRecords(), sIFileRead.getNumRecords());
+    for (int i = 0; i < sIFile.getNumRecords(); i++) {
+      assertTrue(Arrays.equals(sIFile.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
     }
   }
 
@@ -78,14 +105,14 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
    */
   public void testMemoryMap() throws Exception {
 
-    ((SuccinctIndexedFileBuffer) sTFile).writeToFile(testFileSuccinctMin);
+    ((SuccinctIndexedFileBuffer) sIFile).writeToFile(testFileSuccinctMin);
     SuccinctIndexedFile sIFileRead =
       new SuccinctIndexedFileBuffer(testFileSuccinctMin, StorageMode.MEMORY_MAPPED);
 
     assertNotNull(sIFileRead);
-    assertEquals(sTFile.getNumRecords(), sIFileRead.getNumRecords());
-    for (int i = 0; i < sTFile.getNumRecords(); i++) {
-      assertTrue(Arrays.equals(sTFile.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
+    assertEquals(sIFile.getNumRecords(), sIFileRead.getNumRecords());
+    for (int i = 0; i < sIFile.getNumRecords(); i++) {
+      assertTrue(Arrays.equals(sIFile.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
     }
   }
 
@@ -97,14 +124,14 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
    */
   public void testReadFromFile() throws Exception {
 
-    ((SuccinctIndexedFileBuffer) sTFile).writeToFile(testFileSuccinctMin);
+    ((SuccinctIndexedFileBuffer) sIFile).writeToFile(testFileSuccinctMin);
     SuccinctIndexedFile sIFileRead =
       new SuccinctIndexedFileBuffer(testFileSuccinctMin, StorageMode.MEMORY_ONLY);
 
     assertNotNull(sIFileRead);
-    assertEquals(sTFile.getNumRecords(), sIFileRead.getNumRecords());
-    for (int i = 0; i < sTFile.getNumRecords(); i++) {
-      assertTrue(Arrays.equals(sTFile.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
+    assertEquals(sIFile.getNumRecords(), sIFileRead.getNumRecords());
+    for (int i = 0; i < sIFile.getNumRecords(); i++) {
+      assertTrue(Arrays.equals(sIFile.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
     }
   }
 }

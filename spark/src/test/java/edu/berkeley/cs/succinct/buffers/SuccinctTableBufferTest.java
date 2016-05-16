@@ -4,6 +4,7 @@ import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.SuccinctTable;
 import edu.berkeley.cs.succinct.SuccinctTableTest;
+import edu.berkeley.cs.succinct.util.Source;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -17,6 +18,8 @@ public class SuccinctTableBufferTest extends SuccinctTableTest {
   private String testFileSuccinctMin =
     this.getClass().getResource("/raw.dat").getFile() + ".idx.min.succinct";
 
+  byte[] data;
+
   /**
    * Set up test.
    *
@@ -25,15 +28,32 @@ public class SuccinctTableBufferTest extends SuccinctTableTest {
   public void setUp() throws Exception {
     super.setUp();
 
+    queryTypes = new SuccinctTable.QueryType[2];
+    queries = new byte[2][][];
+    queryTypes[0] = SuccinctTable.QueryType.RangeSearch;
+    queries[0] = new byte[][] {"/*".getBytes(), "//".getBytes()};
+    queryTypes[1] = SuccinctTable.QueryType.Search;
+    queries[1] = new byte[][] {"Build".getBytes()};
+
     File inputFile = new File(testFileRaw);
 
-    fileData = new byte[(int) inputFile.length()];
+    data = new byte[(int) inputFile.length()];
     DataInputStream dis = new DataInputStream(new FileInputStream(inputFile));
-    dis.readFully(fileData);
-    ArrayList<Integer> positions = new ArrayList<Integer>();
+    dis.readFully(data);
+    fileData = new Source() {
+      @Override public int length() {
+        return data.length;
+      }
+
+      @Override public int get(int i) {
+        return data[i];
+      }
+    };
+
+    ArrayList<Integer> positions = new ArrayList<>();
     positions.add(0);
-    for (int i = 0; i < fileData.length; i++) {
-      if (fileData[i] == '\n') {
+    for (int i = 0; i < fileData.length(); i++) {
+      if (fileData.get(i) == '\n') {
         positions.add(i + 1);
       }
     }
@@ -41,7 +61,7 @@ public class SuccinctTableBufferTest extends SuccinctTableTest {
     for (int i = 0; i < offsets.length; i++) {
       offsets[i] = positions.get(i);
     }
-    sTable = new SuccinctTableBuffer(fileData, offsets);
+    sTable = new SuccinctTableBuffer(data, offsets);
   }
 
   /**
@@ -79,7 +99,7 @@ public class SuccinctTableBufferTest extends SuccinctTableTest {
    */
   public void testMemoryMap() throws Exception {
 
-    sTable.writeToFile(testFileSuccinctMin);
+    ((SuccinctTableBuffer)sTable).writeToFile(testFileSuccinctMin);
     SuccinctIndexedFile sIFileRead =
       new SuccinctIndexedFileBuffer(testFileSuccinctMin, StorageMode.MEMORY_MAPPED);
 
@@ -98,7 +118,7 @@ public class SuccinctTableBufferTest extends SuccinctTableTest {
    */
   public void testReadFromFile() throws Exception {
 
-    sTable.writeToFile(testFileSuccinctMin);
+    ((SuccinctTableBuffer)sTable).writeToFile(testFileSuccinctMin);
     SuccinctIndexedFile sIFileRead =
       new SuccinctIndexedFileBuffer(testFileSuccinctMin, StorageMode.MEMORY_ONLY);
 
@@ -106,28 +126,6 @@ public class SuccinctTableBufferTest extends SuccinctTableTest {
     assertEquals(sTable.getNumRecords(), sIFileRead.getNumRecords());
     for (int i = 0; i < sTable.getNumRecords(); i++) {
       assertTrue(Arrays.equals(sTable.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
-    }
-  }
-
-  /**
-   * Test method: Integer[] recordMultiSearchIds(Pair<QueryType, byte[][]>[] queries)
-   *
-   * @throws Exception
-   */
-  public void testMultiSearchIds() throws Exception {
-
-    SuccinctTable.QueryType[] queryTypes = new SuccinctTable.QueryType[2];
-    byte[][][] queries = new byte[2][][];
-    queryTypes[0] = SuccinctTable.QueryType.RangeSearch;
-    queries[0] = new byte[][] {"/*".getBytes(), "//".getBytes()};
-    queryTypes[1] = SuccinctTable.QueryType.Search;
-    queries[1] = new byte[][] {"Build".getBytes()};
-
-    Integer[] recordIds = sTable.recordMultiSearchIds(queryTypes, queries);
-    for (Integer recordId : recordIds) {
-      String currentRecord = new String(sTable.getRecordBytes(recordId));
-      assertTrue((currentRecord.contains("/*") || currentRecord.contains("//")) && currentRecord
-        .contains("Build"));
     }
   }
 }
