@@ -146,7 +146,7 @@ object AnnotatedSuccinctRDD {
       }
     })
     val numPartitions = status.length / 3
-    val succinctPartitions = sc.parallelize(0 to numPartitions - 1, numPartitions)
+    val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
       .mapPartitionsWithIndex[AnnotatedSuccinctPartition]((i, partition) => {
       val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
       Iterator(AnnotatedSuccinctPartition(partitionLocation))

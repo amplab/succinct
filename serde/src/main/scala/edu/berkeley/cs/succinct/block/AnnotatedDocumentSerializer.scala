@@ -10,12 +10,12 @@ class AnnotatedDocumentSerializer extends Serializable {
   val docIds: ArrayBuffer[String] = new ArrayBuffer[String]
   var curDocTextOffset: Int = 0
   val docTextOffsets: ArrayBuffer[Int] = new ArrayBuffer[Int]
-  val docTextOS: ByteArrayOutputStream = new ByteArrayOutputStream
+  val docTextOS: StringBuilder = new StringBuilder
   val docAnnotationOS: ByteArrayOutputStream = new ByteArrayOutputStream
 
   def getDocIds: Array[String] = docIds.toArray
 
-  def getTextBuffer: (Array[Int], Array[Byte]) = (docTextOffsets.toArray, docTextOS.toByteArray)
+  def getTextBuffer: (Array[Int], Array[Char]) = (docTextOffsets.toArray, docTextOS.toArray)
 
   def getAnnotationBuffer: Array[Byte] = docAnnotationOS.toByteArray
 
@@ -30,10 +30,9 @@ class AnnotatedDocumentSerializer extends Serializable {
   def addAnnotatedDocument(docId: String, docText: String, docAnnot: String): Unit = {
     docIds += docId
     docTextOffsets += curDocTextOffset
-    val buf = docText.getBytes()
-    docTextOS.write(buf)
-    docTextOS.write('\n'.toByte)
-    curDocTextOffset += (buf.length + 1)
+    docTextOS.append(docText)
+    docTextOS.append('\n')
+    curDocTextOffset += (docText.length + 1)
     serializeAnnotation(docId, docAnnot)
   }
 

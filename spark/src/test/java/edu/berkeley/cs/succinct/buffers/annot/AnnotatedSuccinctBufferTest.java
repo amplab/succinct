@@ -63,7 +63,7 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
         for (String annotType : annotTypes) {
           AnnotationRecord ar = buf.getAnnotationRecord(docId, annotClass, annotType);
           for (int i = 0; i < ar.getNumEntries(); i++) {
-            int rBegin = buf.getRangeBegin(ar, i);
+            int rBegin = ar.getRangeBegin(i);
             if (annotType.compareTo("word") == 0) {
               assertEquals(rBeginsWord[i], rBegin);
             } else if (annotType.compareTo("space") == 0) {
@@ -73,7 +73,6 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
         }
       }
     }
-    assertEquals(-1, buf.getRangeBegin(null, 0));
   }
 
   public void testGetRangeEnd() throws Exception {
@@ -82,7 +81,7 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
         for (String annotType : annotTypes) {
           AnnotationRecord ar = buf.getAnnotationRecord(docId, annotClass, annotType);
           for (int i = 0; i < ar.getNumEntries(); i++) {
-            int rEnd = buf.getRangeEnd(ar, i);
+            int rEnd = ar.getRangeEnd(i);
             if (annotType.compareTo("word") == 0) {
               if (docId.compareTo("doc3") == 0 && i == 2) {
                 assertEquals(21, rEnd);
@@ -96,7 +95,6 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
         }
       }
     }
-    assertEquals(-1, buf.getRangeEnd(null, 0));
   }
 
   public void testGetAnnotId() throws Exception {
@@ -105,7 +103,7 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
         for (String annotType : annotTypes) {
           AnnotationRecord ar = buf.getAnnotationRecord(docId, annotClass, annotType);
           for (int i = 0; i < ar.getNumEntries(); i++) {
-            int annotId = buf.getAnnotId(ar, i);
+            int annotId = ar.getAnnotId(i);
             if (annotType.compareTo("word") == 0) {
               assertEquals(aIdsWord[i], annotId);
             } else if (annotType.compareTo("space") == 0) {
@@ -115,8 +113,6 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
         }
       }
     }
-
-    assertEquals(-1, buf.getAnnotId(null, 0));
   }
 
   public void testGetMetadata() throws Exception {
@@ -125,7 +121,7 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
         for (String annotType : annotTypes) {
           AnnotationRecord ar = buf.getAnnotationRecord(docId, annotClass, annotType);
           for (int i = 0; i < ar.getNumEntries(); i++) {
-            String metadata = buf.getMetadata(ar, i);
+            String metadata = ar.getMetadata(i);
             if (annotType.compareTo("word") == 0) {
               if (docId.compareTo("doc1") == 0) {
                 assertEquals(metadataDoc1Words[i], metadata);
@@ -141,8 +137,6 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
         }
       }
     }
-
-    assertEquals(null, buf.getMetadata(null, 0));
   }
 
   public void testGetAnnotation() throws Exception {
@@ -151,7 +145,7 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
         for (String annotType : annotTypes) {
           AnnotationRecord ar = buf.getAnnotationRecord(docId, annotClass, annotType);
           for (int i = 0; i < ar.getNumEntries(); i++) {
-            Annotation a = buf.getAnnotation(ar, i);
+            Annotation a = ar.getAnnotation(i);
             int rBegin = a.getrBegin();
             int rEnd = a.getrEnd();
             int annotId = a.getId();
@@ -194,26 +188,21 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
         }
       }
     }
-
-    assertEquals(null, buf.getAnnotation(null, 0));
   }
 
   public void testFindAnnotationsOver() throws Exception {
     AnnotationRecord ar1 = buf.getAnnotationRecord("doc1", "ge", "word");
-    int[] res1 = buf.findAnnotationsOver(ar1, 1, 3);
+    int[] res1 = ar1.findAnnotationsOver(1, 3);
     assertEquals(1, res1.length);
     assertEquals(0, res1[0]);
 
     AnnotationRecord ar2 = buf.getAnnotationRecord("doc3", "ge", "space");
-    int[] res2 = buf.findAnnotationsOver(ar2, 8, 8);
+    int[] res2 = ar2.findAnnotationsOver(8, 8);
     assertEquals(1, res2.length);
     assertEquals(0, res2[0]);
 
     AnnotationRecord ar3 = buf.getAnnotationRecord("doc2", "ge", "word");
-    int[] res3 = buf.findAnnotationsOver(ar3, 6, 9);
+    int[] res3 = ar3.findAnnotationsOver(6, 9);
     assertEquals(0, res3.length);
-
-    int[] res4 = buf.findAnnotationsOver(null, 6, 9);
-    assertEquals(0, res4.length);
   }
 }

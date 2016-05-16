@@ -26,7 +26,7 @@ class AnnotatedDocumentSerializerSuite extends FunSuite {
     // Check document text
     val (docOffsets, docText) = ser.getTextBuffer
     assert(docOffsets === Array[Int](0, 20, 40))
-    assert(docText === (doc1._2 + "\n" + doc2._2 + "\n" + doc3._2 + "\n").getBytes())
+    assert(docText === (doc1._2 + "\n" + doc2._2 + "\n" + doc3._2 + "\n").toCharArray)
 
     // Check document annotations
     val annotBuffer = ser.getAnnotationBuffer

@@ -110,8 +110,10 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     val it = search(query)
     it.flatMap(r => {
       val ar = annotationBuffer.getAnnotationRecord(r._1, annotClass, annotType)
-      annotationBuffer.findAnnotationsOver(ar, r._2, r._3)
-        .map(i => annotationBuffer.getAnnotation(ar, i))
+      if (ar == null)
+        Array[Annotation]()
+      else
+        ar.findAnnotationsOver(r._2, r._3).map(ar.getAnnotation)
     })
   }
 
@@ -119,8 +121,10 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     val it = regexSearch(rexp)
     it.flatMap(r => {
       val ar = annotationBuffer.getAnnotationRecord(r._1, annotClass, annotType)
-      annotationBuffer.findAnnotationsOver(ar, r._2, r._3)
-        .map(i => annotationBuffer.getAnnotation(ar, i))
+      if (ar == null)
+        Array[Annotation]()
+      else
+        ar.findAnnotationsOver(r._2, r._3).map(ar.getAnnotation)
     })
   }
 
