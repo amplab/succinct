@@ -80,6 +80,30 @@ public interface SuccinctFile extends Serializable {
   byte[] extractBytesUntil(long offset, int delim);
 
   /**
+   * Extract short integer at specified offset.
+   *
+   * @param offset Offset into the original input to start extracting at.
+   * @return Extracted short integer.
+   */
+  short extractShort(int offset);
+
+  /**
+   * Extract integer at specified offset.
+   *
+   * @param offset Offset into the original input to start extracting at.
+   * @return Extracted integer.
+   */
+  int extractInt(int offset);
+
+  /**
+   * Extract long integer at specified offset.
+   *
+   * @param offset Offset into the original input to start extracting at.
+   * @return Extracted long integer.
+   */
+  long extractLong(int offset);
+
+  /**
    * Perform a range search to obtain SA range between two given queries.
    *
    * @param buf1 The beginning of the range.
@@ -133,7 +157,7 @@ public interface SuccinctFile extends Serializable {
   /**
    * Continue backward search on query to obtain SA range.
    *
-   * @param buf Input query.
+   * @param buf   Input query.
    * @param range Range to start from.
    * @return Range into SA.
    */
@@ -142,7 +166,7 @@ public interface SuccinctFile extends Serializable {
   /**
    * Continue backward search on query to obtain SA range.
    *
-   * @param buf Input query.
+   * @param buf   Input query.
    * @param range Range to start from.
    * @return Range into SA.
    */
@@ -151,7 +175,7 @@ public interface SuccinctFile extends Serializable {
   /**
    * Continue backward search on query to obtain SA range.
    *
-   * @param buf Input query.
+   * @param buf   Input query.
    * @param range Range to start from.
    * @return Range into SA.
    */
@@ -161,7 +185,7 @@ public interface SuccinctFile extends Serializable {
    * Compare entire buffer with input starting at specified index.
    *
    * @param buf The buffer to compare with.
-   * @param i The index into input.
+   * @param i   The index into input.
    * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
    */
   int compare(char[] buf, int i);
@@ -170,7 +194,7 @@ public interface SuccinctFile extends Serializable {
    * Compare entire buffer with input starting at specified index.
    *
    * @param buf The buffer to compare with.
-   * @param i The index into input.
+   * @param i   The index into input.
    * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
    */
   int compare(byte[] buf, int i);
@@ -179,7 +203,7 @@ public interface SuccinctFile extends Serializable {
    * Compare entire buffer with input starting at specified index.
    *
    * @param buf The buffer to compare with.
-   * @param i The index into input.
+   * @param i   The index into input.
    * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
    */
   int compare(Source buf, int i);
@@ -188,8 +212,8 @@ public interface SuccinctFile extends Serializable {
    * Compare entire buffer with input starting at specified index and offset
    * into buffer.
    *
-   * @param buf The buffer to compare with.
-   * @param i The index into input.
+   * @param buf    The buffer to compare with.
+   * @param i      The index into input.
    * @param offset Offset into buffer.
    * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
    */
@@ -199,8 +223,8 @@ public interface SuccinctFile extends Serializable {
    * Compare entire buffer with input starting at specified index and offset
    * into buffer.
    *
-   * @param buf The buffer to compare with.
-   * @param i The index into input.
+   * @param buf    The buffer to compare with.
+   * @param i      The index into input.
    * @param offset Offset into buffer.
    * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
    */
@@ -210,8 +234,8 @@ public interface SuccinctFile extends Serializable {
    * Compare entire buffer with input starting at specified index and offset
    * into buffer.
    *
-   * @param buf The buffer to compare with.
-   * @param i The index into input.
+   * @param buf    The buffer to compare with.
+   * @param i      The index into input.
    * @param offset Offset into buffer.
    * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
    */
@@ -244,8 +268,8 @@ public interface SuccinctFile extends Serializable {
   /**
    * Continue forward search on query to obtain SA range.
    *
-   * @param buf Input query.
-   * @param range Range to start from.
+   * @param buf    Input query.
+   * @param range  Range to start from.
    * @param offset Offset into input query.
    * @return Range into SA.
    */
@@ -254,17 +278,18 @@ public interface SuccinctFile extends Serializable {
   /**
    * Continue forward search on query to obtain SA range.
    *
-   * @param buf Input query.
-   * @param range Range to start from.
+   * @param buf    Input query.
+   * @param range  Range to start from.
    * @param offset Offset into input query.
    * @return Range into SA.
    */
   Range continueFwdSearch(byte[] buf, Range range, int offset);
+
   /**
    * Continue forward search on query to obtain SA range.
    *
-   * @param buf Input query.
-   * @param range Range to start from.
+   * @param buf    Input query.
+   * @param range  Range to start from.
    * @param offset Offset into input query.
    * @return Range into SA.
    */
@@ -354,7 +379,7 @@ public interface SuccinctFile extends Serializable {
    * Check if the two offsets belong to the same record. This must always true for the
    * SuccinctFile, but may not be true for the SuccinctIndexedFile.
    *
-   * @param firstOffset The first offset.
+   * @param firstOffset  The first offset.
    * @param secondOffset The second offset.
    * @return True if the two offsets belong to the same record, false otherwise.
    */
