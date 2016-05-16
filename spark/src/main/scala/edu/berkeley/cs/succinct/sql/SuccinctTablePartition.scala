@@ -25,7 +25,7 @@ class SuccinctTablePartition(
       override def hasNext: Boolean = curRecordId < succinctIndexedFile.getNumRecords
 
       override def next(): Row = {
-        val data = succinctIndexedFile.getRecord(curRecordId)
+        val data = succinctIndexedFile.getRecordBytes(curRecordId)
         curRecordId += 1
         succinctSerDe.deserializeRow(data)
       }
@@ -39,7 +39,7 @@ class SuccinctTablePartition(
       override def hasNext: Boolean = curRecordId < succinctIndexedFile.getNumRecords
 
       override def next(): Row = {
-        val data = succinctIndexedFile.getRecord(curRecordId)
+        val data = succinctIndexedFile.getRecordBytes(curRecordId)
         curRecordId += 1
         succinctSerDe.deserializeRow(data, reqColumnsCheck)
       }
@@ -56,7 +56,7 @@ class SuccinctTablePartition(
       override def hasNext: Boolean = searchResults.hasNext
 
       override def next(): Row = {
-        val data = succinctIndexedFile.getRecord(searchResults.next())
+        val data = succinctIndexedFile.getRecordBytes(searchResults.next())
         succinctSerDe.deserializeRow(data, reqColumnsCheck)
       }
     }
@@ -69,7 +69,7 @@ class SuccinctTablePartition(
   }
 
   override val estimatedSize: Long = {
-    succinctIndexedFile.getSuccinctIndexedFileSize + SizeEstimator.estimate(succinctSerDe)
+    succinctIndexedFile.getCompressedSize + SizeEstimator.estimate(succinctSerDe)
   }
 }
 

@@ -24,14 +24,14 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
   }
 
   /**
-   * Test method: byte[] getRecord(int recordId)
+   * Test method: byte[] getRecordBytes(int recordId)
    *
    * @throws Exception
    */
   public void testGetRecord() throws Exception {
 
     for (int i = 0; i < offsets.length; i++) {
-      byte[] rec = sTFile.getRecord(i);
+      byte[] rec = sTFile.getRecordBytes(i);
       for (int j = 0; j < rec.length; j++) {
         assertEquals(fileData[offsets[i] + j], rec[j]);
       }
@@ -51,7 +51,7 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
       if (recordLength > 0) {
         int offset = (new Random()).nextInt(recordLength);
         int length = (new Random()).nextInt(recordLength - offset);
-        byte[] recordData = sTFile.accessRecord(i, offset, length);
+        byte[] recordData = sTFile.extractRecordBytes(i, offset, length);
         assertEquals(length, recordData.length);
         for (int j = 0; j < recordData.length; j++) {
           assertEquals(fileData[recordOffset + offset + j], recordData[j]);
@@ -70,14 +70,14 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
     Integer[] recordSearchIds1 = sTFile.recordSearchIds("int".getBytes());
     assertEquals(28, recordSearchIds1.length);
     for (Integer recordId : recordSearchIds1) {
-      byte[] buf = sTFile.getRecord(recordId);
+      byte[] buf = sTFile.getRecordBytes(recordId);
       assertTrue(new String(buf).contains("int"));
     }
 
     Integer[] recordSearchIds2 = sTFile.recordSearchIds("include".getBytes());
     assertEquals(9, recordSearchIds2.length);
     for (Integer recordId : recordSearchIds2) {
-      byte[] buf = sTFile.getRecord(recordId);
+      byte[] buf = sTFile.getRecordBytes(recordId);
       assertTrue(new String(buf).contains("include"));
     }
 
@@ -99,7 +99,7 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
     int count1 = 0;
     while (recordSearchIds1.hasNext()) {
       Integer recordId = recordSearchIds1.next();
-      byte[] buf = sTFile.getRecord(recordId);
+      byte[] buf = sTFile.getRecordBytes(recordId);
       assertTrue(new String(buf).contains("int"));
       count1++;
     }
@@ -109,7 +109,7 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
     int count2 = 0;
     while (recordSearchIds2.hasNext()) {
       Integer recordId = recordSearchIds2.next();
-      byte[] buf = sTFile.getRecord(recordId);
+      byte[] buf = sTFile.getRecordBytes(recordId);
       assertTrue(new String(buf).contains("include"));
       count2++;
     }
@@ -132,7 +132,7 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
     // TODO: Add more tests
     Integer[] recordsIds = sTFile.recordSearchRegexIds("int");
     for (Integer recordId: recordsIds) {
-      assertTrue(new String(sTFile.getRecord(recordId)).contains("int"));
+      assertTrue(new String(sTFile.getRecordBytes(recordId)).contains("int"));
     }
   }
 }

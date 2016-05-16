@@ -44,7 +44,7 @@ public class SuccinctFileBufferTest extends SuccinctFileTest {
 
     assertNotNull(sFileRead);
     assertEquals(sFile.getSize(), sFileRead.getSize());
-    assertTrue(Arrays.equals(sFile.extract(0, sFile.getSize()),
-      sFileRead.extract(0, sFileRead.getSize())));
+    assertTrue(Arrays.equals(sFile.extractBytes(0, sFile.getSize()),
+      sFileRead.extractBytes(0, sFileRead.getSize())));
   }
 }

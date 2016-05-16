@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct.util.suffixarray;
 
-import edu.berkeley.cs.succinct.util.InputSource;
+import edu.berkeley.cs.succinct.util.Source;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -37,7 +37,7 @@ public final class QSufSort {
    *
    * @param input Input byte array.
    */
-  public void buildSuffixArray(InputSource input) {
+  public void buildSuffixArray(Source input) {
     int max = SuccinctConstants.EOF;
     int min = max;
 

@@ -66,7 +66,7 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
     assertNotNull(sIFileRead);
     assertEquals(sTFile.getNumRecords(), sIFileRead.getNumRecords());
     for (int i = 0; i < sTFile.getNumRecords(); i++) {
-      assertTrue(Arrays.equals(sTFile.getRecord(i), sIFileRead.getRecord(i)));
+      assertTrue(Arrays.equals(sTFile.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
     }
   }
 
@@ -85,7 +85,7 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
     assertNotNull(sIFileRead);
     assertEquals(sTFile.getNumRecords(), sIFileRead.getNumRecords());
     for (int i = 0; i < sTFile.getNumRecords(); i++) {
-      assertTrue(Arrays.equals(sTFile.getRecord(i), sIFileRead.getRecord(i)));
+      assertTrue(Arrays.equals(sTFile.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
     }
   }
 
@@ -104,7 +104,7 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
     assertNotNull(sIFileRead);
     assertEquals(sTFile.getNumRecords(), sIFileRead.getNumRecords());
     for (int i = 0; i < sTFile.getNumRecords(); i++) {
-      assertTrue(Arrays.equals(sTFile.getRecord(i), sIFileRead.getRecord(i)));
+      assertTrue(Arrays.equals(sTFile.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
     }
   }
 }

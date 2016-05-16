@@ -2,6 +2,7 @@ package edu.berkeley.cs.succinct;
 
 import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
+import edu.berkeley.cs.succinct.util.Source;
 import edu.berkeley.cs.succinct.util.container.Range;
 
 import java.io.DataInputStream;
@@ -32,7 +33,7 @@ public interface SuccinctFile extends Serializable {
    *
    * @return The size of the Succinct compressed file.
    */
-  int getSuccinctFileSize();
+  int getCompressedSize();
 
   /**
    * Get character at ith index in file chunk.
@@ -49,7 +50,7 @@ public interface SuccinctFile extends Serializable {
    * @param len    Length of data to be extracted.
    * @return Extracted data.
    */
-  byte[] extract(long offset, int len);
+  String extract(long offset, int len);
 
   /**
    * Extract data from Succinct data structures at specified index until specified delimiter.
@@ -58,7 +59,34 @@ public interface SuccinctFile extends Serializable {
    * @param delim  Delimiter at which to stop extracting.
    * @return Extracted data.
    */
-  byte[] extractUntil(long offset, int delim);
+  String extractUntil(long offset, int delim);
+
+  /**
+   * Extract data of specified length from Succinct data structures at specified index.
+   *
+   * @param offset Index into original input to start extracting at.
+   * @param len    Length of data to be extracted.
+   * @return Extracted data.
+   */
+  byte[] extractBytes(long offset, int len);
+
+  /**
+   * Extract data from Succinct data structures at specified index until specified delimiter.
+   *
+   * @param offset Index into original input to start extracting at.
+   * @param delim  Delimiter at which to stop extracting.
+   * @return Extracted data.
+   */
+  byte[] extractBytesUntil(long offset, int delim);
+
+  /**
+   * Perform a range search to obtain SA range between two given queries.
+   *
+   * @param buf1 The beginning of the range.
+   * @param buf2 The end of the range.
+   * @return The range into SA.
+   */
+  Range rangeSearch(char[] buf1, char[] buf2);
 
   /**
    * Perform a range search to obtain SA range between two given queries.
@@ -70,12 +98,46 @@ public interface SuccinctFile extends Serializable {
   Range rangeSearch(byte[] buf1, byte[] buf2);
 
   /**
+   * Perform a range search to obtain SA range between two given queries.
+   *
+   * @param buf1 The beginning of the range.
+   * @param buf2 The end of the range.
+   * @return The range into SA.
+   */
+  Range rangeSearch(Source buf1, Source buf2);
+
+  /**
+   * Perform backward search to obtain SA range for a query.
+   *
+   * @param buf Input query.
+   * @return Range into SA.
+   */
+  Range bwdSearch(char[] buf);
+
+  /**
    * Perform backward search to obtain SA range for a query.
    *
    * @param buf Input query.
    * @return Range into SA.
    */
   Range bwdSearch(byte[] buf);
+
+  /**
+   * Perform backward search to obtain SA range for a query.
+   *
+   * @param buf Input query.
+   * @return Range into SA.
+   */
+  Range bwdSearch(Source buf);
+
+  /**
+   * Continue backward search on query to obtain SA range.
+   *
+   * @param buf Input query.
+   * @param range Range to start from.
+   * @return Range into SA.
+   */
+  Range continueBwdSearch(char[] buf, Range range);
 
   /**
    * Continue backward search on query to obtain SA range.
@@ -87,6 +149,24 @@ public interface SuccinctFile extends Serializable {
   Range continueBwdSearch(byte[] buf, Range range);
 
   /**
+   * Continue backward search on query to obtain SA range.
+   *
+   * @param buf Input query.
+   * @param range Range to start from.
+   * @return Range into SA.
+   */
+  Range continueBwdSearch(Source buf, Range range);
+
+  /**
+   * Compare entire buffer with input starting at specified index.
+   *
+   * @param buf The buffer to compare with.
+   * @param i The index into input.
+   * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
+   */
+  int compare(char[] buf, int i);
+
+  /**
    * Compare entire buffer with input starting at specified index.
    *
    * @param buf The buffer to compare with.
@@ -94,6 +174,26 @@ public interface SuccinctFile extends Serializable {
    * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
    */
   int compare(byte[] buf, int i);
+
+  /**
+   * Compare entire buffer with input starting at specified index.
+   *
+   * @param buf The buffer to compare with.
+   * @param i The index into input.
+   * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
+   */
+  int compare(Source buf, int i);
+
+  /**
+   * Compare entire buffer with input starting at specified index and offset
+   * into buffer.
+   *
+   * @param buf The buffer to compare with.
+   * @param i The index into input.
+   * @param offset Offset into buffer.
+   * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
+   */
+  int compare(char[] buf, int i, int offset);
 
   /**
    * Compare entire buffer with input starting at specified index and offset
@@ -107,12 +207,49 @@ public interface SuccinctFile extends Serializable {
   int compare(byte[] buf, int i, int offset);
 
   /**
+   * Compare entire buffer with input starting at specified index and offset
+   * into buffer.
+   *
+   * @param buf The buffer to compare with.
+   * @param i The index into input.
+   * @param offset Offset into buffer.
+   * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
+   */
+  int compare(Source buf, int i, int offset);
+
+  /**
+   * Perform forward search to obtain SA range for a query.
+   *
+   * @param buf Input query.
+   * @return Range into SA.
+   */
+  Range fwdSearch(char[] buf);
+
+  /**
    * Perform forward search to obtain SA range for a query.
    *
    * @param buf Input query.
    * @return Range into SA.
    */
   Range fwdSearch(byte[] buf);
+
+  /**
+   * Perform forward search to obtain SA range for a query.
+   *
+   * @param buf Input query.
+   * @return Range into SA.
+   */
+  Range fwdSearch(Source buf);
+
+  /**
+   * Continue forward search on query to obtain SA range.
+   *
+   * @param buf Input query.
+   * @param range Range to start from.
+   * @param offset Offset into input query.
+   * @return Range into SA.
+   */
+  Range continueFwdSearch(char[] buf, Range range, int offset);
 
   /**
    * Continue forward search on query to obtain SA range.
@@ -123,6 +260,23 @@ public interface SuccinctFile extends Serializable {
    * @return Range into SA.
    */
   Range continueFwdSearch(byte[] buf, Range range, int offset);
+  /**
+   * Continue forward search on query to obtain SA range.
+   *
+   * @param buf Input query.
+   * @param range Range to start from.
+   * @param offset Offset into input query.
+   * @return Range into SA.
+   */
+  Range continueFwdSearch(Source buf, Range range, int offset);
+
+  /**
+   * Get count of pattern occurrences in original input.
+   *
+   * @param query Input query.
+   * @return Count of occurrences.
+   */
+  long count(char[] query);
 
   /**
    * Get count of pattern occurrences in original input.
@@ -133,13 +287,28 @@ public interface SuccinctFile extends Serializable {
   long count(byte[] query);
 
   /**
-   * Translate range into SA to offsets in file.
+   * Get count of pattern occurrences in original input.
+   *
+   * @param query Input query.
+   * @return Count of occurrences.
+   */
+  long count(Source query);
+
+  /**
+   * Translate range into SA to recordIds in file.
    *
    * @param range Range into SA.
-   * @return Offsets corresponding to offsets.
+   * @return Offsets corresponding to recordIds.
    */
   Long[] rangeToOffsets(Range range);
 
+  /**
+   * Search for locations of pattern occurrences in original input.
+   *
+   * @param query Input query.
+   * @return All locations of pattern occurrences in original input.
+   */
+  Iterator<Long> searchIterator(char[] query);
 
   /**
    * Search for locations of pattern occurrences in original input.
@@ -150,12 +319,36 @@ public interface SuccinctFile extends Serializable {
   Iterator<Long> searchIterator(byte[] query);
 
   /**
+   * Search for locations of pattern occurrences in original input.
+   *
+   * @param query Input query.
+   * @return All locations of pattern occurrences in original input.
+   */
+  Iterator<Long> searchIterator(Source query);
+
+  /**
+   * Get all locations of pattern occurrences in original input.
+   *
+   * @param query Input query.
+   * @return All locations of pattern occurrences in original input.
+   */
+  Long[] search(char[] query);
+
+  /**
    * Get all locations of pattern occurrences in original input.
    *
    * @param query Input query.
    * @return All locations of pattern occurrences in original input.
    */
   Long[] search(byte[] query);
+
+  /**
+   * Get all locations of pattern occurrences in original input.
+   *
+   * @param query Input query.
+   * @return All locations of pattern occurrences in original input.
+   */
+  Long[] search(Source query);
 
   /**
    * Check if the two offsets belong to the same record. This must always true for the
@@ -191,6 +384,5 @@ public interface SuccinctFile extends Serializable {
    * @throws IOException
    */
   void writeToStream(DataOutputStream os) throws IOException;
-
 
 }

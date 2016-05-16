@@ -67,7 +67,7 @@ public class SuccinctTableBufferTest extends SuccinctTableTest {
     assertNotNull(sIFileRead);
     assertEquals(sTable.getNumRecords(), sIFileRead.getNumRecords());
     for (int i = 0; i < sTable.getNumRecords(); i++) {
-      assertTrue(Arrays.equals(sTable.getRecord(i), sIFileRead.getRecord(i)));
+      assertTrue(Arrays.equals(sTable.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
     }
   }
 
@@ -86,7 +86,7 @@ public class SuccinctTableBufferTest extends SuccinctTableTest {
     assertNotNull(sIFileRead);
     assertEquals(sTable.getNumRecords(), sIFileRead.getNumRecords());
     for (int i = 0; i < sTable.getNumRecords(); i++) {
-      assertTrue(Arrays.equals(sTable.getRecord(i), sIFileRead.getRecord(i)));
+      assertTrue(Arrays.equals(sTable.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
     }
   }
 
@@ -105,7 +105,7 @@ public class SuccinctTableBufferTest extends SuccinctTableTest {
     assertNotNull(sIFileRead);
     assertEquals(sTable.getNumRecords(), sIFileRead.getNumRecords());
     for (int i = 0; i < sTable.getNumRecords(); i++) {
-      assertTrue(Arrays.equals(sTable.getRecord(i), sIFileRead.getRecord(i)));
+      assertTrue(Arrays.equals(sTable.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
     }
   }
 
@@ -125,7 +125,7 @@ public class SuccinctTableBufferTest extends SuccinctTableTest {
 
     Integer[] recordIds = sTable.recordMultiSearchIds(queryTypes, queries);
     for (Integer recordId : recordIds) {
-      String currentRecord = new String(sTable.getRecord(recordId));
+      String currentRecord = new String(sTable.getRecordBytes(recordId));
       assertTrue((currentRecord.contains("/*") || currentRecord.contains("//")) && currentRecord
         .contains("Build"));
     }

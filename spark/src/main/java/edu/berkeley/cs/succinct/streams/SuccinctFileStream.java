@@ -4,6 +4,7 @@ import edu.berkeley.cs.succinct.SuccinctFile;
 import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.SuccinctRegEx;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
+import edu.berkeley.cs.succinct.util.Source;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import edu.berkeley.cs.succinct.util.container.Range;
 import edu.berkeley.cs.succinct.util.iterator.SearchIterator;
@@ -61,8 +62,8 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     return getOriginalSize();
   }
 
-  @Override public int getSuccinctFileSize() {
-    return super.getSuccinctSize();
+  @Override public int getCompressedSize() {
+    return getCoreSize();
   }
 
   /**
@@ -82,7 +83,52 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @param len    Length of data to be extracted.
    * @return Extracted data.
    */
-  @Override public byte[] extract(long offset, int len) {
+  @Override public String extract(long offset, int len) {
+    StringBuilder out = new StringBuilder(len);
+    long s = lookupISA(offset);
+    for (int k = 0; k < len && k < getOriginalSize(); k++) {
+      int nextChar = lookupC(s);
+      if (nextChar < Byte.MIN_VALUE || nextChar > Byte.MAX_VALUE) {
+        break;
+      }
+      out.append((char) nextChar);
+      s = lookupNPA(s);
+    }
+
+    return out.toString();
+  }
+
+  /**
+   * Extract data from Succinct data structures at specified index until specified delimiter.
+   *
+   * @param offset Index into original input to start extracting at.
+   * @param delim  Delimiter at which to stop extracting.
+   * @return Extracted data.
+   */
+  @Override public String extractUntil(long offset, int delim) {
+    StringBuilder out = new StringBuilder();
+    long s;
+
+    s = lookupISA(offset);
+    do {
+      int nextChar = lookupC(s);
+      if (nextChar == delim || nextChar == SuccinctConstants.EOF)
+        break;
+      out.append((char) nextChar);
+      s = lookupNPA(s);
+    } while (true);
+
+    return out.toString();
+  }
+
+  /**
+   * Extract data of specified length from Succinct data structures at specified index.
+   *
+   * @param offset Index into original input to start extracting at.
+   * @param len    Length of data to be extracted.
+   * @return Extracted data.
+   */
+  @Override public byte[] extractBytes(long offset, int len) {
     ByteArrayOutputStream out = new ByteArrayOutputStream(len);
     long s = lookupISA(offset);
     for (int k = 0; k < len && k < getOriginalSize(); k++) {
@@ -104,7 +150,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @param delim  Delimiter at which to stop extracting.
    * @return Extracted data.
    */
-  @Override public byte[] extractUntil(long offset, int delim) {
+  @Override public byte[] extractBytesUntil(long offset, int delim) {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     long s;
 
@@ -127,7 +173,29 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @param buf2 The end of the range.
    * @return The range into SA.
    */
+  @Override public Range rangeSearch(char[] buf1, char[] buf2) {
+    return new Range(fwdSearch(buf1).begin(), fwdSearch(buf2).end());
+  }
+
+  /**
+   * Perform a range search to obtain SA range between two given queries.
+   *
+   * @param buf1 The beginning of the range.
+   * @param buf2 The end of the range.
+   * @return The range into SA.
+   */
   @Override public Range rangeSearch(byte[] buf1, byte[] buf2) {
+    return new Range(fwdSearch(buf1).begin(), fwdSearch(buf2).end());
+  }
+
+  /**
+   * Perform a range search to obtain SA range between two given queries.
+   *
+   * @param buf1 The beginning of the range.
+   * @param buf2 The end of the range.
+   * @return The range into SA.
+   */
+  @Override public Range rangeSearch(Source buf1, Source buf2) {
     return new Range(fwdSearch(buf1).begin(), fwdSearch(buf2).end());
   }
 
@@ -137,46 +205,86 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @param buf Input query.
    * @return Range into SA.
    */
-  @Override public Range bwdSearch(byte[] buf) {
+  @Override public Range bwdSearch(Source buf) {
     Range range = new Range(0L, -1L);
-    try {
-      int m = buf.length;
-      long c1, c2;
+    int m = buf.length();
+    long c1, c2;
 
-      int pos = findCharacter(buf[m - 1]);
-      if (pos >= 0) {
+    int pos = findCharacter(buf.get(m - 1));
+    if (pos >= 0) {
+      try {
         range.first = columnoffsets.get(pos);
         range.second =
           ((pos + 1) == getAlphabetSize() ? getOriginalSize() : columnoffsets.get(pos + 1)) - 1;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    } else {
+      return new Range(0L, -1L);
+    }
+
+    for (int i = m - 2; i >= 0; i--) {
+      pos = findCharacter(buf.get(i));
+      if (pos >= 0) {
+        try {
+          c1 = columnoffsets.get(pos);
+          c2 = ((pos + 1) == getAlphabetSize() ? getOriginalSize() : columnoffsets.get(pos + 1)) - 1;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       } else {
         return new Range(0L, -1L);
       }
 
-      for (int i = m - 2; i >= 0; i--) {
-        pos = findCharacter(buf[i]);
-        if (pos >= 0) {
-          c1 = columnoffsets.get(pos);
-          c2 =
-            ((pos + 1) == getAlphabetSize() ? getOriginalSize() : columnoffsets.get(pos + 1)) - 1;
-        } else {
-          return new Range(0L, -1L);
-        }
-
-        if (c1 > c2) {
-          return new Range(0L, -1L);
-        }
-
-        range.first = binSearchNPA(range.first, c1, c2, false);
-        range.second = binSearchNPA(range.second, c1, c2, true);
-
-        if (range.first > range.second) {
-          return new Range(0L, -1L);
-        }
+      if (c1 > c2) {
+        return new Range(0L, -1L);
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+
+      range.first = binSearchNPA(range.first, c1, c2, false);
+      range.second = binSearchNPA(range.second, c1, c2, true);
+
+      if (range.first > range.second) {
+        return new Range(0L, -1L);
+      }
     }
+
     return range;
+  }
+
+  /**
+   * Perform backward search to obtain SA range for a query.
+   *
+   * @param buf Input query.
+   * @return Range into SA.
+   */
+  @Override public Range bwdSearch(final byte[] buf) {
+    return bwdSearch(new Source() {
+      @Override public int length() {
+        return buf.length;
+      }
+
+      @Override public int get(int i) {
+        return buf[i];
+      }
+    });
+  }
+
+  /**
+   * Perform backward search to obtain SA range for a query.
+   *
+   * @param buf Input query.
+   * @return Range into SA.
+   */
+  @Override public Range bwdSearch(final char[] buf) {
+    return bwdSearch(new Source() {
+      @Override public int length() {
+        return buf.length;
+      }
+
+      @Override public int get(int i) {
+        return buf[i];
+      }
+    });
   }
 
   /**
@@ -186,42 +294,78 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @param range Range to start from.
    * @return Range into SA.
    */
-  @Override public Range continueBwdSearch(byte[] buf, Range range) {
+  @Override public Range continueBwdSearch(Source buf, Range range) {
     if (range.empty()) {
       return range;
     }
 
     Range newRange = new Range(range.first, range.second);
+    int m = buf.length();
+    long c1, c2;
 
-    try {
-      int m = buf.length;
-      long c1, c2;
-
-      for (int i = m - 1; i >= 0; i--) {
-        int pos = findCharacter(buf[i]);
-        if (pos >= 0) {
+    for (int i = m - 1; i >= 0; i--) {
+      int pos = findCharacter(buf.get(i));
+      if (pos >= 0) {
+        try {
           c1 = columnoffsets.get(pos);
-          c2 =
-            ((pos + 1) == getAlphabetSize() ? getOriginalSize() : columnoffsets.get(pos + 1)) - 1;
-        } else {
-          return new Range(0L, -1L);
+          c2 = ((pos + 1) == getAlphabetSize() ? getOriginalSize() : columnoffsets.get(pos + 1)) - 1;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
         }
-
-        if (c1 > c2) {
-          return new Range(0L, -1L);
-        }
-
-        newRange.first = binSearchNPA(newRange.first, c1, c2, false);
-        newRange.second = binSearchNPA(newRange.second, c1, c2, true);
-
-        if (newRange.first > newRange.second) {
-          return new Range(0L, -1L);
-        }
+      } else {
+        return new Range(0L, -1L);
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+
+      if (c1 > c2) {
+        return new Range(0L, -1L);
+      }
+
+      newRange.first = binSearchNPA(newRange.first, c1, c2, false);
+      newRange.second = binSearchNPA(newRange.second, c1, c2, true);
+
+      if (newRange.first > newRange.second) {
+        return new Range(0L, -1L);
+      }
     }
     return newRange;
+  }
+
+  /**
+   * Continue backward search on query to obtain SA range.
+   *
+   * @param buf   Input query.
+   * @param range Range to start from.
+   * @return Range into SA.
+   */
+  @Override public Range continueBwdSearch(final byte[] buf, Range range) {
+    return continueBwdSearch(new Source() {
+      @Override public int length() {
+        return buf.length;
+      }
+
+      @Override public int get(int i) {
+        return buf[i];
+      }
+    }, range);
+  }
+
+  /**
+   * Continue backward search on query to obtain SA range.
+   *
+   * @param buf   Input query.
+   * @param range Range to start from.
+   * @return Range into SA.
+   */
+  @Override public Range continueBwdSearch(final char[] buf, Range range) {
+    return continueBwdSearch(new Source() {
+      @Override public int length() {
+        return buf.length;
+      }
+
+      @Override public int get(int i) {
+        return buf[i];
+      }
+    }, range);
   }
 
   /**
@@ -231,12 +375,12 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @param i   The index into input.
    * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
    */
-  @Override public int compare(byte[] buf, int i) {
+  @Override public int compare(Source buf, int i) {
     int j = 0;
 
     do {
       int c = lookupC(i);
-      int b = buf[j];
+      int b = buf.get(j);
       if (b < c) {
         return -1;
       } else if (b > c) {
@@ -244,7 +388,77 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
       }
       i = (int) lookupNPA(i);
       j++;
-    } while (j < buf.length);
+    } while (j < buf.length());
+
+    return 0;
+  }
+
+  /**
+   * Compare entire buffer with input starting at specified index.
+   *
+   * @param buf The buffer to compare with.
+   * @param i   The index into input.
+   * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
+   */
+  @Override public int compare(final byte[] buf, int i) {
+    return compare(new Source() {
+      @Override public int length() {
+        return buf.length;
+      }
+
+      @Override public int get(int i) {
+        return buf[i];
+      }
+    }, i);
+  }
+
+  /**
+   * Compare entire buffer with input starting at specified index.
+   *
+   * @param buf The buffer to compare with.
+   * @param i   The index into input.
+   * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
+   */
+  @Override public int compare(final char[] buf, int i) {
+    return compare(new Source() {
+      @Override public int length() {
+        return buf.length;
+      }
+
+      @Override public int get(int i) {
+        return buf[i];
+      }
+    }, i);
+  }
+
+  /**
+   * Compare entire buffer with input starting at specified index and offset
+   * into buffer.
+   *
+   * @param buf    The buffer to compare with.
+   * @param i      The index into input.
+   * @param offset Offset into buffer.
+   * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
+   */
+  @Override public int compare(Source buf, int i, int offset) {
+    int j = 0;
+
+    while (offset != 0) {
+      i = (int) lookupNPA(i);
+      offset--;
+    }
+
+    do {
+      int c = lookupC(i);
+      int b = buf.get(j);
+      if (b < c) {
+        return -1;
+      } else if (b > c) {
+        return 1;
+      }
+      i = (int) lookupNPA(i);
+      j++;
+    } while (j < buf.length());
 
     return 0;
   }
@@ -258,27 +472,37 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @param offset Offset into buffer.
    * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
    */
-  @Override public int compare(byte[] buf, int i, int offset) {
-    int j = 0;
-
-    while (offset != 0) {
-      i = (int) lookupNPA(i);
-      offset--;
-    }
-
-    do {
-      int c = lookupC(i);
-      int b = buf[j];
-      if (b < c) {
-        return -1;
-      } else if (b > c) {
-        return 1;
+  @Override public int compare(final byte[] buf, int i, int offset) {
+    return compare(new Source() {
+      @Override public int length() {
+        return buf.length;
       }
-      i = (int) lookupNPA(i);
-      j++;
-    } while (j < buf.length);
 
-    return 0;
+      @Override public int get(int i) {
+        return buf[i];
+      }
+    }, i, offset);
+  }
+
+  /**
+   * Compare entire buffer with input starting at specified index and offset
+   * into buffer.
+   *
+   * @param buf    The buffer to compare with.
+   * @param i      The index into input.
+   * @param offset Offset into buffer.
+   * @return -1 if buf is smaller, 0 if equal and 1 if buf is greater.
+   */
+  @Override public int compare(final char[] buf, int i, int offset) {
+    return compare(new Source() {
+      @Override public int length() {
+        return buf.length;
+      }
+
+      @Override public int get(int i) {
+        return buf[i];
+      }
+    }, i, offset);
   }
 
   /**
@@ -287,7 +511,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @param buf Input query.
    * @return Range into SA.
    */
-  @Override public Range fwdSearch(byte[] buf) {
+  @Override public Range fwdSearch(Source buf) {
     int st = getOriginalSize() - 1;
     int sp = 0;
     int s;
@@ -316,6 +540,42 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
   }
 
   /**
+   * Perform forward search to obtain SA range for a query.
+   *
+   * @param buf Input query.
+   * @return Range into SA.
+   */
+  @Override public Range fwdSearch(final byte[] buf) {
+    return fwdSearch(new Source() {
+      @Override public int length() {
+        return buf.length;
+      }
+
+      @Override public int get(int i) {
+        return buf[i];
+      }
+    });
+  }
+
+  /**
+   * Perform forward search to obtain SA range for a query.
+   *
+   * @param buf Input query.
+   * @return Range into SA.
+   */
+  @Override public Range fwdSearch(final char[] buf) {
+    return fwdSearch(new Source() {
+      @Override public int length() {
+        return buf.length;
+      }
+
+      @Override public int get(int i) {
+        return buf[i];
+      }
+    });
+  }
+
+  /**
    * Continue forward search on query to obtain SA range.
    *
    * @param buf    Input query.
@@ -323,9 +583,9 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @param offset Offset into input query.
    * @return Range into SA.
    */
-  @Override public Range continueFwdSearch(byte[] buf, Range range, int offset) {
+  @Override public Range continueFwdSearch(Source buf, Range range, int offset) {
 
-    if (buf.length == 0) {
+    if (buf.length() == 0 || range.empty()) {
       return range;
     }
 
@@ -357,14 +617,131 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
   }
 
   /**
+   * Continue forward search on query to obtain SA range.
+   *
+   * @param buf    Input query.
+   * @param range  Range to start from.
+   * @param offset Offset into input query.
+   * @return Range into SA.
+   */
+  @Override public Range continueFwdSearch(final byte[] buf, Range range, int offset) {
+    return continueFwdSearch(new Source() {
+      @Override public int length() {
+        return buf.length;
+      }
+
+      @Override public int get(int i) {
+        return buf[i];
+      }
+    }, range, offset);
+  }
+
+  /**
+   * Continue forward search on query to obtain SA range.
+   *
+   * @param buf    Input query.
+   * @param range  Range to start from.
+   * @param offset Offset into input query.
+   * @return Range into SA.
+   */
+  @Override public Range continueFwdSearch(final char[] buf, Range range, int offset) {
+    return continueFwdSearch(new Source() {
+      @Override public int length() {
+        return buf.length;
+      }
+
+      @Override public int get(int i) {
+        return buf[i];
+      }
+    }, range, offset);
+  }
+
+  /**
    * Get count of pattern occurrences in original input.
    *
    * @param query Input query.
    * @return Count of occurrences.
    */
-  @Override public long count(byte[] query) {
+  @Override public long count(Source query) {
     Range range = bwdSearch(query);
     return range.second - range.first + 1;
+  }
+
+  /**
+   * Get count of pattern occurrences in original input.
+   *
+   * @param query Input query.
+   * @return Count of occurrences.
+   */
+  @Override public long count(final byte[] query) {
+    return count(new Source() {
+      @Override public int length() {
+        return query.length;
+      }
+
+      @Override public int get(int i) {
+        return query[i];
+      }
+    });
+  }
+
+  /**
+   * Get count of pattern occurrences in original input.
+   *
+   * @param query Input query.
+   * @return Count of occurrences.
+   */
+  @Override public long count(final char[] query) {
+    return count(new Source() {
+      @Override public int length() {
+        return query.length;
+      }
+
+      @Override public int get(int i) {
+        return query[i];
+      }
+    });
+  }
+
+  @Override public Iterator<Long> searchIterator(Source query) {
+    Range range = bwdSearch(query);
+    return new SearchIterator(this, range);
+  }
+
+  /**
+   * Search for locations of pattern occurrences in original input.
+   *
+   * @param query Input query.
+   * @return All locations of pattern occurrences in original input.
+   */
+  @Override public Iterator<Long> searchIterator(final byte[] query) {
+    return searchIterator(new Source() {
+      @Override public int length() {
+        return query.length;
+      }
+
+      @Override public int get(int i) {
+        return query[i];
+      }
+    });
+  }
+
+  /**
+   * Search for locations of pattern occurrences in original input.
+   *
+   * @param query Input query.
+   * @return All locations of pattern occurrences in original input.
+   */
+  @Override public Iterator<Long> searchIterator(final char[] query) {
+    return searchIterator(new Source() {
+      @Override public int length() {
+        return query.length;
+      }
+
+      @Override public int get(int i) {
+        return query[i];
+      }
+    });
   }
 
   /**
@@ -386,9 +763,14 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     return offsets;
   }
 
-  @Override public Iterator<Long> searchIterator(byte[] query) {
-    Range range = bwdSearch(query);
-    return new SearchIterator(this, range);
+  /**
+   * Get all locations of pattern occurrences in original input.
+   *
+   * @param query Input query.
+   * @return All locations of pattern occurrences in original input.
+   */
+  @Override public Long[] search(Source query) {
+    return rangeToOffsets(bwdSearch(query));
   }
 
   /**
@@ -397,17 +779,43 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @param query Input query.
    * @return All locations of pattern occurrences in original input.
    */
-  @Override public Long[] search(byte[] query) {
-    return rangeToOffsets(bwdSearch(query));
+  @Override public Long[] search(final byte[] query) {
+    return search(new Source() {
+      @Override public int length() {
+        return query.length;
+      }
+
+      @Override public int get(int i) {
+        return query[i];
+      }
+    });
   }
 
   /**
-   * Check if the two recordIds belong to the same record. This is always true for the
+   * Get all locations of pattern occurrences in original input.
+   *
+   * @param query Input query.
+   * @return All locations of pattern occurrences in original input.
+   */
+  @Override public Long[] search(final char[] query) {
+    return search(new Source() {
+      @Override public int length() {
+        return query.length;
+      }
+
+      @Override public int get(int i) {
+        return query[i];
+      }
+    });
+  }
+
+  /**
+   * Check if the two offsets belong to the same record. This is always true for the
    * SuccinctFileBuffer.
    *
    * @param firstOffset  The first offset.
    * @param secondOffset The second offset.
-   * @return True if the two recordIds belong to the same record, false otherwise.
+   * @return True if the two offsets belong to the same record, false otherwise.
    */
   @Override public boolean sameRecord(long firstOffset, long secondOffset) {
     return true;

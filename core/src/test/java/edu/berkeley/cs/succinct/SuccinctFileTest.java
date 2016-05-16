@@ -31,13 +31,13 @@ abstract public class SuccinctFileTest extends TestCase {
    */
   public void testExtract() throws Exception {
 
-    byte[] buf1 = sFile.extract(0, 100);
+    byte[] buf1 = sFile.extractBytes(0, 100);
     assertEquals(100, buf1.length);
     for (int i = 0; i < 100; i++) {
       assertEquals(fileData[i], buf1[i]);
     }
 
-    byte[] buf2 = sFile.extract(fileData.length - 101, 100);
+    byte[] buf2 = sFile.extractBytes(fileData.length - 101, 100);
     assertEquals(100, buf2.length);
     for (int i = 0; i < 100; i++) {
       assertEquals(fileData[fileData.length - 101 + i], buf2[i]);
@@ -51,7 +51,7 @@ abstract public class SuccinctFileTest extends TestCase {
    */
   public void testExtractUntil() throws Exception {
 
-    byte[] buf = sFile.extractUntil(0, (byte) '\n');
+    byte[] buf = sFile.extractBytesUntil(0, (byte) '\n');
     for (int i = 0; i < buf.length; i++) {
       assertEquals(fileData[i], buf[i]);
       assertFalse(buf[i] == '\n');

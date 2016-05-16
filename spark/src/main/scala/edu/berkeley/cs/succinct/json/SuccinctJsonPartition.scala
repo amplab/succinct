@@ -37,7 +37,7 @@ class SuccinctJsonPartition(ids: Array[Long], valueBuffer: SuccinctIndexedFile,
     val start = valueBuffer.getRecordOffset(recordId)
     val end = if (recordId == valueBuffer.getNumRecords - 1) valueBuffer.getSize - 1
       else valueBuffer.getRecordOffset(recordId + 1)
-    valueBuffer.extract(start, end - start)
+    valueBuffer.extractBytes(start, end - start)
   }
 
   def jGet(id: Long): String = {

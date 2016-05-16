@@ -25,7 +25,7 @@ public abstract class SuccinctTableTest extends TestCase {
 
     Integer[] recordIds = sTable.recordMultiSearchIds(queryTypes, queries);
     for (Integer recordId : recordIds) {
-      String currentRecord = new String(sTable.getRecord(recordId));
+      String currentRecord = new String(sTable.getRecordBytes(recordId));
       assertTrue((currentRecord.contains("/*") || currentRecord.contains("//")) && currentRecord
         .contains("Build"));
     }

@@ -166,7 +166,7 @@ public abstract class SuccinctCore implements Serializable {
    *
    * @return Size (in bytes) of Succinct data structures (compressed).
    */
-  public abstract int getSuccinctSize();
+  public abstract int getCoreSize();
 
   /**
    * Lookup NPA at specified index.

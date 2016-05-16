@@ -1,19 +1,13 @@
 package edu.berkeley.cs.succinct;
 
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
+import edu.berkeley.cs.succinct.util.Source;
 import edu.berkeley.cs.succinct.util.container.Range;
 
 import java.util.Comparator;
 import java.util.Iterator;
 
 public interface SuccinctIndexedFile extends SuccinctFile {
-
-  /**
-   * Get the size of the Succinct compressed file.
-   *
-   * @return The size of the Succinct compressed file.
-   */
-  int getSuccinctIndexedFileSize();
 
   /**
    * Search for offset corresponding to a position in the input.
@@ -44,7 +38,7 @@ public interface SuccinctIndexedFile extends SuccinctFile {
    * @param recordId The record id.
    * @return The corresponding record.
    */
-  byte[] getRecord(int recordId);
+  byte[] getRecordBytes(int recordId);
 
   /**
    * Get random access into record.
@@ -54,7 +48,33 @@ public interface SuccinctIndexedFile extends SuccinctFile {
    * @param length Number of bytes to fetch.
    * @return The extracted data.
    */
-  byte[] accessRecord(int recordId, int offset, int length);
+  byte[] extractRecordBytes(int recordId, int offset, int length);
+
+  /**
+   * Get the record for a given recordId.
+   *
+   * @param recordId The record id.
+   * @return The corresponding record.
+   */
+  String getRecord(int recordId);
+
+  /**
+   * Get random access into record.
+   *
+   * @param recordId The record id.
+   * @param offset Offset into record.
+   * @param length Number of bytes to fetch.
+   * @return The extracted data.
+   */
+  String extractRecord(int recordId, int offset, int length);
+
+  /**
+   * Search for an input query and return ids of all matching records.
+   *
+   * @param query Input query.
+   * @return Ids of all matching records.
+   */
+  Integer[] recordSearchIds(Source query);
 
   /**
    * Search for an input query and return ids of all matching records.
@@ -65,12 +85,36 @@ public interface SuccinctIndexedFile extends SuccinctFile {
   Integer[] recordSearchIds(byte[] query);
 
   /**
+   * Search for an input query and return ids of all matching records.
+   *
+   * @param query Input query.
+   * @return Ids of all matching records.
+   */
+  Integer[] recordSearchIds(char[] query);
+
+  /**
+   * Search for an input query and return an iterator over ids of all matching records.
+   *
+   * @param query Input query.
+   * @return Iterator over ids of all matching records
+   */
+  Iterator<Integer> recordSearchIdIterator(Source query);
+
+  /**
    * Search for an input query and return an iterator over ids of all matching records.
    *
    * @param query Input query.
    * @return Iterator over ids of all matching records
    */
   Iterator<Integer> recordSearchIdIterator(byte[] query);
+
+  /**
+   * Search for an input query and return an iterator over ids of all matching records.
+   *
+   * @param query Input query.
+   * @return Iterator over ids of all matching records
+   */
+  Iterator<Integer> recordSearchIdIterator(char[] query);
 
   /**
    * Search for all records that contain a particular regular expression.

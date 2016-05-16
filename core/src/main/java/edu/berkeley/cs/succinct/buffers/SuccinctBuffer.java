@@ -41,7 +41,7 @@ public class SuccinctBuffer extends SuccinctCore {
     super();
   }
 
-  @Override public int getSuccinctSize() {
+  @Override public int getCoreSize() {
     // Compute size of all columns
     int columnsSize = 0;
     for (ThreadSafeByteBuffer column : columns) {
@@ -61,7 +61,7 @@ public class SuccinctBuffer extends SuccinctCore {
    */
   public SuccinctBuffer(final byte[] input) {
     // Construct Succinct data-structures
-    construct(new InputSource() {
+    construct(new Source() {
       @Override public int length() {
         return input.length;
       }
@@ -79,7 +79,7 @@ public class SuccinctBuffer extends SuccinctCore {
    */
   public SuccinctBuffer(final char[] input) {
     // Construct Succinct data-structures
-    construct(new InputSource() {
+    construct(new Source() {
       @Override public int length() {
         return input.length;
       }
@@ -247,7 +247,7 @@ public class SuccinctBuffer extends SuccinctCore {
    *
    * @param input Input byte array.
    */
-  private void construct(InputSource input) {
+  protected void construct(Source input) {
 
     // Uncompressed ISA
     int[] ISA;

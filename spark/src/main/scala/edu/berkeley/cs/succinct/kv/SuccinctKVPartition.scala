@@ -29,7 +29,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
 
       override def next(): (K, Array[Byte]) = {
         val curKey = keys(currentRecordId)
-        val curVal = valueBuffer.getRecord(currentRecordId)
+        val curVal = valueBuffer.getRecordBytes(currentRecordId)
         currentRecordId += 1
         (curKey, curVal)
       }
@@ -52,7 +52,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   /** Get the value corresponding to a key. **/
   def get(key: K): Array[Byte] = {
     val pos = findKey(key)
-    if (pos < 0 || pos > numKeys) null else valueBuffer.getRecord(pos)
+    if (pos < 0 || pos > numKeys) null else valueBuffer.getRecordBytes(pos)
   }
 
   /** Get the values corresponding to an array of keys. **/
@@ -63,7 +63,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   /** Random access into the value corresponding to a key. **/
   def extract(key: K, offset: Int, length: Int): Array[Byte] = {
     val pos = findKey(key)
-    if (pos < 0 || pos > numKeys) null else valueBuffer.accessRecord(pos, offset, length)
+    if (pos < 0 || pos > numKeys) null else valueBuffer.extractRecordBytes(pos, offset, length)
   }
 
   /** Search across values, and return all keys for matched values. **/
@@ -86,7 +86,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
 
       override def next(): (K, Array[Byte]) = {
         val recordId = recordIds.next()
-        (keys(recordId), valueBuffer.getRecord(recordId))
+        (keys(recordId), valueBuffer.getRecordBytes(recordId))
       }
     }
   }
@@ -155,7 +155,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   def firstKey: K = keys(0)
 
   override def estimatedSize: Long = {
-    valueBuffer.getSuccinctIndexedFileSize + SizeEstimator.estimate(keys)
+    valueBuffer.getCompressedSize + SizeEstimator.estimate(keys)
   }
 }
 

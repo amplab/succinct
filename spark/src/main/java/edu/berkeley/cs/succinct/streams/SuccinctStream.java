@@ -114,7 +114,7 @@ public class SuccinctStream extends SuccinctCore {
     return fs.open(path);
   }
 
-  @Override public int getSuccinctSize() {
+  @Override public int getCoreSize() {
     return baseSize() + (12 + 12 + SuccinctConstants.REF_SIZE_BYTES) * 3 + (12 + columns.length * (
       2 * SuccinctConstants.REF_SIZE_BYTES + 8));
   }

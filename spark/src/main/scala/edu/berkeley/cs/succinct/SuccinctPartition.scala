@@ -38,7 +38,7 @@ class SuccinctPartition(
       override def hasNext: Boolean = curRecordId < succinctIndexedFile.getNumRecords
 
       override def next(): Array[Byte] = {
-        val data = succinctIndexedFile.getRecord(curRecordId)
+        val data = succinctIndexedFile.getRecordBytes(curRecordId)
         curRecordId += 1
         data
       }
@@ -63,7 +63,7 @@ class SuccinctPartition(
 
   /** Random access to data at given offset to fetch given number of bytes */
   def extract(offset: Long, length: Int): Array[Byte] = {
-    succinctIndexedFile.extract(offset - partitionOffset, length)
+    succinctIndexedFile.extractBytes(offset - partitionOffset, length)
   }
 
   /**
@@ -90,7 +90,7 @@ class SuccinctPartition(
     dataOutputStream.writeLong(partitionFirstRecordId)
   }
 
-  override def estimatedSize: Long = 28 + succinctIndexedFile.getSuccinctIndexedFileSize
+  override def estimatedSize: Long = 28 + succinctIndexedFile.getCompressedSize
 }
 
 /** Factory for [[SuccinctPartition]] instances **/
