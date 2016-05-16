@@ -35,18 +35,18 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
   }
 
   private int readInteger(int offset) {
-    byte[] bytes = extract(offset, SuccinctConstants.INT_SIZE_BYTES);
+    byte[] bytes = extractBytes(offset, SuccinctConstants.INT_SIZE_BYTES);
     return bytes[0] << 24 | (bytes[1] & 0xFF) << 16 | (bytes[2] & 0xFF) << 8 | (bytes[3] & 0xFF);
   }
 
   private int readInteger(int offset, int i) {
     int nBytes = SuccinctConstants.INT_SIZE_BYTES;
-    byte[] bytes = extract(offset + i * nBytes, nBytes);
+    byte[] bytes = extractBytes(offset + i * nBytes, nBytes);
     return bytes[0] << 24 | (bytes[1] & 0xFF) << 16 | (bytes[2] & 0xFF) << 8 | (bytes[3] & 0xFF);
   }
 
   private short readShort(int offset) {
-    byte[] bytes = extract(offset, SuccinctConstants.INT_SIZE_BYTES);
+    byte[] bytes = extractBytes(offset, SuccinctConstants.INT_SIZE_BYTES);
     return (short) (bytes[0] << 8 | (bytes[1] & 0xFF));
   }
 
@@ -174,7 +174,7 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
       short length = readShort(curOffset);
       curOffset += SuccinctConstants.SHORT_SIZE_BYTES;
       if (i == 0) {
-        return new String(extract(curOffset, length));
+        return extract(curOffset, length);
       }
 
       // Skip length bytes

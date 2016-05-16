@@ -41,8 +41,8 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
   }
 
   override def estimatedSize: Long = {
-    val docSize = documentBuffer.getSuccinctIndexedFileSize
-    val annotSize = annotationBuffer.getSuccinctSize
+    val docSize = documentBuffer.getCompressedSize
+    val annotSize = annotationBuffer.getCompressedSize
     val docIdsSize = SizeEstimator.estimate(keys)
     docSize + annotSize + docIdsSize
   }
@@ -62,17 +62,17 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
 
   def getDocument(docId: String): String = {
     val pos = findKey(docId)
-    if (pos < 0 || pos > keys.length) null else new String(documentBuffer.getRecord(pos))
+    if (pos < 0 || pos > keys.length) null else documentBuffer.getRecord(pos)
   }
 
   def extractDocument(docId: String, offset: Int, length: Int): String = {
     val pos = findKey(docId)
-    if (pos < 0 || pos > keys.length) null else new String(documentBuffer.accessRecord(pos, offset, length))
+    if (pos < 0 || pos > keys.length) null else documentBuffer.extractRecord(pos, offset, length)
   }
 
   def search(query: String): Iterator[(String, Int, Int)] = {
     new Iterator[(String, Int, Int)] {
-      val searchIterator = documentBuffer.searchIterator(query.getBytes())
+      val searchIterator = documentBuffer.searchIterator(query.toCharArray())
       val matchLength = query.length
 
       override def hasNext: Boolean = searchIterator.hasNext
