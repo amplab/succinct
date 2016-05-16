@@ -5,18 +5,19 @@ import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer;
 import edu.berkeley.cs.succinct.util.Source;
 import org.apache.hadoop.fs.Path;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-public class SuccinctIndexedFileStreamTest extends SuccinctIndexedFileTest {
-  private String testFileRaw = this.getClass().getResource("/raw.dat").getFile();
+public class SuccinctIndexedFileStream2Test extends SuccinctIndexedFileTest {
+  private String testFileRaw = this.getClass().getResource("/utf8.dat").getFile();
   private String testFileSuccinct =
-    this.getClass().getResource("/raw.dat").getFile() + ".idx.succinct";
+    this.getClass().getResource("/utf8.dat").getFile() + ".idx.succinct";
 
-  byte[] data;
-  private String[] queryStrings = { "int", "include", "random", "random int" };
+  char[] data;
+  private String[] queryStrings =
+    {"kΩ", "əsoʊsiˈeıʃn", "‘single’", "გაიაროთ", "в", "ร", "ተ", "ᚻᛖ", "⡌⠁", "╳", "rand"};
 
   @Override public String getQueryString(int i) {
     return queryStrings[i];
@@ -40,9 +41,9 @@ public class SuccinctIndexedFileStreamTest extends SuccinctIndexedFileTest {
 
     File inputFile = new File(testFileRaw);
 
-    data = new byte[(int) inputFile.length()];
-    DataInputStream dis = new DataInputStream(new FileInputStream(inputFile));
-    dis.readFully(data);
+    data = new char[(int) inputFile.length()];
+    InputStreamReader inputReader = new InputStreamReader(new FileInputStream(inputFile), "UTF8");
+    inputReader.read(data, 0, data.length);
     fileData = new Source() {
       @Override public int length() {
         return data.length;

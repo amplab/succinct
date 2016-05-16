@@ -9,16 +9,17 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
+public class SuccinctIndexedFileBuffer2Test extends SuccinctIndexedFileTest {
 
-  private String testFileRaw = this.getClass().getResource("/test_file").getFile();
+  private String testFileRaw = this.getClass().getResource("/test_file_utf8").getFile();
   private String testFileSuccinct =
-    this.getClass().getResource("/test_file").getFile() + ".idx.succinct";
+    this.getClass().getResource("/test_file_utf8").getFile() + ".idx.succinct";
   private String testFileSuccinctMin =
-    this.getClass().getResource("/test_file").getFile() + ".idx.min.succinct";
+    this.getClass().getResource("/test_file_utf8").getFile() + ".idx.min.succinct";
 
-  byte[] data;
-  private String[] queryStrings = { "int", "include", "random", "random int" };
+  char[] data;
+  private String[] queryStrings =
+    {"kΩ", "əsoʊsiˈeıʃn", "‘single’", "გაიაროთ", "в", "ร", "ተ", "ᚻᛖ", "⡌⠁", "╳", "rand"};
 
   @Override public String getQueryString(int i) {
     return queryStrings[i];
@@ -42,9 +43,9 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
 
     File inputFile = new File(testFileRaw);
 
-    data = new byte[(int) inputFile.length()];
-    DataInputStream dis = new DataInputStream(new FileInputStream(inputFile));
-    dis.readFully(data);
+    data = new char[(int) inputFile.length()];
+    InputStreamReader inputReader = new InputStreamReader(new FileInputStream(inputFile), "UTF8");
+    inputReader.read(data, 0, data.length);
     fileData = new Source() {
       @Override public int length() {
         return data.length;

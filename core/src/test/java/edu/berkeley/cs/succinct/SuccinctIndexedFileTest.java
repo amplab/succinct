@@ -6,6 +6,8 @@ import junit.framework.TestCase;
 import java.util.Iterator;
 import java.util.Random;
 
+import static edu.berkeley.cs.succinct.TestUtils.stringRecordCount;
+
 abstract public class SuccinctIndexedFileTest extends TestCase {
 
   protected SuccinctIndexedFile sIFile;
@@ -13,8 +15,8 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
   protected Source fileData;
 
   abstract public String getQueryString(int i);
-  abstract public int getQueryStringCount(int i);
   abstract public int numQueryStrings();
+  abstract public String getData();
 
   /**
    * Test method: int getRecordOffset(int recordId)
@@ -75,13 +77,15 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
     for (int i = 0; i < numQueryStrings(); i++) {
       String query = getQueryString(i);
       Integer[] recordSearchIds = sIFile.recordSearchIds(query.toCharArray());
-      assertEquals(getQueryStringCount(i), recordSearchIds.length);
+      assertEquals(stringRecordCount(getData(), offsets, query), recordSearchIds.length);
       for (Integer recordId : recordSearchIds) {
         String buf = sIFile.getRecord(recordId);
         assertTrue(buf.contains(query));
       }
     }
   }
+
+
 
   /**
    * Test method: Iterator<Integer> recordSearchIdIterator(byte[] query)
@@ -100,7 +104,7 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
         assertTrue(buf.contains(query));
         count++;
       }
-      assertEquals(getQueryStringCount(i), count);
+      assertEquals(stringRecordCount(getData(), offsets, query), count);
     }
   }
 

@@ -9,14 +9,15 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Set;
 
-public class SuccinctFileBufferTest extends SuccinctFileTest {
+public class SuccinctFileBuffer2Test extends SuccinctFileTest {
 
-  private String testFileRaw = this.getClass().getResource("/test_file").getFile();
+  private String testFileRaw = this.getClass().getResource("/test_file_utf8").getFile();
   private String testFileSuccinct =
-    this.getClass().getResource("/test_file").getFile() + ".buf.succinct";
+    this.getClass().getResource("/test_file_utf8").getFile() + ".buf.succinct";
 
-  byte[] data;
-  private String[] queryStrings = { "int", "include", "random", "random int" };
+  char[] data;
+  private String[] queryStrings =
+    {"kΩ", "əsoʊsiˈeıʃn", "‘single’", "გაიაროთ", "в", "ร", "ተ", "ᚻᛖ", "⡌⠁", "╳", "rand"};
 
   @Override public String getQueryString(int i) {
     return queryStrings[i];
@@ -40,9 +41,9 @@ public class SuccinctFileBufferTest extends SuccinctFileTest {
 
     File inputFile = new File(testFileRaw);
 
-    data = new byte[(int) inputFile.length()];
-    DataInputStream dis = new DataInputStream(new FileInputStream(inputFile));
-    dis.readFully(data);
+    data = new char[(int) inputFile.length()];
+    InputStreamReader inputReader = new InputStreamReader(new FileInputStream(inputFile), "UTF8");
+    inputReader.read(data, 0, data.length);
     fileData = new Source() {
       @Override public int length() {
         return data.length;

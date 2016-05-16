@@ -7,14 +7,16 @@ import junit.framework.TestCase;
 import java.util.Iterator;
 import java.util.Set;
 
+import static edu.berkeley.cs.succinct.TestUtils.stringCount;
+
 abstract public class SuccinctFileTest extends TestCase {
 
   protected SuccinctFile sFile;
   protected Source fileData;
 
   abstract public String getQueryString(int i);
-  abstract public int getQueryStringCount(int i);
   abstract public int numQueryStrings();
+  abstract public String getData();
 
   /**
    * Test method: char charAt(long i)
@@ -34,18 +36,18 @@ abstract public class SuccinctFileTest extends TestCase {
    *
    * @throws Exception
    */
-  public void testExtractBytes() throws Exception {
+  public void testExtract() throws Exception {
 
-    byte[] buf1 = sFile.extractBytes(0, 100);
-    assertEquals(100, buf1.length);
+    String buf1 = sFile.extract(0, 100);
+    assertEquals(100, buf1.length());
     for (int i = 0; i < 100; i++) {
-      assertEquals(fileData.get(i), buf1[i]);
+      assertEquals(fileData.get(i), buf1.charAt(i));
     }
 
-    byte[] buf2 = sFile.extractBytes(fileData.length() - 101, 100);
-    assertEquals(100, buf2.length);
+    String buf2 = sFile.extract(fileData.length() - 101, 100);
+    assertEquals(100, buf2.length());
     for (int i = 0; i < 100; i++) {
-      assertEquals(fileData.get(fileData.length() - 101 + i), buf2[i]);
+      assertEquals(fileData.get(fileData.length() - 101 + i), buf2.charAt(i));
     }
   }
 
@@ -56,12 +58,12 @@ abstract public class SuccinctFileTest extends TestCase {
    */
   public void testExtractBytesUntil() throws Exception {
 
-    byte[] buf = sFile.extractBytesUntil(0, (byte) '\n');
-    for (int i = 0; i < buf.length; i++) {
-      assertEquals(fileData.get(i), buf[i]);
-      assertFalse(buf[i] == '\n');
+    String buf = sFile.extractUntil(0, '\n');
+    for (int i = 0; i < buf.length(); i++) {
+      assertEquals(fileData.get(i), buf.charAt(i));
+      assertFalse(buf.charAt(i) == '\n');
     }
-    assertEquals(fileData.get(buf.length), '\n');
+    assertEquals(fileData.get(buf.length()), '\n');
   }
 
   /**
@@ -74,7 +76,8 @@ abstract public class SuccinctFileTest extends TestCase {
     for (int i = 0; i < numQueryStrings(); i++) {
       String query = getQueryString(i);
       long count = sFile.count(query.toCharArray());
-      assertEquals(getQueryStringCount(i), count);
+      long expected = stringCount(getData(), query);
+      assertEquals(expected, count);
     }
 
   }
@@ -85,11 +88,10 @@ abstract public class SuccinctFileTest extends TestCase {
    * @throws Exception
    */
   public void testSearch() throws Exception {
-
     for (int i = 0; i < numQueryStrings(); i++) {
       String query = getQueryString(i);
       Long[] positions = sFile.search(query.toCharArray());
-      assertEquals(getQueryStringCount(i), positions.length);
+      assertEquals(stringCount(getData(), query), positions.length);
       for (Long pos : positions) {
         for (int j = 0; j < query.length(); j++) {
           assertEquals(query.charAt(j), fileData.get((int) (pos + j)));
@@ -116,7 +118,7 @@ abstract public class SuccinctFileTest extends TestCase {
         }
         count++;
       }
-      assertEquals(getQueryStringCount(i), count);
+      assertEquals(stringCount(getData(), query), count);
     }
   }
 

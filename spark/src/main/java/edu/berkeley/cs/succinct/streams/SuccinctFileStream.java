@@ -88,7 +88,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     long s = lookupISA(offset);
     for (int k = 0; k < len && k < getOriginalSize(); k++) {
       int nextChar = lookupC(s);
-      if (nextChar < Byte.MIN_VALUE || nextChar > Byte.MAX_VALUE) {
+      if (nextChar < Character.MIN_VALUE || nextChar > Character.MAX_VALUE) {
         break;
       }
       out.append((char) nextChar);

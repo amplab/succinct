@@ -31,6 +31,17 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   }
 
   /**
+   * Constructor to initialize SuccinctIndexedBuffer from input byte array and offsets corresponding to records.
+   *
+   * @param input   The input byte array.
+   * @param offsets Offsets corresponding to records.
+   */
+  public SuccinctIndexedFileBuffer(char[] input, int[] offsets) {
+    super(input);
+    this.offsets = offsets;
+  }
+
+  /**
    * Constructor to load the data from persisted Succinct data-structures.
    *
    * @param path        Path to load data from.
