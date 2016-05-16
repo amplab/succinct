@@ -189,6 +189,90 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
   }
 
   /**
+   * Extract short integer at specified offset.
+   *
+   * @param offset Offset into the original input to start extracting at.
+   * @return Extracted short integer.
+   */
+  @Override public short extractShort(int offset) {
+    long s = lookupISA(offset);
+    int byte0 = lookupC(s);
+
+    s = lookupNPA(s);
+    int byte1 = lookupC(s);
+
+    return (short) ((byte0 << 8) |
+      (byte1 & 0xFF));
+  }
+
+  /**
+   * Extract integer at specified offset.
+   *
+   * @param offset Offset into the original input to start extracting at.
+   * @return Extracted integer.
+   */
+  @Override public int extractInt(int offset) {
+    long s = lookupISA(offset);
+    int byte0 = lookupC(s);
+
+    s = lookupNPA(s);
+    int byte1 = lookupC(s);
+
+    s = lookupNPA(s);
+    int byte2 = lookupC(s);
+
+    s = lookupNPA(s);
+    int byte3 = lookupC(s);
+
+    return (byte0 << 24) |
+      ((byte1 & 0xFF) << 16) |
+      ((byte2 & 0xFF) << 8) |
+      (byte3 & 0xFF);
+  }
+
+  /**
+   * Extract long integer at specified offset.
+   *
+   * @param offset Offset into the original input to start extracting at.
+   * @return Extracted long integer.
+   */
+  @Override public long extractLong(int offset) {
+
+    long s = lookupISA(offset);
+    int byte0 = lookupC(s);
+
+    s = lookupNPA(s);
+    int byte1 = lookupC(s);
+
+    s = lookupNPA(s);
+    int byte2 = lookupC(s);
+
+    s = lookupNPA(s);
+    int byte3 = lookupC(s);
+
+    s = lookupNPA(s);
+    int byte4 = lookupC(s);
+
+    s = lookupNPA(s);
+    int byte5 = lookupC(s);
+
+    s = lookupNPA(s);
+    int byte6 = lookupC(s);
+
+    s = lookupNPA(s);
+    int byte7 = lookupC(s);
+
+    return ((long) byte0 << 56) |
+      ((long) (byte1 & 0xFF) << 48) |
+      ((long) (byte2 & 0xFF) << 40) |
+      ((long) (byte3 & 0xFF) << 32) |
+      ((long) (byte4 & 0xFF) << 24) |
+      ((byte5 & 0xFF) << 16) |
+      ((byte6 & 0xFF) << 8) |
+      ((byte7 & 0xFF));
+  }
+
+  /**
    * Perform a range search to obtain SA range between two given queries.
    *
    * @param buf1 The beginning of the range.
