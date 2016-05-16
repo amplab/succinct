@@ -67,7 +67,7 @@ public class AnnotationRecord {
 
     while (lo != hi) {
       int mid = lo + (hi - lo) / 2;
-      int arrVal = buffer.readInteger(offset, mid);
+      int arrVal = buffer.extractInt(offset + mid * SuccinctConstants.INT_SIZE_BYTES);
       if (arrVal <= startOffset) {
         lo = mid + 1;
       } else {
@@ -127,7 +127,7 @@ public class AnnotationRecord {
       throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
     }
     int rbOffset = offset + i * SuccinctConstants.INT_SIZE_BYTES;
-    return buffer.readInteger(rbOffset);
+    return buffer.extractInt(rbOffset);
   }
 
   public int getRangeEnd(int i) {
@@ -135,7 +135,7 @@ public class AnnotationRecord {
       throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
     }
     int reOffset = offset + (numEntries + i) * SuccinctConstants.INT_SIZE_BYTES;
-    return buffer.readInteger(reOffset);
+    return buffer.extractInt(reOffset);
   }
 
   public int getAnnotId(int i) {
@@ -143,7 +143,7 @@ public class AnnotationRecord {
       throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
     }
     int aiOffset = offset + (2 * numEntries + i) * SuccinctConstants.INT_SIZE_BYTES;
-    return buffer.readInteger(aiOffset);
+    return buffer.extractInt(aiOffset);
   }
 
   public String getMetadata(int i) {
@@ -152,7 +152,7 @@ public class AnnotationRecord {
     }
     int curOffset = offset + (3 * numEntries) * SuccinctConstants.INT_SIZE_BYTES;
     while (true) {
-      short length = buffer.readShort(curOffset);
+      short length = buffer.extractShort(curOffset);
       curOffset += SuccinctConstants.SHORT_SIZE_BYTES;
       if (i == 0) {
         return buffer.extract(curOffset, length);

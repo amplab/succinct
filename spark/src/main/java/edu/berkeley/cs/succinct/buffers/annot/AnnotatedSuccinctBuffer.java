@@ -34,22 +34,6 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
     }
   }
 
-  public int readInteger(int offset) {
-    byte[] bytes = extractBytes(offset, SuccinctConstants.INT_SIZE_BYTES);
-    return bytes[0] << 24 | (bytes[1] & 0xFF) << 16 | (bytes[2] & 0xFF) << 8 | (bytes[3] & 0xFF);
-  }
-
-  public int readInteger(int offset, int i) {
-    int nBytes = SuccinctConstants.INT_SIZE_BYTES;
-    byte[] bytes = extractBytes(offset + i * nBytes, nBytes);
-    return bytes[0] << 24 | (bytes[1] & 0xFF) << 16 | (bytes[2] & 0xFF) << 8 | (bytes[3] & 0xFF);
-  }
-
-  public short readShort(int offset) {
-    byte[] bytes = extractBytes(offset, SuccinctConstants.INT_SIZE_BYTES);
-    return (short) (bytes[0] << 8 | (bytes[1] & 0xFF));
-  }
-
   public AnnotationRecord getAnnotationRecord(String docId, String annotClass, String annotType) {
     // Find the record
     byte[] query = (DELIM + annotClass + DELIM + annotType + DELIM + docId + DELIM).getBytes();
@@ -62,7 +46,7 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
 
     // Extract num entries
     int nEntriesOffset = queryRes[0].intValue() + query.length;
-    int nEntries = readInteger(nEntriesOffset);
+    int nEntries = extractInt(nEntriesOffset);
 
     // Get offset to data
     int offset = nEntriesOffset + SuccinctConstants.INT_SIZE_BYTES;
@@ -75,9 +59,6 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
     // Find the record
     final byte[] query = (DELIM + annotClass + DELIM + annotType + DELIM).getBytes();
     final Long[] queryRes = search(query);
-
-    final AnnotationRecord[] records = new AnnotationRecord[queryRes.length];
-
     return new Iterator<AnnotationRecord>() {
       int i = 0;
 
@@ -90,7 +71,7 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
         int docIdOffset = queryRes[i].intValue() + query.length;
         String docId = extractUntil(docIdOffset, DELIM);
         int nEntriesOffset = docIdOffset + docId.length() + 1;
-        int nEntries = readInteger(nEntriesOffset);
+        int nEntries = extractInt(nEntriesOffset);
 
         // Get offset to data
         int offset = nEntriesOffset + SuccinctConstants.INT_SIZE_BYTES;
