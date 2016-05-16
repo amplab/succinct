@@ -50,9 +50,9 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
     return (short) (bytes[0] << 8 | (bytes[1] & 0xFF));
   }
 
-  public AnnotationRecord findAnnotationRecord(String docId, String annotClass, String annotType) {
+  public AnnotationRecord getAnnotationRecord(String docId, String annotClass, String annotType) {
     // Find the record
-    byte[] query = (DELIM + annotClass + DELIM + docId + DELIM + annotType + DELIM).getBytes();
+    byte[] query = (DELIM + annotClass + DELIM + annotType + DELIM + docId + DELIM).getBytes();
     Long[] queryRes = search(query);
     assert queryRes.length == 1 || queryRes.length == 0;
 

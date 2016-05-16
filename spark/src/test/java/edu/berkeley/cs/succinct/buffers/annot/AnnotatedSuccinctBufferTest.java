@@ -6,19 +6,19 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
 
   // See AnnotatedDocumentSerializerSuite.scala for the original annotations.
   private final byte[] test =
-    {94, 103, 101, 94, 100, 111, 99, 49, 94, 119, 111, 114, 100, 94, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0,
+    {94, 103, 101, 94, 119, 111, 114, 100, 94, 100, 111, 99, 49, 94, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0,
       0, 9, 0, 0, 0, 16, 0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0, 19, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 0, 5,
-      0, 3, 102, 111, 111, 0, 3, 98, 97, 114, 0, 3, 98, 97, 122, 94, 103, 101, 94, 100, 111, 99, 49,
-      94, 115, 112, 97, 99, 101, 94, 0, 0, 0, 2, 0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0, 9, 0, 0, 0, 16,
-      0, 0, 0, 2, 0, 0, 0, 4, 0, 0, 0, 0, 94, 103, 101, 94, 100, 111, 99, 50, 94, 119, 111, 114,
-      100, 94, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0,
-      19, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 94, 103, 101, 94, 100, 111, 99, 50,
-      94, 115, 112, 97, 99, 101, 94, 0, 0, 0, 2, 0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0, 9, 0, 0, 0, 16,
-      0, 0, 0, 2, 0, 0, 0, 4, 0, 0, 0, 0, 94, 103, 101, 94, 100, 111, 99, 51, 94, 115, 112, 97, 99,
-      101, 94, 0, 0, 0, 2, 0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0, 0, 2, 0, 0, 0, 4,
-      0, 0, 0, 0, 94, 103, 101, 94, 100, 111, 99, 51, 94, 119, 111, 114, 100, 94, 0, 0, 0, 3, 0, 0,
-      0, 0, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0, 21, 0, 0, 0, 1, 0, 0, 0, 3,
-      0, 0, 0, 5, 0, 1, 97, 0, 3, 98, 38, 99, 0, 3, 100, 94, 101};
+      0, 3, 102, 111, 111, 0, 3, 98, 97, 114, 0, 3, 98, 97, 122, 94, 103, 101, 94, 115, 112, 97, 99,
+      101, 94, 100, 111, 99, 49, 94, 0, 0, 0, 2, 0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0, 9, 0, 0, 0, 16,
+      0, 0, 0, 2, 0, 0, 0, 4, 0, 0, 0, 0, 94, 103, 101, 94, 119, 111, 114, 100, 94, 100, 111, 99,
+      50, 94, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0, 19,
+      0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 94, 103, 101, 94, 115, 112, 97, 99, 101,
+      94, 100, 111, 99, 50, 94, 0, 0, 0, 2, 0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0,
+      0, 2, 0, 0, 0, 4, 0, 0, 0, 0, 94, 103, 101, 94, 115, 112, 97, 99, 101, 94, 100, 111, 99, 51,
+      94, 0, 0, 0, 2, 0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0, 0, 2, 0, 0, 0, 4, 0,
+      0, 0, 0, 94, 103, 101, 94, 119, 111, 114, 100, 94, 100, 111, 99, 51, 94, 0, 0, 0, 3, 0, 0, 0,
+      0, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0, 21, 0, 0, 0, 1, 0, 0, 0, 3, 0,
+      0, 0, 5, 0, 1, 97, 0, 3, 98, 38, 99, 0, 3, 100, 94, 101};
 
   private final AnnotatedSuccinctBuffer buf = new AnnotatedSuccinctBuffer(test);
   private final String[] documentIds = {"doc1", "doc2", "doc3"};
@@ -38,9 +38,9 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
 
   public void testFindAnnotationRecord() throws Exception {
     for (String docId : documentIds) {
-      for (String annotClass: annotClasses) {
-        for (String annotType: annotTypes) {
-          AnnotationRecord ar = buf.findAnnotationRecord(docId, annotClass, annotType);
+      for (String annotClass : annotClasses) {
+        for (String annotType : annotTypes) {
+          AnnotationRecord ar = buf.getAnnotationRecord(docId, annotClass, annotType);
           assertNotNull(ar);
           assertEquals(docId, ar.getDocId());
           assertEquals(annotClass, ar.getAnnotClass());
@@ -54,14 +54,14 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
       }
     }
 
-    assertNull(buf.findAnnotationRecord("a", "b", "c"));
+    assertNull(buf.getAnnotationRecord("a", "b", "c"));
   }
 
   public void testGetRangeBegin() throws Exception {
     for (String docId : documentIds) {
       for (String annotClass : annotClasses) {
         for (String annotType : annotTypes) {
-          AnnotationRecord ar = buf.findAnnotationRecord(docId, annotClass, annotType);
+          AnnotationRecord ar = buf.getAnnotationRecord(docId, annotClass, annotType);
           for (int i = 0; i < ar.getNumEntries(); i++) {
             int rBegin = buf.getRangeBegin(ar, i);
             if (annotType.compareTo("word") == 0) {
@@ -80,7 +80,7 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
     for (String docId : documentIds) {
       for (String annotClass : annotClasses) {
         for (String annotType : annotTypes) {
-          AnnotationRecord ar = buf.findAnnotationRecord(docId, annotClass, annotType);
+          AnnotationRecord ar = buf.getAnnotationRecord(docId, annotClass, annotType);
           for (int i = 0; i < ar.getNumEntries(); i++) {
             int rEnd = buf.getRangeEnd(ar, i);
             if (annotType.compareTo("word") == 0) {
@@ -103,7 +103,7 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
     for (String docId : documentIds) {
       for (String annotClass : annotClasses) {
         for (String annotType : annotTypes) {
-          AnnotationRecord ar = buf.findAnnotationRecord(docId, annotClass, annotType);
+          AnnotationRecord ar = buf.getAnnotationRecord(docId, annotClass, annotType);
           for (int i = 0; i < ar.getNumEntries(); i++) {
             int annotId = buf.getAnnotId(ar, i);
             if (annotType.compareTo("word") == 0) {
@@ -123,7 +123,7 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
     for (String docId : documentIds) {
       for (String annotClass : annotClasses) {
         for (String annotType : annotTypes) {
-          AnnotationRecord ar = buf.findAnnotationRecord(docId, annotClass, annotType);
+          AnnotationRecord ar = buf.getAnnotationRecord(docId, annotClass, annotType);
           for (int i = 0; i < ar.getNumEntries(); i++) {
             String metadata = buf.getMetadata(ar, i);
             if (annotType.compareTo("word") == 0) {
@@ -149,7 +149,7 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
     for (String docId : documentIds) {
       for (String annotClass : annotClasses) {
         for (String annotType : annotTypes) {
-          AnnotationRecord ar = buf.findAnnotationRecord(docId, annotClass, annotType);
+          AnnotationRecord ar = buf.getAnnotationRecord(docId, annotClass, annotType);
           for (int i = 0; i < ar.getNumEntries(); i++) {
             Annotation a = buf.getAnnotation(ar, i);
             int rBegin = a.getrBegin();
@@ -199,17 +199,17 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
   }
 
   public void testFindAnnotationsOver() throws Exception {
-    AnnotationRecord ar1 = buf.findAnnotationRecord("doc1", "ge", "word");
+    AnnotationRecord ar1 = buf.getAnnotationRecord("doc1", "ge", "word");
     int[] res1 = buf.findAnnotationsOver(ar1, 1, 3);
     assertEquals(1, res1.length);
     assertEquals(0, res1[0]);
 
-    AnnotationRecord ar2 = buf.findAnnotationRecord("doc3", "ge", "space");
+    AnnotationRecord ar2 = buf.getAnnotationRecord("doc3", "ge", "space");
     int[] res2 = buf.findAnnotationsOver(ar2, 8, 8);
     assertEquals(1, res2.length);
     assertEquals(0, res2[0]);
 
-    AnnotationRecord ar3 = buf.findAnnotationRecord("doc2", "ge", "word");
+    AnnotationRecord ar3 = buf.getAnnotationRecord("doc2", "ge", "word");
     int[] res3 = buf.findAnnotationsOver(ar3, 6, 9);
     assertEquals(0, res3.length);
 

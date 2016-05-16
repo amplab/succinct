@@ -2,9 +2,9 @@ package edu.berkeley.cs.succinct.buffers.annot;
 
 public class AnnotationRecord {
   private int offset;
-  private String docId;
   private String annotClass;
   private String annotType;
+  private String docId;
   private int numEntries;
 
   public AnnotationRecord(int offset, String docId, String annotClass, String annotType,

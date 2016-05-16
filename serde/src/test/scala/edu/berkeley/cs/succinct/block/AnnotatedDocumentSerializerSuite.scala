@@ -44,16 +44,16 @@ class AnnotatedDocumentSerializerSuite extends FunSuite {
           b = in.readByte()
         }
         assert(docClass == "ge")
-        var docId = ""
-        b = in.readByte()
-        while (b != DELIM) {
-          docId += b.toChar
-          b = in.readByte()
-        }
         var docType = ""
         b = in.readByte()
         while (b != DELIM) {
           docType += b.toChar
+          b = in.readByte()
+        }
+        var docId = ""
+        b = in.readByte()
+        while (b != DELIM) {
+          docId += b.toChar
           b = in.readByte()
         }
 
