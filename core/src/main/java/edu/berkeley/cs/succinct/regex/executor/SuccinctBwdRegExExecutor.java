@@ -40,7 +40,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
         switch (p.getPrimitiveType()) {
           case MGRAM: {
             String mgram = p.getPrimitiveStr();
-            Range range = succinctFile.bwdSearch(mgram.getBytes());
+            Range range = succinctFile.bwdSearch(mgram.toCharArray());
             if (!range.empty()) {
               results.add(new SuccinctRegExMatch(range, mgram.length()));
             }
@@ -52,7 +52,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
               if ((b == SuccinctConstants.EOL) || (b == SuccinctConstants.EOF)) {
                 continue;
               }
-              Range range = succinctFile.bwdSearch(String.valueOf(c).getBytes());
+              Range range = succinctFile.bwdSearch(String.valueOf(c).toCharArray());
               if (!range.empty()) {
                 results.add(new SuccinctRegExMatch(range, 1));
               }
@@ -62,7 +62,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
           case CHAR_RANGE: {
             char[] charRange = p.getPrimitiveStr().toCharArray();
             for (char c : charRange) {
-              Range range = succinctFile.bwdSearch(String.valueOf(c).getBytes());
+              Range range = succinctFile.bwdSearch(String.valueOf(c).toCharArray());
               if (!range.empty()) {
                 results.add(new SuccinctRegExMatch(range, 1));
               }
@@ -153,7 +153,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
         switch (p.getPrimitiveType()) {
           case MGRAM: {
             String mgram = p.getPrimitiveStr();
-            Range range = succinctFile.continueBwdSearch(mgram.getBytes(), rightMatch);
+            Range range = succinctFile.continueBwdSearch(mgram.toCharArray(), rightMatch);
             if (!range.empty()) {
               concatResults
                 .add(new SuccinctRegExMatch(range, rightMatch.getLength() + mgram.length()));
@@ -167,7 +167,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
                 continue;
               }
               Range range =
-                succinctFile.continueBwdSearch(String.valueOf(c).getBytes(), rightMatch);
+                succinctFile.continueBwdSearch(String.valueOf(c).toCharArray(), rightMatch);
               if (!range.empty()) {
                 concatResults.add(new SuccinctRegExMatch(range, rightMatch.getLength() + 1));
               }
@@ -178,7 +178,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
             char[] charRange = p.getPrimitiveStr().toCharArray();
             for (char c : charRange) {
               Range range =
-                succinctFile.continueBwdSearch(String.valueOf(c).getBytes(), rightMatch);
+                succinctFile.continueBwdSearch(String.valueOf(c).toCharArray(), rightMatch);
               if (!range.empty()) {
                 concatResults.add(new SuccinctRegExMatch(range, rightMatch.getLength() + 1));
               }
