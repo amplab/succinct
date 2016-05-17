@@ -29,112 +29,114 @@ class AnnotatedDocumentSerializerSuite extends FunSuite {
     assert(docText === (doc1._2 + "\n" + doc2._2 + "\n" + doc3._2 + "\n").toCharArray)
 
     // Check document annotations
-    val annotBuffer = ser.getAnnotationBuffer
-    val bais = new ByteArrayInputStream(annotBuffer)
-    val in = new DataInputStream(bais)
+    val annotBuffers = ser.getAnnotationBuffers
+
+    val geWordBuffer = annotBuffers("^ge^word^")
+    val geWordBais = new ByteArrayInputStream(geWordBuffer)
+    val geWordIn = new DataInputStream(geWordBais)
+
+    val geSpaceBuffer = annotBuffers("^ge^space^")
+    val geSpaceBais = new ByteArrayInputStream(geSpaceBuffer)
+    val geSpaceIn = new DataInputStream(geSpaceBais)
 
     Seq(1, 2, 3).foreach(i => {
-      Seq(0, 1).foreach(d => {
-        assert(in.readByte() == DELIM)
+      {
+        assert(geWordIn.readByte() == DELIM)
         var b = 0.toByte
-        var docClass = ""
-        b = in.readByte()
-        while (b != DELIM) {
-          docClass += b.toChar
-          b = in.readByte()
-        }
-        assert(docClass == "ge")
-        var docType = ""
-        b = in.readByte()
-        while (b != DELIM) {
-          docType += b.toChar
-          b = in.readByte()
-        }
         var docId = ""
-        b = in.readByte()
+        b = geWordIn.readByte()
         while (b != DELIM) {
           docId += b.toChar
-          b = in.readByte()
+          b = geWordIn.readByte()
         }
 
-        val numEntries = in.readInt()
-        if (docType == "word") {
-          assert(numEntries == 3)
+        val numEntries = geWordIn.readInt()
+        assert(numEntries == 3)
 
-          // Range begins
-          assert(in.readInt() == 0)
-          assert(in.readInt() == 9)
-          assert(in.readInt() == 16)
+        // Range begins
+        assert(geWordIn.readInt() == 0)
+        assert(geWordIn.readInt() == 9)
+        assert(geWordIn.readInt() == 16)
 
-          // Range ends
-          assert(in.readInt() == 8)
-          assert(in.readInt() == 15)
-          if (docId == "doc3")
-            assert(in.readInt() == 21)
-          else
-            assert(in.readInt() == 19)
+        // Range ends
+        assert(geWordIn.readInt() == 8)
+        assert(geWordIn.readInt() == 15)
+        if (docId == "doc3")
+          assert(geWordIn.readInt() == 21)
+        else
+          assert(geWordIn.readInt() == 19)
 
-          // Annotation Ids
-          assert(in.readInt() == 1)
-          assert(in.readInt() == 3)
-          assert(in.readInt() == 5)
+        // Annotation Ids
+        assert(geWordIn.readInt() == 1)
+        assert(geWordIn.readInt() == 3)
+        assert(geWordIn.readInt() == 5)
 
-          // Metadata
-          if (docId == "doc1") {
-            val len1 = in.readShort()
-            val buf1 = new Array[Byte](len1)
-            in.read(buf1)
-            assert(buf1 === "foo".getBytes())
+        // Metadata
+        if (docId == "doc1") {
+          val len1 = geWordIn.readShort()
+          val buf1 = new Array[Byte](len1)
+          geWordIn.read(buf1)
+          assert(buf1 === "foo".getBytes())
 
-            val len2 = in.readShort()
-            val buf2 = new Array[Byte](len2)
-            in.read(buf2)
-            assert(buf2 === "bar".getBytes())
+          val len2 = geWordIn.readShort()
+          val buf2 = new Array[Byte](len2)
+          geWordIn.read(buf2)
+          assert(buf2 === "bar".getBytes())
 
-            val len3 = in.readShort()
-            val buf3 = new Array[Byte](len3)
-            in.read(buf3)
-            assert(buf3 === "baz".getBytes())
-          } else if (docId == "doc2") {
-            assert(in.readShort() == 0)
-            assert(in.readShort() == 0)
-            assert(in.readShort() == 0)
-          } else if (docId == "doc3") {
-            val len1 = in.readShort()
-            val buf1 = new Array[Byte](len1)
-            in.read(buf1)
-            assert(buf1 === "a".getBytes())
+          val len3 = geWordIn.readShort()
+          val buf3 = new Array[Byte](len3)
+          geWordIn.read(buf3)
+          assert(buf3 === "baz".getBytes())
+        } else if (docId == "doc2") {
+          assert(geWordIn.readShort() == 0)
+          assert(geWordIn.readShort() == 0)
+          assert(geWordIn.readShort() == 0)
+        } else if (docId == "doc3") {
+          val len1 = geWordIn.readShort()
+          val buf1 = new Array[Byte](len1)
+          geWordIn.read(buf1)
+          assert(buf1 === "a".getBytes())
 
-            val len2 = in.readShort()
-            val buf2 = new Array[Byte](len2)
-            in.read(buf2)
-            assert(buf2 === "b&c".getBytes())
+          val len2 = geWordIn.readShort()
+          val buf2 = new Array[Byte](len2)
+          geWordIn.read(buf2)
+          assert(buf2 === "b&c".getBytes())
 
-            val len3 = in.readShort()
-            val buf3 = new Array[Byte](len3)
-            in.read(buf3)
-            assert(buf3 === "d^e".getBytes())
-          }
-        } else if (docType == "space") {
-          assert(numEntries == 2)
-
-          // Range begins
-          assert(in.readInt() == 8)
-          assert(in.readInt() == 15)
-
-          // Range ends
-          assert(in.readInt() == 9)
-          assert(in.readInt() == 16)
-
-          // Annotation Ids
-          assert(in.readInt() == 2)
-          assert(in.readInt() == 4)
-
-          // Metadata
-          assert(in.readShort() == 0)
-          assert(in.readShort() == 0)
+          val len3 = geWordIn.readShort()
+          val buf3 = new Array[Byte](len3)
+          geWordIn.read(buf3)
+          assert(buf3 === "d^e".getBytes())
         }
-      })
+      }
+      {
+        assert(geSpaceIn.readByte() == DELIM)
+        var b = 0.toByte
+        var docId = ""
+        b = geSpaceIn.readByte()
+        while (b != DELIM) {
+          docId += b.toChar
+          b = geSpaceIn.readByte()
+        }
+
+        val numEntries = geSpaceIn.readInt()
+        assert(numEntries == 2)
+
+        // Range begins
+        assert(geSpaceIn.readInt() == 8)
+        assert(geSpaceIn.readInt() == 15)
+
+        // Range ends
+        assert(geSpaceIn.readInt() == 9)
+        assert(geSpaceIn.readInt() == 16)
+
+        // Annotation Ids
+        assert(geSpaceIn.readInt() == 2)
+        assert(geSpaceIn.readInt() == 4)
+
+        // Metadata
+        assert(geSpaceIn.readShort() == 0)
+        assert(geSpaceIn.readShort() == 0)
+      }
     })
   }
 }

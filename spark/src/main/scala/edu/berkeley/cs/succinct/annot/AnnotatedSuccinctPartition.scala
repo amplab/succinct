@@ -1,6 +1,6 @@
 package org.apache.spark.succinct.annot
 
-import java.io.{DataOutputStream, ObjectInputStream, ObjectOutputStream}
+import java.io.{ObjectInputStream, ObjectOutputStream}
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
@@ -10,7 +10,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
 
 class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIndexedFile,
-                                 annotationBuffer: AnnotatedSuccinctBuffer)
+                                 annotBufferMap: Map[String, AnnotatedSuccinctBuffer])
   extends KnownSizeEstimation with Serializable {
 
   def iterator: Iterator[(String, String)] = {
@@ -28,21 +28,34 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     }
   }
 
-  def writeDocToStream(dataStream: DataOutputStream) = {
-    documentBuffer.writeToStream(dataStream)
-  }
+  def save(location: String): Unit = {
+    val pathDoc = new Path(location + ".sdocs")
+    val pathDocIds = new Path(location + ".sdocids")
 
-  def writeAnnotToStream(dataStream: DataOutputStream) = {
-    annotationBuffer.writeToStream(dataStream)
-  }
+    val fs = FileSystem.get(pathDoc.toUri, new Configuration())
 
-  def writeDocIdsToStream(objectStream: ObjectOutputStream) = {
-    objectStream.writeObject(keys)
+    val osDoc = fs.create(pathDoc)
+    val osDocIds = new ObjectOutputStream(fs.create(pathDocIds))
+
+    documentBuffer.writeToStream(osDoc)
+    osDocIds.writeObject(keys)
+
+    osDoc.close()
+    osDocIds.close()
+
+    // Write annotation buffers
+    annotBufferMap.foreach(kv => {
+      val suffix = kv._1.replace(AnnotatedSuccinctBuffer.DELIM, '.') + "sannots"
+      val pathAnnot = new Path(location + suffix)
+      val osAnnot = fs.create(pathAnnot)
+      kv._2.writeToStream(osAnnot)
+      osAnnot.close()
+    })
   }
 
   override def estimatedSize: Long = {
     val docSize = documentBuffer.getCompressedSize
-    val annotSize = annotationBuffer.getCompressedSize
+    val annotSize = annotBufferMap.values.map(_.getCompressedSize).sum
     val docIdsSize = SizeEstimator.estimate(keys)
     docSize + annotSize + docIdsSize
   }
@@ -72,7 +85,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
 
   def search(query: String): Iterator[(String, Int, Int)] = {
     new Iterator[(String, Int, Int)] {
-      val searchIterator = documentBuffer.searchIterator(query.toCharArray())
+      val searchIterator = documentBuffer.searchIterator(query.toCharArray)
       val matchLength = query.length
 
       override def hasNext: Boolean = searchIterator.hasNext
@@ -108,8 +121,11 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
 
   def searchOver(query: String, annotClass: String, annotType: String): Iterator[Annotation] = {
     val it = search(query)
+    val delim = AnnotatedSuccinctBuffer.DELIM
+    val annotKey = delim + annotClass + delim + annotType + delim
+    val buffer = annotBufferMap(annotKey)
     it.flatMap(r => {
-      val ar = annotationBuffer.getAnnotationRecord(r._1, annotClass, annotType)
+      val ar = buffer.getAnnotationRecord(r._1)
       if (ar == null)
         Array[Annotation]()
       else
@@ -119,8 +135,11 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
 
   def regexOver(rexp: String, annotClass: String, annotType: String): Iterator[Annotation] = {
     val it = regexSearch(rexp)
+    val delim = AnnotatedSuccinctBuffer.DELIM
+    val annotKey = delim + annotClass + delim + annotType + delim
+    val buffer = annotBufferMap(annotKey)
     it.flatMap(r => {
-      val ar = annotationBuffer.getAnnotationRecord(r._1, annotClass, annotType)
+      val ar = buffer.getAnnotationRecord(r._1)
       if (ar == null)
         Array[Annotation]()
       else
@@ -135,27 +154,38 @@ object AnnotatedSuccinctPartition {
   def apply(partitionLocation: String)
   : AnnotatedSuccinctPartition = {
 
-    val pathDoc = new Path(partitionLocation + ".docbuf")
-    val pathAnnot = new Path(partitionLocation + ".anotbuf")
-    val pathDocIds = new Path(partitionLocation + ".docids")
+    val pathDoc = new Path(partitionLocation + ".sdocs")
+    val pathDocIds = new Path(partitionLocation + ".sdocids")
 
     val fs = FileSystem.get(pathDoc.toUri, new Configuration())
 
     val isDoc = fs.open(pathDoc)
-    val isAnnot = fs.open(pathAnnot)
     val isDocIds = new ObjectInputStream(fs.open(pathDocIds))
 
     val docSize: Int = fs.getContentSummary(pathDoc).getLength.toInt
-    val annotSize: Int = fs.getContentSummary(pathAnnot).getLength.toInt
 
     val documentBuffer = new SuccinctIndexedFileBuffer(isDoc, docSize)
-    val annotationBuffer = new AnnotatedSuccinctBuffer(isAnnot, annotSize)
     val keys = isDocIds.readObject().asInstanceOf[Array[String]]
 
     isDoc.close()
-    isAnnot.close()
     isDocIds.close()
 
-    new AnnotatedSuccinctPartition(keys, documentBuffer, annotationBuffer)
+    def getAnnotKey(filename: String): String = {
+      val start = filename.indexOf('.')
+      val end = filename.lastIndexOf('.') + 1
+      filename.substring(start, end).replace('.', AnnotatedSuccinctBuffer.DELIM)
+    }
+
+    val statuses = fs.globStatus(new Path(partitionLocation + ".*.sannots"))
+    val annotBufMap = statuses.map(status => {
+      val pathAnnot = status.getPath
+      val isAnnot = fs.open(pathAnnot)
+      val annotSize: Int = status.getLen.toInt
+      val annotBuffer = new AnnotatedSuccinctBuffer(isAnnot, annotSize)
+      isAnnot.close()
+      (getAnnotKey(pathAnnot.getName), annotBuffer)
+    }).toMap
+
+    new AnnotatedSuccinctPartition(keys, documentBuffer, annotBufMap)
   }
 }

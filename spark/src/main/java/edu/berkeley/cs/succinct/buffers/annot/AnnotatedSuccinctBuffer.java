@@ -5,11 +5,10 @@ import edu.berkeley.cs.succinct.util.SuccinctConstants;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.Iterator;
 
 public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
 
-  private static final char DELIM = '^';
+  public static final char DELIM = '^';
 
   /**
    * Constructor to initialize from input byte array.
@@ -24,7 +23,7 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
    * Constructor to load the data from a DataInputStream with specified file size.
    *
    * @param is       Input stream to load the data from
-   * @param fileSize Input stream to load the data from
+   * @param fileSize Size of the file.
    */
   public AnnotatedSuccinctBuffer(DataInputStream is, int fileSize) {
     try {
@@ -34,9 +33,9 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
     }
   }
 
-  public AnnotationRecord getAnnotationRecord(String docId, String annotClass, String annotType) {
+  public AnnotationRecord getAnnotationRecord(String docId) {
     // Find the record
-    byte[] query = (DELIM + annotClass + DELIM + annotType + DELIM + docId + DELIM).getBytes();
+    byte[] query = (DELIM + docId + DELIM).getBytes();
     Long[] queryRes = search(query);
     assert queryRes.length == 1 || queryRes.length == 0;
 
@@ -51,38 +50,6 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
     // Get offset to data
     int offset = nEntriesOffset + SuccinctConstants.INT_SIZE_BYTES;
 
-    return new AnnotationRecord(offset, docId, annotClass, annotType, nEntries, this);
-  }
-
-  public Iterator<AnnotationRecord> getAnnotationRecords(final String annotClass,
-    final String annotType) {
-    // Find the record
-    final byte[] query = (DELIM + annotClass + DELIM + annotType + DELIM).getBytes();
-    final Long[] queryRes = search(query);
-    return new Iterator<AnnotationRecord>() {
-      int i = 0;
-
-      @Override public boolean hasNext() {
-        return i < queryRes.length;
-      }
-
-      @Override public AnnotationRecord next() {
-        // Extract num entries
-        int docIdOffset = queryRes[i].intValue() + query.length;
-        String docId = extractUntil(docIdOffset, DELIM);
-        int nEntriesOffset = docIdOffset + docId.length() + 1;
-        int nEntries = extractInt(nEntriesOffset);
-
-        // Get offset to data
-        int offset = nEntriesOffset + SuccinctConstants.INT_SIZE_BYTES;
-
-        return new AnnotationRecord(offset, docId, annotClass, annotType, nEntries,
-          AnnotatedSuccinctBuffer.this);
-      }
-
-      @Override public void remove() {
-        throw new UnsupportedOperationException();
-      }
-    };
+    return new AnnotationRecord(offset, docId, nEntries, this);
   }
 }

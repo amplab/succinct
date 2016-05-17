@@ -5,60 +5,27 @@ import gnu.trove.list.array.TIntArrayList;
 
 public class AnnotationRecord {
   private int offset;
-  private String annotClass;
-  private String annotType;
   private String docId;
   private int numEntries;
-  private AnnotatedSuccinctBuffer buffer;
+  private AnnotatedSuccinctBuffer buf;
 
-  public AnnotationRecord(int offset, String docId, String annotClass, String annotType,
-    int numEntries, AnnotatedSuccinctBuffer buffer) {
+  public AnnotationRecord(int offset, String docId, int numEntries, AnnotatedSuccinctBuffer buf) {
     this.offset = offset;
     this.docId = docId;
-    this.annotClass = annotClass;
-    this.annotType = annotType;
     this.numEntries = numEntries;
-    this.buffer = buffer;
+    this.buf = buf;
   }
 
   public int getOffset() {
     return offset;
   }
 
-  public void setOffset(int offset) {
-    this.offset = offset;
-  }
-
   public String getDocId() {
     return docId;
   }
 
-  public void setDocId(String docId) {
-    this.docId = docId;
-  }
-
-  public String getAnnotClass() {
-    return annotClass;
-  }
-
-  public void setAnnotClass(String annotClass) {
-    this.annotClass = annotClass;
-  }
-
-  public String getAnnotType() {
-    return annotType;
-  }
-
-  public void setAnnotType(String annotType) {
-    this.annotType = annotType;
-  }
-
   public int getNumEntries() {
     return numEntries;
-  }
-
-  public void setNumEntries(int numEntries) {
-    this.numEntries = numEntries;
   }
 
   public int lowerBound(int startOffset) {
@@ -67,7 +34,7 @@ public class AnnotationRecord {
 
     while (lo != hi) {
       int mid = lo + (hi - lo) / 2;
-      int arrVal = buffer.extractInt(offset + mid * SuccinctConstants.INT_SIZE_BYTES);
+      int arrVal = buf.extractInt(offset + mid * SuccinctConstants.INT_SIZE_BYTES);
       if (arrVal <= startOffset) {
         lo = mid + 1;
       } else {
@@ -127,7 +94,7 @@ public class AnnotationRecord {
       throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
     }
     int rbOffset = offset + i * SuccinctConstants.INT_SIZE_BYTES;
-    return buffer.extractInt(rbOffset);
+    return buf.extractInt(rbOffset);
   }
 
   public int getRangeEnd(int i) {
@@ -135,7 +102,7 @@ public class AnnotationRecord {
       throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
     }
     int reOffset = offset + (numEntries + i) * SuccinctConstants.INT_SIZE_BYTES;
-    return buffer.extractInt(reOffset);
+    return buf.extractInt(reOffset);
   }
 
   public int getAnnotId(int i) {
@@ -143,7 +110,7 @@ public class AnnotationRecord {
       throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
     }
     int aiOffset = offset + (2 * numEntries + i) * SuccinctConstants.INT_SIZE_BYTES;
-    return buffer.extractInt(aiOffset);
+    return buf.extractInt(aiOffset);
   }
 
   public String getMetadata(int i) {
@@ -152,10 +119,10 @@ public class AnnotationRecord {
     }
     int curOffset = offset + (3 * numEntries) * SuccinctConstants.INT_SIZE_BYTES;
     while (true) {
-      short length = buffer.extractShort(curOffset);
+      short length = buf.extractShort(curOffset);
       curOffset += SuccinctConstants.SHORT_SIZE_BYTES;
       if (i == 0) {
-        return buffer.extract(curOffset, length);
+        return buf.extract(curOffset, length);
       }
 
       // Skip length bytes
@@ -168,7 +135,6 @@ public class AnnotationRecord {
     if (i < 0 || i >= numEntries) {
       throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
     }
-    return new Annotation(docId, getAnnotId(i), annotClass, annotType, getRangeBegin(i),
-      getRangeEnd(i), getMetadata(i));
+    return new Annotation(docId, getAnnotId(i), getRangeBegin(i), getRangeEnd(i), getMetadata(i));
   }
 }

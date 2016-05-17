@@ -1,7 +1,5 @@
 package edu.berkeley.cs.succinct.annot
 
-import java.io.ObjectOutputStream
-
 import edu.berkeley.cs.succinct.annot.impl.AnnotatedSuccinctRDDImpl
 import edu.berkeley.cs.succinct.block.AnnotatedDocumentSerializer
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
@@ -98,23 +96,7 @@ abstract class AnnotatedSuccinctRDD(@transient sc: SparkContext,
       val partition = entry._1
       val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
 
-      val pathDoc = new Path(partitionLocation + ".docbuf")
-      val pathAnnot = new Path(partitionLocation + ".anotbuf")
-      val pathDocIds = new Path(partitionLocation + ".docids")
-
-      val fs = FileSystem.get(pathDoc.toUri, new Configuration())
-
-      val osDoc = fs.create(pathDoc)
-      val osAnnot = fs.create(pathAnnot)
-      val osDocIds = new ObjectOutputStream(fs.create(pathDocIds))
-
-      partition.writeDocToStream(osDoc)
-      partition.writeAnnotToStream(osAnnot)
-      partition.writeDocIdsToStream(osDocIds)
-
-      osDoc.close()
-      osAnnot.close()
-      osDocIds.close()
+      partition.save(partitionLocation)
     })
 
     val successPath = new Path(location.stripSuffix("/") + "/_SUCCESS")
@@ -162,8 +144,8 @@ object AnnotatedSuccinctRDD {
     val docIds = serializer.getDocIds
     val docTextBuffer = serializer.getTextBuffer
     val succinctDocTextBuffer = new SuccinctIndexedFileBuffer(docTextBuffer._2, docTextBuffer._1)
-    val succinctAnnotationBuffer = new AnnotatedSuccinctBuffer(serializer.getAnnotationBuffer)
-    Iterator(new AnnotatedSuccinctPartition(docIds, succinctDocTextBuffer, succinctAnnotationBuffer))
+    val succinctAnnotBufferMap = serializer.getAnnotationBuffers.mapValues(v => new AnnotatedSuccinctBuffer(v))
+    Iterator(new AnnotatedSuccinctPartition(docIds, succinctDocTextBuffer, succinctAnnotBufferMap))
   }
 
 
