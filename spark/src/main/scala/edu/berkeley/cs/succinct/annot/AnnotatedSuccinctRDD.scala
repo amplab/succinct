@@ -124,10 +124,10 @@ object AnnotatedSuccinctRDD {
     val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
     val status = fs.listStatus(locationPath, new PathFilter {
       override def accept(path: Path): Boolean = {
-        path.getName.startsWith("part-")
+        path.getName.startsWith("part-") && path.getName.endsWith(".sdocs")
       }
     })
-    val numPartitions = status.length / 3
+    val numPartitions = status.length
     val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
       .mapPartitionsWithIndex[AnnotatedSuccinctPartition]((i, partition) => {
       val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
