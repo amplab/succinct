@@ -2,7 +2,7 @@ package edu.berkeley.cs.succinct.buffers.annot;
 
 import junit.framework.TestCase;
 
-public class AnnotatedSuccinctBufferTest extends TestCase {
+public class SuccinctAnnotationBufferTest extends TestCase {
 
   // See AnnotatedDocumentSerializerSuite.scala for the original annotations for (ge, word).
 
@@ -15,7 +15,7 @@ public class AnnotatedSuccinctBufferTest extends TestCase {
       0, 15, 0, 0, 0, 21, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 0, 5, 0, 1, 97, 0, 3, 98, 38, 99, 0, 3, 100,
       94, 101};
 
-  private final AnnotatedSuccinctBuffer buf = new AnnotatedSuccinctBuffer(test);
+  private final SuccinctAnnotationBuffer buf = new SuccinctAnnotationBuffer(test);
   private final String[] documentIds = {"doc1", "doc2", "doc3"};
 
   private final int[] rBeginsWord = {0, 9, 16};

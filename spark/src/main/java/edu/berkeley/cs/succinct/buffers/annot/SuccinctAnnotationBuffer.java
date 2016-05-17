@@ -6,7 +6,7 @@ import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
+public class SuccinctAnnotationBuffer extends SuccinctFileBuffer {
 
   public static final char DELIM = '^';
 
@@ -15,7 +15,7 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
    *
    * @param input The input byte array.
    */
-  public AnnotatedSuccinctBuffer(byte[] input) {
+  public SuccinctAnnotationBuffer(byte[] input) {
     super(input);
   }
 
@@ -25,7 +25,7 @@ public class AnnotatedSuccinctBuffer extends SuccinctFileBuffer {
    * @param is       Input stream to load the data from
    * @param fileSize Size of the file.
    */
-  public AnnotatedSuccinctBuffer(DataInputStream is, int fileSize) {
+  public SuccinctAnnotationBuffer(DataInputStream is, int fileSize) {
     try {
       readFromStream(is, fileSize);
     } catch (IOException e) {

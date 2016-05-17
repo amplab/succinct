@@ -7,9 +7,9 @@ public class AnnotationRecord {
   private int offset;
   private String docId;
   private int numEntries;
-  private AnnotatedSuccinctBuffer buf;
+  private SuccinctAnnotationBuffer buf;
 
-  public AnnotationRecord(int offset, String docId, int numEntries, AnnotatedSuccinctBuffer buf) {
+  public AnnotationRecord(int offset, String docId, int numEntries, SuccinctAnnotationBuffer buf) {
     this.offset = offset;
     this.docId = docId;
     this.numEntries = numEntries;

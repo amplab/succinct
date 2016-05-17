@@ -12,7 +12,7 @@ import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
 import scala.io.Source
 
 class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIndexedFile,
-                                 annotBufferMap: Map[String, AnnotatedSuccinctBuffer])
+                                 annotBufferMap: Map[String, SuccinctAnnotationBuffer])
   extends KnownSizeEstimation with Serializable {
 
   def iterator: Iterator[(String, String)] = {
@@ -131,7 +131,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
 
   def searchOver(query: String, annotClass: String, annotType: String): Iterator[Annotation] = {
     val it = search(query)
-    val delim = AnnotatedSuccinctBuffer.DELIM
+    val delim = SuccinctAnnotationBuffer.DELIM
     val annotKey = delim + annotClass + delim + annotType + delim
     val buffer = annotBufferMap(annotKey)
     it.flatMap(r => {
@@ -145,7 +145,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
 
   def regexOver(rexp: String, annotClass: String, annotType: String): Iterator[Annotation] = {
     val it = regexSearch(rexp)
-    val delim = AnnotatedSuccinctBuffer.DELIM
+    val delim = SuccinctAnnotationBuffer.DELIM
     val annotKey = delim + annotClass + delim + annotType + delim
     val buffer = annotBufferMap(annotKey)
     it.flatMap(r => {
@@ -187,7 +187,7 @@ object AnnotatedSuccinctPartition {
       .mapValues(p => {
         val isAnnot = fs.open(p)
         val annotSize: Int = fs.getContentSummary(p).getLength.toInt
-        val buf = new AnnotatedSuccinctBuffer(isAnnot, annotSize)
+        val buf = new SuccinctAnnotationBuffer(isAnnot, annotSize)
         isAnnot.close()
         buf
       })
