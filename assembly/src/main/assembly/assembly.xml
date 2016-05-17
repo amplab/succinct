@@ -13,9 +13,6 @@
     <dependencySet>
       <unpack>true</unpack>
       <useProjectArtifact>false</useProjectArtifact>
-      <excludes>
-        <exclude>org.scala-lang:scala-library</exclude>
-      </excludes>
       <useTransitiveDependencies>false</useTransitiveDependencies>
     </dependencySet>
   </dependencySets>
