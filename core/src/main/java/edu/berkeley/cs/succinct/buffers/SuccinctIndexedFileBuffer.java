@@ -90,6 +90,9 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   }
 
   @Override public int getCompressedSize() {
+    if (readBufferIndexed != null) {
+      return readBufferIndexed.capacity();
+    }
     return super.getCompressedSize()
       + (12 + offsets.length * SuccinctConstants.INT_SIZE_BYTES);
   }

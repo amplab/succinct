@@ -45,6 +45,10 @@ public class SuccinctBuffer extends SuccinctCore {
   }
 
   @Override public int getCoreSize() {
+    if (readBuffer != null) {
+      return readBuffer.capacity();
+    }
+
     // Compute size of all columns
     int columnsSize = 0;
     for (ThreadSafeByteBuffer column : columns) {
