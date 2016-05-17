@@ -9,6 +9,8 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
 
+import scala.io.Source
+
 class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIndexedFile,
                                  annotBufferMap: Map[String, AnnotatedSuccinctBuffer])
   extends KnownSizeEstimation with Serializable {
@@ -44,13 +46,21 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     osDocIds.close()
 
     // Write annotation buffers
-    annotBufferMap.foreach(kv => {
-      val suffix = kv._1.replace(AnnotatedSuccinctBuffer.DELIM, '.') + "sannots"
-      val pathAnnot = new Path(location + suffix)
+    val pathAnnotToc = new Path(location + ".sannots.toc")
+    val osAnnotToc = fs.create(pathAnnotToc)
+    annotBufferMap.zipWithIndex.foreach(kv => {
+      val key = kv._1._1
+      val buf = kv._1._2
+      val idx = kv._2
+
+      // Add entry to TOC
+      osAnnotToc.writeBytes(s"$key\t$idx\n")
+      val pathAnnot = new Path(location + ".sannots." + idx)
       val osAnnot = fs.create(pathAnnot)
-      kv._2.writeToStream(osAnnot)
+      buf.writeToStream(osAnnot)
       osAnnot.close()
     })
+    osAnnotToc.close()
   }
 
   override def estimatedSize: Long = {
@@ -170,21 +180,17 @@ object AnnotatedSuccinctPartition {
     isDoc.close()
     isDocIds.close()
 
-    def getAnnotKey(filename: String): String = {
-      val start = filename.indexOf('.')
-      val end = filename.lastIndexOf('.') + 1
-      filename.substring(start, end).replace('.', AnnotatedSuccinctBuffer.DELIM)
-    }
-
-    val statuses = fs.globStatus(new Path(partitionLocation + ".*.sannots"))
-    val annotBufMap = statuses.map(status => {
-      val pathAnnot = status.getPath
-      val isAnnot = fs.open(pathAnnot)
-      val annotSize: Int = status.getLen.toInt
-      val annotBuffer = new AnnotatedSuccinctBuffer(isAnnot, annotSize)
-      isAnnot.close()
-      (getAnnotKey(pathAnnot.getName), annotBuffer)
-    }).toMap
+    val pathAnnotToc = new Path(partitionLocation + ".sannots.toc")
+    val isAnnotToc = fs.open(pathAnnotToc)
+    val annotBufMap = Source.fromInputStream(isAnnotToc).getLines().map(_.split('\t'))
+      .map(e => (e(0), new Path(partitionLocation + ".sannots." + e(1)))).toMap
+      .mapValues(p => {
+        val isAnnot = fs.open(p)
+        val annotSize: Int = fs.getContentSummary(p).getLength.toInt
+        val buf = new AnnotatedSuccinctBuffer(isAnnot, annotSize)
+        isAnnot.close()
+        buf
+      })
 
     new AnnotatedSuccinctPartition(keys, documentBuffer, annotBufMap)
   }
