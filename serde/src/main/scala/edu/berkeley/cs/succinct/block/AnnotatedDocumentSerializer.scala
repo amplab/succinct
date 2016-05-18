@@ -7,7 +7,7 @@ import java.util.InvalidPropertiesFormatException
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable.ArrayBuffer
 
-class AnnotatedDocumentSerializer extends Serializable {
+class AnnotatedDocumentSerializer(ignoreParseErrors: Boolean) extends Serializable {
 
   val docIds: ArrayBuffer[String] = new ArrayBuffer[String]
   var curDocTextOffset: Int = 0
@@ -61,10 +61,11 @@ class AnnotatedDocumentSerializer extends Serializable {
     dat.map(_._3).foreach(i => out.writeInt(i))
     dat.map(_._1).foreach(i => out.writeInt(i))
     dat.map(_._4).foreach(i => {
-      if (i.length > Short.MaxValue)
+      if (i.length > Short.MaxValue && !ignoreParseErrors)
         throw new InvalidPropertiesFormatException("Metadata too large: " + i.length + "; limit: " + Short.MaxValue)
-      out.writeShort(i.length)
-      out.writeBytes(i)
+      val metadata = i.substring(0, Short.MaxValue)
+      out.writeShort(metadata.length)
+      out.writeBytes(metadata)
     })
     out.flush()
     baos.toByteArray

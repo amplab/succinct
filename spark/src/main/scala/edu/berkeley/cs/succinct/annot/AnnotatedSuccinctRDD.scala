@@ -110,9 +110,9 @@ abstract class AnnotatedSuccinctRDD(@transient sc: SparkContext,
 }
 
 object AnnotatedSuccinctRDD {
-  def apply(inputRDD: RDD[(String, String, String)]): AnnotatedSuccinctRDD = {
+  def apply(inputRDD: RDD[(String, String, String)], ignoreParseErrors: Boolean = true): AnnotatedSuccinctRDD = {
     val partitionsRDD = inputRDD.sortBy(_._1)
-      .mapPartitionsWithIndex((idx, it) => createAnnotatedSuccinctPartition(it)).cache()
+      .mapPartitionsWithIndex((idx, it) => createAnnotatedSuccinctPartition(it, ignoreParseErrors)).cache()
     new AnnotatedSuccinctRDDImpl(partitionsRDD)
   }
 
@@ -132,17 +132,17 @@ object AnnotatedSuccinctRDD {
       }
     })
     val numPartitions = status.length
-    val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
+    val partitionsRDD = sc.parallelize(0 until numPartitions, numPartitions)
       .mapPartitionsWithIndex[AnnotatedSuccinctPartition]((i, partition) => {
       val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
       Iterator(AnnotatedSuccinctPartition(partitionLocation, annotClassFilter, annotTypeFilter))
     }).cache()
-    new AnnotatedSuccinctRDDImpl(succinctPartitions)
+    new AnnotatedSuccinctRDDImpl(partitionsRDD)
   }
 
-  def createAnnotatedSuccinctPartition(dataIter: Iterator[(String, String, String)]):
+  def createAnnotatedSuccinctPartition(dataIter: Iterator[(String, String, String)], ignoreParseErrors: Boolean):
   Iterator[AnnotatedSuccinctPartition] = {
-    val serializer = new AnnotatedDocumentSerializer
+    val serializer = new AnnotatedDocumentSerializer(ignoreParseErrors)
     serializer.serialize(dataIter)
 
     val docIds = serializer.getDocIds
