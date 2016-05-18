@@ -1,6 +1,7 @@
 package edu.berkeley.cs.succinct.block
 
 import java.io.{ByteArrayOutputStream, DataOutputStream}
+import java.net.URLDecoder
 
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable.ArrayBuffer
@@ -30,7 +31,7 @@ class AnnotatedDocumentSerializer extends Serializable {
 
   def addAnnotation(docId: String, docAnnotation: String): Unit = {
     docAnnotation.split('\n').map(annot => annot.split("\\^", 6))
-      .map(e => (makeKey(e(1), e(2)), (e(0).toInt, e(3).toInt, e(4).toInt, if (e.length == 6) e(5) else "")))
+      .map(e => (makeKey(e(1), e(2)), (e(0).toInt, e(3).toInt, e(4).toInt, if (e.length == 6) URLDecoder.decode(e(5), "UTF-8") else "")))
       .groupBy(_._1).mapValues(v => serializeAnnotationEntry(docId, v.map(_._2).sortBy(_._2)))
       .foreach(kv => {
         if (!docAnnotationOSMap.contains(kv._1))
