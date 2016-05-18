@@ -161,7 +161,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
 }
 
 object AnnotatedSuccinctPartition {
-  def apply(partitionLocation: String)
+  def apply(partitionLocation: String, annotClassFilter: String, annotTypeFilter: String)
   : AnnotatedSuccinctPartition = {
 
     val pathDoc = new Path(partitionLocation + ".sdocs")
@@ -180,10 +180,13 @@ object AnnotatedSuccinctPartition {
     isDoc.close()
     isDocIds.close()
 
+    val delim = "\\" + SuccinctAnnotationBuffer.DELIM
+    val keyFilter = delim + annotClassFilter + delim + annotTypeFilter + delim
     val pathAnnotToc = new Path(partitionLocation + ".sannots.toc")
     val isAnnotToc = fs.open(pathAnnotToc)
     val annotBufMap = Source.fromInputStream(isAnnotToc).getLines().map(_.split('\t'))
-      .map(e => (e(0), new Path(partitionLocation + ".sannots." + e(1)))).toMap
+      .map(e => (e(0), new Path(partitionLocation + ".sannots." + e(1))))
+      .filter(kv => kv._1 matches keyFilter).toMap
       .mapValues(p => {
         val isAnnot = fs.open(p)
         val annotSize: Int = fs.getContentSummary(p).getLength.toInt

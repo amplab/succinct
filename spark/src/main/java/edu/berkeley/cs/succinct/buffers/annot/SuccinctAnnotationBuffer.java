@@ -5,6 +5,7 @@ import edu.berkeley.cs.succinct.util.SuccinctConstants;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Iterator;
 
 public class SuccinctAnnotationBuffer extends SuccinctFileBuffer {
 
@@ -33,6 +34,37 @@ public class SuccinctAnnotationBuffer extends SuccinctFileBuffer {
     }
   }
 
+  public Iterator<Annotation> iterator() {
+    return new Iterator<Annotation>() {
+
+      @Override public boolean hasNext() {
+        return false;
+      }
+
+      @Override public Annotation next() {
+        return null;
+      }
+
+      @Override public void remove() {
+
+      }
+    };
+  }
+
+  public AnnotationRecord getAnnotationRecord(int recordOffset) {
+    assert charAt(recordOffset) == DELIM;
+    String docId = extractUntil(recordOffset + 1, DELIM);
+
+    // Extract num entries
+    int nEntriesOffset = recordOffset + docId.length() + 2;
+    int nEntries = extractInt(nEntriesOffset);
+
+    // Get offset to data
+    int dataOffset = nEntriesOffset + SuccinctConstants.INT_SIZE_BYTES;
+
+    return new AnnotationRecord(dataOffset, docId, nEntries, this);
+  }
+
   /**
    * Get the annotation record for a given document ID.
    *
@@ -54,8 +86,8 @@ public class SuccinctAnnotationBuffer extends SuccinctFileBuffer {
     int nEntries = extractInt(nEntriesOffset);
 
     // Get offset to data
-    int offset = nEntriesOffset + SuccinctConstants.INT_SIZE_BYTES;
+    int dataOffset = nEntriesOffset + SuccinctConstants.INT_SIZE_BYTES;
 
-    return new AnnotationRecord(offset, docId, nEntries, this);
+    return new AnnotationRecord(dataOffset, docId, nEntries, this);
   }
 }

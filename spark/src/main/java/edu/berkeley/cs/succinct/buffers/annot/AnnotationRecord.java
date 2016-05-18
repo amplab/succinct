@@ -123,6 +123,15 @@ public class AnnotationRecord {
   }
 
   /**
+   * Get an iterator over all annotations in the record.
+   *
+   * @return Iterator over all annotations in the record.
+   */
+  public AnnotationIterator getAnnotationIterator() {
+    return new AnnotationIterator(this);
+  }
+
+  /**
    * Find the first start offset <= the given offset.
    *
    * @param offset The offset to search.
@@ -197,16 +206,12 @@ public class AnnotationRecord {
    * @return Indices for the matching annotations.
    */
   public int[] findAnnotationsContaining(int begin, int end) {
-    int idx = firstLEQ(begin);
-    if (idx < 0 || idx >= numEntries) {
-      return new int[0];
-    }
-
+    int idx = 0;
     TIntArrayList res = new TIntArrayList();
     while (idx < numEntries) {
       int startOffset = getStartOffset(idx);
       int endOffset = getEndOffset(idx);
-      if (end < startOffset)
+      if (startOffset > begin)
         break;
       if (begin >= startOffset && end <= endOffset) {
         res.add(idx);
@@ -234,7 +239,7 @@ public class AnnotationRecord {
     while (idx < numEntries) {
       int startOffset = getStartOffset(idx);
       int endOffset = getEndOffset(idx);
-      if (startOffset > begin)
+      if (startOffset > end)
         break;
       if (startOffset >= begin && endOffset <= end) {
         res.add(idx);

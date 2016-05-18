@@ -115,11 +115,11 @@ object AnnotatedSuccinctRDD {
   /**
     * Reads a AnnotatedSuccinctRDD from disk.
     *
-    * @param sc The spark context
+    * @param sc       The spark context
     * @param location The path to read the SuccinctKVRDD from.
     * @return The SuccinctKVRDD.
     */
-  def apply(sc: SparkContext, location: String): AnnotatedSuccinctRDD = {
+  def apply(sc: SparkContext, location: String, annotClassFilter: String = ".*", annotTypeFilter: String = ".*"): AnnotatedSuccinctRDD = {
     val locationPath = new Path(location)
     val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
     val status = fs.listStatus(locationPath, new PathFilter {
@@ -131,7 +131,7 @@ object AnnotatedSuccinctRDD {
     val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
       .mapPartitionsWithIndex[AnnotatedSuccinctPartition]((i, partition) => {
       val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
-      Iterator(AnnotatedSuccinctPartition(partitionLocation))
+      Iterator(AnnotatedSuccinctPartition(partitionLocation, annotClassFilter, annotTypeFilter))
     }).cache()
     new AnnotatedSuccinctRDDImpl(succinctPartitions)
   }
