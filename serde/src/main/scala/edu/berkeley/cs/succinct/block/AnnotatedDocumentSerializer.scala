@@ -61,9 +61,10 @@ class AnnotatedDocumentSerializer(ignoreParseErrors: Boolean) extends Serializab
     dat.map(_._3).foreach(i => out.writeInt(i))
     dat.map(_._1).foreach(i => out.writeInt(i))
     dat.map(_._4).foreach(i => {
-      if (i.length > Short.MaxValue && !ignoreParseErrors)
-        throw new InvalidPropertiesFormatException("Metadata too large: " + i.length + "; limit: " + Short.MaxValue)
-      val metadata = i.substring(0, Short.MaxValue)
+      if (i.length > Short.MaxValue)
+        if (!ignoreParseErrors)
+          throw new InvalidPropertiesFormatException("Metadata too large: " + i.length + "; limit: " + Short.MaxValue)
+      val metadata = i.substring(0, Math.min(Short.MaxValue, i.length))
       out.writeShort(metadata.length)
       out.writeBytes(metadata)
     })

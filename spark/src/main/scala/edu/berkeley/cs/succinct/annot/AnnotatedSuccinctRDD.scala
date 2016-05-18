@@ -123,7 +123,18 @@ object AnnotatedSuccinctRDD {
     * @param location The path to read the SuccinctKVRDD from.
     * @return The SuccinctKVRDD.
     */
-  def apply(sc: SparkContext, location: String, annotClassFilter: String = ".*", annotTypeFilter: String = ".*"): AnnotatedSuccinctRDD = {
+  def apply(sc: SparkContext, location: String): AnnotatedSuccinctRDD = {
+    apply(sc, location, ".*", ".*")
+  }
+
+  /**
+    * Reads a AnnotatedSuccinctRDD from disk.
+    *
+    * @param sc       The spark context
+    * @param location The path to read the SuccinctKVRDD from.
+    * @return The SuccinctKVRDD.
+    */
+  def apply(sc: SparkContext, location: String, annotClassFilter: String, annotTypeFilter: String): AnnotatedSuccinctRDD = {
     val locationPath = new Path(location)
     val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
     val status = fs.listStatus(locationPath, new PathFilter {
