@@ -34,24 +34,20 @@ public class SuccinctAnnotationBuffer extends SuccinctFileBuffer {
     }
   }
 
+  /**
+   * Get an iterator over all annotations in the buffer.
+   *
+   * @return Iterator over all annotations in the buffer.
+   */
   public Iterator<Annotation> iterator() {
-    return new Iterator<Annotation>() {
-
-      @Override public boolean hasNext() {
-        return false;
-      }
-
-      @Override public Annotation next() {
-        return null;
-      }
-
-      @Override public void remove() {
-
-      }
-    };
+    return new AnnotationIterator(getAnnotationRecord(0), true);
   }
 
   public AnnotationRecord getAnnotationRecord(int recordOffset) {
+    if (recordOffset >= getOriginalSize() - 1) {
+      return null;
+    }
+
     assert charAt(recordOffset) == DELIM;
     String docId = extractUntil(recordOffset + 1, DELIM);
 

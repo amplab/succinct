@@ -17,6 +17,15 @@ public class AnnotationRecord {
   }
 
   /**
+   * Get the underlying SuccinctAnnotationBuffer.
+   *
+   * @return The underlying SuccinctAnnotationBuffer.
+   */
+  public SuccinctAnnotationBuffer getBuf() {
+    return buf;
+  }
+
+  /**
    * Get the offset to the beginning of the AnnotationRecord in SuccinctAnnotationBuffer.
    *
    * @return The offset to the beginning of the AnnotationRecord.
@@ -128,7 +137,7 @@ public class AnnotationRecord {
    * @return Iterator over all annotations in the record.
    */
   public AnnotationIterator getAnnotationIterator() {
-    return new AnnotationIterator(this);
+    return new AnnotationIterator(this, false);
   }
 
   /**
@@ -164,39 +173,14 @@ public class AnnotationRecord {
     while (lo != hi) {
       int mid = lo + (hi - lo) / 2;
       arrVal = buf.extractInt(this.offset + mid * SuccinctConstants.INT_SIZE_BYTES);
-      if (arrVal <= offset)
+      if (arrVal < offset)
         lo = mid + 1;
       else
         hi = mid;
     }
 
-    if (arrVal == offset)
-      return lo - 1;
     return lo;
   }
-
-  /*
-  private int upperBound(AnnotationRecord ar, int val) {
-    int offset = ar.getOffset();
-    int len = ar.getNumEntries();
-    int lo = 0;
-    int hi = len - 1;
-    int mid = lo + (hi - lo) / 2;
-    while (true) {
-      if (readInteger(offset, mid) > 0) {
-        hi = mid - 1;
-        if (hi < lo)
-          return mid;
-      } else {
-        lo = mid + 1;
-        if (hi < lo) {
-          return mid < len - 1 ? mid + 1 : -1;
-        }
-      }
-      mid = lo + (hi - lo) / 2;
-    }
-  }
-  */
 
   /**
    * Find annotations containing the range (begin, end).

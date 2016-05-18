@@ -8,33 +8,35 @@ import java.util.NoSuchElementException;
 public class AnnotationIterator implements Iterator<Annotation> {
 
   private AnnotationRecord record;
+  private boolean multiRecord;
   private int curIdx;
-  private int end;
+  private int curEnd;
 
-  public AnnotationIterator(AnnotationRecord record) {
-    this.record = record;
+  public AnnotationIterator(AnnotationRecord rec, boolean multiRecord) {
+    this.record = rec;
     this.curIdx = 0;
     // Set end to the beginning of metadata
-    this.end = record.getOffset() + 3 * SuccinctConstants.INT_SIZE_BYTES + record.getNumEntries();
-  }
-
-  public int nextRecordOffset() {
-    if (hasNext()) {
-      return -1;
-    }
-    return end;
+    this.curEnd = rec.getOffset() + 3 * SuccinctConstants.INT_SIZE_BYTES * rec.getNumEntries();
+    this.multiRecord = multiRecord;
   }
 
   @Override public boolean hasNext() {
-    return curIdx < record.getNumEntries();
+    return record != null;
   }
 
   @Override public Annotation next() {
     if (!hasNext()) {
       throw new NoSuchElementException();
     }
-    Annotation result = record.getAnnotation(curIdx++);
-    end += result.getMetadata().length() + SuccinctConstants.SHORT_SIZE_BYTES;
+    Annotation result = record.getAnnotation(curIdx);
+    curEnd += result.getMetadata().length() + SuccinctConstants.SHORT_SIZE_BYTES;
+    curIdx++;
+    if (curIdx == record.getNumEntries()) {
+      curIdx = 0;
+      record = multiRecord ? record.getBuf().getAnnotationRecord(curEnd) : null;
+      if (record != null)
+        curEnd = record.getOffset() + 3 * SuccinctConstants.INT_SIZE_BYTES * record.getNumEntries();
+    }
     return result;
   }
 

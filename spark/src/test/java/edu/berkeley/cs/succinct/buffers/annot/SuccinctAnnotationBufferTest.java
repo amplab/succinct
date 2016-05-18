@@ -2,6 +2,8 @@ package edu.berkeley.cs.succinct.buffers.annot;
 
 import junit.framework.TestCase;
 
+import java.util.Iterator;
+
 public class SuccinctAnnotationBufferTest extends TestCase {
 
   // See AnnotatedDocumentSerializerSuite.scala for the original annotations for (ge, word).
@@ -18,14 +20,17 @@ public class SuccinctAnnotationBufferTest extends TestCase {
   private final SuccinctAnnotationBuffer buf = new SuccinctAnnotationBuffer(test);
   private final String[] documentIds = {"doc1", "doc2", "doc3"};
 
-  private final int[] rBeginsWord = {0, 9, 16};
-  private final int[] rEndsWord = {8, 15, 19};
-  private final int[] aIdsWord = {1, 3, 5};
+  // (0, 8), (9, 15), (16, 19)
+  private final int[] startOffsets = {0, 9, 16};
+  private final int[] endOffsets = {8, 15, 19};
 
-  private final String[] metadataDoc1Words = {"foo", "bar", "baz"};
-  private final String[] metadataDoc3Words = {"a", "b&c", "d^e"};
+  private final int[] annotationIds = {1, 3, 5};
+  private final int[] aOffsets = {0, 61, 113};
 
-  public void testFindAnnotationRecord() throws Exception {
+  private final String[] metadataDoc1 = {"foo", "bar", "baz"};
+  private final String[] metadataDoc3 = {"a", "b&c", "d^e"};
+
+  public void testGetAnnotationRecord() throws Exception {
     for (String docId : documentIds) {
       AnnotationRecord ar = buf.getAnnotationRecord(docId);
       assertNotNull(ar);
@@ -33,8 +38,32 @@ public class SuccinctAnnotationBufferTest extends TestCase {
       assertEquals(3, ar.getNumEntries());
     }
 
-
     assertNull(buf.getAnnotationRecord("a"));
+  }
+
+  public void testGetAnnotationRecord2() throws Exception {
+    for (int i = 0; i < 3; i++) {
+      AnnotationRecord ar = buf.getAnnotationRecord(aOffsets[i]);
+      assertNotNull(ar);
+      assertEquals(documentIds[i], ar.getDocId());
+      assertEquals(3, ar.getNumEntries());
+    }
+
+    assertNull(buf.getAnnotationRecord(172));
+  }
+
+  public void testIterator() throws Exception {
+    Iterator<Annotation> it = buf.iterator();
+    int count = 0;
+    while (it.hasNext()) {
+      Annotation a = it.next();
+      assertEquals(documentIds[count / 3], a.getDocId());
+      assertEquals(startOffsets[count % 3], a.getStartOffset());
+      assertEquals(count == 8 ? 21 : endOffsets[count % 3], a.getEndOffset());
+      assertEquals(annotationIds[count % 3], a.getId());
+      count++;
+    }
+    assertEquals(9, count);
   }
 
   public void testGetRangeBegin() throws Exception {
@@ -42,11 +71,10 @@ public class SuccinctAnnotationBufferTest extends TestCase {
       AnnotationRecord ar = buf.getAnnotationRecord(docId);
       for (int i = 0; i < ar.getNumEntries(); i++) {
         int rBegin = ar.getStartOffset(i);
-        assertEquals(rBeginsWord[i], rBegin);
+        assertEquals(startOffsets[i], rBegin);
       }
     }
   }
-
 
   public void testGetRangeEnd() throws Exception {
     for (String docId : documentIds) {
@@ -56,7 +84,7 @@ public class SuccinctAnnotationBufferTest extends TestCase {
         if (docId.compareTo("doc3") == 0 && i == 2) {
           assertEquals(21, rEnd);
         } else {
-          assertEquals(rEndsWord[i], rEnd);
+          assertEquals(endOffsets[i], rEnd);
         }
       }
     }
@@ -67,7 +95,7 @@ public class SuccinctAnnotationBufferTest extends TestCase {
       AnnotationRecord ar = buf.getAnnotationRecord(docId);
       for (int i = 0; i < ar.getNumEntries(); i++) {
         int annotId = ar.getAnnotId(i);
-        assertEquals(aIdsWord[i], annotId);
+        assertEquals(annotationIds[i], annotId);
       }
     }
   }
@@ -78,11 +106,11 @@ public class SuccinctAnnotationBufferTest extends TestCase {
       for (int i = 0; i < ar.getNumEntries(); i++) {
         String metadata = ar.getMetadata(i);
         if (docId.compareTo("doc1") == 0) {
-          assertEquals(metadataDoc1Words[i], metadata);
+          assertEquals(metadataDoc1[i], metadata);
         } else if (docId.compareTo("doc2") == 0) {
           assertEquals("", metadata);
         } else if (docId.compareTo("doc3") == 0) {
-          assertEquals(metadataDoc3Words[i], metadata);
+          assertEquals(metadataDoc3[i], metadata);
         }
       }
     }
@@ -98,28 +126,28 @@ public class SuccinctAnnotationBufferTest extends TestCase {
         int annotId = a.getId();
         String metadata = a.getMetadata();
 
-        assertEquals(rBeginsWord[i], rBegin);
+        assertEquals(startOffsets[i], rBegin);
 
         if (docId.compareTo("doc3") == 0 && i == 2) {
           assertEquals(21, rEnd);
         } else {
-          assertEquals(rEndsWord[i], rEnd);
+          assertEquals(endOffsets[i], rEnd);
         }
 
-        assertEquals(aIdsWord[i], annotId);
+        assertEquals(annotationIds[i], annotId);
 
         if (docId.compareTo("doc1") == 0) {
-          assertEquals(metadataDoc1Words[i], metadata);
+          assertEquals(metadataDoc1[i], metadata);
         } else if (docId.compareTo("doc2") == 0) {
           assertEquals("", metadata);
         } else if (docId.compareTo("doc3") == 0) {
-          assertEquals(metadataDoc3Words[i], metadata);
+          assertEquals(metadataDoc3[i], metadata);
         }
       }
     }
   }
 
-  public void testFindAnnotationsOver() throws Exception {
+  public void testFindAnnotationsContaining() throws Exception {
     AnnotationRecord ar1 = buf.getAnnotationRecord("doc1");
     int[] res1 = ar1.findAnnotationsContaining(1, 3);
     assertEquals(1, res1.length);
@@ -128,5 +156,27 @@ public class SuccinctAnnotationBufferTest extends TestCase {
     AnnotationRecord ar2 = buf.getAnnotationRecord("doc2");
     int[] res2 = ar2.findAnnotationsContaining(6, 9);
     assertEquals(0, res2.length);
+
+    AnnotationRecord ar3 = buf.getAnnotationRecord("doc3");
+    int[] res3 = ar3.findAnnotationsContaining(9, 15);
+    assertEquals(1, res3.length);
+    assertEquals(1, res3[0]);
+  }
+
+  public void testFindAnnotationsContainedIn() throws Exception {
+    AnnotationRecord ar1 = buf.getAnnotationRecord("doc1");
+    int[] res1 = ar1.findAnnotationsContainedIn(0, 15);
+    assertEquals(2, res1.length);
+    assertEquals(0, res1[0]);
+    assertEquals(1, res1[1]);
+
+    AnnotationRecord ar2 = buf.getAnnotationRecord("doc2");
+    int[] res2 = ar2.findAnnotationsContainedIn(6, 9);
+    assertEquals(0, res2.length);
+
+    AnnotationRecord ar3 = buf.getAnnotationRecord("doc3");
+    int[] res3 = ar3.findAnnotationsContainedIn(9, 15);
+    assertEquals(1, res3.length);
+    assertEquals(1, res3[0]);
   }
 }
