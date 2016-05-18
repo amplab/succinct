@@ -112,7 +112,7 @@ abstract class AnnotatedSuccinctRDD(@transient sc: SparkContext,
 object AnnotatedSuccinctRDD {
   def apply(inputRDD: RDD[(String, String, String)]): AnnotatedSuccinctRDD = {
     val partitionsRDD = inputRDD.sortBy(_._1)
-      .mapPartitionsWithIndex((idx, it) => createAnnotatedSuccinctPartition(it))
+      .mapPartitionsWithIndex((idx, it) => createAnnotatedSuccinctPartition(it)).cache()
     new AnnotatedSuccinctRDDImpl(partitionsRDD)
   }
 
