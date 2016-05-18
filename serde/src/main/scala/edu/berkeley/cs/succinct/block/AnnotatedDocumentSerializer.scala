@@ -2,6 +2,7 @@ package edu.berkeley.cs.succinct.block
 
 import java.io.{ByteArrayOutputStream, DataOutputStream}
 import java.net.URLDecoder
+import java.util.InvalidPropertiesFormatException
 
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable.ArrayBuffer
@@ -60,6 +61,8 @@ class AnnotatedDocumentSerializer extends Serializable {
     dat.map(_._3).foreach(i => out.writeInt(i))
     dat.map(_._1).foreach(i => out.writeInt(i))
     dat.map(_._4).foreach(i => {
+      if (i.length > Short.MaxValue)
+        throw new InvalidPropertiesFormatException("Metadata too large: " + i.length + "; limit: " + Short.MaxValue)
       out.writeShort(i.length)
       out.writeBytes(i)
     })
