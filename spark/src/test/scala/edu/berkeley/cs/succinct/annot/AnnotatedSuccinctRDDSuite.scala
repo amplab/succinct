@@ -92,32 +92,32 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val res1 = annotatedSuccinctRDD.searchOver("Document", "ge", "word").collect()
     assert(res1.length == 3)
     res1.foreach(a => {
-      assert(a.getrBegin() == 0)
-      assert(a.getrEnd() == 8)
+      assert(a.getStartOffset == 0)
+      assert(a.getEndOffset == 8)
       assert(a.getId == 1)
     })
 
     val res2 = annotatedSuccinctRDD.searchOver("number", "ge", "word").collect()
     assert(res2.length == 3)
     res2.foreach(a => {
-      assert(a.getrBegin() == 9)
-      assert(a.getrEnd() == 15)
+      assert(a.getStartOffset == 9)
+      assert(a.getEndOffset == 15)
       assert(a.getId == 3)
     })
 
     val res3 = annotatedSuccinctRDD.searchOver("three", "ge", "word").collect()
     assert(res3.length == 1)
     assert(res3(0).getId == 5)
-    assert(res3(0).getrBegin() == 16)
-    assert(res3(0).getrEnd() == 21)
+    assert(res3(0).getStartOffset == 16)
+    assert(res3(0).getEndOffset == 21)
     assert(res3(0).getMetadata == "d^e")
 
     val res4 = annotatedSuccinctRDD.searchOver(" ", "ge", "space").collect()
     assert(res4.length == 6)
     res4.foreach(a => {
       assert(a.getId == 2 || a.getId == 4)
-      assert(a.getrBegin() == 8 || a.getrBegin() == 15)
-      assert(a.getrEnd() == 9 || a.getrEnd() == 16)
+      assert(a.getStartOffset == 8 || a.getStartOffset == 15)
+      assert(a.getEndOffset == 9 || a.getEndOffset == 16)
       assert(a.getMetadata == "")
     })
 
@@ -135,8 +135,8 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val res1 = annotatedSuccinctRDD.regexOver("one|two|three", "ge", "word").collect()
     assert(res1.length == 3)
     res1.foreach(a => {
-      assert(a.getrBegin() == 16)
-      assert(a.getrEnd() == 19 | a.getrEnd() == 21)
+      assert(a.getStartOffset == 16)
+      assert(a.getEndOffset == 19 | a.getEndOffset == 21)
       assert(a.getId == 5)
     })
 

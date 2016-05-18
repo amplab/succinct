@@ -139,7 +139,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
       if (ar == null)
         Array[Annotation]()
       else
-        ar.findAnnotationsOver(r._2, r._3).map(ar.getAnnotation)
+        ar.findAnnotationsContaining(r._2, r._3).map(ar.getAnnotation)
     })
   }
 
@@ -153,7 +153,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
       if (ar == null)
         Array[Annotation]()
       else
-        ar.findAnnotationsOver(r._2, r._3).map(ar.getAnnotation)
+        ar.findAnnotationsContaining(r._2, r._3).map(ar.getAnnotation)
     })
   }
 

@@ -33,6 +33,12 @@ public class SuccinctAnnotationBuffer extends SuccinctFileBuffer {
     }
   }
 
+  /**
+   * Get the annotation record for a given document ID.
+   *
+   * @param docId The document ID.
+   * @return The annotation record corresponding to the document ID.
+   */
   public AnnotationRecord getAnnotationRecord(String docId) {
     // Find the record
     byte[] query = (DELIM + docId + DELIM).getBytes();

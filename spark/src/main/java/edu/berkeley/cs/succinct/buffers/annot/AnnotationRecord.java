@@ -16,33 +16,154 @@ public class AnnotationRecord {
     this.buf = buf;
   }
 
+  /**
+   * Get the offset to the beginning of the AnnotationRecord in SuccinctAnnotationBuffer.
+   *
+   * @return The offset to the beginning of the AnnotationRecord.
+   */
   public int getOffset() {
     return offset;
   }
 
+  /**
+   * Get the document ID for the AnnotationRecord.
+   *
+   * @return The documentID for the AnnotationRecord.
+   */
   public String getDocId() {
     return docId;
   }
 
+  /**
+   * Get the number of Annotations encoded in the AnnotationRecord.
+   *
+   * @return The number of Annotations encoded in the AnnotationRecord.
+   */
   public int getNumEntries() {
     return numEntries;
   }
 
-  public int lowerBound(int startOffset) {
-    int lo = 0;
-    int hi = numEntries;
+  /**
+   * Get the start offset for the ith annotation.
+   *
+   * @param i The index for the annotation.
+   * @return The start offset.
+   */
+  public int getStartOffset(int i) {
+    if (i < 0 || i >= numEntries) {
+      throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
+    }
+    int rbOffset = offset + i * SuccinctConstants.INT_SIZE_BYTES;
+    return buf.extractInt(rbOffset);
+  }
+
+  /**
+   * Get the end offset for the ith annotation.
+   *
+   * @param i The index for the annotation.
+   * @return The end offset.
+   */
+  public int getEndOffset(int i) {
+    if (i < 0 || i >= numEntries) {
+      throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
+    }
+    int reOffset = offset + (numEntries + i) * SuccinctConstants.INT_SIZE_BYTES;
+    return buf.extractInt(reOffset);
+  }
+
+  /**
+   * Get the annotation ID for the ith annotation.
+   *
+   * @param i The index for the annotation.
+   * @return The annotation ID.
+   */
+  public int getAnnotId(int i) {
+    if (i < 0 || i >= numEntries) {
+      throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
+    }
+    int aiOffset = offset + (2 * numEntries + i) * SuccinctConstants.INT_SIZE_BYTES;
+    return buf.extractInt(aiOffset);
+  }
+
+  /**
+   * Get the metadata for the ith annotation.
+   *
+   * @param i The index for the annotation.
+   * @return The annotation metadata.
+   */
+  public String getMetadata(int i) {
+    if (i < 0 || i >= numEntries) {
+      throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
+    }
+    int curOffset = offset + (3 * numEntries) * SuccinctConstants.INT_SIZE_BYTES;
+    while (true) {
+      short length = buf.extractShort(curOffset);
+      curOffset += SuccinctConstants.SHORT_SIZE_BYTES;
+      if (i == 0) {
+        return buf.extract(curOffset, length);
+      }
+
+      // Skip length bytes
+      curOffset += length;
+      i--;
+    }
+  }
+
+  /**
+   * Get the ith annotation.
+   *
+   * @param i The index for the annotation.
+   * @return The annotation.
+   */
+  public Annotation getAnnotation(int i) {
+    if (i < 0 || i >= numEntries) {
+      throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
+    }
+    return new Annotation(docId, getAnnotId(i), getStartOffset(i), getEndOffset(i), getMetadata(i));
+  }
+
+  /**
+   * Find the first start offset <= the given offset.
+   *
+   * @param offset The offset to search.
+   * @return The location of the first start offset <= offset.
+   */
+  public int firstLEQ(int offset) {
+    int lo = 0, hi = numEntries, arrVal;
 
     while (lo != hi) {
       int mid = lo + (hi - lo) / 2;
-      int arrVal = buf.extractInt(offset + mid * SuccinctConstants.INT_SIZE_BYTES);
-      if (arrVal <= startOffset) {
+      arrVal = buf.extractInt(this.offset + mid * SuccinctConstants.INT_SIZE_BYTES);
+      if (arrVal <= offset)
         lo = mid + 1;
-      } else {
+      else
         hi = mid;
-      }
     }
 
     return lo - 1;
+  }
+
+  /**
+   * Find the first start offset >= the given offset.
+   *
+   * @param offset The offset to search.
+   * @return The location of the first start offset >= offset.
+   */
+  public int firstGEQ(int offset) {
+    int lo = 0, hi = numEntries, arrVal = 0;
+
+    while (lo != hi) {
+      int mid = lo + (hi - lo) / 2;
+      arrVal = buf.extractInt(this.offset + mid * SuccinctConstants.INT_SIZE_BYTES);
+      if (arrVal <= offset)
+        lo = mid + 1;
+      else
+        hi = mid;
+    }
+
+    if (arrVal == offset)
+      return lo - 1;
+    return lo;
   }
 
   /*
@@ -68,19 +189,26 @@ public class AnnotationRecord {
   }
   */
 
-  public int[] findAnnotationsOver(int begin, int end) {
-    int idx = lowerBound(begin);
+  /**
+   * Find annotations containing the range (begin, end).
+   *
+   * @param begin Beginning of the input range.
+   * @param end End of the input range.
+   * @return Indices for the matching annotations.
+   */
+  public int[] findAnnotationsContaining(int begin, int end) {
+    int idx = firstLEQ(begin);
     if (idx < 0 || idx >= numEntries) {
       return new int[0];
     }
 
     TIntArrayList res = new TIntArrayList();
     while (idx < numEntries) {
-      int rBegin = getRangeBegin(idx);
-      int rEnd = getRangeEnd(idx);
-      if (end < rBegin)
+      int startOffset = getStartOffset(idx);
+      int endOffset = getEndOffset(idx);
+      if (end < startOffset)
         break;
-      if (begin >= rBegin && end <= rEnd) {
+      if (begin >= startOffset && end <= endOffset) {
         res.add(idx);
       }
       idx++;
@@ -89,52 +217,32 @@ public class AnnotationRecord {
     return res.toArray();
   }
 
-  public int getRangeBegin(int i) {
-    if (i < 0 || i >= numEntries) {
-      throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
+  /**
+   * Find annotations contained in the range (begin, end).
+   *
+   * @param begin Beginning of the input range.
+   * @param end End of the input range.
+   * @return Indices for the matching annotations.
+   */
+  public int[] findAnnotationsContainedIn(int begin, int end) {
+    int idx = firstGEQ(begin);
+    if (idx < 0 || idx >= numEntries) {
+      return new int[0];
     }
-    int rbOffset = offset + i * SuccinctConstants.INT_SIZE_BYTES;
-    return buf.extractInt(rbOffset);
-  }
 
-  public int getRangeEnd(int i) {
-    if (i < 0 || i >= numEntries) {
-      throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
-    }
-    int reOffset = offset + (numEntries + i) * SuccinctConstants.INT_SIZE_BYTES;
-    return buf.extractInt(reOffset);
-  }
-
-  public int getAnnotId(int i) {
-    if (i < 0 || i >= numEntries) {
-      throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
-    }
-    int aiOffset = offset + (2 * numEntries + i) * SuccinctConstants.INT_SIZE_BYTES;
-    return buf.extractInt(aiOffset);
-  }
-
-  public String getMetadata(int i) {
-    if (i < 0 || i >= numEntries) {
-      throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
-    }
-    int curOffset = offset + (3 * numEntries) * SuccinctConstants.INT_SIZE_BYTES;
-    while (true) {
-      short length = buf.extractShort(curOffset);
-      curOffset += SuccinctConstants.SHORT_SIZE_BYTES;
-      if (i == 0) {
-        return buf.extract(curOffset, length);
+    TIntArrayList res = new TIntArrayList();
+    while (idx < numEntries) {
+      int startOffset = getStartOffset(idx);
+      int endOffset = getEndOffset(idx);
+      if (startOffset > begin)
+        break;
+      if (startOffset >= begin && endOffset <= end) {
+        res.add(idx);
       }
-
-      // Skip length bytes
-      curOffset += length;
-      i--;
+      idx++;
     }
+
+    return res.toArray();
   }
 
-  public Annotation getAnnotation(int i) {
-    if (i < 0 || i >= numEntries) {
-      throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
-    }
-    return new Annotation(docId, getAnnotId(i), getRangeBegin(i), getRangeEnd(i), getMetadata(i));
-  }
 }
