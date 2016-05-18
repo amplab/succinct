@@ -82,14 +82,14 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     assert(res3 === Array[(String, Int, Int)]())
   }
 
-  test("Test searchOver") {
+  test("Test searchContaining") {
     sc = new SparkContext(conf)
 
     val annotatedRDD = sc.parallelize(data)
     val annotatedSuccinctRDD = AnnotatedSuccinctRDD(annotatedRDD)
 
     // Check
-    val res1 = annotatedSuccinctRDD.searchOver("Document", "ge", "word").collect()
+    val res1 = annotatedSuccinctRDD.searchContaining("Document", "ge", "word").collect()
     assert(res1.length == 3)
     res1.foreach(a => {
       assert(a.getStartOffset == 0)
@@ -97,7 +97,7 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
       assert(a.getId == 1)
     })
 
-    val res2 = annotatedSuccinctRDD.searchOver("number", "ge", "word").collect()
+    val res2 = annotatedSuccinctRDD.searchContaining("number", "ge", "word").collect()
     assert(res2.length == 3)
     res2.foreach(a => {
       assert(a.getStartOffset == 9)
@@ -105,14 +105,14 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
       assert(a.getId == 3)
     })
 
-    val res3 = annotatedSuccinctRDD.searchOver("three", "ge", "word").collect()
+    val res3 = annotatedSuccinctRDD.searchContaining("three", "ge", "word").collect()
     assert(res3.length == 1)
     assert(res3(0).getId == 5)
     assert(res3(0).getStartOffset == 16)
     assert(res3(0).getEndOffset == 21)
     assert(res3(0).getMetadata == "d^e")
 
-    val res4 = annotatedSuccinctRDD.searchOver(" ", "ge", "space").collect()
+    val res4 = annotatedSuccinctRDD.searchContaining(" ", "ge", "space").collect()
     assert(res4.length == 6)
     res4.foreach(a => {
       assert(a.getId == 2 || a.getId == 4)
@@ -121,18 +121,18 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
       assert(a.getMetadata == "")
     })
 
-    val res5 = annotatedSuccinctRDD.searchOver("four", "ge", "word").collect()
+    val res5 = annotatedSuccinctRDD.searchContaining("four", "ge", "word").collect()
     assert(res5.length == 0)
   }
 
-  test("Test regexOver") {
+  test("Test regexContaining") {
     sc = new SparkContext(conf)
 
     val annotatedRDD = sc.parallelize(data)
     val annotatedSuccinctRDD = AnnotatedSuccinctRDD(annotatedRDD)
 
     // Check
-    val res1 = annotatedSuccinctRDD.regexOver("one|two|three", "ge", "word").collect()
+    val res1 = annotatedSuccinctRDD.regexContainedIn("one|two|three", "ge", "word").collect()
     assert(res1.length == 3)
     res1.foreach(a => {
       assert(a.getStartOffset == 16)
@@ -140,7 +140,7 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
       assert(a.getId == 5)
     })
 
-    val res2 = annotatedSuccinctRDD.regexOver("four|five|six", "ge", "word").collect()
+    val res2 = annotatedSuccinctRDD.regexContainedIn("four|five|six", "ge", "word").collect()
     assert(res2.length == 0)
   }
 

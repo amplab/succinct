@@ -129,7 +129,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     }
   }
 
-  def searchOver(query: String, annotClass: String, annotType: String): Iterator[Annotation] = {
+  def searchContaining(query: String, annotClass: String, annotType: String): Iterator[Annotation] = {
     val it = search(query)
     val delim = SuccinctAnnotationBuffer.DELIM
     val annotKey = delim + annotClass + delim + annotType + delim
@@ -143,7 +143,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     })
   }
 
-  def regexOver(rexp: String, annotClass: String, annotType: String): Iterator[Annotation] = {
+  def regexContaining(rexp: String, annotClass: String, annotType: String): Iterator[Annotation] = {
     val it = regexSearch(rexp)
     val delim = SuccinctAnnotationBuffer.DELIM
     val annotKey = delim + annotClass + delim + annotType + delim

@@ -71,12 +71,12 @@ abstract class AnnotatedSuccinctRDD(@transient sc: SparkContext,
     partitionsRDD.flatMap(_.regexSearch(query))
   }
 
-  def searchOver(query: String, annotClass: String, annotType: String): RDD[Annotation] = {
-    partitionsRDD.flatMap(_.searchOver(query, annotClass, annotType))
+  def searchContaining(query: String, annotClass: String, annotType: String): RDD[Annotation] = {
+    partitionsRDD.flatMap(_.searchContaining(query, annotClass, annotType))
   }
 
-  def regexOver(query: String, annotClass: String, annotType: String): RDD[Annotation] = {
-    partitionsRDD.flatMap(_.regexOver(query, annotClass, annotType))
+  def regexContainedIn(query: String, annotClass: String, annotType: String): RDD[Annotation] = {
+    partitionsRDD.flatMap(_.regexContaining(query, annotClass, annotType))
   }
 
   /**
