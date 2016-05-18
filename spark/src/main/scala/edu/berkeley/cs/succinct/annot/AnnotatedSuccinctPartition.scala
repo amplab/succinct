@@ -8,6 +8,7 @@ import edu.berkeley.cs.succinct.buffers.annot._
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
+import scala.collection.JavaConverters._
 
 import scala.io.Source
 
@@ -127,6 +128,13 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
         (key, begin, end)
       }
     }
+  }
+
+  def filterAnnotations(annotClassFilter: String, annotTypeFilter: String): Iterator[Annotation] = {
+    val delim = "\\" + SuccinctAnnotationBuffer.DELIM
+    val keyFilter = delim + annotClassFilter + delim + annotTypeFilter + delim
+    val iters = annotBufferMap.filterKeys(_ matches keyFilter).values.map(_.iterator().asScala)
+    iters.foldLeft(Iterator[Annotation]())(_ ++ _)
   }
 
   def searchContaining(query: String, annotClass: String, annotType: String): Iterator[Annotation] = {

@@ -82,6 +82,21 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     assert(res3 === Array[(String, Int, Int)]())
   }
 
+  test("Test filterAnnotations") {
+    sc = new SparkContext(conf)
+
+    val annotatedRDD = sc.parallelize(data)
+    val annotatedSuccinctRDD = AnnotatedSuccinctRDD(annotatedRDD)
+
+    val geWords = annotatedSuccinctRDD.filterAnnotations("ge", "word").collect()
+    assert(geWords.length == 9)
+    // TODO: Test
+
+    val geSpaces = annotatedSuccinctRDD.filterAnnotations("ge", "space").collect()
+    assert(geSpaces.length == 6)
+
+  }
+
   test("Test searchContaining") {
     sc = new SparkContext(conf)
 
