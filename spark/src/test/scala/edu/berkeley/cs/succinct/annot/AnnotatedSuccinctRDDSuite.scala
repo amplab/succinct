@@ -90,11 +90,24 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
 
     val geWords = annotatedSuccinctRDD.filterAnnotations("ge", "word").collect()
     assert(geWords.length == 9)
-    // TODO: Test
+    geWords.foreach(a => {
+      assert(a.getAnnotClass == "ge")
+      assert(a.getAnnotType == "word")
+    })
 
     val geSpaces = annotatedSuccinctRDD.filterAnnotations("ge", "space").collect()
     assert(geSpaces.length == 6)
+    geSpaces.foreach(a => {
+      assert(a.getAnnotClass == "ge")
+      assert(a.getAnnotType == "space")
+    })
 
+    val geAll = annotatedSuccinctRDD.filterAnnotations("ge", ".*").collect()
+    assert(geAll.length == 15)
+    geAll.foreach(a => {
+      assert(a.getAnnotClass == "ge")
+      assert(a.getAnnotType == "word" || a.getAnnotType == "space")
+    })
   }
 
   test("Test searchContaining") {

@@ -10,14 +10,18 @@ import java.util.Iterator;
 public class SuccinctAnnotationBuffer extends SuccinctFileBuffer {
 
   public static final char DELIM = '^';
+  private transient String annotClass;
+  private transient String annotType;
 
   /**
    * Constructor to initialize from input byte array.
    *
    * @param input The input byte array.
    */
-  public SuccinctAnnotationBuffer(byte[] input) {
+  public SuccinctAnnotationBuffer(String annotClass, String annotType, byte[] input) {
     super(input);
+    this.annotClass = annotClass;
+    this.annotType = annotType;
   }
 
   /**
@@ -26,12 +30,32 @@ public class SuccinctAnnotationBuffer extends SuccinctFileBuffer {
    * @param is       Input stream to load the data from
    * @param fileSize Size of the file.
    */
-  public SuccinctAnnotationBuffer(DataInputStream is, int fileSize) {
+  public SuccinctAnnotationBuffer(String annotClass, String annotType, DataInputStream is, int fileSize) {
     try {
       readFromStream(is, fileSize);
     } catch (IOException e) {
       e.printStackTrace();
     }
+    this.annotClass = annotClass;
+    this.annotType = annotType;
+  }
+
+  /**
+   * Get the Annotation Class.
+   *
+   * @return The Annotation Class.
+   */
+  public String getAnnotClass() {
+    return annotClass;
+  }
+
+  /**
+   * Get the Annotation Type.
+   *
+   * @return The Annotation Type
+   */
+  public String getAnnotType() {
+    return annotType;
   }
 
   /**

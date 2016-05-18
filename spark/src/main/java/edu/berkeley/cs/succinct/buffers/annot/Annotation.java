@@ -3,18 +3,41 @@ package edu.berkeley.cs.succinct.buffers.annot;
 import java.io.Serializable;
 
 public class Annotation implements Serializable {
+  private String annotClass;
+  private String annotType;
   private String docId;
   private int id;
   private int startOffset;
   private int endOffset;
   private String metadata;
 
-  public Annotation(String docId, int id, int rBegin, int rEnd, String metadata) {
+  public Annotation(String annotClass, String annotType, String docId, int id, int rBegin, int rEnd,
+    String metadata) {
+    this.annotClass = annotClass;
+    this.annotType = annotType;
     this.docId = docId;
     this.id = id;
     this.startOffset = rBegin;
     this.endOffset = rEnd;
     this.metadata = metadata;
+  }
+
+  /**
+   * Get the Annotation Class.
+   *
+   * @return The Annotation Class.
+   */
+  public String getAnnotClass() {
+    return annotClass;
+  }
+
+  /**
+   * Get the Annotation Type.
+   *
+   * @return The annotation Type.
+   */
+  public String getAnnotType() {
+    return annotType;
   }
 
   /**
@@ -63,6 +86,7 @@ public class Annotation implements Serializable {
   }
 
   public String toString() {
-    return "[" + docId + ", " + id + ", " + startOffset + ", " + endOffset + ", " + metadata + "]";
+    return "[" + annotClass + ", " + annotType + ", " + docId + ", " + id + ", " + startOffset
+      + ", " + endOffset + ", " + metadata + "]";
   }
 }

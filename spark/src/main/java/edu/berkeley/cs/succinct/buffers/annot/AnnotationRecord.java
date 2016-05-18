@@ -35,6 +35,24 @@ public class AnnotationRecord {
   }
 
   /**
+   * Get the Annotation Class.
+   *
+   * @return The Annotation Class.
+   */
+  public String getAnnotClass() {
+    return buf.getAnnotClass();
+  }
+
+  /**
+   * Get the Annotation Type.
+   *
+   * @return The Annotation Type.
+   */
+  public String getAnnotType() {
+    return buf.getAnnotType();
+  }
+
+  /**
    * Get the document ID for the AnnotationRecord.
    *
    * @return The documentID for the AnnotationRecord.
@@ -128,7 +146,8 @@ public class AnnotationRecord {
     if (i < 0 || i >= numEntries) {
       throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
     }
-    return new Annotation(docId, getAnnotId(i), getStartOffset(i), getEndOffset(i), getMetadata(i));
+    return new Annotation(getAnnotClass(), getAnnotType(), docId, getAnnotId(i), getStartOffset(i),
+      getEndOffset(i), getMetadata(i));
   }
 
   /**
@@ -186,7 +205,7 @@ public class AnnotationRecord {
    * Find annotations containing the range (begin, end).
    *
    * @param begin Beginning of the input range.
-   * @param end End of the input range.
+   * @param end   End of the input range.
    * @return Indices for the matching annotations.
    */
   public int[] findAnnotationsContaining(int begin, int end) {
@@ -210,7 +229,7 @@ public class AnnotationRecord {
    * Find annotations contained in the range (begin, end).
    *
    * @param begin Beginning of the input range.
-   * @param end End of the input range.
+   * @param end   End of the input range.
    * @return Indices for the matching annotations.
    */
   public int[] findAnnotationsContainedIn(int begin, int end) {

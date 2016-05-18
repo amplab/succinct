@@ -148,7 +148,12 @@ object AnnotatedSuccinctRDD {
     val docIds = serializer.getDocIds
     val docTextBuffer = serializer.getTextBuffer
     val succinctDocTextBuffer = new SuccinctIndexedFileBuffer(docTextBuffer._2, docTextBuffer._1)
-    val succinctAnnotBufferMap = serializer.getAnnotationBuffers.mapValues(v => new SuccinctAnnotationBuffer(v))
+    val succinctAnnotBufferMap = serializer.getAnnotationBuffers.map(kv => {
+      val key = kv._1
+      val annotClass = key.split('^')(1)
+      val annotType = key.split('^')(2)
+      (key, new SuccinctAnnotationBuffer(annotClass, annotType, kv._2))
+    })
     Iterator(new AnnotatedSuccinctPartition(docIds, succinctDocTextBuffer, succinctAnnotBufferMap))
   }
 

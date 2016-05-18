@@ -17,7 +17,7 @@ public class SuccinctAnnotationBufferTest extends TestCase {
       0, 15, 0, 0, 0, 21, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 0, 5, 0, 1, 97, 0, 3, 98, 38, 99, 0, 3, 100,
       94, 101};
 
-  private final SuccinctAnnotationBuffer buf = new SuccinctAnnotationBuffer(test);
+  private final SuccinctAnnotationBuffer buf = new SuccinctAnnotationBuffer("ge", "word", test);
   private final String[] documentIds = {"doc1", "doc2", "doc3"};
 
   // (0, 8), (9, 15), (16, 19)

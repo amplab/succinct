@@ -195,12 +195,15 @@ object AnnotatedSuccinctPartition {
     val annotBufMap = Source.fromInputStream(isAnnotToc).getLines().map(_.split('\t'))
       .map(e => (e(0), new Path(partitionLocation + ".sannots." + e(1))))
       .filter(kv => kv._1 matches keyFilter).toMap
-      .mapValues(p => {
-        val isAnnot = fs.open(p)
-        val annotSize: Int = fs.getContentSummary(p).getLength.toInt
-        val buf = new SuccinctAnnotationBuffer(isAnnot, annotSize)
+      .map(kv => {
+        val key = kv._1
+        val annotClass = key.split('^')(1)
+        val annotType = key.split('^')(2)
+        val isAnnot = fs.open(kv._2)
+        val annotSize: Int = fs.getContentSummary(kv._2).getLength.toInt
+        val buf = new SuccinctAnnotationBuffer(annotClass, annotType, isAnnot, annotSize)
         isAnnot.close()
-        buf
+        (key, buf)
       })
 
     new AnnotatedSuccinctPartition(keys, documentBuffer, annotBufMap)
