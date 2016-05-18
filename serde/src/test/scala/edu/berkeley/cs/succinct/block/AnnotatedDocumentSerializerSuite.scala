@@ -16,7 +16,7 @@ class AnnotatedDocumentSerializerSuite extends FunSuite {
   val data: Seq[(String, String, String)] = Seq(doc1, doc2, doc3)
 
   test("serialize") {
-    val ser = new AnnotatedDocumentSerializer
+    val ser = new AnnotatedDocumentSerializer(true)
     ser.serialize(data.iterator)
 
     // Check docIds
