@@ -49,20 +49,21 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
 
     // Write annotation buffers
     val pathAnnotToc = new Path(location + ".sannots.toc")
+    val pathAnnot = new Path(location + ".sannots")
     val osAnnotToc = fs.create(pathAnnotToc)
-    annotBufferMap.zipWithIndex.foreach(kv => {
-      val key = kv._1._1
-      val buf = kv._1._2
-      val idx = kv._2
-
-      // Add entry to TOC
-      osAnnotToc.writeBytes(s"$key\t$idx\n")
-      val pathAnnot = new Path(location + ".sannots." + idx)
-      val osAnnot = fs.create(pathAnnot)
+    val osAnnot = fs.create(pathAnnot)
+    annotBufferMap.foreach(kv => {
+      val key = kv._1
+      val buf = kv._2
+      val startPos = osAnnot.getPos
       buf.writeToStream(osAnnot)
-      osAnnot.close()
+      val endPos = osAnnot.getPos
+      val size = endPos - startPos
+      // Add entry to TOC
+      osAnnotToc.writeBytes(s"$key\t$startPos\t$size\n")
     })
     osAnnotToc.close()
+    osAnnot.close()
   }
 
   override def estimatedSize: Long = {
@@ -196,20 +197,21 @@ object AnnotatedSuccinctPartition {
     val delim = "\\" + SuccinctAnnotationBuffer.DELIM
     val keyFilter = delim + annotClassFilter + delim + annotTypeFilter + delim
     val pathAnnotToc = new Path(partitionLocation + ".sannots.toc")
+    val pathAnnot = new Path(partitionLocation + ".sannots")
     val isAnnotToc = fs.open(pathAnnotToc)
     val annotBufMap = Source.fromInputStream(isAnnotToc).getLines().map(_.split('\t'))
-      .map(e => (e(0), new Path(partitionLocation + ".sannots." + e(1))))
-      .filter(kv => kv._1 matches keyFilter).toMap
-      .map(kv => {
-        val key = kv._1
+      .map(e => (e(0), e(1).toLong, e(2).toLong))
+      .filter(e => e._1 matches keyFilter)
+      .map(e => {
+        val key = e._1
         val annotClass = key.split('^')(1)
         val annotType = key.split('^')(2)
-        val isAnnot = fs.open(kv._2)
-        val annotSize: Int = fs.getContentSummary(kv._2).getLength.toInt
-        val buf = new SuccinctAnnotationBuffer(annotClass, annotType, isAnnot, annotSize)
+        val isAnnot = fs.open(pathAnnot)
+        isAnnot.seek(e._2)
+        val buf = new SuccinctAnnotationBuffer(annotClass, annotType, isAnnot, e._3.toInt)
         isAnnot.close()
         (key, buf)
-      })
+      }).toMap
 
     new AnnotatedSuccinctPartition(keys, documentBuffer, annotBufMap)
   }
