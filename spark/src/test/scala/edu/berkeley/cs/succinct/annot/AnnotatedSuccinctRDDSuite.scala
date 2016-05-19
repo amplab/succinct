@@ -117,7 +117,7 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val annotatedSuccinctRDD = AnnotatedSuccinctRDD(annotatedRDD)
 
     // Check
-    val res1 = annotatedSuccinctRDD.searchContaining("Document", "ge", "word").collect()
+    val res1 = annotatedSuccinctRDD.searchContaining("ge", "word", "Document").collect()
     assert(res1.length == 3)
     res1.foreach(a => {
       assert(a.getStartOffset == 0)
@@ -125,7 +125,7 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
       assert(a.getId == 1)
     })
 
-    val res2 = annotatedSuccinctRDD.searchContaining("number", "ge", "word").collect()
+    val res2 = annotatedSuccinctRDD.searchContaining("ge", "word", "number").collect()
     assert(res2.length == 3)
     res2.foreach(a => {
       assert(a.getStartOffset == 9)
@@ -133,14 +133,14 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
       assert(a.getId == 3)
     })
 
-    val res3 = annotatedSuccinctRDD.searchContaining("three", "ge", "word").collect()
+    val res3 = annotatedSuccinctRDD.searchContaining("ge", "word", "three").collect()
     assert(res3.length == 1)
     assert(res3(0).getId == 5)
     assert(res3(0).getStartOffset == 16)
     assert(res3(0).getEndOffset == 21)
     assert(res3(0).getMetadata == "d^e")
 
-    val res4 = annotatedSuccinctRDD.searchContaining(" ", "ge", "space").collect()
+    val res4 = annotatedSuccinctRDD.searchContaining("ge", "space", " ").collect()
     assert(res4.length == 6)
     res4.foreach(a => {
       assert(a.getId == 2 || a.getId == 4)
@@ -149,7 +149,7 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
       assert(a.getMetadata == "")
     })
 
-    val res5 = annotatedSuccinctRDD.searchContaining("four", "ge", "word").collect()
+    val res5 = annotatedSuccinctRDD.searchContaining("ge", "word", "four").collect()
     assert(res5.length == 0)
   }
 
@@ -160,7 +160,7 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val annotatedSuccinctRDD = AnnotatedSuccinctRDD(annotatedRDD)
 
     // Check
-    val res1 = annotatedSuccinctRDD.regexContainedIn("one|two|three", "ge", "word").collect()
+    val res1 = annotatedSuccinctRDD.regexContaining("ge", "word", "one|two|three").collect()
     assert(res1.length == 3)
     res1.foreach(a => {
       assert(a.getStartOffset == 16)
@@ -168,7 +168,7 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
       assert(a.getId == 5)
     })
 
-    val res2 = annotatedSuccinctRDD.regexContainedIn("four|five|six", "ge", "word").collect()
+    val res2 = annotatedSuccinctRDD.regexContaining("ge", "word", "four|five|six").collect()
     assert(res2.length == 0)
   }
 

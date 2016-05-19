@@ -3,6 +3,7 @@ package org.apache.spark.succinct.annot
 import java.io.{ObjectInputStream, ObjectOutputStream}
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
+import edu.berkeley.cs.succinct.annot.{Result, Operator}
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.buffers.annot._
 import org.apache.hadoop.conf.Configuration
@@ -163,6 +164,10 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
       else
         ar.findAnnotationsContaining(r._2, r._3).map(ar.getAnnotation)
     })
+  }
+
+  def query(operator: Operator): Iterator[Result] = {
+    Iterator[Result]()
   }
 
   def count: Int = keys.length
