@@ -198,7 +198,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
   }
 
   def containing(annotClass: String, annotType: String, it: Iterator[Result]): Iterator[Result] = {
-    val delim = "\\" + SuccinctAnnotationBuffer.DELIM
+    val delim = SuccinctAnnotationBuffer.DELIM
     val keyFilter = delim + annotClass + delim + annotType + delim
     val buffer = annotBufferMap(keyFilter)
 
