@@ -3,6 +3,9 @@ package edu.berkeley.cs.succinct.buffers.annot;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import gnu.trove.list.array.TIntArrayList;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 public class AnnotationRecord {
   private int offset;
   private String docId;
@@ -206,23 +209,54 @@ public class AnnotationRecord {
    *
    * @param begin Beginning of the input range.
    * @param end   End of the input range.
-   * @return Indices for the matching annotations.
+   * @return The matching annotations.
    */
-  public int[] findAnnotationsContaining(int begin, int end) {
-    int idx = 0;
-    TIntArrayList res = new TIntArrayList();
-    while (idx < numEntries) {
-      int startOffset = getStartOffset(idx);
-      int endOffset = getEndOffset(idx);
-      if (startOffset > begin)
-        break;
-      if (begin >= startOffset && end <= endOffset) {
-        res.add(idx);
-      }
-      idx++;
-    }
+  public Iterator<Annotation> annotationsContaining(final int begin, final int end) {
+    return new Iterator<Annotation>() {
+      int idx = -1;
+      int startOffset;
+      int endOffset;
 
-    return res.toArray();
+      private void advanceToNextValid() {
+        boolean valid;
+        do {
+          if (++idx == numEntries)
+            break;
+          startOffset = getStartOffset(idx);
+          if (startOffset > begin)
+            break;
+          endOffset = getEndOffset(idx);
+          valid = end <= endOffset;
+        } while (!valid);
+      }
+
+      {
+        advanceToNextValid();
+      }
+
+      private Annotation getCurrentAnnotation() {
+        return new Annotation(buf.getAnnotClass(), buf.getAnnotType(), docId, getAnnotId(idx),
+          startOffset, endOffset, getMetadata(idx));
+      }
+
+      @Override public boolean hasNext() {
+        return idx < numEntries && startOffset <= begin;
+      }
+
+      @Override public Annotation next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+
+        Annotation toReturn = getCurrentAnnotation();
+        advanceToNextValid();
+        return toReturn;
+      }
+
+      @Override public void remove() {
+        throw new UnsupportedOperationException();
+      }
+    };
   }
 
   /**
@@ -230,9 +264,9 @@ public class AnnotationRecord {
    *
    * @param begin Beginning of the input range.
    * @param end   End of the input range.
-   * @return Indices for the matching annotations.
+   * @return The matching annotations.
    */
-  public int[] findAnnotationsContainedIn(int begin, int end) {
+  public int[] annotationsContainedIn(int begin, int end) {
     int idx = firstGEQ(begin);
     if (idx < 0 || idx >= numEntries) {
       return new int[0];

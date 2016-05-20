@@ -65,8 +65,8 @@ abstract class AnnotatedSuccinctRDD(@transient sc: SparkContext,
     * Get document text at a specified offset given the documentID.
     *
     * @param documentId The documentID for the document.
-    * @param offset The offset into the document text.
-    * @param length The number of characters to fetch.
+    * @param offset     The offset into the document text.
+    * @param length     The number of characters to fetch.
     * @return The document text.
     */
   def extractDocument(documentId: String, offset: Int, length: Int): String = {
@@ -81,24 +81,25 @@ abstract class AnnotatedSuccinctRDD(@transient sc: SparkContext,
     partitionsRDD.flatMap(_.query(operator))
   }
 
-  def search(query: String): RDD[(String, Int, Int)] = {
+  def search(query: String): RDD[Result] = {
     partitionsRDD.flatMap(_.search(query))
   }
 
-  def regexSearch(query: String): RDD[(String, Int, Int)] = {
+  def regexSearch(query: String): RDD[Result] = {
     partitionsRDD.flatMap(_.regexSearch(query))
   }
 
-  def filterAnnotations(annotClassFilter: String, annotTypeFilter: String): RDD[Annotation] = {
-    partitionsRDD.flatMap(_.filterAnnotations(annotClassFilter, annotTypeFilter))
+  def filterAnnotations(annotClassFilter: String, annotTypeFilter: String,
+                        metadataFilter: String => Boolean): RDD[Result] = {
+    partitionsRDD.flatMap(_.filterAnnotations(annotClassFilter, annotTypeFilter, metadataFilter))
   }
 
-  def searchContaining(annotClass: String, annotType: String, query: String): RDD[Annotation] = {
-    partitionsRDD.flatMap(_.searchContaining(query, annotClass, annotType))
+  def searchContaining(annotClass: String, annotType: String, query: String): RDD[Result] = {
+    partitionsRDD.flatMap(_.searchContaining(annotClass, annotType, query))
   }
 
-  def regexContaining(annotClass: String, annotType: String, query: String): RDD[Annotation] = {
-    partitionsRDD.flatMap(_.regexContaining(query, annotClass, annotType))
+  def regexContaining(annotClass: String, annotType: String, query: String): RDD[Result] = {
+    partitionsRDD.flatMap(_.regexContaining(annotClass, annotType, query))
   }
 
   /**
@@ -155,10 +156,10 @@ object AnnotatedSuccinctRDD {
   /**
     * Reads a [[AnnotatedSuccinctRDD]] from disk, based on filters on Annotation Class and Type.
     *
-    * @param sc       The spark context
-    * @param location The path to read the SuccinctKVRDD from.
+    * @param sc               The spark context
+    * @param location         The path to read the SuccinctKVRDD from.
     * @param annotClassFilter Regex filter specifying which annotation classes to load.
-    * @param annotTypeFilter Regex filter specifying which annotation types to load.
+    * @param annotTypeFilter  Regex filter specifying which annotation types to load.
     * @return The [[AnnotatedSuccinctRDD]].
     */
   def apply(sc: SparkContext, location: String, annotClassFilter: String, annotTypeFilter: String): AnnotatedSuccinctRDD = {
@@ -181,7 +182,7 @@ object AnnotatedSuccinctRDD {
   /**
     * Creates an [[AnnotatedSuccinctPartition]] from a collection of (documentID, documentText, annotations) triplets.
     *
-    * @param dataIter An iterator over (documentID, documentText, annotations) triplets.
+    * @param dataIter          An iterator over (documentID, documentText, annotations) triplets.
     * @param ignoreParseErrors Ignores errors in parsing annotations if set to true; throws an exception on error otherwise.
     * @return An iterator over [[AnnotatedSuccinctPartition]]
     */

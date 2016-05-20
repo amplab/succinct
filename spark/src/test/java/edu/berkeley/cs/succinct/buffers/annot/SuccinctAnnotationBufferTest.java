@@ -149,33 +149,51 @@ public class SuccinctAnnotationBufferTest extends TestCase {
 
   public void testFindAnnotationsContaining() throws Exception {
     AnnotationRecord ar1 = buf.getAnnotationRecord("doc1");
-    int[] res1 = ar1.findAnnotationsContaining(1, 3);
-    assertEquals(1, res1.length);
-    assertEquals(0, res1[0]);
+    Iterator<Annotation> res1 = ar1.annotationsContaining(1, 3);
+    int count1 = 0;
+    while (res1.hasNext()) {
+      Annotation a = res1.next();
+      assertEquals(a.getDocId(), "doc1");
+      assertEquals(a.getStartOffset(), 0);
+      assertEquals(a.getEndOffset(), 8);
+      count1++;
+    }
+    assertEquals(1, count1);
 
     AnnotationRecord ar2 = buf.getAnnotationRecord("doc2");
-    int[] res2 = ar2.findAnnotationsContaining(6, 9);
-    assertEquals(0, res2.length);
+    Iterator<Annotation> res2 = ar2.annotationsContaining(6, 9);
+    int count2 = 0;
+    while (res2.hasNext()) {
+      count2++;
+    }
+    assertEquals(0, count2);
 
     AnnotationRecord ar3 = buf.getAnnotationRecord("doc3");
-    int[] res3 = ar3.findAnnotationsContaining(9, 15);
-    assertEquals(1, res3.length);
-    assertEquals(1, res3[0]);
+    Iterator<Annotation> res3 = ar3.annotationsContaining(9, 15);
+    int count3 = 0;
+    while (res3.hasNext()) {
+      Annotation a = res3.next();
+      assertEquals(a.getDocId(), "doc3");
+      assertEquals(a.getStartOffset(), 9);
+      assertEquals(a.getEndOffset(), 15);
+      count3++;
+    }
+    assertEquals(1, count3);
   }
 
   public void testFindAnnotationsContainedIn() throws Exception {
     AnnotationRecord ar1 = buf.getAnnotationRecord("doc1");
-    int[] res1 = ar1.findAnnotationsContainedIn(0, 15);
+    int[] res1 = ar1.annotationsContainedIn(0, 15);
     assertEquals(2, res1.length);
     assertEquals(0, res1[0]);
     assertEquals(1, res1[1]);
 
     AnnotationRecord ar2 = buf.getAnnotationRecord("doc2");
-    int[] res2 = ar2.findAnnotationsContainedIn(6, 9);
+    int[] res2 = ar2.annotationsContainedIn(6, 9);
     assertEquals(0, res2.length);
 
     AnnotationRecord ar3 = buf.getAnnotationRecord("doc3");
-    int[] res3 = ar3.findAnnotationsContainedIn(9, 15);
+    int[] res3 = ar3.annotationsContainedIn(9, 15);
     assertEquals(1, res3.length);
     assertEquals(1, res3[0]);
   }

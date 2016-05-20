@@ -3,20 +3,25 @@ package org.apache.spark.succinct.annot
 import java.io.{ObjectInputStream, ObjectOutputStream}
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
-import edu.berkeley.cs.succinct.annot.{Result, Operator}
+import edu.berkeley.cs.succinct.annot.{Operator, Result}
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.buffers.annot._
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
-import scala.collection.JavaConverters._
 
+import scala.collection.JavaConverters._
 import scala.io.Source
 
 class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIndexedFile,
                                  annotBufferMap: Map[String, SuccinctAnnotationBuffer])
   extends KnownSizeEstimation with Serializable {
 
+  /**
+    * Get an [[Iterator]] over the documents.
+    *
+    * @return An [[Iterator]] over the documents.
+    */
   def iterator: Iterator[(String, String)] = {
     new Iterator[(String, String)] {
       var currentRecordId = 0
@@ -32,6 +37,11 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     }
   }
 
+  /**
+    * Saves the partition at the specified location prefix.
+    *
+    * @param location The prefix for the partition's save location.
+    */
   def save(location: String): Unit = {
     val pathDoc = new Path(location + ".sdocs")
     val pathDocIds = new Path(location + ".sdocids")
@@ -66,6 +76,11 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     osAnnot.close()
   }
 
+  /**
+    * Get an estimate of the partition size.
+    *
+    * @return An estimate of the estimated partition size.
+    */
   override def estimatedSize: Long = {
     val docSize = documentBuffer.getCompressedSize
     val annotSize = annotBufferMap.values.map(_.getCompressedSize).sum
@@ -73,7 +88,12 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     docSize + annotSize + docIdsSize
   }
 
-  /** Find the index of a particular key using binary search. **/
+  /**
+    * Find the index of a particular key using binary search.
+    *
+    * @param key The key to find.
+    * @return Position of the key in the list of keys.
+    */
   def findKey(key: String): Int = {
     var (low, high) = (0, keys.length - 1)
 
@@ -86,91 +106,156 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     -1
   }
 
+  /**
+    * Get the document text for a given document ID.
+    *
+    * @param docId The document ID.
+    * @return The document text.
+    */
   def getDocument(docId: String): String = {
     val pos = findKey(docId)
     if (pos < 0 || pos > keys.length) null else documentBuffer.getRecord(pos)
   }
 
+  /**
+    * Extract the document text for a given document ID at a specified offset into the document.
+    *
+    * @param docId  The document ID.
+    * @param offset The offset into the document.
+    * @param length The number of characters to extract.
+    * @return The extracted document text.
+    */
   def extractDocument(docId: String, offset: Int, length: Int): String = {
     val pos = findKey(docId)
     if (pos < 0 || pos > keys.length) null else documentBuffer.extractRecord(pos, offset, length)
   }
 
-  def search(query: String): Iterator[(String, Int, Int)] = {
-    new Iterator[(String, Int, Int)] {
+  /**
+    * Search for a query string in the document texts.
+    *
+    * @param query The query string to search for.
+    * @return The location and length of the matches for each document.
+    */
+  def search(query: String): Iterator[Result] = {
+    new Iterator[Result] {
       val searchIterator = documentBuffer.searchIterator(query.toCharArray)
       val matchLength = query.length
 
       override def hasNext: Boolean = searchIterator.hasNext
 
-      override def next(): (String, Int, Int) = {
+      override def next(): Result = {
         val offset = searchIterator.next().toInt
         val recordId = documentBuffer.offsetToRecordId(offset)
         val key = keys(recordId)
         val begin = offset - documentBuffer.getRecordOffset(recordId)
         val end = begin + matchLength
-        (key, begin, end)
+        Result(key, begin, end, null)
       }
     }
   }
 
-  def regexSearch(query: String): Iterator[(String, Int, Int)] = {
-    new Iterator[(String, Int, Int)] {
+  /**
+    * Search for a regex pattern in the document texts.
+    *
+    * @param query The regex pattern to search for.
+    * @return The location and length of the matches for each document.
+    */
+  def regexSearch(query: String): Iterator[Result] = {
+    new Iterator[Result] {
       val matches = documentBuffer.regexSearch(query).iterator()
 
       override def hasNext: Boolean = matches.hasNext
 
-      override def next(): (String, Int, Int) = {
+      override def next(): Result = {
         val m = matches.next()
         val offset = m.getOffset.toInt
         val recordId = documentBuffer.offsetToRecordId(offset)
         val key = keys(recordId)
         val begin = offset - documentBuffer.getRecordOffset(recordId)
         val end = begin + m.getLength
-        (key, begin, end)
+        Result(key, begin, end, null)
       }
     }
   }
 
-  def filterAnnotations(annotClassFilter: String, annotTypeFilter: String): Iterator[Annotation] = {
+  /**
+    * Filter annotations in this partition by the annotation class, annotation type and the
+    * annotation metadata.
+    *
+    * @param annotClassFilter Regex filter on annotation class.
+    * @param annotTypeFilter  Regex filter on annotation type.
+    * @param metadataFilter   Arbitrary filter function on metadata.
+    * @return An [[Iterator]] over the filtered annotations encapsulated as Result objects.
+    */
+  def filterAnnotations(annotClassFilter: String, annotTypeFilter: String,
+                        metadataFilter: String => Boolean): Iterator[Result] = {
     val delim = "\\" + SuccinctAnnotationBuffer.DELIM
     val keyFilter = delim + annotClassFilter + delim + annotTypeFilter + delim
-    val iters = annotBufferMap.filterKeys(_ matches keyFilter).values.map(_.iterator().asScala)
-    iters.foldLeft(Iterator[Annotation]())(_ ++ _)
+    annotBufferMap.filterKeys(_ matches keyFilter).values.map(_.iterator().asScala)
+      .foldLeft(Iterator[Annotation]())(_ ++ _)
+      .filter(a => metadataFilter(a.getMetadata))
+      .map(a => Result(a.getDocId, a.getStartOffset, a.getEndOffset, a))
   }
 
-  def searchContaining(query: String, annotClass: String, annotType: String): Iterator[Annotation] = {
+  def containing(annotClass: String, annotType: String, it: Iterator[Result]): Iterator[Result] = {
+    val delim = "\\" + SuccinctAnnotationBuffer.DELIM
+    val keyFilter = delim + annotClass + delim + annotType + delim
+    val buffers = annotBufferMap.filterKeys(_ matches keyFilter).values
+    it.map(r => {
+      buffers.map(_.getAnnotationRecord(r.docId))
+        .filter(_ != null)
+        .flatMap(_.annotationsContaining(r.startOffset, r.endOffset).asScala)
+    }).foldLeft(Iterator[Annotation]())(_ ++ _)
+      .map(a => Result(a.getDocId, a.getStartOffset, a.getEndOffset, a))
+  }
+
+  /**
+    * Find all annotations of a specified annotation class and annotation type that contain a
+    * particular query string.
+    *
+    * @param query      The query string.
+    * @param annotClass The annotation class.
+    * @param annotType  The annotation type.
+    * @return An [[Iterator]] over matching Annotations encapsulated as Result objects.
+    */
+  def searchContaining(annotClass: String, annotType: String, query: String): Iterator[Result] = {
     val it = search(query)
-    val delim = SuccinctAnnotationBuffer.DELIM
-    val annotKey = delim + annotClass + delim + annotType + delim
-    val buffer = annotBufferMap(annotKey)
-    it.flatMap(r => {
-      val ar = buffer.getAnnotationRecord(r._1)
-      if (ar == null)
-        Array[Annotation]()
-      else
-        ar.findAnnotationsContaining(r._2, r._3).map(ar.getAnnotation)
-    })
+    containing(annotClass, annotType, it)
   }
 
-  def regexContaining(rexp: String, annotClass: String, annotType: String): Iterator[Annotation] = {
+  /**
+    * Find all annotations of a specified annotation class and annotation type that contain a
+    * particular regex pattern.
+    *
+    * @param rexp       The regex pattern.
+    * @param annotClass The annotation class.
+    * @param annotType  The annotation type.
+    * @return An [[Iterator]] over matching Annotations encapsulated as Result objects.
+    */
+  def regexContaining(annotClass: String, annotType: String, rexp: String): Iterator[Result] = {
     val it = regexSearch(rexp)
-    val delim = SuccinctAnnotationBuffer.DELIM
-    val annotKey = delim + annotClass + delim + annotType + delim
-    val buffer = annotBufferMap(annotKey)
-    it.flatMap(r => {
-      val ar = buffer.getAnnotationRecord(r._1)
-      if (ar == null)
-        Array[Annotation]()
-      else
-        ar.findAnnotationsContaining(r._2, r._3).map(ar.getAnnotation)
-    })
+    containing(annotClass, annotType, it)
   }
 
+  /**
+    * Find all (documentID, startOffset, endOffset) triplets corresponding to an arbitrary query
+    * composed of Contains, ContainedIn, Before, After, FilterAnnotations, Search and RegexSearch
+    * queries.
+    *
+    * @param operator An arbitrary expression tree composed of Contains, ContainedIn, Before, After,
+    *                 FilterAnnotations, Search and RegexSearch.
+    * @return An [[Iterator]] over matching (documentID, startOffset, endOffset) triplets
+    *         encapsulated as Result objects.
+    */
   def query(operator: Operator): Iterator[Result] = {
     Iterator[Result]()
   }
 
+  /**
+    * Get the number of documents in the partition.
+    *
+    * @return The number of documents in the partition.
+    */
   def count: Int = keys.length
 }
 
