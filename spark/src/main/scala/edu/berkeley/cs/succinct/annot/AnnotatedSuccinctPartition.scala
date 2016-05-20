@@ -201,12 +201,15 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     val delim = "\\" + SuccinctAnnotationBuffer.DELIM
     val keyFilter = delim + annotClass + delim + annotType + delim
     val buffers = annotBufferMap.filterKeys(_ matches keyFilter).values
-    it.map(r => {
-      buffers.map(_.getAnnotationRecord(r.docId))
-        .filter(_ != null)
-        .flatMap(_.annotationsContaining(r.startOffset, r.endOffset).asScala)
-    }).foldLeft(Iterator[Annotation]())(_ ++ _)
-      .map(a => Result(a.getDocId, a.getStartOffset, a.getEndOffset, a))
+
+    def containingResult(result: Result): Iterator[Result] = {
+      buffers.map(_.getAnnotationRecord(result.docId)
+        .annotationsContaining(result.startOffset, result.endOffset).asScala
+        .map(a => Result(a.getDocId, a.getStartOffset, a.getEndOffset, a)))
+        .foldLeft(Iterator[Result]())(_ ++ _)
+    }
+
+    it.map(containingResult).foldLeft(Iterator[Result]())(_ ++ _)
   }
 
   /**
