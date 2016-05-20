@@ -204,15 +204,15 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     val buffers = annotBufferMap.filterKeys(_ matches keyFilter).values.toSeq
 
     new Iterator[Result] {
-      var curBufIdx = 0
+      var curBufIdx = buffers.length - 1
       var curAnnotIdx = 0
-      var curRes = if (it.hasNext) it.next() else null
+      var curRes: Result = null
       var curAnnots = nextAnnots
 
       def nextAnnots: Array[Annotation] = {
-        var annotRecord: AnnotationRecord = null
-        var annots: Array[Annotation] = null
+        var annots: Array[Annotation] = Array[Annotation]()
         while (annots.length == 0) {
+          var annotRecord: AnnotationRecord = null
           while (annotRecord == null) {
             curBufIdx += 1
             if (curBufIdx == buffers.size) {
@@ -233,6 +233,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
         if (!hasNext)
           throw new NoSuchElementException()
         val annot = curAnnots(curAnnotIdx)
+        println(s"curAnnotIdx=$curAnnotIdx, annot=$annot")
         curAnnotIdx += 1
         if (curAnnotIdx == curAnnots.length) {
           curAnnotIdx = 0
