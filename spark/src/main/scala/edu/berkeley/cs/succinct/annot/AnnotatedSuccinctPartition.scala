@@ -200,13 +200,12 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
   def containing(annotClass: String, annotType: String, it: Iterator[Result]): Iterator[Result] = {
     val delim = "\\" + SuccinctAnnotationBuffer.DELIM
     val keyFilter = delim + annotClass + delim + annotType + delim
-    val buffers = annotBufferMap.filterKeys(_ matches keyFilter).values
+    val buffer = annotBufferMap(keyFilter)
 
     def containingResult(result: Result): Iterator[Result] = {
-      buffers.map(_.getAnnotationRecord(result.docId)
+      buffer.getAnnotationRecord(result.docId)
         .annotationsContaining(result.startOffset, result.endOffset).iterator
-        .map(a => Result(a.getDocId, a.getStartOffset, a.getEndOffset, a)))
-        .foldLeft(Iterator[Result]())(_ ++ _)
+        .map(a => Result(a.getDocId, a.getStartOffset, a.getEndOffset, a))
     }
 
     it.map(containingResult).foldLeft(Iterator[Result]())(_ ++ _)
@@ -223,18 +222,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     */
   def searchContaining(annotClass: String, annotType: String, query: String): Iterator[Result] = {
     val it = search(query)
-    val delim = "\\" + SuccinctAnnotationBuffer.DELIM
-    val keyFilter = delim + annotClass + delim + annotType + delim
-    val buffers = annotBufferMap.filterKeys(_ matches keyFilter).values
-
-    def containingResult(result: Result): Iterator[Result] = {
-      buffers.map(_.getAnnotationRecord(result.docId)
-        .annotationsContaining(result.startOffset, result.endOffset).iterator
-        .map(a => Result(a.getDocId, a.getStartOffset, a.getEndOffset, a)))
-        .foldLeft(Iterator[Result]())(_ ++ _)
-    }
-
-    it.map(containingResult).foldLeft(Iterator[Result]())(_ ++ _)
+    containing(annotClass, annotType, it)
   }
 
   /**
