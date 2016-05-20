@@ -3,8 +3,8 @@ package edu.berkeley.cs.succinct.buffers.annot;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import gnu.trove.list.array.TIntArrayList;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 public class AnnotationRecord {
   private int offset;
@@ -212,51 +212,20 @@ public class AnnotationRecord {
    * @return The matching annotations.
    */
   public Iterator<Annotation> annotationsContaining(final int begin, final int end) {
-    return new Iterator<Annotation>() {
-      int idx = -1;
-      int startOffset;
-      int endOffset;
-
-      private void advanceToNextValid() {
-        boolean valid;
-        do {
-          if (++idx == numEntries)
-            break;
-          startOffset = getStartOffset(idx);
-          if (startOffset > begin)
-            break;
-          endOffset = getEndOffset(idx);
-          valid = end <= endOffset;
-        } while (!valid);
+    int idx = 0;
+    ArrayList<Annotation> res = new ArrayList<>();
+    while (idx < numEntries) {
+      int startOffset = getStartOffset(idx);
+      int endOffset = getEndOffset(idx);
+      if (startOffset > begin)
+        break;
+      if (begin >= startOffset && end <= endOffset) {
+        res.add(new Annotation(getAnnotClass(), getAnnotType(), docId, getAnnotId(idx), startOffset,
+          endOffset, getMetadata(idx)));
       }
-
-      {
-        advanceToNextValid();
-      }
-
-      private Annotation getCurrentAnnotation() {
-        return new Annotation(buf.getAnnotClass(), buf.getAnnotType(), docId, getAnnotId(idx),
-          startOffset, endOffset, getMetadata(idx));
-      }
-
-      @Override public boolean hasNext() {
-        return idx < numEntries && startOffset <= begin;
-      }
-
-      @Override public Annotation next() {
-        if (!hasNext()) {
-          throw new NoSuchElementException();
-        }
-
-        Annotation toReturn = getCurrentAnnotation();
-        advanceToNextValid();
-        return toReturn;
-      }
-
-      @Override public void remove() {
-        throw new UnsupportedOperationException();
-      }
-    };
+      idx++;
+    }
+    return res.iterator();
   }
 
   /**
