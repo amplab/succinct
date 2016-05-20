@@ -1,6 +1,7 @@
 package org.apache.spark.succinct.annot
 
 import java.io.{ObjectInputStream, ObjectOutputStream}
+import java.util.NoSuchElementException
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.annot.{Operator, Result}
@@ -198,17 +199,55 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
   }
 
   def containing(annotClass: String, annotType: String, it: Iterator[Result]): Iterator[Result] = {
-    val delim = SuccinctAnnotationBuffer.DELIM
+    val delim = "\\" + SuccinctAnnotationBuffer.DELIM
     val keyFilter = delim + annotClass + delim + annotType + delim
-    val buffer = annotBufferMap(keyFilter)
+    val buffers = annotBufferMap.filterKeys(_ matches keyFilter).values.toSeq
 
-    def containingResult(result: Result): Iterator[Result] = {
-      buffer.getAnnotationRecord(result.docId)
-        .annotationsContaining(result.startOffset, result.endOffset).iterator
-        .map(a => Result(a.getDocId, a.getStartOffset, a.getEndOffset, a))
+    new Iterator[Result] {
+      var curBufIdx = 0
+      var curAnnotIdx = 0
+      var curRes = if (it.hasNext) it.next() else null
+      var curAnnots = if (curRes != null)
+        buffers(curBufIdx).getAnnotationRecord(curRes.docId).annotationsContaining(curRes.startOffset, curRes.endOffset)
+      else null
+
+      def nextAnnots: Array[Annotation] = {
+        var annotRecord: AnnotationRecord = null
+        while (annotRecord == null) {
+          curBufIdx += 1
+          if (curBufIdx == buffers.size) {
+            curBufIdx = 0
+            curRes = if (it.hasNext) it.next() else null
+            if (!hasNext) return null
+          }
+          annotRecord = buffers(curBufIdx).getAnnotationRecord(curRes.docId)
+        }
+        annotRecord.annotationsContaining(curRes.startOffset, curRes.endOffset)
+      }
+
+      override def hasNext: Boolean = curRes != null
+
+      override def next(): Result = {
+        if (!hasNext)
+          throw new NoSuchElementException()
+        val annot = curAnnots(curAnnotIdx)
+        curAnnotIdx += 1
+        if (curAnnotIdx == curAnnots.length) {
+          curAnnotIdx = 0
+          curAnnots = nextAnnots
+        }
+        Result(annot.getDocId, annot.getStartOffset, annot.getEndOffset, annot)
+      }
     }
 
-    it.map(containingResult).foldLeft(Iterator[Result]())(_ ++ _)
+//    def containingResult(result: Result): Iterator[Result] = {
+//      buffers.map(_.getAnnotationRecord(result.docId)
+//        .annotationsContaining(result.startOffset, result.endOffset).iterator
+//        .map(a => Result(a.getDocId, a.getStartOffset, a.getEndOffset, a)))
+//        .foldLeft(Iterator[Result]())(_ ++ _)
+//    }
+//
+//    it.map(containingResult).foldLeft(Iterator[Result]())(_ ++ _)
   }
 
   /**
