@@ -4,7 +4,6 @@ import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import gnu.trove.list.array.TIntArrayList;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 public class AnnotationRecord {
   private int offset;
@@ -211,7 +210,7 @@ public class AnnotationRecord {
    * @param end   End of the input range.
    * @return The matching annotations.
    */
-  public Iterator<Annotation> annotationsContaining(final int begin, final int end) {
+  public Annotation[] annotationsContaining(final int begin, final int end) {
     int idx = 0;
     ArrayList<Annotation> res = new ArrayList<>();
     while (idx < numEntries) {
@@ -225,7 +224,7 @@ public class AnnotationRecord {
       }
       idx++;
     }
-    return res.iterator();
+    return res.toArray(new Annotation[res.size()]);
   }
 
   /**

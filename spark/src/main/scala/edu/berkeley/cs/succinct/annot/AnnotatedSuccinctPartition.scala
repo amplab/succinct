@@ -204,7 +204,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
 
     def containingResult(result: Result): Iterator[Result] = {
       buffers.map(_.getAnnotationRecord(result.docId)
-        .annotationsContaining(result.startOffset, result.endOffset).asScala
+        .annotationsContaining(result.startOffset, result.endOffset).iterator
         .map(a => Result(a.getDocId, a.getStartOffset, a.getEndOffset, a)))
         .foldLeft(Iterator[Result]())(_ ++ _)
     }
