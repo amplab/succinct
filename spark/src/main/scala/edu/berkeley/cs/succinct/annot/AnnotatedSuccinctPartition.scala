@@ -242,15 +242,6 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
         Result(annot.getDocId, annot.getStartOffset, annot.getEndOffset, annot)
       }
     }
-
-//    def containingResult(result: Result): Iterator[Result] = {
-//      buffers.map(_.getAnnotationRecord(result.docId)
-//        .annotationsContaining(result.startOffset, result.endOffset).iterator
-//        .map(a => Result(a.getDocId, a.getStartOffset, a.getEndOffset, a)))
-//        .foldLeft(Iterator[Result]())(_ ++ _)
-//    }
-//
-//    it.map(containingResult).foldLeft(Iterator[Result]())(_ ++ _)
   }
 
   /**

@@ -169,18 +169,24 @@ public class SuccinctAnnotationBufferTest extends TestCase {
 
   public void testFindAnnotationsContainedIn() throws Exception {
     AnnotationRecord ar1 = buf.getAnnotationRecord("doc1");
-    int[] res1 = ar1.annotationsContainedIn(0, 15);
+    Annotation[] res1 = ar1.annotationsContainedIn(0, 15);
     assertEquals(2, res1.length);
-    assertEquals(0, res1[0]);
-    assertEquals(1, res1[1]);
+    assertEquals("doc1", res1[0].getDocId());
+    assertEquals(0, res1[0].getStartOffset());
+    assertEquals(8, res1[0].getEndOffset());
+    assertEquals("doc1", res1[1].getDocId());
+    assertEquals(9, res1[1].getStartOffset());
+    assertEquals(15, res1[1].getEndOffset());
 
     AnnotationRecord ar2 = buf.getAnnotationRecord("doc2");
-    int[] res2 = ar2.annotationsContainedIn(6, 9);
+    Annotation[] res2 = ar2.annotationsContainedIn(6, 9);
     assertEquals(0, res2.length);
 
     AnnotationRecord ar3 = buf.getAnnotationRecord("doc3");
-    int[] res3 = ar3.annotationsContainedIn(9, 15);
+    Annotation[] res3 = ar3.annotationsContainedIn(9, 15);
     assertEquals(1, res3.length);
-    assertEquals(1, res3[0]);
+    assertEquals("doc3", res3[0].getDocId());
+    assertEquals(9, res3[0].getStartOffset());
+    assertEquals(15, res3[0].getEndOffset());
   }
 }

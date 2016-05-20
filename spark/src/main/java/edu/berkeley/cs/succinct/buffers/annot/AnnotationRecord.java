@@ -1,7 +1,6 @@
 package edu.berkeley.cs.succinct.buffers.annot;
 
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
-import gnu.trove.list.array.TIntArrayList;
 
 import java.util.ArrayList;
 
@@ -234,25 +233,26 @@ public class AnnotationRecord {
    * @param end   End of the input range.
    * @return The matching annotations.
    */
-  public int[] annotationsContainedIn(int begin, int end) {
+  public Annotation[] annotationsContainedIn(int begin, int end) {
     int idx = firstGEQ(begin);
     if (idx < 0 || idx >= numEntries) {
-      return new int[0];
+      return new Annotation[0];
     }
 
-    TIntArrayList res = new TIntArrayList();
+    ArrayList<Annotation> res = new ArrayList<>();
     while (idx < numEntries) {
       int startOffset = getStartOffset(idx);
       int endOffset = getEndOffset(idx);
       if (startOffset > end)
         break;
       if (startOffset >= begin && endOffset <= end) {
-        res.add(idx);
+        res.add(new Annotation(getAnnotClass(), getAnnotType(), docId, getAnnotId(idx), startOffset,
+          endOffset, getMetadata(idx)));
       }
       idx++;
     }
 
-    return res.toArray();
+    return res.toArray(new Annotation[res.size()]);
   }
 
 }
