@@ -211,16 +211,20 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
 
       def nextAnnots: Array[Annotation] = {
         var annotRecord: AnnotationRecord = null
-        while (annotRecord == null) {
-          curBufIdx += 1
-          if (curBufIdx == buffers.size) {
-            curBufIdx = 0
-            curRes = if (it.hasNext) it.next() else null
-            if (!hasNext) return null
+        var annots: Array[Annotation] = null
+        while (annots.length == 0) {
+          while (annotRecord == null) {
+            curBufIdx += 1
+            if (curBufIdx == buffers.size) {
+              curBufIdx = 0
+              curRes = if (it.hasNext) it.next() else null
+              if (!hasNext) return null
+            }
+            annotRecord = buffers(curBufIdx).getAnnotationRecord(curRes.docId)
           }
-          annotRecord = buffers(curBufIdx).getAnnotationRecord(curRes.docId)
+          annots = annotRecord.annotationsContaining(curRes.startOffset, curRes.endOffset)
         }
-        annotRecord.annotationsContaining(curRes.startOffset, curRes.endOffset)
+        annots
       }
 
       override def hasNext: Boolean = curRes != null
