@@ -198,7 +198,8 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
       .map(a => Result(a.getDocId, a.getStartOffset, a.getEndOffset, a))
   }
 
-  def containing(annotClass: String, annotType: String, it: Iterator[Result]): Iterator[Result] = {
+  def annotationsOp(annotClass: String, annotType: String, it: Iterator[Result],
+                    op: (AnnotationRecord, Int, Int) => Array[Annotation]): Iterator[Result] = {
     val delim = "\\" + SuccinctAnnotationBuffer.DELIM
     val keyFilter = delim + annotClass + delim + annotType + delim
     val buffers = annotBufferMap.filterKeys(_ matches keyFilter).values.toSeq
@@ -222,7 +223,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
             }
             annotRecord = buffers(curBufIdx).getAnnotationRecord(curRes.docId)
           }
-          annots = annotRecord.annotationsContaining(curRes.startOffset, curRes.endOffset)
+          annots = op(annotRecord, curRes.startOffset, curRes.endOffset)
         }
         annots
       }
@@ -233,7 +234,6 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
         if (!hasNext)
           throw new NoSuchElementException()
         val annot = curAnnots(curAnnotIdx)
-        println(s"curAnnotIdx=$curAnnotIdx, annot=$annot")
         curAnnotIdx += 1
         if (curAnnotIdx == curAnnots.length) {
           curAnnotIdx = 0
@@ -242,6 +242,62 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
         Result(annot.getDocId, annot.getStartOffset, annot.getEndOffset, annot)
       }
     }
+  }
+
+  /**
+    * Get all annotations that contain a given set of (docId, startOffset, endOffset) triplets.
+    *
+    * @param annotClass The annotation class.
+    * @param annotType  The annotation type.
+    * @param it         An iterator over the (docId, startOffset, endOffset) triplets encapsulated
+    *                   in Result objects.
+    * @return An iterator over the matching annotations encapsulated in Result objects.
+    */
+  def annotationsContainingOp(annotClass: String, annotType: String, it: Iterator[Result]): Iterator[Result] = {
+    annotationsOp(annotClass, annotType, it, (a, start, end) => a.annotationsContaining(start, end))
+  }
+
+  /**
+    * Get all annotations contained in a given set of (docId, startOffset, endOffset) triplets.
+    *
+    * @param annotClass The annotation class.
+    * @param annotType  The annotation type.
+    * @param it         An iterator over the (docId, startOffset, endOffset) triplets encapsulated
+    *                   in Result objects.
+    * @return An iterator over the matching annotations encapsulated in Result objects.
+    */
+  def annotationsContainedInOp(annotClass: String, annotType: String, it: Iterator[Result]): Iterator[Result] = {
+    annotationsOp(annotClass, annotType, it, (a, start, end) => a.annotationsContainedIn(start, end))
+  }
+
+  /**
+    * Get all annotations that occur before a given set of (docId, startOffset, endOffset) triplets.
+    *
+    * @param annotClass The annotation class.
+    * @param annotType  The annotation type.
+    * @param it         An iterator over the (docId, startOffset, endOffset) triplets encapsulated
+    *                   in Result objects.
+    * @param range      Max number of chars the annotation can be away from begin; -1 sets the limit
+    *                   to infinity, i.e., all annotations before.
+    * @return An iterator over the matching annotations encapsulated in Result objects.
+    */
+  def annotationsBeforeOp(annotClass: String, annotType: String, it: Iterator[Result], range: Int): Iterator[Result] = {
+    annotationsOp(annotClass, annotType, it, (a, start, end) => a.annotationsBefore(start, end, range))
+  }
+
+  /**
+    * Get all annotations that occur before a given set of (docId, startOffset, endOffset) triplets.
+    *
+    * @param annotClass The annotation class.
+    * @param annotType  The annotation type.
+    * @param it         An iterator over the (docId, startOffset, endOffset) triplets encapsulated
+    *                   in Result objects.
+    * @param range      Max number of chars the annotation can be away from begin; -1 sets the limit
+    *                   to infinity, i.e., all annotations before.
+    * @return An iterator over the matching annotations encapsulated in Result objects.
+    */
+  def annotationsAfterOp(annotClass: String, annotType: String, it: Iterator[Result], range: Int): Iterator[Result] = {
+    annotationsOp(annotClass, annotType, it, (a, start, end) => a.annotationsAfter(start, end, range))
   }
 
   /**
@@ -255,7 +311,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     */
   def searchContaining(annotClass: String, annotType: String, query: String): Iterator[Result] = {
     val it = search(query)
-    containing(annotClass, annotType, it)
+    annotationsContainingOp(annotClass, annotType, it)
   }
 
   /**
@@ -269,7 +325,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     */
   def regexContaining(annotClass: String, annotType: String, rexp: String): Iterator[Result] = {
     val it = regexSearch(rexp)
-    containing(annotClass, annotType, it)
+    annotationsContainingOp(annotClass, annotType, it)
   }
 
   /**
