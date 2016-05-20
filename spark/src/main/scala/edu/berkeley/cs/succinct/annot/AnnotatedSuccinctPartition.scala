@@ -207,9 +207,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
       var curBufIdx = 0
       var curAnnotIdx = 0
       var curRes = if (it.hasNext) it.next() else null
-      var curAnnots = if (curRes != null)
-        buffers(curBufIdx).getAnnotationRecord(curRes.docId).annotationsContaining(curRes.startOffset, curRes.endOffset)
-      else null
+      var curAnnots = nextAnnots
 
       def nextAnnots: Array[Annotation] = {
         var annotRecord: AnnotationRecord = null
