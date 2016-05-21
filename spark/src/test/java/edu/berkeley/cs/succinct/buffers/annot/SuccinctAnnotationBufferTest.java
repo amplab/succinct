@@ -35,7 +35,7 @@ public class SuccinctAnnotationBufferTest extends TestCase {
   public void setUp() throws Exception {
     super.setUp();
     noFilter = new MetadataFilter() {
-      @Override boolean filter(String metadata) {
+      @Override public boolean filter(String metadata) {
         return true;
       }
     };

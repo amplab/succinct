@@ -351,9 +351,9 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
       var curRes: Result = nextRes
 
       def nextRes: Result = {
-        var annotRecord: AnnotationRecord = null
         var valid: Boolean = false
         while (!valid) {
+          var annotRecord: AnnotationRecord = null
           while (annotRecord == null) {
             curBufIdx += 1
             if (curBufIdx == buffers.size) {
@@ -388,9 +388,10 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     * @return A MetadataFilter object.
     */
   def newMetadataFilter(mFilter: String => Boolean): MetadataFilter = {
-    new MetadataFilter {
-      def filter(metadata: String) = mFilter(metadata)
+    class MetadataFilterWrapper extends MetadataFilter {
+      override def filter(metadata: String): Boolean = mFilter(metadata)
     }
+    new MetadataFilterWrapper
   }
 
   /**
