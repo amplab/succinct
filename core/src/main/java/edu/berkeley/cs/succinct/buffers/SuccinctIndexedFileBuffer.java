@@ -72,7 +72,19 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   public SuccinctIndexedFileBuffer(ByteBuffer buf) {
     super(buf);
   }
+  
+  /**
+   * Default constructor.
+   */
+  public SuccinctIndexedFileBuffer() {
+    super();
+  }
 
+  /**
+   * Get the size of the Succinct compressed file.
+   *
+   * @return The size of the Succinct compressed file.
+   */
   @Override public int getCompressedSize() {
     return super.getCompressedSize()
       + (12 + offsets.length * SuccinctConstants.INT_SIZE_BYTES);
