@@ -77,31 +77,18 @@ abstract class AnnotatedSuccinctRDD(@transient sc: SparkContext,
     if (values.length == 0) null else values(0)
   }
 
+  /**
+    * Find all (documentID, startOffset, endOffset) triplets corresponding to an arbitrary query
+    * composed of Contains, ContainedIn, Before, After, FilterAnnotations, Search and RegexSearch
+    * queries.
+    *
+    * @param operator An arbitrary expression tree composed of Contains, ContainedIn, Before, After,
+    *                 FilterAnnotations, Search and RegexSearch.
+    * @return An [[Iterator]] over matching (documentID, startOffset, endOffset) triplets
+    *         encapsulated as Result objects.
+    */
   def query(operator: Operator): RDD[Result] = {
     partitionsRDD.flatMap(_.query(operator))
-  }
-
-  def search(query: String): RDD[Result] = {
-    partitionsRDD.flatMap(_.search(query))
-  }
-
-  def regexSearch(query: String): RDD[Result] = {
-    partitionsRDD.flatMap(_.regexSearch(query))
-  }
-
-  def filterAnnotations(annotClassFilter: String, annotTypeFilter: String,
-                        metadataFilter: String => Boolean): RDD[Result] = {
-    partitionsRDD.flatMap(_.filterAnnotations(annotClassFilter, annotTypeFilter, metadataFilter))
-  }
-
-  def searchContaining(annotClassFilter: String, annotTypeFilter: String,
-                       metadataFilter: String => Boolean, query: String): RDD[Result] = {
-    partitionsRDD.flatMap(_.searchContaining(annotClassFilter, annotTypeFilter, metadataFilter, query))
-  }
-
-  def regexContaining(annotClassFilter: String, annotTypeFilter: String,
-                      metadataFilter: String => Boolean, query: String): RDD[Result] = {
-    partitionsRDD.flatMap(_.regexContaining(annotClassFilter, annotTypeFilter, metadataFilter, query))
   }
 
   /**

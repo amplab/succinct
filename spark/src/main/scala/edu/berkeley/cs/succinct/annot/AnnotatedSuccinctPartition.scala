@@ -563,38 +563,6 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
   }
 
   /**
-    * Find all annotations of a specified annotation class and annotation type that contain a
-    * particular query string.
-    *
-    * @param annotClassFilter Regex filter on annotation class.
-    * @param annotTypeFilter  Regex filter on annotation type.
-    * @param metadataFilter   Arbitrary filter function on metadata.
-    * @param query            The query string.
-    * @return An [[Iterator]] over matching Annotations encapsulated as Result objects.
-    */
-  def searchContaining(annotClassFilter: String, annotTypeFilter: String,
-                       metadataFilter: String => Boolean, query: String): Iterator[Result] = {
-    val it = search(query)
-    annotationsContainingOp(annotClassFilter, annotTypeFilter, metadataFilter, it)
-  }
-
-  /**
-    * Find all annotations of a specified annotation class and annotation type that contain a
-    * particular regex pattern.
-    *
-    * @param annotClassFilter Regex filter on annotation class.
-    * @param annotTypeFilter  Regex filter on annotation type.
-    * @param metadataFilter   Arbitrary filter function on metadata.
-    * @param rexp             The regex pattern.
-    * @return An [[Iterator]] over matching Annotations encapsulated as Result objects.
-    */
-  def regexContaining(annotClassFilter: String, annotTypeFilter: String,
-                      metadataFilter: String => Boolean, rexp: String): Iterator[Result] = {
-    val it = regexSearch(rexp)
-    annotationsContainingOp(annotClassFilter, annotTypeFilter, metadataFilter, it)
-  }
-
-  /**
     * Find all (documentID, startOffset, endOffset) triplets corresponding to an arbitrary query
     * composed of Contains, ContainedIn, Before, After, FilterAnnotations, Search and RegexSearch
     * queries.
@@ -642,10 +610,8 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
             opAfterAnnotations(query(a), acFilter, atFilter, mFilter, range)
           case _ => opAfterOp(query(a), query(b), range)
         }
-      case unkown => throw new UnsupportedOperationException(s"Operation $unkown not supported.")
+      case unknown => throw new UnsupportedOperationException(s"Operation $unknown not supported.")
     }
-
-    Iterator[Result]()
   }
 
   /**
