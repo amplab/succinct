@@ -216,6 +216,8 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     val keyFilter = delim + annotClassFilter + delim + annotTypeFilter + delim
     val buffers = annotBufferMap.filterKeys(_ matches keyFilter).values.toSeq
 
+    if (buffers.isEmpty) return Iterator[Result]()
+
     new Iterator[Result] {
       var curBufIdx = buffers.length - 1
       var curAnnotIdx = 0
@@ -345,6 +347,8 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     val delim = "\\" + SuccinctAnnotationBuffer.DELIM
     val keyFilter = delim + annotClassFilter + delim + annotTypeFilter + delim
     val buffers = annotBufferMap.filterKeys(_ matches keyFilter).values.toSeq
+
+    if (buffers.isEmpty) return Iterator[Result]()
 
     new Iterator[Result] {
       var curBufIdx = buffers.length - 1
