@@ -4,7 +4,7 @@ import java.io.{ObjectInputStream, ObjectOutputStream}
 import java.util.NoSuchElementException
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
-import edu.berkeley.cs.succinct.annot.{Operator, Result}
+import edu.berkeley.cs.succinct.annot._
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.buffers.annot._
 import org.apache.hadoop.conf.Configuration
@@ -198,10 +198,22 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
       .map(a => Result(a.getDocId, a.getStartOffset, a.getEndOffset, a))
   }
 
-  def annotationsOp(annotClass: String, annotType: String, it: Iterator[Result],
+  /**
+    * Generic method for handling A op B operations where A is FilterAnnotation, and B is any
+    * operation
+    *
+    * @param annotClassFilter Regex filter on annotation class.
+    * @param annotTypeFilter  Regex filter on annotation type.
+    * @param metadataFilter   Arbitrary filter function on metadata.
+    * @param it               Result of operation B
+    * @param op               The operation on A and B
+    * @return An Iterator over annotations encapsulated in Result objects.
+    */
+  def annotationsOp(annotClassFilter: String, annotTypeFilter: String,
+                    metadataFilter: String => Boolean, it: Iterator[Result],
                     op: (AnnotationRecord, Int, Int) => Array[Annotation]): Iterator[Result] = {
     val delim = "\\" + SuccinctAnnotationBuffer.DELIM
-    val keyFilter = delim + annotClass + delim + annotType + delim
+    val keyFilter = delim + annotClassFilter + delim + annotTypeFilter + delim
     val buffers = annotBufferMap.filterKeys(_ matches keyFilter).values.toSeq
 
     new Iterator[Result] {
@@ -241,91 +253,345 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
         }
         Result(annot.getDocId, annot.getStartOffset, annot.getEndOffset, annot)
       }
+    }.filter(r => metadataFilter(r.annotation.getMetadata))
+  }
+
+  /**
+    * Get all filtered annotations that contain a given set of (docId, startOffset, endOffset)
+    * triplets.
+    *
+    * @param annotClassFilter Regex filter on annotation class.
+    * @param annotTypeFilter  Regex filter on annotation type.
+    * @param metadataFilter   Arbitrary filter function on metadata.
+    * @param it               An iterator over the (docId, startOffset, endOffset) triplets
+    *                         encapsulated in Result objects.
+    * @return An iterator over the matching annotations encapsulated in Result objects.
+    */
+  def annotationsContainingOp(annotClassFilter: String, annotTypeFilter: String,
+                              metadataFilter: String => Boolean,
+                              it: Iterator[Result]): Iterator[Result] = {
+    annotationsOp(annotClassFilter, annotTypeFilter, metadataFilter, it,
+      (a, start, end) => a.annotationsContaining(start, end))
+  }
+
+  /**
+    * Get all filtered annotations contained in a given set of (docId, startOffset, endOffset)
+    * triplets.
+    *
+    * @param annotClassFilter Regex filter on annotation class.
+    * @param annotTypeFilter  Regex filter on annotation type.
+    * @param metadataFilter   Arbitrary filter function on metadata.
+    * @param it               An iterator over the (docId, startOffset, endOffset) triplets
+    *                         encapsulated in Result objects.
+    * @return An iterator over the matching annotations encapsulated in Result objects.
+    */
+  def annotationsContainedInOp(annotClassFilter: String, annotTypeFilter: String,
+                               metadataFilter: String => Boolean,
+                               it: Iterator[Result]): Iterator[Result] = {
+    annotationsOp(annotClassFilter, annotTypeFilter, metadataFilter, it,
+      (a, start, end) => a.annotationsContainedIn(start, end))
+  }
+
+  /**
+    * Get all annotations that occur before a given set of (docId, startOffset, endOffset) triplets.
+    *
+    * @param annotClassFilter Regex filter on annotation class.
+    * @param annotTypeFilter  Regex filter on annotation type.
+    * @param metadataFilter   Arbitrary filter function on metadata.
+    * @param it               An iterator over the (docId, startOffset, endOffset) triplets
+    *                         encapsulated in Result objects.
+    * @param range            Max number of chars the annotation can be away from begin; -1 sets the limit
+    *                         to infinity, i.e., all annotations before.
+    * @return An iterator over the matching annotations encapsulated in Result objects.
+    */
+  def annotationsBeforeOp(annotClassFilter: String, annotTypeFilter: String,
+                          metadataFilter: String => Boolean,
+                          it: Iterator[Result], range: Int): Iterator[Result] = {
+    annotationsOp(annotClassFilter, annotTypeFilter, metadataFilter, it,
+      (a, start, end) => a.annotationsBefore(start, end, range))
+  }
+
+  /**
+    * Get all annotations that occur before a given set of (docId, startOffset, endOffset) triplets.
+    *
+    * @param annotClassFilter Regex filter on annotation class.
+    * @param annotTypeFilter  Regex filter on annotation type.
+    * @param metadataFilter   Arbitrary filter function on metadata.
+    * @param it               An iterator over the (docId, startOffset, endOffset) triplets
+    *                         encapsulated in Result objects.
+    * @param range            Max number of chars the annotation can be away from begin; -1 sets the
+    *                         limit to infinity, i.e., all annotations before.
+    * @return An iterator over the matching annotations encapsulated in Result objects.
+    */
+  def annotationsAfterOp(annotClassFilter: String, annotTypeFilter: String,
+                         metadataFilter: String => Boolean,
+                         it: Iterator[Result], range: Int): Iterator[Result] = {
+    annotationsOp(annotClassFilter, annotTypeFilter, metadataFilter, it,
+      (a, start, end) => a.annotationsAfter(start, end, range))
+  }
+
+  /**
+    * Generic method for handling A op B operations where B is FilterAnnotation, and A is any
+    * operation.
+    *
+    * @param it               Result of operation A.
+    * @param annotClassFilter Regex filter on annotation class.
+    * @param annotTypeFilter  Regex filter on annotation type.
+    * @param op               The operation on A and B
+    * @return An Iterator over annotations encapsulated in Result objects.
+    */
+  def opAnnotations(it: Iterator[Result], annotClassFilter: String, annotTypeFilter: String,
+                    op: (AnnotationRecord, Int, Int) => Boolean): Iterator[Result] = {
+    val delim = "\\" + SuccinctAnnotationBuffer.DELIM
+    val keyFilter = delim + annotClassFilter + delim + annotTypeFilter + delim
+    val buffers = annotBufferMap.filterKeys(_ matches keyFilter).values.toSeq
+
+    new Iterator[Result] {
+      var curBufIdx = buffers.length - 1
+      var curRes: Result = nextRes
+
+      def nextRes: Result = {
+        var annotRecord: AnnotationRecord = null
+        var valid: Boolean = false
+        while (!valid) {
+          while (annotRecord == null) {
+            curBufIdx += 1
+            if (curBufIdx == buffers.size) {
+              curBufIdx = 0
+              curRes = if (it.hasNext) it.next() else null
+              if (!hasNext) return null
+            }
+            annotRecord = buffers(curBufIdx).getAnnotationRecord(curRes.docId)
+          }
+          valid = op(annotRecord, curRes.startOffset, curRes.endOffset)
+        }
+        curRes
+      }
+
+      override def hasNext: Boolean = curRes != null
+
+      override def next(): Result = {
+        if (!hasNext)
+          throw new NoSuchElementException()
+
+        val toReturn = curRes
+        curRes = nextRes
+        toReturn
+      }
     }
   }
 
   /**
-    * Get all annotations that contain a given set of (docId, startOffset, endOffset) triplets.
+    * Get a new instance of MetadataFilter object which wraps an input lambda filter function.
     *
-    * @param annotClass The annotation class.
-    * @param annotType  The annotation type.
-    * @param it         An iterator over the (docId, startOffset, endOffset) triplets encapsulated
-    *                   in Result objects.
-    * @return An iterator over the matching annotations encapsulated in Result objects.
+    * @param mFilter The input lambda filter function.
+    * @return A MetadataFilter object.
     */
-  def annotationsContainingOp(annotClass: String, annotType: String, it: Iterator[Result]): Iterator[Result] = {
-    annotationsOp(annotClass, annotType, it, (a, start, end) => a.annotationsContaining(start, end))
+  def newMetadataFilter(mFilter: String => Boolean): MetadataFilter = {
+    new MetadataFilter {
+      def filter(metadata: String) = mFilter(metadata)
+    }
   }
 
   /**
-    * Get all annotations contained in a given set of (docId, startOffset, endOffset) triplets.
+    * Get all (docId, startOffset, endOffset) triplets that contain certain filtered annotations.
     *
-    * @param annotClass The annotation class.
-    * @param annotType  The annotation type.
-    * @param it         An iterator over the (docId, startOffset, endOffset) triplets encapsulated
-    *                   in Result objects.
-    * @return An iterator over the matching annotations encapsulated in Result objects.
+    * @param it               An iterator over the (docId, startOffset, endOffset) triplets
+    *                         encapsulated in Result objects.
+    * @param annotClassFilter Regex filter on annotation class.
+    * @param annotTypeFilter  Regex filter on annotation type.
+    * @param metadataFilter   Arbitrary filter function on metadata.
+    * @return An iterator over the matching (docId, startOffset, endOffset) triplets encapsulated
+    *         in Result objects.
     */
-  def annotationsContainedInOp(annotClass: String, annotType: String, it: Iterator[Result]): Iterator[Result] = {
-    annotationsOp(annotClass, annotType, it, (a, start, end) => a.annotationsContainedIn(start, end))
+  def opContainingAnnotations(it: Iterator[Result], annotClassFilter: String,
+                              annotTypeFilter: String,
+                              metadataFilter: String => Boolean): Iterator[Result] = {
+    // Use the inverse containedIn function to check if annotation is contained in the results.
+    opAnnotations(it, annotClassFilter, annotTypeFilter,
+      (a, start, end) => a.containedIn(start, end, newMetadataFilter(metadataFilter)))
   }
 
   /**
-    * Get all annotations that occur before a given set of (docId, startOffset, endOffset) triplets.
+    * Get all (docId, startOffset, endOffset) triplets that are contained in certain filtered
+    * annotations.
     *
-    * @param annotClass The annotation class.
-    * @param annotType  The annotation type.
-    * @param it         An iterator over the (docId, startOffset, endOffset) triplets encapsulated
-    *                   in Result objects.
-    * @param range      Max number of chars the annotation can be away from begin; -1 sets the limit
-    *                   to infinity, i.e., all annotations before.
-    * @return An iterator over the matching annotations encapsulated in Result objects.
+    * @param it               An iterator over the (docId, startOffset, endOffset) triplets
+    *                         encapsulated in Result objects.
+    * @param annotClassFilter Regex filter on annotation class.
+    * @param annotTypeFilter  Regex filter on annotation type.
+    * @param metadataFilter   Arbitrary filter function on metadata.
+    * @return An iterator over the matching (docId, startOffset, endOffset) triplets encapsulated
+    *         in Result objects.
     */
-  def annotationsBeforeOp(annotClass: String, annotType: String, it: Iterator[Result], range: Int): Iterator[Result] = {
-    annotationsOp(annotClass, annotType, it, (a, start, end) => a.annotationsBefore(start, end, range))
+  def opContainedInAnnotations(it: Iterator[Result], annotClassFilter: String,
+                               annotTypeFilter: String,
+                               metadataFilter: String => Boolean): Iterator[Result] = {
+    // Use the inverse containing function to check if annotations contain the results.
+    opAnnotations(it, annotClassFilter, annotTypeFilter,
+      (a, start, end) => a.contains(start, end, newMetadataFilter(metadataFilter)))
   }
 
   /**
-    * Get all annotations that occur before a given set of (docId, startOffset, endOffset) triplets.
+    * Get all (docId, startOffset, endOffset) triplets that are before certain filtered annotations.
     *
-    * @param annotClass The annotation class.
-    * @param annotType  The annotation type.
-    * @param it         An iterator over the (docId, startOffset, endOffset) triplets encapsulated
-    *                   in Result objects.
-    * @param range      Max number of chars the annotation can be away from begin; -1 sets the limit
-    *                   to infinity, i.e., all annotations before.
-    * @return An iterator over the matching annotations encapsulated in Result objects.
+    * @param it               An iterator over the (docId, startOffset, endOffset) triplets
+    *                         encapsulated in Result objects.
+    * @param annotClassFilter Regex filter on annotation class.
+    * @param annotTypeFilter  Regex filter on annotation type.
+    * @param metadataFilter   Arbitrary filter function on metadata.
+    * @param range            Max number of chars the annotation can be away from begin; -1 sets the
+    *                         limit to infinity, i.e., all annotations before.
+    * @return An iterator over the matching (docId, startOffset, endOffset) triplets encapsulated
+    *         in Result objects.
     */
-  def annotationsAfterOp(annotClass: String, annotType: String, it: Iterator[Result], range: Int): Iterator[Result] = {
-    annotationsOp(annotClass, annotType, it, (a, start, end) => a.annotationsAfter(start, end, range))
+  def opBeforeAnnotations(it: Iterator[Result], annotClassFilter: String,
+                          annotTypeFilter: String,
+                          metadataFilter: String => Boolean, range: Int): Iterator[Result] = {
+    // Use the inverse containing function to check if annotations occur after the results.
+    opAnnotations(it, annotClassFilter, annotTypeFilter,
+      (a, start, end) => a.after(start, end, range, newMetadataFilter(metadataFilter)))
+  }
+
+  /**
+    * Get all (docId, startOffset, endOffset) triplets that are after certain filtered annotations.
+    *
+    * @param it               An iterator over the (docId, startOffset, endOffset) triplets
+    *                         encapsulated in Result objects.
+    * @param annotClassFilter Regex filter on annotation class.
+    * @param annotTypeFilter  Regex filter on annotation type.
+    * @param metadataFilter   Arbitrary filter function on metadata.
+    * @param range            Max number of chars the annotation can be away from end; -1 sets the
+    *                         limit to infinity, i.e., all annotations after.
+    * @return An iterator over the matching (docId, startOffset, endOffset) triplets encapsulated
+    *         in Result objects.
+    */
+  def opAfterAnnotations(it: Iterator[Result], annotClassFilter: String,
+                         annotTypeFilter: String,
+                         metadataFilter: String => Boolean, range: Int): Iterator[Result] = {
+    // Use the inverse containing function to check if annotations occur before the results.
+    opAnnotations(it, annotClassFilter, annotTypeFilter,
+      (a, start, end) => a.before(start, end, range, newMetadataFilter(metadataFilter)))
+  }
+
+  /**
+    * Generic binary operation A op B, where A and B are results of arbitrary operations.
+    *
+    * @param it1       Result of operation A.
+    * @param it2       Result of operation B.
+    * @param condition The condition which must be satisfied for operation A op B.
+    * @return An iterator over matching results.
+    */
+  def binaryOp(it1: Iterator[Result], it2: Iterator[Result],
+               condition: (Result, Result) => Boolean): Iterator[Result] = {
+    // TODO: We can optimize if both iterators are sorted
+    new Iterator[Result]() {
+      val it2Stream = it2.toStream
+      var curRes: Result = nextRes
+
+      def nextRes: Result = {
+        var valid: Boolean = false
+        while (!valid) {
+          curRes = if (it1.hasNext) it1.next() else null
+          valid = checkCondition
+        }
+        curRes
+      }
+
+      def checkCondition: Boolean = {
+        for (r <- it2Stream) {
+          if (condition(curRes, r)) return true
+        }
+        false
+      }
+
+      override def hasNext: Boolean = curRes != null
+
+      override def next(): Result = {
+        if (!hasNext)
+          throw new NoSuchElementException()
+
+        val toReturn = curRes
+        curRes = nextRes
+        toReturn
+      }
+    }
+  }
+
+  /**
+    * Get all results that contain certain other results.
+    *
+    * @param it1 First operand.
+    * @param it2 Second operand.
+    * @return Iterator over matching results.
+    */
+  def opContainingOp(it1: Iterator[Result], it2: Iterator[Result]): Iterator[Result] = {
+    binaryOp(it1, it2, (r1, r2) => r1.startOffset <= r2.startOffset && r1.endOffset >= r2.endOffset)
+  }
+
+  /**
+    * Get all results that are contained in certain other results.
+    *
+    * @param it1 First operand.
+    * @param it2 Second operand.
+    * @return Iterator over matching results.
+    */
+  def opContainedInOp(it1: Iterator[Result], it2: Iterator[Result]): Iterator[Result] = {
+    binaryOp(it1, it2, (r1, r2) => r1.startOffset >= r2.startOffset && r1.endOffset <= r2.endOffset)
+  }
+
+  /**
+    * Get all results that are before certain other results.
+    *
+    * @param it1 First operand.
+    * @param it2 Second operand.
+    * @return Iterator over matching results.
+    */
+  def opBeforeOp(it1: Iterator[Result], it2: Iterator[Result], range: Int): Iterator[Result] = {
+    binaryOp(it1, it2, (r1, r2) => r1.endOffset < r2.startOffset && !(range != 1 && r2.startOffset - r1.endOffset > range))
+  }
+
+  /**
+    * Get all results that are after certain other results.
+    *
+    * @param it1 First operand.
+    * @param it2 Second operand.
+    * @return Iterator over matching results.
+    */
+  def opAfterOp(it1: Iterator[Result], it2: Iterator[Result], range: Int): Iterator[Result] = {
+    binaryOp(it1, it2, (r1, r2) => r1.startOffset > r2.endOffset && !(range != 1 && r1.startOffset - r2.endOffset > range))
   }
 
   /**
     * Find all annotations of a specified annotation class and annotation type that contain a
     * particular query string.
     *
-    * @param query      The query string.
-    * @param annotClass The annotation class.
-    * @param annotType  The annotation type.
+    * @param annotClassFilter Regex filter on annotation class.
+    * @param annotTypeFilter  Regex filter on annotation type.
+    * @param metadataFilter   Arbitrary filter function on metadata.
+    * @param query            The query string.
     * @return An [[Iterator]] over matching Annotations encapsulated as Result objects.
     */
-  def searchContaining(annotClass: String, annotType: String, query: String): Iterator[Result] = {
+  def searchContaining(annotClassFilter: String, annotTypeFilter: String,
+                       metadataFilter: String => Boolean, query: String): Iterator[Result] = {
     val it = search(query)
-    annotationsContainingOp(annotClass, annotType, it)
+    annotationsContainingOp(annotClassFilter, annotTypeFilter, metadataFilter, it)
   }
 
   /**
     * Find all annotations of a specified annotation class and annotation type that contain a
     * particular regex pattern.
     *
-    * @param rexp       The regex pattern.
-    * @param annotClass The annotation class.
-    * @param annotType  The annotation type.
+    * @param annotClassFilter Regex filter on annotation class.
+    * @param annotTypeFilter  Regex filter on annotation type.
+    * @param metadataFilter   Arbitrary filter function on metadata.
+    * @param rexp             The regex pattern.
     * @return An [[Iterator]] over matching Annotations encapsulated as Result objects.
     */
-  def regexContaining(annotClass: String, annotType: String, rexp: String): Iterator[Result] = {
+  def regexContaining(annotClassFilter: String, annotTypeFilter: String,
+                      metadataFilter: String => Boolean, rexp: String): Iterator[Result] = {
     val it = regexSearch(rexp)
-    annotationsContainingOp(annotClass, annotType, it)
+    annotationsContainingOp(annotClassFilter, annotTypeFilter, metadataFilter, it)
   }
 
   /**
@@ -339,6 +605,46 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     *         encapsulated as Result objects.
     */
   def query(operator: Operator): Iterator[Result] = {
+    operator match {
+      case Search(query) => search(query)
+      case Regex(query) => regexSearch(query)
+      case FilterAnnotations(acFilter, atFilter, mFilter) =>
+        filterAnnotations(acFilter, atFilter, mFilter)
+      case Contains(a, b) =>
+        (a, b) match {
+          case (FilterAnnotations(acFilter, atFilter, mFilter), _) =>
+            annotationsContainingOp(acFilter, atFilter, mFilter, query(b))
+          case (_, FilterAnnotations(acFilter, atFilter, mFilter)) =>
+            opContainingAnnotations(query(a), acFilter, atFilter, mFilter)
+          case _ => opContainingOp(query(a), query(b))
+        }
+      case ContainedIn(a, b) =>
+        (a, b) match {
+          case (FilterAnnotations(acFilter, atFilter, mFilter), _) =>
+            annotationsContainedInOp(acFilter, atFilter, mFilter, query(b))
+          case (_, FilterAnnotations(acFilter, atFilter, mFilter)) =>
+            opContainedInAnnotations(query(a), acFilter, atFilter, mFilter)
+          case _ => opContainedInOp(query(a), query(b))
+        }
+      case Before(a, b, range) =>
+        (a, b) match {
+          case (FilterAnnotations(acFilter, atFilter, mFilter), _) =>
+            annotationsBeforeOp(acFilter, atFilter, mFilter, query(b), range)
+          case (_, FilterAnnotations(acFilter, atFilter, mFilter)) =>
+            opBeforeAnnotations(query(a), acFilter, atFilter, mFilter, range)
+          case _ => opBeforeOp(query(a), query(b), range)
+        }
+      case After(a, b, range) =>
+        (a, b) match {
+          case (FilterAnnotations(acFilter, atFilter, mFilter), _) =>
+            annotationsAfterOp(acFilter, atFilter, mFilter, query(b), range)
+          case (_, FilterAnnotations(acFilter, atFilter, mFilter)) =>
+            opAfterAnnotations(query(a), acFilter, atFilter, mFilter, range)
+          case _ => opAfterOp(query(a), query(b), range)
+        }
+      case unkown => throw new UnsupportedOperationException(s"Operation $unkown not supported.")
+    }
+
     Iterator[Result]()
   }
 

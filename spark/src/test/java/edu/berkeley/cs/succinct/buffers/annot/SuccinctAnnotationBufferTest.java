@@ -30,6 +30,17 @@ public class SuccinctAnnotationBufferTest extends TestCase {
   private final String[] metadataDoc1 = {"foo", "bar", "baz"};
   private final String[] metadataDoc3 = {"a", "b&c", "d^e"};
 
+  private MetadataFilter noFilter;
+
+  public void setUp() throws Exception {
+    super.setUp();
+    noFilter = new MetadataFilter() {
+      @Override boolean filter(String metadata) {
+        return true;
+      }
+    };
+  }
+
   public void testGetAnnotationRecord() throws Exception {
     for (String docId : documentIds) {
       AnnotationRecord ar = buf.getAnnotationRecord(docId);
@@ -169,13 +180,13 @@ public class SuccinctAnnotationBufferTest extends TestCase {
 
   public void testContains() throws Exception {
     AnnotationRecord ar1 = buf.getAnnotationRecord("doc1");
-    assertTrue(ar1.contains(1, 3));
+    assertTrue(ar1.contains(1, 3, noFilter));
 
     AnnotationRecord ar2 = buf.getAnnotationRecord("doc2");
-    assertFalse(ar2.contains(6, 9));
+    assertFalse(ar2.contains(6, 9, noFilter));
 
     AnnotationRecord ar3 = buf.getAnnotationRecord("doc3");
-    assertTrue(ar3.contains(9, 15));
+    assertTrue(ar3.contains(9, 15, noFilter));
   }
 
   public void testFindAnnotationsContainedIn() throws Exception {
@@ -203,13 +214,13 @@ public class SuccinctAnnotationBufferTest extends TestCase {
 
   public void testContainedIn() throws Exception {
     AnnotationRecord ar1 = buf.getAnnotationRecord("doc1");
-    assertTrue(ar1.containedIn(0, 15));
+    assertTrue(ar1.containedIn(0, 15, noFilter));
 
     AnnotationRecord ar2 = buf.getAnnotationRecord("doc2");
-    assertFalse(ar2.containedIn(6, 9));
+    assertFalse(ar2.containedIn(6, 9, noFilter));
 
     AnnotationRecord ar3 = buf.getAnnotationRecord("doc3");
-    assertTrue(ar3.containedIn(9, 15));
+    assertTrue(ar3.containedIn(9, 15, noFilter));
   }
 
   public void testFindAnnotationsBefore() throws Exception {
@@ -237,13 +248,13 @@ public class SuccinctAnnotationBufferTest extends TestCase {
 
   public void testBefore() throws Exception {
     AnnotationRecord ar1 = buf.getAnnotationRecord("doc1");
-    assertTrue(ar1.before(15, 17, -1));
+    assertTrue(ar1.before(15, 17, -1, noFilter));
 
     AnnotationRecord ar2 = buf.getAnnotationRecord("doc2");
-    assertFalse(ar2.before(1, 3, -1));
+    assertFalse(ar2.before(1, 3, -1, noFilter));
 
     AnnotationRecord ar3 = buf.getAnnotationRecord("doc3");
-    assertTrue(ar3.before(17, 19, 2));
+    assertTrue(ar3.before(17, 19, 2, noFilter));
   }
 
   public void testFindAnnotationsAfter() throws Exception {
@@ -271,12 +282,12 @@ public class SuccinctAnnotationBufferTest extends TestCase {
 
   public void testAfter() throws Exception {
     AnnotationRecord ar1 = buf.getAnnotationRecord("doc1");
-    assertTrue(ar1.after(0, 3, -1));
+    assertTrue(ar1.after(0, 3, -1, noFilter));
 
     AnnotationRecord ar2 = buf.getAnnotationRecord("doc2");
-    assertFalse(ar2.after(17, 19, -1));
+    assertFalse(ar2.after(17, 19, -1, noFilter));
 
     AnnotationRecord ar3 = buf.getAnnotationRecord("doc3");
-    assertTrue(ar3.after(1, 5, 4));
+    assertTrue(ar3.after(1, 5, 4, noFilter));
   }
 }

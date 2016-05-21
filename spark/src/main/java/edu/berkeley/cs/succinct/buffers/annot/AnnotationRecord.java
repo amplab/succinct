@@ -143,7 +143,7 @@ public class AnnotationRecord {
    * @param i The index for the annotation.
    * @return The annotation.
    */
-  public Annotation getAnnotation(int i) {
+  public Annotation getAnnotation(final int i) {
     if (i < 0 || i >= numEntries) {
       throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
     }
@@ -166,7 +166,7 @@ public class AnnotationRecord {
    * @param offset The offset to search.
    * @return The location of the first start offset <= offset.
    */
-  public int firstLEQ(int offset) {
+  public int firstLEQ(final int offset) {
     int lo = 0, hi = numEntries, arrVal;
 
     while (lo != hi) {
@@ -187,7 +187,7 @@ public class AnnotationRecord {
    * @param offset The offset to search.
    * @return The location of the first start offset >= offset.
    */
-  public int firstGEQ(int offset) {
+  public int firstGEQ(final int offset) {
     int lo = 0, hi = numEntries, arrVal;
 
     while (lo != hi) {
@@ -229,18 +229,19 @@ public class AnnotationRecord {
   /**
    * Checks if any annotation in the record contains the input range.
    *
-   * @param begin Beginning of the input range.
-   * @param end   End of the input range.
+   * @param begin  Beginning of the input range.
+   * @param end    End of the input range.
+   * @param filter Filter on annotation metadata.
    * @return True if the record has any annotation containing the range; false otherwise.
    */
-  public boolean contains(final int begin, final int end) {
+  public boolean contains(final int begin, final int end, final MetadataFilter filter) {
     int idx = 0;
     while (idx < numEntries) {
       int startOffset = getStartOffset(idx);
       int endOffset = getEndOffset(idx);
       if (startOffset > begin)
         break;
-      if (begin >= startOffset && end <= endOffset) {
+      if (begin >= startOffset && end <= endOffset && filter.filter(getMetadata(idx))) {
         return true;
       }
       idx++;
@@ -255,7 +256,7 @@ public class AnnotationRecord {
    * @param end   End of the input range.
    * @return The matching annotations.
    */
-  public Annotation[] annotationsContainedIn(int begin, int end) {
+  public Annotation[] annotationsContainedIn(final int begin, final int end) {
     int idx = firstGEQ(begin);
     if (idx < 0 || idx >= numEntries) {
       return new Annotation[0];
@@ -284,7 +285,7 @@ public class AnnotationRecord {
    * @param end   End of the input range.
    * @return True if the record has any annotation containing the range; false otherwise.
    */
-  public boolean containedIn(final int begin, final int end) {
+  public boolean containedIn(final int begin, final int end, final MetadataFilter filter) {
     int idx = firstGEQ(begin);
     if (idx < 0 || idx >= numEntries) {
       return false;
@@ -295,7 +296,7 @@ public class AnnotationRecord {
       int endOffset = getEndOffset(idx);
       if (startOffset > end)
         break;
-      if (startOffset >= begin && endOffset <= end) {
+      if (startOffset >= begin && endOffset <= end && filter.filter(getMetadata(idx))) {
         return true;
       }
       idx++;
@@ -313,7 +314,7 @@ public class AnnotationRecord {
    *              infinity, i.e., all annotations before.
    * @return The matching annotations.
    */
-  public Annotation[] annotationsBefore(int begin, int end, int range) {
+  public Annotation[] annotationsBefore(final int begin, final int end, final int range) {
     int idx = firstLEQ(begin);
     if (idx < 0 || idx >= numEntries) {
       return new Annotation[0];
@@ -343,7 +344,8 @@ public class AnnotationRecord {
    *              infinity, i.e., all annotations after.
    * @return True if the record has any annotation before the range; false otherwise.
    */
-  public boolean before(final int begin, final int end, final int range) {
+  public boolean before(final int begin, final int end, final int range,
+    final MetadataFilter filter) {
     int idx = firstLEQ(begin);
     if (idx < 0 || idx >= numEntries) {
       return false;
@@ -351,7 +353,8 @@ public class AnnotationRecord {
 
     while (idx >= 0) {
       int endOffset = getEndOffset(idx);
-      if (endOffset <= begin && !(range != -1 && begin - endOffset > range)) {
+      if (endOffset <= begin && !(range != -1 && begin - endOffset > range) &&
+        filter.filter(getMetadata(idx))) {
         return true;
       }
       idx--;
@@ -369,7 +372,7 @@ public class AnnotationRecord {
    *              infinity, i.e., all annotations after.
    * @return The matching annotations.
    */
-  public Annotation[] annotationsAfter(int begin, int end, int range) {
+  public Annotation[] annotationsAfter(final int begin, final int end, final int range) {
     int idx = firstGEQ(end);
     if (idx >= numEntries) {
       return new Annotation[0];
@@ -399,13 +402,20 @@ public class AnnotationRecord {
    *              infinity, i.e., all annotations after.
    * @return True if the record has any annotation after the range; false otherwise.
    */
-  public boolean after(final int begin, final int end, final int range) {
+  public boolean after(final int begin, final int end, final int range,
+    final MetadataFilter filter) {
     int idx = firstGEQ(end);
     if (idx >= numEntries)
       return false;
 
-    int startOffset = getStartOffset(idx);
-    return !(range != -1 && startOffset - end > range);
+    while (idx < numEntries) {
+      int startOffset = getStartOffset(idx);
+      if (range != -1 && startOffset - end > range)
+        break;
+      if (filter.filter(getMetadata(idx)))
+        return true;
+      idx++;
+    } return false;
   }
 
 }

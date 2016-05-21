@@ -94,12 +94,14 @@ abstract class AnnotatedSuccinctRDD(@transient sc: SparkContext,
     partitionsRDD.flatMap(_.filterAnnotations(annotClassFilter, annotTypeFilter, metadataFilter))
   }
 
-  def searchContaining(annotClass: String, annotType: String, query: String): RDD[Result] = {
-    partitionsRDD.flatMap(_.searchContaining(annotClass, annotType, query))
+  def searchContaining(annotClassFilter: String, annotTypeFilter: String,
+                       metadataFilter: String => Boolean, query: String): RDD[Result] = {
+    partitionsRDD.flatMap(_.searchContaining(annotClassFilter, annotTypeFilter, metadataFilter, query))
   }
 
-  def regexContaining(annotClass: String, annotType: String, query: String): RDD[Result] = {
-    partitionsRDD.flatMap(_.regexContaining(annotClass, annotType, query))
+  def regexContaining(annotClassFilter: String, annotTypeFilter: String,
+                      metadataFilter: String => Boolean, query: String): RDD[Result] = {
+    partitionsRDD.flatMap(_.regexContaining(annotClassFilter, annotTypeFilter, metadataFilter, query))
   }
 
   /**
