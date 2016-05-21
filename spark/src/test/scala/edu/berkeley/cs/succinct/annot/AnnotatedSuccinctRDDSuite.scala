@@ -500,6 +500,178 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     })
   }
 
+  test("Test Contains(Search, Search)") {
+    sc = new SparkContext(conf)
+
+    val annotatedRDD = sc.parallelize(data)
+    val annotatedSuccinctRDD = AnnotatedSuccinctRDD(annotatedRDD)
+
+    // Check
+    val query1 = Contains(Search("Document"), Search("cumen"))
+    val res1 = annotatedSuccinctRDD.query(query1).collect()
+    assert(res1.length == 3)
+    res1.foreach(a => {
+      assert(a.startOffset == 0)
+      assert(a.endOffset == 8)
+      assert(a.annotation == null)
+    })
+
+    val query2 = Contains(Search("number"), Search("um"))
+    val res2 = annotatedSuccinctRDD.query(query2).collect()
+    assert(res2.length == 3)
+    res2.foreach(a => {
+      assert(a.startOffset == 9)
+      assert(a.endOffset == 15)
+      assert(a.annotation == null)
+    })
+
+    val query3 = Contains(Search("number three"), Search("number"))
+    val res3 = annotatedSuccinctRDD.query(query3).collect()
+    assert(res3.length == 1)
+    res3.foreach(a => {
+      assert(a.startOffset == 9)
+      assert(a.endOffset == 21)
+      assert(a.annotation == null)
+    })
+
+    val query4 = Contains(Search("Document number"), Search(" "))
+    val res4 = annotatedSuccinctRDD.query(query4).collect()
+    assert(res4.length == 3)
+    res4.foreach(a => {
+      assert(a.startOffset == 0)
+      assert(a.endOffset == 15)
+      assert(a.annotation == null)
+    })
+
+    val query5 = Contains(Search("Document"), Search("number"))
+    val res5 = annotatedSuccinctRDD.query(query5).collect()
+    assert(res5.length == 0)
+  }
+
+  test("Test ContainedIn(Search, Search)") {
+    sc = new SparkContext(conf)
+
+    val annotatedRDD = sc.parallelize(data)
+    val annotatedSuccinctRDD = AnnotatedSuccinctRDD(annotatedRDD)
+
+    // Check
+    val query1 = ContainedIn(Search("Document"), Search("Document number"))
+    val res1 = annotatedSuccinctRDD.query(query1).collect()
+    assert(res1.length == 3)
+    res1.foreach(a => {
+      assert(a.startOffset == 0)
+      assert(a.endOffset == 8)
+      assert(a.annotation == null)
+    })
+
+    val query2 = ContainedIn(Search("number"), Search("Document number"))
+    val res2 = annotatedSuccinctRDD.query(query2).collect()
+    assert(res2.length == 3)
+    res2.foreach(a => {
+      assert(a.startOffset == 9)
+      assert(a.endOffset == 15)
+      assert(a.annotation == null)
+    })
+
+    val query3 = ContainedIn(Search("three"), Search("number three"))
+    val res3 = annotatedSuccinctRDD.query(query3).collect()
+    assert(res3.length == 1)
+    assert(res3(0).startOffset == 16)
+    assert(res3(0).endOffset == 21)
+    assert(res3(0).annotation == null)
+
+    val query4 = ContainedIn(Search(" "), Search("Document number "))
+    val res4 = annotatedSuccinctRDD.query(query4).collect()
+    assert(res4.length == 6)
+    res4.foreach(a => {
+      assert(a.startOffset == 8 || a.startOffset == 15)
+      assert(a.endOffset == 9 || a.endOffset == 16)
+      assert(a.annotation == null)
+    })
+
+    val query5 = ContainedIn(Search("four"), Search("Document number three"))
+    val res5 = annotatedSuccinctRDD.query(query5).collect()
+    assert(res5.length == 0)
+  }
+
+  test("Test Before(Search, Search)") {
+    sc = new SparkContext(conf)
+
+    val annotatedRDD = sc.parallelize(data)
+    val annotatedSuccinctRDD = AnnotatedSuccinctRDD(annotatedRDD)
+
+    // Check
+    val query1 = Before(Search("Document"), Search("number"))
+    val res1 = annotatedSuccinctRDD.query(query1).collect()
+    assert(res1.length == 3)
+    res1.foreach(a => {
+      assert(a.startOffset == 0)
+      assert(a.endOffset == 8)
+      assert(a.annotation == null)
+    })
+
+    val query2 = Before(Search("number"), Regex("one|two|three"))
+    val res2 = annotatedSuccinctRDD.query(query2).collect()
+    assert(res2.length == 3)
+    res2.foreach(a => {
+      assert(a.startOffset == 9)
+      assert(a.endOffset == 15)
+      assert(a.annotation == null)
+    })
+
+    val query3 = Before(Search("number three"), Search("Document"))
+    val res3 = annotatedSuccinctRDD.query(query3).collect()
+    assert(res3.length == 0)
+
+    val query4 = Before(Search("Document"), Search(" "), 1)
+    val res4 = annotatedSuccinctRDD.query(query4).collect()
+    assert(res4.length == 3)
+    res4.foreach(a => {
+      assert(a.startOffset == 0)
+      assert(a.endOffset == 8)
+      assert(a.annotation == null)
+    })
+  }
+
+  test("Test After(Search, Search)") {
+    sc = new SparkContext(conf)
+
+    val annotatedRDD = sc.parallelize(data)
+    val annotatedSuccinctRDD = AnnotatedSuccinctRDD(annotatedRDD)
+
+    // Check
+    val query1 = After(Search("Document"), Search("number"))
+    val res1 = annotatedSuccinctRDD.query(query1).collect()
+    assert(res1.length == 0)
+
+    val query2 = After(Search("number"), Search("Document"))
+    val res2 = annotatedSuccinctRDD.query(query2).collect()
+    assert(res2.length == 3)
+    res2.foreach(a => {
+      assert(a.startOffset == 9)
+      assert(a.endOffset == 15)
+      assert(a.annotation == null)
+    })
+
+    val query3 = After(Search("number three"), Search("Document"))
+    val res3 = annotatedSuccinctRDD.query(query3).collect()
+    assert(res3.length == 1)
+    res3.foreach(a => {
+      assert(a.startOffset == 9)
+      assert(a.endOffset == 21)
+      assert(a.annotation == null)
+    })
+
+    val query4 = After(Search("three"), Search(" "), 1)
+    val res4 = annotatedSuccinctRDD.query(query4).collect()
+    assert(res4.length == 1)
+    res4.foreach(a => {
+      assert(a.startOffset == 16)
+      assert(a.endOffset == 21)
+      assert(a.annotation == null)
+    })
+  }
+
   test("Test save and load") {
     sc = new SparkContext(conf)
 

@@ -493,7 +493,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
       def nextRes: Result = {
         var valid: Boolean = false
         while (!valid) {
-          curRes = if (it1.hasNext) it1.next() else null
+          curRes = if (it1.hasNext) it1.next() else return null
           valid = checkCondition
         }
         curRes
@@ -549,7 +549,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     * @return Iterator over matching results.
     */
   def opBeforeOp(it1: Iterator[Result], it2: Iterator[Result], range: Int): Iterator[Result] = {
-    binaryOp(it1, it2, (r1, r2) => r1.endOffset < r2.startOffset && !(range != 1 && r2.startOffset - r1.endOffset > range))
+    binaryOp(it1, it2, (r1, r2) => r1.endOffset <= r2.startOffset && !(range != -1 && r2.startOffset - r1.endOffset > range))
   }
 
   /**
@@ -560,7 +560,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     * @return Iterator over matching results.
     */
   def opAfterOp(it1: Iterator[Result], it2: Iterator[Result], range: Int): Iterator[Result] = {
-    binaryOp(it1, it2, (r1, r2) => r1.startOffset > r2.endOffset && !(range != 1 && r1.startOffset - r2.endOffset > range))
+    binaryOp(it1, it2, (r1, r2) => r1.startOffset >= r2.endOffset && !(range != -1 && r1.startOffset - r2.endOffset > range))
   }
 
   /**
