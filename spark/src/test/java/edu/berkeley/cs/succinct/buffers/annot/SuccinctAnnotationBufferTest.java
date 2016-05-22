@@ -9,23 +9,25 @@ public class SuccinctAnnotationBufferTest extends TestCase {
   // See AnnotatedDocumentSerializerSuite.scala for the original annotations for (ge, word).
 
   private final byte[] test =
-    {94, 100, 111, 99, 49, 94, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0, 0, 8, 0, 0, 0,
-      15, 0, 0, 0, 19, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 0, 5, 0, 3, 102, 111, 111, 0, 3, 98, 97, 114,
-      0, 3, 98, 97, 122, 94, 100, 111, 99, 50, 94, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 16,
-      0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0, 19, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0,
-      94, 100, 111, 99, 51, 94, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0, 0, 8, 0, 0,
-      0, 15, 0, 0, 0, 21, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 0, 5, 0, 1, 97, 0, 3, 98, 38, 99, 0, 3, 100,
-      94, 101};
+    {0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0, 19, 0, 0, 0,
+      1, 0, 0, 0, 3, 0, 0, 0, 5, 0, 3, 102, 111, 111, 0, 3, 98, 97, 114, 0, 3, 98, 97, 122, 0, 0, 0,
+      3, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0, 0, 8, 0, 0, 0, 15, 0, 0, 0, 19, 0, 0, 0, 1, 0,
+      0, 0, 3, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0,
+      0, 8, 0, 0, 0, 15, 0, 0, 0, 21, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 0, 5, 0, 1, 97, 0, 3, 98, 38,
+      99, 0, 3, 100, 94, 101};
 
-  private final SuccinctAnnotationBuffer buf = new SuccinctAnnotationBuffer("ge", "word", test);
-  private final String[] documentIds = {"doc1", "doc2", "doc3"};
+  private final String[] docIds = {"doc1", "doc2", "doc3"};
+  private final int[] docIdIndexes = {0, 1, 2};
+  private final int[] aOffsets = {0, 55, 101};
+  private final SuccinctAnnotationBuffer buf =
+    new SuccinctAnnotationBuffer("ge", "word", docIds, docIdIndexes, aOffsets, test);
 
   // (0, 8), (9, 15), (16, 19)
   private final int[] startOffsets = {0, 9, 16};
   private final int[] endOffsets = {8, 15, 19};
 
   private final int[] annotationIds = {1, 3, 5};
-  private final int[] aOffsets = {0, 61, 113};
+
 
   private final String[] metadataDoc1 = {"foo", "bar", "baz"};
   private final String[] metadataDoc3 = {"a", "b&c", "d^e"};
@@ -42,7 +44,7 @@ public class SuccinctAnnotationBufferTest extends TestCase {
   }
 
   public void testGetAnnotationRecord() throws Exception {
-    for (String docId : documentIds) {
+    for (String docId : docIds) {
       AnnotationRecord ar = buf.getAnnotationRecord(docId);
       assertNotNull(ar);
       assertEquals(docId, ar.getDocId());
@@ -54,9 +56,9 @@ public class SuccinctAnnotationBufferTest extends TestCase {
 
   public void testGetAnnotationRecord2() throws Exception {
     for (int i = 0; i < 3; i++) {
-      AnnotationRecord ar = buf.getAnnotationRecord(aOffsets[i]);
+      AnnotationRecord ar = buf.getAnnotationRecord(i);
       assertNotNull(ar);
-      assertEquals(documentIds[i], ar.getDocId());
+      assertEquals(docIds[i], ar.getDocId());
       assertEquals(3, ar.getNumEntries());
     }
 
@@ -68,7 +70,7 @@ public class SuccinctAnnotationBufferTest extends TestCase {
     int count = 0;
     while (it.hasNext()) {
       Annotation a = it.next();
-      assertEquals(documentIds[count / 3], a.getDocId());
+      assertEquals(docIds[count / 3], a.getDocId());
       assertEquals(startOffsets[count % 3], a.getStartOffset());
       assertEquals(count == 8 ? 21 : endOffsets[count % 3], a.getEndOffset());
       assertEquals(annotationIds[count % 3], a.getId());
@@ -78,7 +80,7 @@ public class SuccinctAnnotationBufferTest extends TestCase {
   }
 
   public void testGetRangeBegin() throws Exception {
-    for (String docId : documentIds) {
+    for (String docId : docIds) {
       AnnotationRecord ar = buf.getAnnotationRecord(docId);
       for (int i = 0; i < ar.getNumEntries(); i++) {
         int rBegin = ar.getStartOffset(i);
@@ -88,7 +90,7 @@ public class SuccinctAnnotationBufferTest extends TestCase {
   }
 
   public void testGetRangeEnd() throws Exception {
-    for (String docId : documentIds) {
+    for (String docId : docIds) {
       AnnotationRecord ar = buf.getAnnotationRecord(docId);
       for (int i = 0; i < ar.getNumEntries(); i++) {
         int rEnd = ar.getEndOffset(i);
@@ -102,7 +104,7 @@ public class SuccinctAnnotationBufferTest extends TestCase {
   }
 
   public void testGetAnnotId() throws Exception {
-    for (String docId : documentIds) {
+    for (String docId : docIds) {
       AnnotationRecord ar = buf.getAnnotationRecord(docId);
       for (int i = 0; i < ar.getNumEntries(); i++) {
         int annotId = ar.getAnnotId(i);
@@ -112,7 +114,7 @@ public class SuccinctAnnotationBufferTest extends TestCase {
   }
 
   public void testGetMetadata() throws Exception {
-    for (String docId : documentIds) {
+    for (String docId : docIds) {
       AnnotationRecord ar = buf.getAnnotationRecord(docId);
       for (int i = 0; i < ar.getNumEntries(); i++) {
         String metadata = ar.getMetadata(i);
@@ -128,7 +130,7 @@ public class SuccinctAnnotationBufferTest extends TestCase {
   }
 
   public void testGetAnnotation() throws Exception {
-    for (String docId : documentIds) {
+    for (String docId : docIds) {
       AnnotationRecord ar = buf.getAnnotationRecord(docId);
       for (int i = 0; i < ar.getNumEntries(); i++) {
         Annotation a = ar.getAnnotation(i);

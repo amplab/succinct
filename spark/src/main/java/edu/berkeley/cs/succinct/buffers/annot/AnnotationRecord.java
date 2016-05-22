@@ -157,7 +157,7 @@ public class AnnotationRecord {
    * @return Iterator over all annotations in the record.
    */
   public AnnotationIterator getAnnotationIterator() {
-    return new AnnotationIterator(this, false);
+    return new AnnotationIterator(this);
   }
 
   /**
@@ -415,7 +415,8 @@ public class AnnotationRecord {
       if (filter.filter(getMetadata(idx)))
         return true;
       idx++;
-    } return false;
+    }
+    return false;
   }
 
 }
