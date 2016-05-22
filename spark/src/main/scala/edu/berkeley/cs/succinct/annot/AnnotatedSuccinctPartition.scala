@@ -218,6 +218,20 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
 
     if (buffers.isEmpty) return Iterator[Result]()
 
+    implicit class IteratorWrapper[T](it: Iterator[T]) {
+      def distinct = new Iterator[T] {
+        var distinctStream = it.toStream.distinct
+
+        override def hasNext: Boolean = distinctStream.nonEmpty
+
+        override def next(): T = {
+          val toReturn = distinctStream.head
+          distinctStream = distinctStream.tail
+          toReturn
+        }
+      }
+    }
+
     new Iterator[Result] {
       var curBufIdx = buffers.length - 1
       var curAnnotIdx = 0
@@ -255,7 +269,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
         }
         Result(annot.getDocId, annot.getStartOffset, annot.getEndOffset, annot)
       }
-    }.filter(r => metadataFilter(r.annotation.getMetadata))
+    }.distinct.filter(r => metadataFilter(r.annotation.getMetadata))
   }
 
   /**

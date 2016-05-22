@@ -175,6 +175,10 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val query5 = Contains(FilterAnnotations("ge", "word"), Search("four"))
     val res5 = annotatedSuccinctRDD.query(query5).collect()
     assert(res5.length == 0)
+
+    val query6 = Contains(FilterAnnotations("ge", "word"), Search("e"))
+    val res6 = annotatedSuccinctRDD.query(query6).collect()
+    assert(res6.length == 8)
   }
 
   test("Test Contains(FilterAnnotations, Regex)") {
