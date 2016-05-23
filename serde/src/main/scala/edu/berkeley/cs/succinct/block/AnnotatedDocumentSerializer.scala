@@ -34,13 +34,14 @@ class AnnotatedDocumentSerializer(ignoreParseErrors: Boolean) extends Serializab
     delim + annotClass + delim + annotType + delim
   }
 
-  def addAnnotation(docIdOffset: Int, docAnnotation: String): Unit = {
+  def addAnnotations(docIdOffset: Int, docAnnotation: String): Unit = {
     docAnnotation.split('\n').map(annot => annot.split("\\^", 6))
       .map(e => (makeKey(e(1), e(2)), (e(0).toInt, e(3).toInt, e(4).toInt, if (e.length == 6) URLDecoder.decode(e(5), "UTF-8") else "")))
-      .groupBy(_._1).mapValues(v => serializeAnnotationEntry(v.map(_._2).sortBy(_._2)))
+      .groupBy(_._1)
+      .mapValues(v => AnnotatedDocumentSerializer.serializeAnnotationRecord(v.map(_._2).sortBy(_._2), ignoreParseErrors))
       .foreach(kv => {
         if (!docAnnotDataMap.contains(kv._1))
-          docAnnotDataMap += (kv._1 -> (new ArrayBuffer[Int], new ArrayBuffer[Int], new ByteArrayOutputStream()))
+          docAnnotDataMap += (kv._1 ->(new ArrayBuffer[Int], new ArrayBuffer[Int], new ByteArrayOutputStream()))
         val annotData = docAnnotDataMap(kv._1)
         annotData._1.append(docIdOffset)
         annotData._2.append(annotData._3.size())
@@ -55,10 +56,14 @@ class AnnotatedDocumentSerializer(ignoreParseErrors: Boolean) extends Serializab
     docTextOS.append(docText)
     docTextOS.append('\n')
     curDocTextOffset += (docText.length + 1)
-    addAnnotation(docIdOffset, docAnnot)
+    addAnnotations(docIdOffset, docAnnot)
   }
+}
 
-  def serializeAnnotationEntry(dat: Array[(Int, Int, Int, String)]): Array[Byte] = {
+object AnnotatedDocumentSerializer {
+  val DELIM: Char = '^'
+
+  def serializeAnnotationRecord(dat: Array[(Int, Int, Int, String)], ignoreParseErrors: Boolean): Array[Byte] = {
     val baos = new ByteArrayOutputStream
     val out = new DataOutputStream(baos)
 
@@ -76,9 +81,4 @@ class AnnotatedDocumentSerializer(ignoreParseErrors: Boolean) extends Serializab
     out.flush()
     baos.toByteArray
   }
-
-}
-
-object AnnotatedDocumentSerializer {
-  val DELIM: Char = '^'
 }

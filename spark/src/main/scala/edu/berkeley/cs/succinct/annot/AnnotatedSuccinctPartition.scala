@@ -1,10 +1,11 @@
 package org.apache.spark.succinct.annot
 
-import java.io.{ObjectInputStream, ObjectOutputStream}
+import java.io.{ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import java.util.NoSuchElementException
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.annot._
+import edu.berkeley.cs.succinct.block.AnnotatedDocumentSerializer
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.buffers.annot._
 import org.apache.hadoop.conf.Configuration
@@ -12,10 +13,11 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 
-class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIndexedFile,
-                                 annotBufferMap: Map[String, SuccinctAnnotationBuffer])
+class AnnotatedSuccinctPartition(val keys: Array[String], val documentBuffer: SuccinctIndexedFile,
+                                 val annotBufferMap: Map[String, SuccinctAnnotationBuffer])
   extends KnownSizeEstimation with Serializable {
 
   /**
@@ -233,10 +235,12 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
     }
 
     new Iterator[Result] {
+      var seenSoFar = Set[Annotation]()
       var curBufIdx = buffers.length - 1
-      var curAnnotIdx = 0
+      var curAnnotIdx = -1
       var curRes: Result = null
-      var curAnnots = nextAnnots
+      var curAnnots: Array[Annotation] = nextAnnots
+      var curAnnot: Annotation = nextAnnot
 
       def nextAnnots: Array[Annotation] = {
         var annots: Array[Annotation] = Array[Annotation]()
@@ -256,20 +260,35 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
         annots
       }
 
+      def nextAnnot: Annotation = {
+        var annot: Annotation = null
+        while (annot == null) {
+          curAnnotIdx += 1
+          if (curAnnots != null && curAnnotIdx == curAnnots.length) {
+            curAnnotIdx = 0
+            curAnnots = nextAnnots
+          }
+          if (curAnnots == null) return null
+          annot = if (seenSoFar contains curAnnots(curAnnotIdx)) {
+            null
+          } else {
+            seenSoFar += curAnnots(curAnnotIdx)
+            curAnnots(curAnnotIdx)
+          }
+        }
+        annot
+      }
+
       override def hasNext: Boolean = curRes != null
 
       override def next(): Result = {
         if (!hasNext)
           throw new NoSuchElementException()
-        val annot = curAnnots(curAnnotIdx)
-        curAnnotIdx += 1
-        if (curAnnotIdx == curAnnots.length) {
-          curAnnotIdx = 0
-          curAnnots = nextAnnots
-        }
+        val annot = curAnnot
+        curAnnot = nextAnnot
         Result(annot.getDocId, annot.getStartOffset, annot.getEndOffset, annot)
       }
-    }.distinct.filter(r => metadataFilter(r.annotation.getMetadata))
+    }.filter(r => metadataFilter(r.annotation.getMetadata))
   }
 
   /**
@@ -519,7 +538,7 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
 
       def checkCondition: Boolean = {
         for (r <- it2Stream) {
-          if (condition(curRes, r)) return true
+          if (curRes.docId == r.docId && condition(curRes, r)) return true
         }
         false
       }
@@ -599,39 +618,85 @@ class AnnotatedSuccinctPartition(keys: Array[String], documentBuffer: SuccinctIn
         filterAnnotations(acFilter, atFilter, mFilter)
       case Contains(a, b) =>
         (a, b) match {
-          case (FilterAnnotations(acFilter, atFilter, mFilter), _) =>
-            annotationsContainingOp(acFilter, atFilter, mFilter, query(b))
           case (_, FilterAnnotations(acFilter, atFilter, mFilter)) =>
             opContainingAnnotations(query(a), acFilter, atFilter, mFilter)
+          //          case (FilterAnnotations(acFilter, atFilter, mFilter), _) =>
+          //            annotationsContainingOp(acFilter, atFilter, mFilter, query(b))
           case _ => opContainingOp(query(a), query(b))
         }
       case ContainedIn(a, b) =>
         (a, b) match {
-          case (FilterAnnotations(acFilter, atFilter, mFilter), _) =>
-            annotationsContainedInOp(acFilter, atFilter, mFilter, query(b))
           case (_, FilterAnnotations(acFilter, atFilter, mFilter)) =>
             opContainedInAnnotations(query(a), acFilter, atFilter, mFilter)
+          //          case (FilterAnnotations(acFilter, atFilter, mFilter), _) =>
+          //            annotationsContainedInOp(acFilter, atFilter, mFilter, query(b))
           case _ => opContainedInOp(query(a), query(b))
         }
       case Before(a, b, range) =>
         (a, b) match {
-          case (FilterAnnotations(acFilter, atFilter, mFilter), _) =>
-            annotationsBeforeOp(acFilter, atFilter, mFilter, query(b), range)
           case (_, FilterAnnotations(acFilter, atFilter, mFilter)) =>
             opBeforeAnnotations(query(a), acFilter, atFilter, mFilter, range)
+          case (FilterAnnotations(acFilter, atFilter, mFilter), _) =>
+            annotationsBeforeOp(acFilter, atFilter, mFilter, query(b), range)
           case _ => opBeforeOp(query(a), query(b), range)
         }
       case After(a, b, range) =>
         (a, b) match {
-          case (FilterAnnotations(acFilter, atFilter, mFilter), _) =>
-            annotationsAfterOp(acFilter, atFilter, mFilter, query(b), range)
           case (_, FilterAnnotations(acFilter, atFilter, mFilter)) =>
             opAfterAnnotations(query(a), acFilter, atFilter, mFilter, range)
+          //          case (FilterAnnotations(acFilter, atFilter, mFilter), _) =>
+          //            annotationsAfterOp(acFilter, atFilter, mFilter, query(b), range)
           case _ => opAfterOp(query(a), query(b), range)
         }
       case unknown => throw new UnsupportedOperationException(s"Operation $unknown not supported.")
     }
   }
+
+  /**
+    * Adds new annotations for a specified annotation class and type. Overwrites old annotations
+    * for that class and type if there are any.
+    *
+    * @param annotClass        The annotation class.
+    * @param annotType         The annotation type.
+    * @param annotData         Seq of (documentId, annotationId, startOffset, endOffset,
+    *                          metadata) tuples to be added.
+    * @param ignoreParseErrors If true, ignores all parse errors; throws exception on error
+    *                          otherwise.
+    * @return Updated partition.
+    */
+  def addAnnotations(annotClass: String, annotType: String,
+                     annotData: Seq[(String, Int, Int, Int, String)],
+                     ignoreParseErrors: Boolean): AnnotatedSuccinctPartition = {
+
+    val docIdIndexes = new ArrayBuffer[Int]
+    val recordOffsets = new ArrayBuffer[Int]
+    val annotBufOS = new ByteArrayOutputStream()
+
+    annotData.groupBy(_._1).foreach(kv => {
+      val docIdIndex = findKey(kv._1)
+      if (docIdIndex < 0)
+        throw new scala.NoSuchElementException(s"Could not find document ID ${kv._1}")
+      val dat = kv._2.map(e => (e._2, e._3, e._4, e._5)).toArray
+      docIdIndexes.append(docIdIndex)
+      recordOffsets.append(annotBufOS.size())
+      val record = AnnotatedDocumentSerializer.serializeAnnotationRecord(dat, ignoreParseErrors)
+      annotBufOS.write(record)
+    })
+
+    val delim = SuccinctAnnotationBuffer.DELIM
+    val annotKey = delim + annotClass + delim + annotType + delim
+    val buf = new SuccinctAnnotationBuffer(annotClass, annotType, keys, docIdIndexes.toArray,
+      recordOffsets.toArray, annotBufOS.toByteArray)
+
+    new AnnotatedSuccinctPartition(keys, documentBuffer, annotBufferMap + (annotKey -> buf))
+  }
+
+  /**
+    * Get the first and the last document ID in this partition.
+    *
+    * @return The first and last document IDs in the partition.
+    */
+  def getDocIdRange: (String, String) = (keys(0), keys(keys.length - 1))
 
   /**
     * Get the number of documents in the partition.

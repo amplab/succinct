@@ -101,7 +101,6 @@ public class Annotation implements Serializable {
     Annotation a = (Annotation) o;
 
     return docId.equals(a.docId) && id == a.id && annotType.equals(a.annotType) &&
-      annotClass.equals(a.annotClass) && startOffset == a.startOffset && endOffset == a.endOffset &&
-      metadata.equals(a.metadata);
+      annotClass.equals(a.annotClass) && startOffset == a.startOffset && endOffset == a.endOffset;
   }
 }

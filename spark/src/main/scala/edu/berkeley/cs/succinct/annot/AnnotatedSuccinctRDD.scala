@@ -92,6 +92,30 @@ abstract class AnnotatedSuccinctRDD(@transient sc: SparkContext,
   }
 
   /**
+    * Add new annotations of a particular annotation class and type to the RDD. If the annotation
+    * type and class already exist, their annotations are overwritten by the new annotations.
+    *
+    * @param annotClass Annotation class for the annotations being added.
+    * @param annotType Annotation type for the annotations being added.
+    * @param annotData Annotation data for the annotations being added; the data is a collection of
+    *                  5-tuples: (documentID, annotationId, startOffset, endOffset, metadata)
+    * @param ignoreParseErrors Ignores parsing errors if set to true; throws an exeption on error
+    *                          otherwise.
+    * @return A new AnnotatedSuccinctRDD with the added annotations.
+    */
+  def addAnnotations(annotClass: String, annotType: String,
+                     annotData: Seq[(String, Int, Int, Int, String)],
+                     ignoreParseErrors: Boolean = true): AnnotatedSuccinctRDD = {
+    val newPartitionsRDD = partitionsRDD.map(partition => {
+      val range = partition.getDocIdRange
+      val partitionAnnotData = annotData.filter(d => d._1 >= range._1 && d._1 <= range._2)
+      partition.addAnnotations(annotClass, annotType, partitionAnnotData, ignoreParseErrors)
+    })
+
+    new AnnotatedSuccinctRDDImpl(newPartitionsRDD)
+  }
+
+  /**
     * Saves the [[AnnotatedSuccinctRDD]] at the specified path.
     *
     * @param location The path where the [[AnnotatedSuccinctRDD]] should be stored.

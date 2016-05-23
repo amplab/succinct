@@ -676,6 +676,30 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     })
   }
 
+  test("Test addAnnotations") {
+    sc = new SparkContext(conf)
+
+    val annotatedRDD = sc.parallelize(data)
+    val annotatedSuccinctRDD = AnnotatedSuccinctRDD(annotatedRDD)
+
+    val newAnnotationData = Seq(("doc1", 6, 0, 19, ""), ("doc2", 6, 0, 19, ""), ("doc3", 6, 0, 21, ""))
+    val newRDD = annotatedSuccinctRDD.addAnnotations("ge", "sentence", newAnnotationData)
+
+    val oldSentences = annotatedSuccinctRDD.query(FilterAnnotations("ge", "sentence")).collect()
+    assert(oldSentences.isEmpty)
+
+    val newSentences = newRDD.query(FilterAnnotations("ge", "sentence")).collect()
+    assert(newSentences.length == 3)
+    newSentences.foreach(r => {
+      assert(r.annotation.getAnnotClass == "ge")
+      assert(r.annotation.getAnnotType == "sentence")
+      assert(r.annotation.getId == 6)
+      assert(r.docId == "doc1" || r.docId == "doc2" || r.docId == "doc3")
+      assert(r.startOffset == 0)
+      assert(r.endOffset == 19 || r.endOffset == 21)
+    })
+  }
+
   test("Test save and load") {
     sc = new SparkContext(conf)
 
