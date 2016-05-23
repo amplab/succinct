@@ -172,10 +172,10 @@ class SuccinctTableRDDImpl private[succinct](
   }
 
   /**
-   * Check if a filter is supported directly by Succinct data structures.
+   * Check if a metadataFilter is supported directly by Succinct data structures.
    *
    * @param f Filter to check.
-   * @return Returns true if the filter is supported;
+   * @return Returns true if the metadataFilter is supported;
    *         false otherwise.
    */
   private[sql] def isFilterSupported(f: Filter): Boolean = f match {

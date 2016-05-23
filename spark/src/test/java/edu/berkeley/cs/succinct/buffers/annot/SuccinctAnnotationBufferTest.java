@@ -32,12 +32,16 @@ public class SuccinctAnnotationBufferTest extends TestCase {
   private final String[] metadataDoc1 = {"foo", "bar", "baz"};
   private final String[] metadataDoc3 = {"a", "b&c", "d^e"};
 
-  private MetadataFilter noFilter;
+  private AnnotationFilter noFilter;
 
   public void setUp() throws Exception {
     super.setUp();
-    noFilter = new MetadataFilter() {
-      @Override public boolean filter(String metadata) {
+    noFilter = new AnnotationFilter() {
+      @Override public boolean metadataFilter(String metadata) {
+        return true;
+      }
+
+      @Override public boolean textFilter(String docId, int startOffset, int endOffset) {
         return true;
       }
     };

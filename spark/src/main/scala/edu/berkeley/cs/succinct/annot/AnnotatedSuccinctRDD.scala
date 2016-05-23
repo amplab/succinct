@@ -171,8 +171,8 @@ object AnnotatedSuccinctRDD {
     *
     * @param sc               The spark context
     * @param location         The path to read the SuccinctKVRDD from.
-    * @param annotClassFilter Regex filter specifying which annotation classes to load.
-    * @param annotTypeFilter  Regex filter specifying which annotation types to load.
+    * @param annotClassFilter Regex metadataFilter specifying which annotation classes to load.
+    * @param annotTypeFilter  Regex metadataFilter specifying which annotation types to load.
     * @return The [[AnnotatedSuccinctRDD]].
     */
   def apply(sc: SparkContext, location: String, annotClassFilter: String, annotTypeFilter: String): AnnotatedSuccinctRDD = {

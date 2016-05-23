@@ -14,9 +14,9 @@ import scala.collection.JavaConversions._
 
 /**
   * A compressed RDD containing a collection of JSON documents, represented using Succinct's data
-  * structures. The RDD supports get, search and filter operations. Each document is internally
-  * assigned a unique "id" field, which is used for get, search and filter operations. The search
-  * and filter operations return an RDD of these ids, and the get operation obtains the uncompressed
+  * structures. The RDD supports get, search and metadataFilter operations. Each document is internally
+  * assigned a unique "id" field, which is used for get, search and metadataFilter operations. The search
+  * and metadataFilter operations return an RDD of these ids, and the get operation obtains the uncompressed
   * version of the JSON document for a given id.
   *
   */
@@ -87,7 +87,7 @@ abstract class SuccinctJsonRDD(@transient sc: SparkContext,
     *
     * @param field The field to be matched. For nested documents, use dot notation to denote nested
     *              attributes.
-    * @param value The value of the field to be matched. The filter operation performs an exact
+    * @param value The value of the field to be matched. The metadataFilter operation performs an exact
     *              match.
     * @return An RDD containing the ids for the filtered documents.
     */
