@@ -65,8 +65,8 @@ abstract class AnnotatedSuccinctRDD(@transient sc: SparkContext,
     * Get document text at a specified offset given the documentID.
     *
     * @param documentId The documentID for the document.
-    * @param offset The offset into the document text.
-    * @param length The number of characters to fetch.
+    * @param offset     The offset into the document text.
+    * @param length     The number of characters to fetch.
     * @return The document text.
     */
   def extractDocument(documentId: String, offset: Int, length: Int): String = {
@@ -77,28 +77,42 @@ abstract class AnnotatedSuccinctRDD(@transient sc: SparkContext,
     if (values.length == 0) null else values(0)
   }
 
+  /**
+    * Find all (documentID, startOffset, endOffset) triplets corresponding to an arbitrary query
+    * composed of Contains, ContainedIn, Before, After, FilterAnnotations, Search and RegexSearch
+    * queries.
+    *
+    * @param operator An arbitrary expression tree composed of Contains, ContainedIn, Before, After,
+    *                 FilterAnnotations, Search and RegexSearch.
+    * @return An [[Iterator]] over matching (documentID, startOffset, endOffset) triplets
+    *         encapsulated as Result objects.
+    */
   def query(operator: Operator): RDD[Result] = {
     partitionsRDD.flatMap(_.query(operator))
   }
 
-  def search(query: String): RDD[(String, Int, Int)] = {
-    partitionsRDD.flatMap(_.search(query))
-  }
+  /**
+    * Add new annotations of a particular annotation class and type to the RDD. If the annotation
+    * type and class already exist, their annotations are overwritten by the new annotations.
+    *
+    * @param annotClass Annotation class for the annotations being added.
+    * @param annotType Annotation type for the annotations being added.
+    * @param annotData Annotation data for the annotations being added; the data is a collection of
+    *                  5-tuples: (documentID, annotationId, startOffset, endOffset, metadata)
+    * @param ignoreParseErrors Ignores parsing errors if set to true; throws an exeption on error
+    *                          otherwise.
+    * @return A new AnnotatedSuccinctRDD with the added annotations.
+    */
+  def addAnnotations(annotClass: String, annotType: String,
+                     annotData: Seq[(String, Int, Int, Int, String)],
+                     ignoreParseErrors: Boolean = true): AnnotatedSuccinctRDD = {
+    val newPartitionsRDD = partitionsRDD.map(partition => {
+      val range = partition.getDocIdRange
+      val partitionAnnotData = annotData.filter(d => d._1 >= range._1 && d._1 <= range._2)
+      partition.addAnnotations(annotClass, annotType, partitionAnnotData, ignoreParseErrors)
+    })
 
-  def regexSearch(query: String): RDD[(String, Int, Int)] = {
-    partitionsRDD.flatMap(_.regexSearch(query))
-  }
-
-  def filterAnnotations(annotClassFilter: String, annotTypeFilter: String): RDD[Annotation] = {
-    partitionsRDD.flatMap(_.filterAnnotations(annotClassFilter, annotTypeFilter))
-  }
-
-  def searchContaining(annotClass: String, annotType: String, query: String): RDD[Annotation] = {
-    partitionsRDD.flatMap(_.searchContaining(query, annotClass, annotType))
-  }
-
-  def regexContaining(annotClass: String, annotType: String, query: String): RDD[Annotation] = {
-    partitionsRDD.flatMap(_.regexContaining(query, annotClass, annotType))
+    new AnnotatedSuccinctRDDImpl(newPartitionsRDD)
   }
 
   /**
@@ -155,10 +169,10 @@ object AnnotatedSuccinctRDD {
   /**
     * Reads a [[AnnotatedSuccinctRDD]] from disk, based on filters on Annotation Class and Type.
     *
-    * @param sc       The spark context
-    * @param location The path to read the SuccinctKVRDD from.
+    * @param sc               The spark context
+    * @param location         The path to read the SuccinctKVRDD from.
     * @param annotClassFilter Regex filter specifying which annotation classes to load.
-    * @param annotTypeFilter Regex filter specifying which annotation types to load.
+    * @param annotTypeFilter  Regex filter specifying which annotation types to load.
     * @return The [[AnnotatedSuccinctRDD]].
     */
   def apply(sc: SparkContext, location: String, annotClassFilter: String, annotTypeFilter: String): AnnotatedSuccinctRDD = {
@@ -181,7 +195,7 @@ object AnnotatedSuccinctRDD {
   /**
     * Creates an [[AnnotatedSuccinctPartition]] from a collection of (documentID, documentText, annotations) triplets.
     *
-    * @param dataIter An iterator over (documentID, documentText, annotations) triplets.
+    * @param dataIter          An iterator over (documentID, documentText, annotations) triplets.
     * @param ignoreParseErrors Ignores errors in parsing annotations if set to true; throws an exception on error otherwise.
     * @return An iterator over [[AnnotatedSuccinctPartition]]
     */
@@ -197,7 +211,7 @@ object AnnotatedSuccinctRDD {
       val key = kv._1
       val annotClass = key.split('^')(1)
       val annotType = key.split('^')(2)
-      (key, new SuccinctAnnotationBuffer(annotClass, annotType, kv._2))
+      (key, new SuccinctAnnotationBuffer(annotClass, annotType, docIds, kv._2._1, kv._2._2, kv._2._3))
     })
     Iterator(new AnnotatedSuccinctPartition(docIds, succinctDocTextBuffer, succinctAnnotBufferMap))
   }

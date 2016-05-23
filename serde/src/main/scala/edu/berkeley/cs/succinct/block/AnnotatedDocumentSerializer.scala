@@ -13,13 +13,17 @@ class AnnotatedDocumentSerializer(ignoreParseErrors: Boolean) extends Serializab
   var curDocTextOffset: Int = 0
   val docTextOffsets: ArrayBuffer[Int] = new ArrayBuffer[Int]
   val docTextOS: StringBuilder = new StringBuilder
-  var docAnnotationOSMap: Map[String, ByteArrayOutputStream] = new TreeMap[String, ByteArrayOutputStream]()
+  var docAnnotDataMap: Map[String, (ArrayBuffer[Int], ArrayBuffer[Int], ByteArrayOutputStream)] = {
+    new TreeMap[String, (ArrayBuffer[Int], ArrayBuffer[Int], ByteArrayOutputStream)]()
+  }
 
   def getDocIds: Array[String] = docIds.toArray
 
   def getTextBuffer: (Array[Int], Array[Char]) = (docTextOffsets.toArray, docTextOS.toArray)
 
-  def getAnnotationBuffers: Map[String, Array[Byte]] = docAnnotationOSMap.mapValues(_.toByteArray)
+  def getAnnotationBuffers: Map[String, (Array[Int], Array[Int], Array[Byte])] = {
+    docAnnotDataMap.mapValues(aData => (aData._1.toArray, aData._2.toArray, aData._3.toByteArray))
+  }
 
   def serialize(it: Iterator[(String, String, String)]): Unit = {
     it.foreach(v => addAnnotatedDocument(v._1, v._2, v._3))
@@ -30,40 +34,46 @@ class AnnotatedDocumentSerializer(ignoreParseErrors: Boolean) extends Serializab
     delim + annotClass + delim + annotType + delim
   }
 
-  def addAnnotation(docId: String, docAnnotation: String): Unit = {
+  def addAnnotations(docIdOffset: Int, docAnnotation: String): Unit = {
     docAnnotation.split('\n').map(annot => annot.split("\\^", 6))
       .map(e => (makeKey(e(1), e(2)), (e(0).toInt, e(3).toInt, e(4).toInt, if (e.length == 6) URLDecoder.decode(e(5), "UTF-8") else "")))
-      .groupBy(_._1).mapValues(v => serializeAnnotationEntry(docId, v.map(_._2).sortBy(_._2)))
+      .groupBy(_._1)
+      .mapValues(v => AnnotatedDocumentSerializer.serializeAnnotationRecord(v.map(_._2).sortBy(_._2), ignoreParseErrors))
       .foreach(kv => {
-        if (!docAnnotationOSMap.contains(kv._1))
-          docAnnotationOSMap += (kv._1 -> new ByteArrayOutputStream())
-        docAnnotationOSMap(kv._1).write(kv._2)
+        if (!docAnnotDataMap.contains(kv._1))
+          docAnnotDataMap += (kv._1 ->(new ArrayBuffer[Int], new ArrayBuffer[Int], new ByteArrayOutputStream()))
+        val annotData = docAnnotDataMap(kv._1)
+        annotData._1.append(docIdOffset)
+        annotData._2.append(annotData._3.size())
+        annotData._3.write(kv._2)
       })
   }
 
   def addAnnotatedDocument(docId: String, docText: String, docAnnot: String): Unit = {
+    val docIdOffset = docIds.length
     docIds += docId
     docTextOffsets += curDocTextOffset
     docTextOS.append(docText)
     docTextOS.append('\n')
     curDocTextOffset += (docText.length + 1)
-    addAnnotation(docId, docAnnot)
+    addAnnotations(docIdOffset, docAnnot)
   }
+}
 
-  def serializeAnnotationEntry(docId: String, dat: Array[(Int, Int, Int, String)]): Array[Byte] = {
+object AnnotatedDocumentSerializer {
+  val DELIM: Char = '^'
+
+  def serializeAnnotationRecord(dat: Array[(Int, Int, Int, String)], ignoreParseErrors: Boolean): Array[Byte] = {
     val baos = new ByteArrayOutputStream
     val out = new DataOutputStream(baos)
-    out.writeByte(AnnotatedDocumentSerializer.DELIM)
-    out.writeBytes(docId)
-    out.writeByte(AnnotatedDocumentSerializer.DELIM)
+
     out.writeInt(dat.length)
     dat.map(_._2).foreach(i => out.writeInt(i))
     dat.map(_._3).foreach(i => out.writeInt(i))
     dat.map(_._1).foreach(i => out.writeInt(i))
     dat.map(_._4).foreach(i => {
-      if (i.length > Short.MaxValue)
-        if (!ignoreParseErrors)
-          throw new InvalidPropertiesFormatException("Metadata too large: " + i.length + "; limit: " + Short.MaxValue)
+      if (i.length > Short.MaxValue && !ignoreParseErrors)
+        throw new InvalidPropertiesFormatException("Metadata too large: " + i.length + "; limit: " + Short.MaxValue)
       val metadata = i.substring(0, Math.min(Short.MaxValue, i.length))
       out.writeShort(metadata.length)
       out.writeBytes(metadata)
@@ -71,9 +81,4 @@ class AnnotatedDocumentSerializer(ignoreParseErrors: Boolean) extends Serializab
     out.flush()
     baos.toByteArray
   }
-
-}
-
-object AnnotatedDocumentSerializer {
-  val DELIM: Char = '^'
 }

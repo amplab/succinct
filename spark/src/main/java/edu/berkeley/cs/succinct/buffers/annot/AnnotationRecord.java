@@ -1,7 +1,8 @@
 package edu.berkeley.cs.succinct.buffers.annot;
 
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
-import gnu.trove.list.array.TIntArrayList;
+
+import java.util.ArrayList;
 
 public class AnnotationRecord {
   private int offset;
@@ -142,7 +143,7 @@ public class AnnotationRecord {
    * @param i The index for the annotation.
    * @return The annotation.
    */
-  public Annotation getAnnotation(int i) {
+  public Annotation getAnnotation(final int i) {
     if (i < 0 || i >= numEntries) {
       throw new ArrayIndexOutOfBoundsException("Num entries = " + numEntries + " i = " + i);
     }
@@ -156,7 +157,7 @@ public class AnnotationRecord {
    * @return Iterator over all annotations in the record.
    */
   public AnnotationIterator getAnnotationIterator() {
-    return new AnnotationIterator(this, false);
+    return new AnnotationIterator(this);
   }
 
   /**
@@ -165,7 +166,7 @@ public class AnnotationRecord {
    * @param offset The offset to search.
    * @return The location of the first start offset <= offset.
    */
-  public int firstLEQ(int offset) {
+  public int firstLEQ(final int offset) {
     int lo = 0, hi = numEntries, arrVal;
 
     while (lo != hi) {
@@ -186,8 +187,8 @@ public class AnnotationRecord {
    * @param offset The offset to search.
    * @return The location of the first start offset >= offset.
    */
-  public int firstGEQ(int offset) {
-    int lo = 0, hi = numEntries, arrVal = 0;
+  public int firstGEQ(final int offset) {
+    int lo = 0, hi = numEntries, arrVal;
 
     while (lo != hi) {
       int mid = lo + (hi - lo) / 2;
@@ -206,23 +207,46 @@ public class AnnotationRecord {
    *
    * @param begin Beginning of the input range.
    * @param end   End of the input range.
-   * @return Indices for the matching annotations.
+   * @return The matching annotations.
    */
-  public int[] findAnnotationsContaining(int begin, int end) {
+  public Annotation[] annotationsContaining(final int begin, final int end) {
     int idx = 0;
-    TIntArrayList res = new TIntArrayList();
+    ArrayList<Annotation> res = new ArrayList<>();
     while (idx < numEntries) {
       int startOffset = getStartOffset(idx);
       int endOffset = getEndOffset(idx);
       if (startOffset > begin)
         break;
       if (begin >= startOffset && end <= endOffset) {
-        res.add(idx);
+        res.add(new Annotation(getAnnotClass(), getAnnotType(), docId, getAnnotId(idx), startOffset,
+          endOffset, getMetadata(idx)));
       }
       idx++;
     }
+    return res.toArray(new Annotation[res.size()]);
+  }
 
-    return res.toArray();
+  /**
+   * Checks if any annotation in the record contains the input range.
+   *
+   * @param begin  Beginning of the input range.
+   * @param end    End of the input range.
+   * @param filter Filter on annotation metadata.
+   * @return True if the record has any annotation containing the range; false otherwise.
+   */
+  public boolean contains(final int begin, final int end, final MetadataFilter filter) {
+    int idx = 0;
+    while (idx < numEntries) {
+      int startOffset = getStartOffset(idx);
+      int endOffset = getEndOffset(idx);
+      if (startOffset > begin)
+        break;
+      if (begin >= startOffset && end <= endOffset && filter.filter(getMetadata(idx))) {
+        return true;
+      }
+      idx++;
+    }
+    return false;
   }
 
   /**
@@ -230,27 +254,169 @@ public class AnnotationRecord {
    *
    * @param begin Beginning of the input range.
    * @param end   End of the input range.
-   * @return Indices for the matching annotations.
+   * @return The matching annotations.
    */
-  public int[] findAnnotationsContainedIn(int begin, int end) {
+  public Annotation[] annotationsContainedIn(final int begin, final int end) {
     int idx = firstGEQ(begin);
     if (idx < 0 || idx >= numEntries) {
-      return new int[0];
+      return new Annotation[0];
     }
 
-    TIntArrayList res = new TIntArrayList();
+    ArrayList<Annotation> res = new ArrayList<>();
     while (idx < numEntries) {
       int startOffset = getStartOffset(idx);
       int endOffset = getEndOffset(idx);
       if (startOffset > end)
         break;
       if (startOffset >= begin && endOffset <= end) {
-        res.add(idx);
+        res.add(new Annotation(getAnnotClass(), getAnnotType(), docId, getAnnotId(idx), startOffset,
+          endOffset, getMetadata(idx)));
       }
       idx++;
     }
 
-    return res.toArray();
+    return res.toArray(new Annotation[res.size()]);
+  }
+
+  /**
+   * Checks if any annotation in the record is contained in the input range.
+   *
+   * @param begin Beginning of the input range.
+   * @param end   End of the input range.
+   * @return True if the record has any annotation containing the range; false otherwise.
+   */
+  public boolean containedIn(final int begin, final int end, final MetadataFilter filter) {
+    int idx = firstGEQ(begin);
+    if (idx < 0 || idx >= numEntries) {
+      return false;
+    }
+
+    while (idx < numEntries) {
+      int startOffset = getStartOffset(idx);
+      int endOffset = getEndOffset(idx);
+      if (startOffset > end)
+        break;
+      if (startOffset >= begin && endOffset <= end && filter.filter(getMetadata(idx))) {
+        return true;
+      }
+      idx++;
+    }
+
+    return false;
+  }
+
+  /**
+   * Find annotations before the range (begin, end), within `range` chars of begin.
+   *
+   * @param begin Beginning of the input range.
+   * @param end   End of the input range.
+   * @param range Max number of chars the annotation can be away from begin; -1 sets the limit to
+   *              infinity, i.e., all annotations before.
+   * @return The matching annotations.
+   */
+  public Annotation[] annotationsBefore(final int begin, final int end, final int range) {
+    int idx = firstLEQ(begin);
+    if (idx < 0 || idx >= numEntries) {
+      return new Annotation[0];
+    }
+
+    ArrayList<Annotation> res = new ArrayList<>();
+    while (idx >= 0) {
+      int startOffset = getStartOffset(idx);
+      int endOffset = getEndOffset(idx);
+      if (endOffset <= begin && !(range != -1 && begin - endOffset > range)) {
+        res.add(new Annotation(getAnnotClass(), getAnnotType(), docId, getAnnotId(idx), startOffset,
+          endOffset, getMetadata(idx)));
+      }
+      idx--;
+    }
+
+    return res.toArray(new Annotation[res.size()]);
+  }
+
+  /**
+   * Checks if any annotation in the record is before the input range, but within `range` characters
+   * of the start.
+   *
+   * @param begin Beginning of the input range.
+   * @param end   End of the input range.
+   * @param range Max number of chars the annotation can be away from end; -1 sets the limit to
+   *              infinity, i.e., all annotations after.
+   * @return True if the record has any annotation before the range; false otherwise.
+   */
+  public boolean before(final int begin, final int end, final int range,
+    final MetadataFilter filter) {
+    int idx = firstLEQ(begin);
+    if (idx < 0 || idx >= numEntries) {
+      return false;
+    }
+
+    while (idx >= 0) {
+      int endOffset = getEndOffset(idx);
+      if (endOffset <= begin && !(range != -1 && begin - endOffset > range) &&
+        filter.filter(getMetadata(idx))) {
+        return true;
+      }
+      idx--;
+    }
+
+    return false;
+  }
+
+  /**
+   * Find annotations after the range (begin, end), within `range` chars of end.
+   *
+   * @param begin Beginning of the input range.
+   * @param end   End of the input range.
+   * @param range Max number of chars the annotation can be away from end; -1 sets the limit to
+   *              infinity, i.e., all annotations after.
+   * @return The matching annotations.
+   */
+  public Annotation[] annotationsAfter(final int begin, final int end, final int range) {
+    int idx = firstGEQ(end);
+    if (idx >= numEntries) {
+      return new Annotation[0];
+    }
+
+    ArrayList<Annotation> res = new ArrayList<>();
+    while (idx < numEntries) {
+      int startOffset = getStartOffset(idx);
+      int endOffset = getEndOffset(idx);
+      if (range != -1 && startOffset - end > range)
+        break;
+      res.add(new Annotation(getAnnotClass(), getAnnotType(), docId, getAnnotId(idx), startOffset,
+        endOffset, getMetadata(idx)));
+      idx++;
+    }
+
+    return res.toArray(new Annotation[res.size()]);
+  }
+
+  /**
+   * Checks if any annotation in the record is after the input range, but within `range` characters
+   * of the end.
+   *
+   * @param begin Beginning of the input range.
+   * @param end   End of the input range.
+   * @param range Max number of chars the annotation can be away from end; -1 sets the limit to
+   *              infinity, i.e., all annotations after.
+   * @return True if the record has any annotation after the range; false otherwise.
+   */
+  public boolean after(final int begin, final int end, final int range,
+    final MetadataFilter filter) {
+    int idx = firstGEQ(end);
+    if (idx >= numEntries)
+      return false;
+
+    while (idx < numEntries) {
+      int startOffset = getStartOffset(idx);
+      if (range != -1 && startOffset - end > range)
+        break;
+      if (filter.filter(getMetadata(idx)))
+        return true;
+      idx++;
+    }
+    return false;
   }
 
 }

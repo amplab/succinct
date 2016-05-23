@@ -31,24 +31,27 @@ class AnnotatedDocumentSerializerSuite extends FunSuite {
     // Check document annotations
     val annotBuffers = ser.getAnnotationBuffers
 
-    val geWordBuffer = annotBuffers("^ge^word^")
+    val geWordData = annotBuffers("^ge^word^")
+    val geWordDocIdOffsets = geWordData._1
+    val geWordOffsets = geWordData._2
+    assert(geWordOffsets === Array[Int](0, 55, 101))
+    val geWordBuffer = geWordData._3
+
     val geWordBais = new ByteArrayInputStream(geWordBuffer)
     val geWordIn = new DataInputStream(geWordBais)
 
-    val geSpaceBuffer = annotBuffers("^ge^space^")
+    val geSpaceData = annotBuffers("^ge^space^")
+    val geSpaceDocIdOffsets = geSpaceData._1
+    val geSpaceOffsets = geSpaceData._2
+    assert(geSpaceOffsets === Array[Int](0, 32, 64))
+    val geSpaceBuffer = geSpaceData._3
     val geSpaceBais = new ByteArrayInputStream(geSpaceBuffer)
     val geSpaceIn = new DataInputStream(geSpaceBais)
 
-    Seq(1, 2, 3).foreach(i => {
+    Seq(0, 1, 2).foreach(i => {
       {
-        assert(geWordIn.readByte() == DELIM)
-        var b = 0.toByte
-        var docId = ""
-        b = geWordIn.readByte()
-        while (b != DELIM) {
-          docId += b.toChar
-          b = geWordIn.readByte()
-        }
+        val docIdOffset = geWordDocIdOffsets(i)
+        assert(docIdOffset == i)
 
         val numEntries = geWordIn.readInt()
         assert(numEntries == 3)
@@ -61,7 +64,7 @@ class AnnotatedDocumentSerializerSuite extends FunSuite {
         // Range ends
         assert(geWordIn.readInt() == 8)
         assert(geWordIn.readInt() == 15)
-        if (docId == "doc3")
+        if (docIds(docIdOffset) == "doc3")
           assert(geWordIn.readInt() == 21)
         else
           assert(geWordIn.readInt() == 19)
@@ -72,7 +75,7 @@ class AnnotatedDocumentSerializerSuite extends FunSuite {
         assert(geWordIn.readInt() == 5)
 
         // Metadata
-        if (docId == "doc1") {
+        if (docIds(docIdOffset) == "doc1") {
           val len1 = geWordIn.readShort()
           val buf1 = new Array[Byte](len1)
           geWordIn.read(buf1)
@@ -87,11 +90,11 @@ class AnnotatedDocumentSerializerSuite extends FunSuite {
           val buf3 = new Array[Byte](len3)
           geWordIn.read(buf3)
           assert(buf3 === "baz".getBytes())
-        } else if (docId == "doc2") {
+        } else if (docIds(docIdOffset) == "doc2") {
           assert(geWordIn.readShort() == 0)
           assert(geWordIn.readShort() == 0)
           assert(geWordIn.readShort() == 0)
-        } else if (docId == "doc3") {
+        } else if (docIds(docIdOffset) == "doc3") {
           val len1 = geWordIn.readShort()
           val buf1 = new Array[Byte](len1)
           geWordIn.read(buf1)
@@ -109,14 +112,8 @@ class AnnotatedDocumentSerializerSuite extends FunSuite {
         }
       }
       {
-        assert(geSpaceIn.readByte() == DELIM)
-        var b = 0.toByte
-        var docId = ""
-        b = geSpaceIn.readByte()
-        while (b != DELIM) {
-          docId += b.toChar
-          b = geSpaceIn.readByte()
-        }
+        val docIdOffset = geSpaceDocIdOffsets(i)
+        assert(docIdOffset == i)
 
         val numEntries = geSpaceIn.readInt()
         assert(numEntries == 2)
