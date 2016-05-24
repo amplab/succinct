@@ -127,6 +127,15 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
       assert(r.annotation.getAnnotType == "word")
       assert(r.annotation.getMetadata.startsWith("ba"))
     })
+
+    val geWords3 = annotatedSuccinctRDD.query(FilterAnnotations("ge", "word", _.contains("ba"), _.contains("number"))).collect()
+    assert(geWords3.length == 1)
+    geWords3.foreach(r => {
+      assert(r.annotation.getAnnotClass == "ge")
+      assert(r.annotation.getAnnotType == "word")
+      assert(r.annotation.getMetadata.startsWith("ba"))
+      assert(annotatedSuccinctRDD.extractDocument(r.docId, r.startOffset, r.endOffset - r.startOffset) == "number")
+    })
   }
 
   test("Test Contains(FilterAnnotations, Search)") {
@@ -179,6 +188,10 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val query6 = Contains(FilterAnnotations("ge", "word"), Search("e"))
     val res6 = annotatedSuccinctRDD.query(query6).collect()
     assert(res6.length == 8)
+
+    val query7 = Contains(FilterAnnotations("ge", "word", _.nonEmpty, _.contains("m")), Search("Document"))
+    val res7 = annotatedSuccinctRDD.query(query7).collect()
+    assert(res7.length == 2)
   }
 
   test("Test Contains(FilterAnnotations, Regex)") {
@@ -249,6 +262,15 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val query5 = ContainedIn(FilterAnnotations("ge", "word"), Search("ocument"))
     val res5 = annotatedSuccinctRDD.query(query5).collect()
     assert(res5.length == 0)
+
+    val query6 = ContainedIn(FilterAnnotations("ge", "word", _.nonEmpty, _.contains("m")), Search("number three"))
+    val res6 = annotatedSuccinctRDD.query(query6).collect()
+    assert(res6.length == 1)
+    res6.foreach(a => {
+      assert(a.annotation.getStartOffset == 9)
+      assert(a.annotation.getEndOffset == 15)
+      assert(a.annotation.getId == 3)
+    })
   }
 
   test("Test Before(FilterAnnotations, Search)") {
@@ -288,6 +310,16 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
       assert(a.annotation.getStartOffset == 15)
       assert(a.annotation.getEndOffset == 16)
       assert(a.annotation.getMetadata == "")
+    })
+
+    val query5 = Before(FilterAnnotations("ge", "word", _.nonEmpty, _.contains("cumen")), Search("three"))
+    val res5 = annotatedSuccinctRDD.query(query5).collect()
+    assert(res5.length == 1)
+    res5.foreach(a => {
+      assert(a.annotation.getId == 1)
+      assert(a.annotation.getStartOffset == 0)
+      assert(a.annotation.getEndOffset == 8)
+      assert(a.annotation.getMetadata == "a")
     })
   }
 
@@ -329,6 +361,16 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
       assert(a.annotation.getStartOffset == 8)
       assert(a.annotation.getEndOffset == 9)
       assert(a.annotation.getMetadata == "")
+    })
+
+    val query5 = After(FilterAnnotations("ge", "word", _.nonEmpty, _.contains("umber")), Search("Document"))
+    val res5 = annotatedSuccinctRDD.query(query5).collect()
+    assert(res5.length == 2)
+    res5.foreach(a => {
+      assert(a.annotation.getId == 3)
+      assert(a.annotation.getStartOffset == 9)
+      assert(a.annotation.getEndOffset == 15)
+      assert(a.annotation.getMetadata.nonEmpty)
     })
   }
 
@@ -378,6 +420,10 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val query5 = Contains(Search("ocument"), FilterAnnotations("ge", "word"))
     val res5 = annotatedSuccinctRDD.query(query5).collect()
     assert(res5.length == 0)
+
+    val query6 = Contains(Search("number three"), FilterAnnotations("ge", "word", _.nonEmpty, _.contains("two")))
+    val res6 = annotatedSuccinctRDD.query(query6).collect()
+    assert(res6.length == 0)
   }
 
   test("Test ContainedIn(Search, FilterAnnotations)") {
@@ -424,6 +470,10 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val query5 = ContainedIn(Search("four"), FilterAnnotations("ge", "word"))
     val res5 = annotatedSuccinctRDD.query(query5).collect()
     assert(res5.length == 0)
+
+    val query6 = ContainedIn(Search("Document"), FilterAnnotations("ge", "word", _.nonEmpty, _.contains("m")))
+    val res6 = annotatedSuccinctRDD.query(query6).collect()
+    assert(res6.length == 2)
   }
 
   test("Test Before(Search, FilterAnnotations)") {
@@ -463,6 +513,15 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
       assert(a.endOffset == 8)
       assert(a.annotation == null)
     })
+
+    val query5 = Before(Search("Document"), FilterAnnotations("ge", "word", _.nonEmpty, _.contains("umber")))
+    val res5 = annotatedSuccinctRDD.query(query5).collect()
+    assert(res5.length == 2)
+    res5.foreach(a => {
+      assert(a.startOffset == 0)
+      assert(a.endOffset == 8)
+      assert(a.annotation == null)
+    })
   }
 
   test("Test After(Search, FilterAnnotations)") {
@@ -498,6 +557,15 @@ class AnnotatedSuccinctRDDSuite extends FunSuite with LocalSparkContext {
     val res4 = annotatedSuccinctRDD.query(query4).collect()
     assert(res4.length == 1)
     res4.foreach(a => {
+      assert(a.startOffset == 16)
+      assert(a.endOffset == 21)
+      assert(a.annotation == null)
+    })
+
+    val query5 = After(Search("three"), FilterAnnotations("ge", "word", _.nonEmpty, _.contains("cumen")))
+    val res5 = annotatedSuccinctRDD.query(query5).collect()
+    assert(res5.length == 1)
+    res5.foreach(a => {
       assert(a.startOffset == 16)
       assert(a.endOffset == 21)
       assert(a.annotation == null)
