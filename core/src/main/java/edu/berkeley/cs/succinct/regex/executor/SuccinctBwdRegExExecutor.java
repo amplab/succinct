@@ -244,17 +244,17 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
   private HashSet<SuccinctRegExMatch> computeSeedToRepeat(RegEx r) {
     HashSet<SuccinctRegExMatch> results = computeSuccinctly(r);
 
-    TreeSet<SuccinctRegExMatch> initalRepeats = new TreeSet<>(new Comparator<SuccinctRegExMatch>() {
+    TreeSet<SuccinctRegExMatch> initialRepeats = new TreeSet<>(new Comparator<SuccinctRegExMatch>() {
       @Override public int compare(SuccinctRegExMatch o1, SuccinctRegExMatch o2) {
         return (int) (o1.begin() - o2.begin());
       }
     });
 
     for (SuccinctRegExMatch result: results) {
-      initalRepeats.addAll(regexConcat(r, result));
+      initialRepeats.addAll(regexConcat(r, result));
     }
 
-    Iterator<SuccinctRegExMatch> it = initalRepeats.iterator();
+    Iterator<SuccinctRegExMatch> it = initialRepeats.iterator();
     if (!it.hasNext()) {
       return results;
     }
@@ -327,7 +327,8 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
 
     repeatResults.addAll(internalResults);
     for (SuccinctRegExMatch internalMatch : internalResults) {
-      repeatResults = regexUnion(repeatResults, regexRepeatOneOrMore(r, internalMatch));
+      HashSet<SuccinctRegExMatch> moreRepeats = regexRepeatOneOrMore(r, internalMatch);
+      repeatResults = regexUnion(repeatResults, moreRepeats);
     }
     return repeatResults;
   }
@@ -352,7 +353,8 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
 
     repeatResults.addAll(concatResults);
     for (SuccinctRegExMatch concatMatch : concatResults) {
-      repeatResults = regexUnion(repeatResults, regexRepeatOneOrMore(r, concatMatch));
+      HashSet<SuccinctRegExMatch> moreRepeats = regexRepeatOneOrMore(r, concatMatch);
+      repeatResults = regexUnion(repeatResults, moreRepeats);
     }
     return repeatResults;
   }
@@ -388,7 +390,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
     max = (max > 0) ? max - 1 : 0;
 
     HashSet<SuccinctRegExMatch> repeatResults = new HashSet<>();
-    HashSet<SuccinctRegExMatch> internalResults = computeSuccinctly(r);
+    HashSet<SuccinctRegExMatch> internalResults = computeSeedToRepeat(r);
     if (internalResults.isEmpty()) {
       return repeatResults;
     }
