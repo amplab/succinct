@@ -7,7 +7,7 @@ public class SuccinctRegExMatch extends Range {
   private int length;
 
   /**
-   * Constructor to initialize Regex Match
+   * Constructor to initialize Regex Match.
    *
    * @param first  First element.
    * @param second Second element.
@@ -18,6 +18,12 @@ public class SuccinctRegExMatch extends Range {
     this.length = length;
   }
 
+  /**
+   * Constructor to initialize Regex Match.
+   *
+   * @param range Input range.
+   * @param length Length of the match.
+   */
   public SuccinctRegExMatch(Range range, int length) {
     this(range.begin(), range.end(), length);
   }
