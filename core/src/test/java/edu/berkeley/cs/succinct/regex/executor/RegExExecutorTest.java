@@ -54,19 +54,15 @@ abstract public class RegExExecutorTest extends TestCase {
     assertTrue(r4.contains(new RegExMatch(12, 8)));
 
     Set<RegExMatch> r5 = runRegEx("(Ho)+Yo");
-    assertEquals(3, r5.size());
+    assertEquals(2, r5.size());
     assertTrue(r5.contains(new RegExMatch(2, 4)));
     assertTrue(r5.contains(new RegExMatch(6, 6)));
-    assertTrue(r5.contains(new RegExMatch(8, 4)));
 
     Set<RegExMatch> r6 = runRegEx("Ho+");
-    assertEquals(6, r6.size());
+    assertEquals(3, r6.size());
     assertTrue(r6.contains(new RegExMatch(2, 2)));
     assertTrue(r6.contains(new RegExMatch(6, 4)));
-    assertTrue(r6.contains(new RegExMatch(8, 2)));
     assertTrue(r6.contains(new RegExMatch(14, 6)));
-    assertTrue(r6.contains(new RegExMatch(16, 4)));
-    assertTrue(r6.contains(new RegExMatch(18, 2)));
 
     // Test wildcard
     Set<RegExMatch> r7 = runRegEx("Yo.*Ho");

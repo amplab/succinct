@@ -6,10 +6,7 @@ import edu.berkeley.cs.succinct.regex.SuccinctRegExMatch;
 import edu.berkeley.cs.succinct.regex.parser.RegEx;
 import edu.berkeley.cs.succinct.regex.parser.RegExWildcard;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 
 public abstract class SuccinctRegExExecutor extends RegExExecutor {
 
@@ -30,7 +27,8 @@ public abstract class SuccinctRegExExecutor extends RegExExecutor {
    * @param sortType Sort Type for output.
    * @return Results as actual regex matches.
    */
-  protected TreeSet<RegExMatch> rangeResultsToRegexMatches(HashSet<SuccinctRegExMatch> rangeRes, SortType sortType) {
+  protected TreeSet<RegExMatch> rangeResultsToRegexMatches(HashSet<SuccinctRegExMatch> rangeRes,
+    SortType sortType) {
     // Remove duplicates
     HashMap<Long, Integer> succinctMatches = new HashMap<>();
     for (SuccinctRegExMatch match : rangeRes) {
@@ -44,7 +42,16 @@ public abstract class SuccinctRegExExecutor extends RegExExecutor {
 
     TreeSet<RegExMatch> regExMatches = allocateSet(sortType);
     for (Map.Entry<Long, Integer> match : succinctMatches.entrySet()) {
-      regExMatches.add(new RegExMatch(succinctFile.succinctIndexToOffset(match.getKey()), match.getValue()));
+      regExMatches
+        .add(new RegExMatch(succinctFile.succinctIndexToOffset(match.getKey()), match.getValue()));
+    }
+
+    RegExMatch prv = null;
+    for (Iterator<RegExMatch> it = regExMatches.iterator(); it.hasNext();) {
+      RegExMatch cur = it.next();
+      if (prv != null && prv.contains(cur))
+        it.remove();
+      prv = cur;
     }
 
     return regExMatches;
