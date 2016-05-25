@@ -15,6 +15,7 @@ public abstract class RegExExecutor {
   protected SuccinctFile succinctFile;
   protected RegEx regEx;
   protected TreeSet<RegExMatch> finalResults;
+  protected boolean greedy;
 
   enum SortType {
     FRONT_SORTED,
@@ -27,9 +28,10 @@ public abstract class RegExExecutor {
    * @param succinctFile The input SuccinctFile.
    * @param regEx The input regular expression.
    */
-  RegExExecutor(SuccinctFile succinctFile, RegEx regEx) {
+  RegExExecutor(SuccinctFile succinctFile, RegEx regEx, boolean greedy) {
     this.succinctFile = succinctFile;
     this.regEx = regEx;
+    this.greedy = greedy;
   }
 
   /**

@@ -16,8 +16,8 @@ public abstract class SuccinctRegExExecutor extends RegExExecutor {
    * @param succinctFile The input SuccinctFile.
    * @param regEx        The input regular expression.
    */
-  SuccinctRegExExecutor(SuccinctFile succinctFile, RegEx regEx) {
-    super(succinctFile, regEx);
+  SuccinctRegExExecutor(SuccinctFile succinctFile, RegEx regEx, boolean greedy) {
+    super(succinctFile, regEx, greedy);
   }
 
   /**
@@ -29,29 +29,41 @@ public abstract class SuccinctRegExExecutor extends RegExExecutor {
    */
   protected TreeSet<RegExMatch> rangeResultsToRegexMatches(HashSet<SuccinctRegExMatch> rangeRes,
     SortType sortType) {
-    // Remove duplicates
-    HashMap<Long, Integer> succinctMatches = new HashMap<>();
-    for (SuccinctRegExMatch match : rangeRes) {
-      for (Long i = match.begin(); i <= match.end(); i++) {
-        Integer length = succinctMatches.get(i);
-        if (length == null || length < match.getLength()) {
-          succinctMatches.put(i, match.getLength());
-        }
-      }
-    }
 
     TreeSet<RegExMatch> regExMatches = allocateSet(sortType);
-    for (Map.Entry<Long, Integer> match : succinctMatches.entrySet()) {
-      regExMatches
-        .add(new RegExMatch(succinctFile.succinctIndexToOffset(match.getKey()), match.getValue()));
-    }
+    if (greedy) {
+      // Remove duplicates
+      HashMap<Long, Integer> succinctMatches = new HashMap<>();
+      for (SuccinctRegExMatch match : rangeRes) {
+        for (Long i = match.begin(); i <= match.end(); i++) {
+          Integer length = succinctMatches.get(i);
+          if (length == null || length < match.getLength()) {
+            succinctMatches.put(i, match.getLength());
+          }
+        }
+      }
 
-    RegExMatch prv = null;
-    for (Iterator<RegExMatch> it = regExMatches.iterator(); it.hasNext();) {
-      RegExMatch cur = it.next();
-      if (prv != null && prv.contains(cur))
-        it.remove();
-      prv = cur;
+
+      for (Map.Entry<Long, Integer> match : succinctMatches.entrySet()) {
+        regExMatches.add(new RegExMatch(succinctFile.succinctIndexToOffset(match.getKey()), match.getValue()));
+      }
+
+      RegExMatch prv = null;
+      for (Iterator<RegExMatch> it = regExMatches.iterator(); it.hasNext(); ) {
+        RegExMatch cur = it.next();
+        if (prv != null && prv.contains(cur))
+          it.remove();
+        prv = cur;
+      }
+    } else {
+      for (SuccinctRegExMatch match : rangeRes) {
+        if (!match.empty()) {
+          Long[] offsets = succinctFile.rangeToOffsets(match);
+          for (Long offset : offsets) {
+            regExMatches.add(new RegExMatch(offset, match.getLength()));
+          }
+        }
+      }
     }
 
     return regExMatches;

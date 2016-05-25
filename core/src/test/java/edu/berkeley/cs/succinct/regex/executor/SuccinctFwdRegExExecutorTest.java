@@ -8,9 +8,9 @@ import java.util.Set;
 
 public class SuccinctFwdRegExExecutorTest extends RegExExecutorTest {
 
-  Set<RegExMatch> runRegEx(String exp)
+  Set<RegExMatch> runRegEx(String exp, boolean greedy)
     throws RegExParsingException {
-    RegExExecutor ex = new SuccinctFwdRegExExecutor(succinctFile, new RegExParser(exp).parse());
+    RegExExecutor ex = new SuccinctFwdRegExExecutor(succinctFile, new RegExParser(exp).parse(), greedy);
     ex.execute();
     return ex.getFinalResults();
   }

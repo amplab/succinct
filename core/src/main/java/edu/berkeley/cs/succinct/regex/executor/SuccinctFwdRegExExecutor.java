@@ -18,8 +18,8 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
    * @param succinctFile The input SuccinctCore.
    * @param regEx        The input regular expression.
    */
-  public SuccinctFwdRegExExecutor(SuccinctFile succinctFile, RegEx regEx) {
-    super(succinctFile, regEx);
+  public SuccinctFwdRegExExecutor(SuccinctFile succinctFile, RegEx regEx, boolean greedy) {
+    super(succinctFile, regEx, greedy);
     this.alphabet = succinctFile.getAlphabet();
   }
 
