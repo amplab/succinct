@@ -30,4 +30,22 @@ public class SuccinctRegExMatch extends Range {
   public int getLength() {
     return length;
   }
+
+  @Override public int hashCode() {
+    int hash = 23;
+    hash = (int) (hash * 31 + first);
+    hash = (int) (hash * 31 + second);
+    hash = hash * 31 + length;
+    return hash;
+  }
+
+  @Override public boolean equals(Object obj) {
+    if (!(obj instanceof SuccinctRegExMatch))
+      return false;
+    if (obj == this)
+      return true;
+
+    SuccinctRegExMatch rhs = (SuccinctRegExMatch) obj;
+    return begin() == rhs.begin() && end() == rhs.end() && getLength() == rhs.getLength();
+  }
 }

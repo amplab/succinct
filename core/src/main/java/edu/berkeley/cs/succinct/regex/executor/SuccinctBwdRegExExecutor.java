@@ -6,6 +6,9 @@ import edu.berkeley.cs.succinct.regex.parser.*;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import edu.berkeley.cs.succinct.util.container.Range;
 
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.TreeSet;
 
 public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
@@ -29,8 +32,8 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    * @param r Regular expression to compute.
    * @return The results of the regular expression.
    */
-  @Override protected TreeSet<SuccinctRegExMatch> computeSuccinctly(RegEx r) {
-    TreeSet<SuccinctRegExMatch> results = new TreeSet<>();
+  @Override protected HashSet<SuccinctRegExMatch> computeSuccinctly(RegEx r) {
+    HashSet<SuccinctRegExMatch> results = new HashSet<>();
     switch (r.getRegExType()) {
       case Blank: {
         break;
@@ -74,7 +77,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
       }
       case Union: {
         RegExUnion u = (RegExUnion) r;
-        TreeSet<SuccinctRegExMatch> firstMatches, secondMatches;
+        HashSet<SuccinctRegExMatch> firstMatches, secondMatches;
         firstMatches = computeSuccinctly(u.getFirst());
         secondMatches = computeSuccinctly(u.getSecond());
         results = regexUnion(firstMatches, secondMatches);
@@ -82,9 +85,9 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
       }
       case Concat: {
         RegExConcat c = (RegExConcat) r;
-        TreeSet<SuccinctRegExMatch> rightResults = computeSuccinctly(c.getRight());
+        HashSet<SuccinctRegExMatch> rightResults = computeSuccinctly(c.getRight());
         for (SuccinctRegExMatch rightMatch : rightResults) {
-          TreeSet<SuccinctRegExMatch> temp = regexConcat(c.getLeft(), rightMatch);
+          HashSet<SuccinctRegExMatch> temp = regexConcat(c.getLeft(), rightMatch);
           results = regexUnion(results, temp);
         }
         break;
@@ -122,9 +125,9 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    * @param second The second result set.
    * @return The union of the two result sets.
    */
-  private TreeSet<SuccinctRegExMatch> regexUnion(TreeSet<SuccinctRegExMatch> first,
-    TreeSet<SuccinctRegExMatch> second) {
-    TreeSet<SuccinctRegExMatch> unionResults = new TreeSet<>();
+  private HashSet<SuccinctRegExMatch> regexUnion(HashSet<SuccinctRegExMatch> first,
+    HashSet<SuccinctRegExMatch> second) {
+    HashSet<SuccinctRegExMatch> unionResults = new HashSet<>();
     unionResults.addAll(first);
     unionResults.addAll(second);
     return unionResults;
@@ -137,8 +140,8 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    * @param rightMatch Right succinct match.
    * @return Concatenation of left match with right subtree.
    */
-  private TreeSet<SuccinctRegExMatch> regexConcat(RegEx r, SuccinctRegExMatch rightMatch) {
-    TreeSet<SuccinctRegExMatch> concatResults = new TreeSet<>();
+  private HashSet<SuccinctRegExMatch> regexConcat(RegEx r, SuccinctRegExMatch rightMatch) {
+    HashSet<SuccinctRegExMatch> concatResults = new HashSet<>();
 
     if (rightMatch.empty()) {
       return concatResults;
@@ -190,7 +193,7 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
       }
       case Union: {
         RegExUnion u = (RegExUnion) r;
-        TreeSet<SuccinctRegExMatch> firstResults, secondResults;
+        HashSet<SuccinctRegExMatch> firstResults, secondResults;
         firstResults = regexConcat(u.getFirst(), rightMatch);
         secondResults = regexConcat(u.getSecond(), rightMatch);
         concatResults = regexUnion(firstResults, secondResults);
@@ -198,9 +201,9 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
       }
       case Concat: {
         RegExConcat c = (RegExConcat) r;
-        TreeSet<SuccinctRegExMatch> rightOfLefResults = regexConcat(c.getRight(), rightMatch);
+        HashSet<SuccinctRegExMatch> rightOfLefResults = regexConcat(c.getRight(), rightMatch);
         for (SuccinctRegExMatch rightOfLeftMatch : rightOfLefResults) {
-          TreeSet<SuccinctRegExMatch> temp = regexConcat(c.getLeft(), rightOfLeftMatch);
+          HashSet<SuccinctRegExMatch> temp = regexConcat(c.getLeft(), rightOfLeftMatch);
           concatResults = regexUnion(concatResults, temp);
         }
         break;
@@ -233,14 +236,91 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
   }
 
   /**
+   * Computes the seed to repeat with no suffix.
+   *
+   * @param r The repeat operand.
+   * @return Initial set of results to continue repetitions.
+   */
+  private HashSet<SuccinctRegExMatch> computeSeedToRepeat(RegEx r) {
+    HashSet<SuccinctRegExMatch> results = computeSuccinctly(r);
+
+    TreeSet<SuccinctRegExMatch> initalRepeats = new TreeSet<>(new Comparator<SuccinctRegExMatch>() {
+      @Override public int compare(SuccinctRegExMatch o1, SuccinctRegExMatch o2) {
+        return (int) (o1.begin() - o2.begin());
+      }
+    });
+
+    for (SuccinctRegExMatch result: results) {
+      initalRepeats.addAll(regexConcat(r, result));
+    }
+
+    Iterator<SuccinctRegExMatch> it = initalRepeats.iterator();
+    if (!it.hasNext()) {
+      return results;
+    }
+
+    SuccinctRegExMatch first = it.next();
+    long start = first.begin();
+    long end = first.end();
+
+    while (it.hasNext()) {
+      SuccinctRegExMatch current = it.next();
+      if (current.begin() <= end) {
+        end = Math.max(current.end(), end);
+      } else {
+        // Remove subrange.
+        HashSet<SuccinctRegExMatch> newSubRanges = new HashSet<>();
+        for (Iterator<SuccinctRegExMatch> i = results.iterator(); i.hasNext();) {
+          SuccinctRegExMatch match = i.next();
+          if (match.contains(start, end)) {
+            i.remove();
+            if (match.begin() == start && match.end() != end) {
+              newSubRanges.add(new SuccinctRegExMatch(end + 1, match.end(), match.getLength()));
+            } else if (match.end() == end && match.begin() != start) {
+              newSubRanges.add(new SuccinctRegExMatch(match.begin(), start - 1, match.getLength()));
+            } else if (match.begin() != start && match.end() != end) {
+              newSubRanges.add(new SuccinctRegExMatch(match.begin(), start - 1, match.getLength()));
+              newSubRanges.add(new SuccinctRegExMatch(end + 1, match.end(), match.getLength()));
+            }
+          }
+        }
+        results.addAll(newSubRanges);
+
+        start = current.begin();
+        end = current.end();
+      }
+    }
+
+    // Remove subrange.
+    HashSet<SuccinctRegExMatch> newSubRanges = new HashSet<>();
+    for (Iterator<SuccinctRegExMatch> i = results.iterator(); i.hasNext();) {
+      SuccinctRegExMatch match = i.next();
+      if (match.contains(start, end)) {
+        i.remove();
+        if (match.begin() == start && match.end() != end) {
+          newSubRanges.add(new SuccinctRegExMatch(end + 1, match.end(), match.getLength()));
+        } else if (match.end() == end && match.begin() != start) {
+          newSubRanges.add(new SuccinctRegExMatch(match.begin(), start - 1, match.getLength()));
+        } else if (match.begin() != start && match.end() != end) {
+          newSubRanges.add(new SuccinctRegExMatch(match.begin(), start - 1, match.getLength()));
+          newSubRanges.add(new SuccinctRegExMatch(end + 1, match.end(), match.getLength()));
+        }
+      }
+    }
+    results.addAll(newSubRanges);
+
+    return results;
+  }
+
+  /**
    * Repeat regular expression one or more times.
    *
    * @param r The regular expression.
    * @return The results for repeat.
    */
-  private TreeSet<SuccinctRegExMatch> regexRepeatOneOrMore(RegEx r) {
-    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<>();
-    TreeSet<SuccinctRegExMatch> internalResults = computeSuccinctly(r);
+  private HashSet<SuccinctRegExMatch> regexRepeatOneOrMore(RegEx r) {
+    HashSet<SuccinctRegExMatch> repeatResults = new HashSet<>();
+    HashSet<SuccinctRegExMatch> internalResults = computeSeedToRepeat(r);
     if (internalResults.isEmpty()) {
       return repeatResults;
     }
@@ -259,13 +339,13 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    * @param rightMatch The right match.
    * @return The results for repeat.
    */
-  private TreeSet<SuccinctRegExMatch> regexRepeatOneOrMore(RegEx r, SuccinctRegExMatch rightMatch) {
-    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<>();
+  private HashSet<SuccinctRegExMatch> regexRepeatOneOrMore(RegEx r, SuccinctRegExMatch rightMatch) {
+    HashSet<SuccinctRegExMatch> repeatResults = new HashSet<>();
     if (rightMatch.empty()) {
       return repeatResults;
     }
 
-    TreeSet<SuccinctRegExMatch> concatResults = regexConcat(r, rightMatch);
+    HashSet<SuccinctRegExMatch> concatResults = regexConcat(r, rightMatch);
     if (concatResults.isEmpty()) {
       return repeatResults;
     }
@@ -284,8 +364,8 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    * @param rightMatch The right match.
    * @return The results for repeat.
    */
-  private TreeSet<SuccinctRegExMatch> regexRepeatZeroOrMore(RegEx r, SuccinctRegExMatch rightMatch) {
-    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<>();
+  private HashSet<SuccinctRegExMatch> regexRepeatZeroOrMore(RegEx r, SuccinctRegExMatch rightMatch) {
+    HashSet<SuccinctRegExMatch> repeatResults = new HashSet<>();
     if (rightMatch.empty()) {
       return repeatResults;
     }
@@ -303,12 +383,12 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    * @param max The maximum number of repetitions.
    * @return The results for repeat.
    */
-  private TreeSet<SuccinctRegExMatch> regexRepeatMinToMax(RegEx r, int min, int max) {
+  private HashSet<SuccinctRegExMatch> regexRepeatMinToMax(RegEx r, int min, int max) {
     min = (min > 0) ? min - 1 : 0;
     max = (max > 0) ? max - 1 : 0;
 
-    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<>();
-    TreeSet<SuccinctRegExMatch> internalResults = computeSuccinctly(r);
+    HashSet<SuccinctRegExMatch> repeatResults = new HashSet<>();
+    HashSet<SuccinctRegExMatch> internalResults = computeSuccinctly(r);
     if (internalResults.isEmpty()) {
       return repeatResults;
     }
@@ -334,17 +414,17 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    * @param max       The maximum number of repetitions.
    * @return The results for repeat.
    */
-  private TreeSet<SuccinctRegExMatch> regexRepeatMinToMax(RegEx r, SuccinctRegExMatch rightMatch,
+  private HashSet<SuccinctRegExMatch> regexRepeatMinToMax(RegEx r, SuccinctRegExMatch rightMatch,
     int min, int max) {
     min = (min > 0) ? min - 1 : 0;
     max = (max > 0) ? max - 1 : 0;
 
-    TreeSet<SuccinctRegExMatch> repeatResults = new TreeSet<>();
+    HashSet<SuccinctRegExMatch> repeatResults = new HashSet<>();
     if (rightMatch.empty()) {
       return repeatResults;
     }
 
-    TreeSet<SuccinctRegExMatch> concatResults = regexConcat(r, rightMatch);
+    HashSet<SuccinctRegExMatch> concatResults = regexConcat(r, rightMatch);
     if (concatResults.isEmpty()) {
       return repeatResults;
     }

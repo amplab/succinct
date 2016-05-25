@@ -320,6 +320,14 @@ public interface SuccinctFile extends Serializable {
   long count(Source query);
 
   /**
+   * Converts Succinct index (i.e., Compressed Suffix Array index) to file offset.
+   *
+   * @param i Compressed Suffix Array index.
+   * @return File offset.
+   */
+  Long succinctIndexToOffset(long i);
+
+  /**
    * Translate range into SA to recordIds in file.
    *
    * @param range Range into SA.
