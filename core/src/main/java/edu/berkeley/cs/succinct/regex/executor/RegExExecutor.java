@@ -107,6 +107,9 @@ public abstract class RegExExecutor {
         long distance = lastMatch.getOffset() - leftEntry.getOffset();
         wildcardRes
           .add(new RegExMatch(leftEntry.getOffset(), (int) distance + lastMatch.getLength()));
+        while (leftIterator.hasNext() && leftEntry.getOffset() < lastMatch.getOffset()) {
+          leftEntry = leftIterator.next();
+        }
       }
     }
 

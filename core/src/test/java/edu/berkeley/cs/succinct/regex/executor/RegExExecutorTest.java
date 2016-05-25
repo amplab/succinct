@@ -47,26 +47,31 @@ abstract public class RegExExecutorTest extends TestCase {
     assertTrue(r3.contains(new RegExMatch(12, 4)));
 
     // Test Repeat
-    Set<RegExMatch> r4 = runRegEx("Ho+");
-    assertEquals(10, r4.size());
-    assertTrue(r4.contains(new RegExMatch(2, 2)));
-    assertTrue(r4.contains(new RegExMatch(6, 2)));
-    assertTrue(r4.contains(new RegExMatch(6, 4)));
-    assertTrue(r4.contains(new RegExMatch(8, 2)));
-    assertTrue(r4.contains(new RegExMatch(14, 2)));
-    assertTrue(r4.contains(new RegExMatch(14, 4)));
-    assertTrue(r4.contains(new RegExMatch(14, 6)));
-    assertTrue(r4.contains(new RegExMatch(16, 2)));
-    assertTrue(r4.contains(new RegExMatch(16, 4)));
-    assertTrue(r4.contains(new RegExMatch(18, 2)));
+    Set<RegExMatch> r4 = runRegEx("Yo(Ho)+");
+    assertEquals(3, r4.size());
+    assertTrue(r4.contains(new RegExMatch(0, 4)));
+    assertTrue(r4.contains(new RegExMatch(4, 6)));
+    assertTrue(r4.contains(new RegExMatch(12, 8)));
+
+    Set<RegExMatch> r5 = runRegEx("(Ho)+Yo");
+    assertEquals(3, r5.size());
+    assertTrue(r5.contains(new RegExMatch(2, 4)));
+    assertTrue(r5.contains(new RegExMatch(6, 6)));
+    assertTrue(r5.contains(new RegExMatch(8, 4)));
+
+    Set<RegExMatch> r6 = runRegEx("Ho+");
+    assertEquals(6, r6.size());
+    assertTrue(r6.contains(new RegExMatch(2, 2)));
+    assertTrue(r6.contains(new RegExMatch(6, 4)));
+    assertTrue(r6.contains(new RegExMatch(8, 2)));
+    assertTrue(r6.contains(new RegExMatch(14, 6)));
+    assertTrue(r6.contains(new RegExMatch(16, 4)));
+    assertTrue(r6.contains(new RegExMatch(18, 2)));
 
     // Test wildcard
-    Set<RegExMatch> r5 = runRegEx("Yo.*Ho");
-    assertEquals(4, r5.size());
-    assertTrue(r5.contains(new RegExMatch(0, 20)));
-    assertTrue(r5.contains(new RegExMatch(4, 16)));
-    assertTrue(r5.contains(new RegExMatch(10, 10)));
-    assertTrue(r5.contains(new RegExMatch(12, 8)));
+    Set<RegExMatch> r7 = runRegEx("Yo.*Ho");
+    assertEquals(1, r7.size());
+    assertTrue(r7.contains(new RegExMatch(0, 20)));
 
   }
 }

@@ -6,6 +6,9 @@ import edu.berkeley.cs.succinct.regex.SuccinctRegExMatch;
 import edu.berkeley.cs.succinct.regex.parser.RegEx;
 import edu.berkeley.cs.succinct.regex.parser.RegExWildcard;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.TreeSet;
 
 public abstract class SuccinctRegExExecutor extends RegExExecutor {
@@ -22,20 +25,28 @@ public abstract class SuccinctRegExExecutor extends RegExExecutor {
 
   /**
    * Converts Succinct regex matches (i.e., SA ranges) to actual regex matches.
+   *
    * @param rangeRes Results as a set of ranges.
    * @param sortType Sort Type for output.
    * @return Results as actual regex matches.
    */
-  protected TreeSet<RegExMatch> rangeResultsToRegexMatches(TreeSet<SuccinctRegExMatch> rangeRes, SortType sortType) {
-    TreeSet<RegExMatch> regExMatches = allocateSet(sortType);
+  protected TreeSet<RegExMatch> rangeResultsToRegexMatches(HashSet<SuccinctRegExMatch> rangeRes, SortType sortType) {
+    // Remove duplicates
+    HashMap<Long, Integer> succinctMatches = new HashMap<>();
     for (SuccinctRegExMatch match : rangeRes) {
-      if (!match.empty()) {
-        Long[] offsets = succinctFile.rangeToOffsets(match);
-        for (long offset : offsets) {
-          regExMatches.add(new RegExMatch(offset, match.getLength()));
+      for (Long i = match.begin(); i <= match.end(); i++) {
+        Integer length = succinctMatches.get(i);
+        if (length == null || length < match.getLength()) {
+          succinctMatches.put(i, match.getLength());
         }
       }
     }
+
+    TreeSet<RegExMatch> regExMatches = allocateSet(sortType);
+    for (Map.Entry<Long, Integer> match : succinctMatches.entrySet()) {
+      regExMatches.add(new RegExMatch(succinctFile.succinctIndexToOffset(match.getKey()), match.getValue()));
+    }
+
     return regExMatches;
   }
 
@@ -56,7 +67,7 @@ public abstract class SuccinctRegExExecutor extends RegExExecutor {
         break;
       }
       default: {
-        TreeSet<SuccinctRegExMatch> succinctResults = computeSuccinctly(r);
+        HashSet<SuccinctRegExMatch> succinctResults = computeSuccinctly(r);
         results = rangeResultsToRegexMatches(succinctResults, sortType);
       }
     }
@@ -69,5 +80,5 @@ public abstract class SuccinctRegExExecutor extends RegExExecutor {
    * @param r Regular expression to compute.
    * @return The results of the regular expression.
    */
-  protected abstract TreeSet<SuccinctRegExMatch> computeSuccinctly(RegEx r);
+  protected abstract HashSet<SuccinctRegExMatch> computeSuccinctly(RegEx r);
 }

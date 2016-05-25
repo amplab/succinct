@@ -762,6 +762,16 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
   }
 
   /**
+   * Converts Succinct index (i.e., Compressed Suffix Array index) to file offset.
+   *
+   * @param i Compressed Suffix Array index.
+   * @return File offset.
+   */
+  @Override public Long succinctIndexToOffset(long i) {
+    return lookupSA(i);
+  }
+
+  /**
    * Get count of pattern occurrences in original input.
    *
    * @param query Input query.
