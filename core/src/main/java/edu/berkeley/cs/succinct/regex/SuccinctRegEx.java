@@ -13,6 +13,22 @@ public class SuccinctRegEx {
   private RegEx regEx;
   private String regExString;
   private SuccinctFile succinctFile;
+  private boolean greedy;
+
+  /**
+   * Constructor to initialize regular expression.
+   *
+   * @param succinctFile Input Succinct File.
+   * @param regExString  The regular expression as a UTF-8 string.
+   * @throws RegExParsingException
+   */
+  public SuccinctRegEx(SuccinctFile succinctFile, String regExString, boolean greedy)
+      throws RegExParsingException {
+    this.succinctFile = succinctFile;
+    this.regExString = regExString;
+    this.regEx = parse();
+    this.greedy = greedy;
+  }
 
   /**
    * Constructor to initialize regular expression.
@@ -22,9 +38,7 @@ public class SuccinctRegEx {
    * @throws RegExParsingException
    */
   public SuccinctRegEx(SuccinctFile succinctFile, String regExString) throws RegExParsingException {
-    this.succinctFile = succinctFile;
-    this.regExString = regExString;
-    this.regEx = parse();
+    this(succinctFile, regExString, true);
   }
 
   /**
@@ -166,9 +180,9 @@ public class SuccinctRegEx {
   public TreeSet<RegExMatch> compute() {
     RegExExecutor executor;
     if (isSuffixed(regEx) || !isPrefixed(regEx)) {
-      executor = new SuccinctBwdRegExExecutor(succinctFile, regEx);
+      executor = new SuccinctBwdRegExExecutor(succinctFile, regEx, greedy);
     } else {
-      executor = new SuccinctFwdRegExExecutor(succinctFile, regEx);
+      executor = new SuccinctFwdRegExExecutor(succinctFile, regEx, greedy);
     }
     executor.execute();
     return executor.getFinalResults();

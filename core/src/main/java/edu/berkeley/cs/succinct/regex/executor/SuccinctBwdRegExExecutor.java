@@ -21,8 +21,8 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    * @param succinctFile The input SuccinctCore.
    * @param regEx        The input regular expression.
    */
-  public SuccinctBwdRegExExecutor(SuccinctFile succinctFile, RegEx regEx) {
-    super(succinctFile, regEx);
+  public SuccinctBwdRegExExecutor(SuccinctFile succinctFile, RegEx regEx, boolean greedy) {
+    super(succinctFile, regEx, greedy);
     this.alphabet = succinctFile.getAlphabet();
   }
 
@@ -221,6 +221,9 @@ public class SuccinctBwdRegExExecutor extends SuccinctRegExExecutor {
    */
   private HashSet<SuccinctRegExMatch> computeSeedToRepeat(RegEx r) {
     HashSet<SuccinctRegExMatch> results = computeSuccinctly(r);
+
+    if (!greedy)
+      return results;
 
     TreeSet<SuccinctRegExMatch> initialRepeats = new TreeSet<>(new Comparator<SuccinctRegExMatch>() {
       @Override public int compare(SuccinctRegExMatch o1, SuccinctRegExMatch o2) {
