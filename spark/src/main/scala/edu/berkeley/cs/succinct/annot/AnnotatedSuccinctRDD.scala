@@ -211,7 +211,7 @@ object AnnotatedSuccinctRDD {
       val key = kv._1
       val annotClass = key.split('^')(1)
       val annotType = key.split('^')(2)
-      (key, new SuccinctAnnotationBuffer(annotClass, annotType, docIds, kv._2._1, kv._2._2, kv._2._3))
+      (key, new SuccinctAnnotationBuffer(annotClass, annotType, kv._2._1, kv._2._2, kv._2._3))
     })
     Iterator(new AnnotatedSuccinctPartition(docIds, succinctDocTextBuffer, succinctAnnotBufferMap))
   }

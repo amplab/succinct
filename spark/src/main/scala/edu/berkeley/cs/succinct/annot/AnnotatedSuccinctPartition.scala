@@ -195,7 +195,30 @@ class AnnotatedSuccinctPartition(val keys: Array[String], val documentBuffer: Su
                         textFilter: String => Boolean): Iterator[Result] = {
     val delim = "\\" + SuccinctAnnotationBuffer.DELIM
     val keyFilter = delim + annotClassFilter + delim + annotTypeFilter + delim
-    annotBufferMap.filterKeys(_ matches keyFilter).values.map(_.iterator().asScala)
+    annotBufferMap.filterKeys(_ matches keyFilter).values.map(buf => {
+      new Iterator[Annotation] {
+        var curRecordIdx = -1
+        var annotationIterator = nextAnnotationRecordIterator
+
+        def nextAnnotationRecordIterator: Iterator[Annotation] = {
+          curRecordIdx += 1
+          if (curRecordIdx >= buf.getNumRecords) return null
+          val res = buf.getAnnotationRecord(curRecordIdx, keys(buf.getDocIdIndex(curRecordIdx)))
+          res.iterator().asScala
+        }
+
+        override def hasNext: Boolean = annotationIterator != null
+
+        override def next(): Annotation = {
+          if (!hasNext) throw new NoSuchElementException()
+          val ret = annotationIterator.next()
+          if (!annotationIterator.hasNext) {
+            annotationIterator = nextAnnotationRecordIterator
+          }
+          ret
+        }
+      }
+    })
       .foldLeft(Iterator[Annotation]())(_ ++ _)
       .filter(a => {
         metadataFilter(a.getMetadata) && (textFilter == null || textFilter(extractDocument(a.getDocId, a.getStartOffset, a.getEndOffset - a.getStartOffset)))
@@ -258,7 +281,8 @@ class AnnotatedSuccinctPartition(val keys: Array[String], val documentBuffer: Su
               curRes = if (it.hasNext) it.next() else null
               if (!hasNext) return null
             }
-            annotRecord = buffers(curBufIdx).getAnnotationRecord(curRes.docId)
+            val docIdOffset = findKey(curRes.docId)
+            annotRecord = buffers(curBufIdx).getAnnotationRecord(curRes.docId, docIdOffset)
           }
           annots = op(annotRecord, curRes.startOffset, curRes.endOffset)
         }
@@ -407,7 +431,8 @@ class AnnotatedSuccinctPartition(val keys: Array[String], val documentBuffer: Su
               curRes = if (it.hasNext) it.next() else null
               if (!hasNext) return null
             }
-            annotRecord = buffers(curBufIdx).getAnnotationRecord(curRes.docId)
+            val docIdOffset = findKey(curRes.docId)
+            annotRecord = buffers(curBufIdx).getAnnotationRecord(curRes.docId, docIdOffset)
           }
           valid = op(annotRecord, curRes.startOffset, curRes.endOffset)
         }
@@ -704,7 +729,7 @@ class AnnotatedSuccinctPartition(val keys: Array[String], val documentBuffer: Su
 
     val delim = SuccinctAnnotationBuffer.DELIM
     val annotKey = delim + annotClass + delim + annotType + delim
-    val buf = new SuccinctAnnotationBuffer(annotClass, annotType, keys, docIdIndexes.toArray,
+    val buf = new SuccinctAnnotationBuffer(annotClass, annotType, docIdIndexes.toArray,
       recordOffsets.toArray, annotBufOS.toByteArray)
 
     new AnnotatedSuccinctPartition(keys, documentBuffer, annotBufferMap + (annotKey -> buf))
@@ -759,7 +784,7 @@ object AnnotatedSuccinctPartition {
         val annotType = key.split('^')(2)
         val isAnnot = fs.open(pathAnnot)
         isAnnot.seek(e._2)
-        val buf = new SuccinctAnnotationBuffer(annotClass, annotType, keys, isAnnot, e._3.toInt)
+        val buf = new SuccinctAnnotationBuffer(annotClass, annotType, isAnnot, e._3.toInt)
         isAnnot.close()
         (key, buf)
       }).toMap
