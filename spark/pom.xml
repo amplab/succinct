@@ -13,7 +13,7 @@
   <artifactId>succinct-spark_2.11</artifactId>
   <version>0.1.7-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <name>Succinct-Spark</name>
+  <name>Succinct on Apache Spark</name>
   <url>http://succinct.cs.berkeley.edu</url>
 
   <reporting>

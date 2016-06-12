@@ -20,8 +20,8 @@ import scala.collection.JavaConversions._
   * version of the JSON document for a given id.
   *
   */
-abstract class SuccinctJsonRDD(@transient sc: SparkContext,
-    @transient deps: Seq[Dependency[_]])
+abstract class SuccinctJsonRDD(@transient private val sc: SparkContext,
+                               @transient private val deps: Seq[Dependency[_]])
   extends RDD[String](sc, deps) {
 
   /**
@@ -71,6 +71,7 @@ abstract class SuccinctJsonRDD(@transient sc: SparkContext,
 
   /**
     * Get the JSON document with the specified ID.
+    *
     * @param id The id of the document to fetch.
     * @return The JSON document.
     */
@@ -110,7 +111,7 @@ abstract class SuccinctJsonRDD(@transient sc: SparkContext,
     * data encoded as Succinct data structures. The original RDD is removed from memory after this
     * operation.
     *
-    * @param data The data to be appended.
+    * @param data                 The data to be appended.
     * @param preservePartitioning Preserves the partitioning for the appended data if true;
     *                             repartitions the data otherwise.
     * @return A new SuccinctJsonRDD containing the newly appended data.
@@ -174,7 +175,7 @@ object SuccinctJsonRDD {
   /**
     * Reads a SuccinctKVRDD from disk.
     *
-    * @param sc The spark context
+    * @param sc       The spark context
     * @param location The path to read the SuccinctKVRDD from.
     * @return The SuccinctKVRDD.
     */
@@ -196,7 +197,7 @@ object SuccinctJsonRDD {
   }
 
   def createSuccinctJsonPartition(dataIter: Iterator[String], idBegin: Long, idEnd: Long):
-    Iterator[SuccinctJsonPartition] = {
+  Iterator[SuccinctJsonPartition] = {
     val serializer = new JsonBlockSerializer((-120 to -1).toArray.map(_.toByte))
     val serializedData = serializer.serialize(dataIter)
     val valueBuffer = new SuccinctIndexedFileBuffer(serializedData.getData,

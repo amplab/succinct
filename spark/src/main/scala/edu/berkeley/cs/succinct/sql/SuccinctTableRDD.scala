@@ -20,48 +20,48 @@ import scala.Array._
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * Extends `RDD[Row]` to a [[SuccinctTableRDD]], which stores each partition as a `SuccinctIndexedFile`.
- * [[SuccinctTableRDD]] exposes a table interface, allowing search and count operations on any
- * column based on a matching pattern.
- *
- */
+  * Extends `RDD[Row]` to a [[SuccinctTableRDD]], which stores each partition as a `SuccinctIndexedFile`.
+  * [[SuccinctTableRDD]] exposes a table interface, allowing search and count operations on any
+  * column based on a matching pattern.
+  *
+  */
 
-abstract class SuccinctTableRDD(@transient sc: SparkContext,
-                                @transient deps: Seq[Dependency[_]])
+abstract class SuccinctTableRDD(@transient private val sc: SparkContext,
+                                @transient private val deps: Seq[Dependency[_]])
   extends RDD[Row](sc, deps) {
 
   private[succinct] def partitionsRDD: RDD[SuccinctTablePartition]
 
   /**
-   * Returns the RDD of partitions.
-   *
-   * @return The RDD of partitions.
-   */
+    * Returns the RDD of partitions.
+    *
+    * @return The RDD of partitions.
+    */
   override protected def getPartitions: Array[Partition] = partitionsRDD.partitions
 
   /**
-   * Returns first parent of the RDD.
-   *
-   * @return The first parent of the RDD.
-   */
+    * Returns first parent of the RDD.
+    *
+    * @return The first parent of the RDD.
+    */
   protected[succinct] def getFirstParent: RDD[SuccinctTablePartition] = {
     firstParent[SuccinctTablePartition]
   }
 
   /**
-   * Saves the [[SuccinctTablePartition]]s to disk by serializing them.
-   *
-   * @param path Path to save the serialized partitions to.
-   */
+    * Saves the [[SuccinctTablePartition]]s to disk by serializing them.
+    *
+    * @param path Path to save the serialized partitions to.
+    */
   def save(path: String): Unit
 
   /**
-   * Search and extract based on a set of filters and the required columns.
-   *
-   * @param requiredColumns List of required columns
-   * @param filters Set of filters.
-   * @return An RDD of matching rows with pruned columns; contains false positives.
-   */
+    * Search and extract based on a set of filters and the required columns.
+    *
+    * @param requiredColumns List of required columns
+    * @param filters         Set of filters.
+    * @return An RDD of matching rows with pruned columns; contains false positives.
+    */
   def pruneAndFilter(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row]
 
 }
@@ -92,7 +92,7 @@ object SuccinctTableRDD {
       }
     })
     val numPartitions = status.length
-    val succinctPartitions = sparkContext.parallelize(0 to numPartitions - 1 , numPartitions)
+    val succinctPartitions = sparkContext.parallelize(0 to numPartitions - 1, numPartitions)
       .mapPartitionsWithIndex[SuccinctTablePartition]((i, partition) => {
       val partitionLocation = dataPath + "/part-" + "%05d".format(i)
       Iterator(SuccinctTablePartition(partitionLocation, succinctSerDe, storageLevel))
@@ -103,13 +103,13 @@ object SuccinctTableRDD {
   }
 
   /**
-   * Converts an inputRDD to a [[SuccinctTableRDD]], using a list of input separators
-   *
-   * @param inputRDD The input RDD.
-   * @param separators An array of separators for the attributes.
-   * @param schema The schema for the RDD.
-   * @return The [[SuccinctTableRDD]].
-   */
+    * Converts an inputRDD to a [[SuccinctTableRDD]], using a list of input separators
+    *
+    * @param inputRDD   The input RDD.
+    * @param separators An array of separators for the attributes.
+    * @param schema     The schema for the RDD.
+    * @return The [[SuccinctTableRDD]].
+    */
   def apply(inputRDD: RDD[Row], separators: Array[Byte], schema: StructType): SuccinctTableRDD = {
     val minRow: Row = min(inputRDD, schema)
     val maxRow: Row = max(inputRDD, schema)
@@ -122,13 +122,13 @@ object SuccinctTableRDD {
   }
 
   /**
-   * Converts an inputRDD to a [[SuccinctTableRDD]], using a list of separators that are assumed to be unused
-   * in the input data (ASCII 11 onwards).
-   *
-   * @param inputRDD The input RDD.
-   * @param schema The schema for the RDD.
-   * @return The [[SuccinctTableRDD]].
-   */
+    * Converts an inputRDD to a [[SuccinctTableRDD]], using a list of separators that are assumed to be unused
+    * in the input data (ASCII 11 onwards).
+    *
+    * @param inputRDD The input RDD.
+    * @param schema   The schema for the RDD.
+    * @return The [[SuccinctTableRDD]].
+    */
   def apply(inputRDD: RDD[Row], schema: StructType): SuccinctTableRDD = {
     // Assume ASCII values -124 are unused in the original text
     val separatorsSize = schema.length
@@ -144,27 +144,27 @@ object SuccinctTableRDD {
   }
 
   /**
-   * Converts a data frame to a [[SuccinctTableRDD]], using a list of separators that are assumed to be unused
-   * in the input data (ASCII 11 onwards).
-   *
-   * @param dataFrame The input data frame.
-   * @return The [[SuccinctTableRDD]].
-   */
+    * Converts a data frame to a [[SuccinctTableRDD]], using a list of separators that are assumed to be unused
+    * in the input data (ASCII 11 onwards).
+    *
+    * @param dataFrame The input data frame.
+    * @return The [[SuccinctTableRDD]].
+    */
   def apply(dataFrame: DataFrame): SuccinctTableRDD = {
     apply(dataFrame.rdd, dataFrame.schema)
   }
 
   /**
-   * Creates an iterator over a [[SuccinctTablePartition]] from an Iterator over [[Row]] and a
-   * serializer/deserializer for records.
-   *
-   * @param dataIter The Iterator over data tuples.
-   * @param succinctSerDe The serializer/deserializer for Succinct's representation of records.
-   * @return An Iterator over the [[SuccinctIndexedFile]].
-   */
+    * Creates an iterator over a [[SuccinctTablePartition]] from an Iterator over [[Row]] and a
+    * serializer/deserializer for records.
+    *
+    * @param dataIter      The Iterator over data tuples.
+    * @param succinctSerDe The serializer/deserializer for Succinct's representation of records.
+    * @return An Iterator over the [[SuccinctIndexedFile]].
+    */
   private[succinct] def createSuccinctTablePartition(
-      dataIter: Iterator[Row],
-      succinctSerDe: SuccinctSerDe): Iterator[SuccinctTablePartition] = {
+                                                      dataIter: Iterator[Row],
+                                                      succinctSerDe: SuccinctSerDe): Iterator[SuccinctTablePartition] = {
 
     var offsets = new ArrayBuffer[Int]()
     var buffers = new ArrayBuffer[Array[Byte]]()
@@ -280,11 +280,11 @@ object SuccinctTableRDD {
         else b
       case _: BigDecimal => if (a.asInstanceOf[BigDecimal] < b.asInstanceOf[BigDecimal]) a else b
       case _: Decimal => b match {
-          case _: java.math.BigDecimal => minValue(a.asInstanceOf[Decimal].toJavaBigDecimal, b)
-          case _: BigDecimal => minValue(a.asInstanceOf[Decimal].toBigDecimal, b)
-          case _: Decimal => minValue(a, b)
-          case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
-        }
+        case _: java.math.BigDecimal => minValue(a.asInstanceOf[Decimal].toJavaBigDecimal, b)
+        case _: BigDecimal => minValue(a.asInstanceOf[Decimal].toBigDecimal, b)
+        case _: Decimal => minValue(a, b)
+        case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
+      }
       case _: String => if (a.asInstanceOf[String] < b.asInstanceOf[String]) a else b
       case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
     }
@@ -306,11 +306,11 @@ object SuccinctTableRDD {
         else b
       case _: BigDecimal => if (a.asInstanceOf[BigDecimal] > b.asInstanceOf[BigDecimal]) a else b
       case _: Decimal => b match {
-          case _: java.math.BigDecimal => maxValue(a.asInstanceOf[Decimal].toJavaBigDecimal, b)
-          case _: BigDecimal => maxValue(a.asInstanceOf[Decimal].toBigDecimal, b)
-          case _: Decimal => maxValue(a, b)
-          case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
-        }
+        case _: java.math.BigDecimal => maxValue(a.asInstanceOf[Decimal].toJavaBigDecimal, b)
+        case _: BigDecimal => maxValue(a.asInstanceOf[Decimal].toBigDecimal, b)
+        case _: Decimal => maxValue(a, b)
+        case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
+      }
       case _: String => if (a.asInstanceOf[String] > b.asInstanceOf[String]) a else b
       case other => throw new IllegalArgumentException(s"Unexpected type. ${other.getClass}")
     }

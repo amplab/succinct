@@ -3,7 +3,7 @@ package edu.berkeley.cs.succinct.sql
 import java.io.{File, IOException}
 
 import com.google.common.io.Files
-import org.apache.spark.SparkContext
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{SQLContext, DataFrame, Row}
 import org.scalatest._
@@ -73,6 +73,9 @@ private[succinct] object TestUtils {
 }
 
 class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
+  val conf = new SparkConf().setAppName("test").setMaster("local")
+    .set("spark.driver.allowMultipleContexts", "true")
+
   val rawTable = getClass.getResource("/table.dat").getFile
   val succinctTable = rawTable + ".succinct"
 
@@ -88,7 +91,7 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    sparkContext = new SparkContext("local[2]", "Succinct")
+    sparkContext = new SparkContext(conf)
     sqlContext = new SQLContext(sparkContext)
 
     val baseRDD = sqlContext.sparkContext.textFile(getClass.getResource("/table.dat").getFile)

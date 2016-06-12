@@ -13,7 +13,7 @@
   <artifactId>succinct-assembly</artifactId>
   <version>0.1.7-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Succinct-Assembly</name>
+  <name>Succinct Assembly</name>
   <url>http://succinct.cs.berkeley.edu</url>
 
   <dependencies>

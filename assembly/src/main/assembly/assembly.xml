@@ -16,7 +16,7 @@
       <excludes>
         <exclude>org.scala-lang:scala-library</exclude>
       </excludes>
-      <useTransitiveDependencies>false</useTransitiveDependencies>
+      <useTransitiveDependencies>true</useTransitiveDependencies>
     </dependencySet>
   </dependencySets>
 </assembly>

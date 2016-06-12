@@ -22,8 +22,8 @@ import scala.collection.mutable.ArrayBuffer
  * record granularity.
  */
 
-abstract class SuccinctRDD(@transient sc: SparkContext,
-                           @transient deps: Seq[Dependency[_]])
+abstract class SuccinctRDD(@transient private val sc: SparkContext,
+                           @transient private val deps: Seq[Dependency[_]])
   extends RDD[Array[Byte]](sc, deps) {
 
   /**

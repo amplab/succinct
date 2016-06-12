@@ -13,7 +13,7 @@
   <artifactId>succinct-serde</artifactId>
   <version>0.1.7-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <name>Succinct-SerDe</name>
+  <name>Succinct Serialization/Deserialization</name>
   <url>http://succinct.cs.berkeley.edu/</url>
 
   <properties>
