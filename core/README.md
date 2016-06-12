@@ -17,7 +17,7 @@ using Maven by adding the following dependency information to your pom.xml file:
 <dependency>
     <groupId>edu.berkeley.cs.succinct</groupId>
     <artifactId>succinct-core</artifactId>
-    <version>0.1.6</version>
+    <version>0.1.7</version>
 </dependency>
 ```
 
@@ -61,8 +61,8 @@ see how `SuccinctFileBuffer` can be used.
 
 Finally, `SuccinctIndexedFile` builds on the functionality of both `SuccinctCore`
 and `SuccinctFile` to expose a record buffer, i.e., a collection of records.
-This interface is used heavily in the [Succinct-Spark](../spark) library,
-particularly in the [SuccinctRDD](../spark/src/main/scala/edu/berkeley/cs/succinct/SuccinctRDD.scala) 
+This interface finds app;ications in the [Succinct on Apache Spark](../spark) interfaces,
+particularly in [SuccinctRDD](../spark/src/main/scala/edu/berkeley/cs/succinct/SuccinctRDD.scala) 
 and [SuccinctTableRDD](../spark/src/main/scala/edu/berkeley/cs/succinct/sql/SuccinctTableRDD.scala) 
 implementations.
 
