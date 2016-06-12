@@ -6,7 +6,7 @@ directly on a compressed representation of data. This repository maintains the
 Java implementations of Succinct's core algorithms, and applications that 
 exploit them, such as a [Apache Spark](http://spark.apache.org/) binding for Succinct.
 
-The master branch is in version 0.1.6-SNAPSHOT.
+The master branch is in version 0.1.7-SNAPSHOT.
 
 ## Building Succinct
 
