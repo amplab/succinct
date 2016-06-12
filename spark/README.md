@@ -306,7 +306,7 @@ val smallCities = succinctCities2.filter("Area <= 10.0").select("Name").collect
 
 ## Example Programs
 
-The Succinct-Spark packages includes a few 
+Succinct on Apache Spark includes a few 
 [examples](src/main/scala/edu/berkeley/cs/succinct/examples/) that elucidate the
 usage of its API. To run these examples, we provide convenient scripts to run
 them in the `bin/` directory. In particular, to execute the 
