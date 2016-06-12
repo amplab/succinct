@@ -46,12 +46,13 @@ $ bin/spark-shell --jars succinct-0.1.7.jar
 
 ## Usage
 
-The Succinct-Spark library exposes three APIs: 
+The Succinct on Apache Spark exposes the following APIs: 
 * A SuccinctRDD API that views an RDD as an unstructured "flat-file" and enables queries on its compressed representation.
 * A SuccinctKVRDD API that provides a key-value abstraction for the data, and supports search and random-access over the _values_.
+* A SuccinctJsonRDD API that enables random access and search on a collection of compressed JSON documents.
 * DataFrame API that integrates with the Spark SQL interface via Data Sources, and supports SQL queries on compressed structured data.
 
-**Note: The Spark SQL interface is experimental, and only efficient for selected
+**Note: The Apache Spark SQL interface is experimental, and only efficient for selected
 SQL operators. We aim to make the Spark SQL integration more efficient in
 future releases.**
 
