@@ -1,21 +1,21 @@
-# Succinct-Spark
+# Succinct on Apache Spark
 
-[Spark](http://spark.apache.org/) and 
-[Spark SQL](http://spark.apache.org/docs/latest/sql-programming-guide.html) 
+[Apache Spark](http://spark.apache.org/) and 
+[Apache Spark SQL](http://spark.apache.org/docs/latest/sql-programming-guide.html) 
 interfaces for [Succinct](http://succinct.cs.berkeley.edu/). 
-This library facilitates compressing RDDs in Spark and DataFrames in Spark SQL
-and enables queries directly on the compressed representation.
+This module facilitates compressing RDDs in Apache Spark and DataFrames in Apache Spark SQL
+and enables queries directly on their compressed representations.
 
 ## Requirements
 
-This library requires Spark 1.4+.
+This library requires Apache Spark 1.6+.
 
 ## Dependency Information
 
 ### Apache Maven
 
-To build your application with Succinct-Spark, you can link against this library
-using Maven by adding the following dependency information to your pom.xml file:
+To build your application to run with Succinct on Apache Spark, you can link against this 
+library using Apache Maven by adding the following dependency information to your pom.xml file:
 
 ```xml
 <dependency>
@@ -33,7 +33,7 @@ for spark-submit and Maven instructions):
 
 ```
 resolvers += "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
-libraryDependencies += "amplab" % "succinct" % "0.1.6"
+libraryDependencies += "amplab" % "succinct" % "0.1.7"
 ```
 
 The succinct-spark jar file can also be added to a Spark shell using the 
@@ -41,7 +41,7 @@ The succinct-spark jar file can also be added to a Spark shell using the
 spark shell:
 
 ```
-$ bin/spark-shell --jars succinct-0.1.6.jar
+$ bin/spark-shell --jars succinct-0.1.7.jar
 ```
 
 ## Usage
@@ -100,7 +100,7 @@ algorithms depend on using certain non-ASCII characters as internal symbols.
 #### Construction Time
 
 Another constraint to consider is the construction time for Succinct
-data-structures. As for any block compression scheme, Succinct requires
+data-structures. Similar to any block compression scheme, Succinct requires
 non-trivial amount of time to compress an input dataset. It is strongly
 advised that the SuccinctRDD be cached in memory (using RDD.cache()) 
 and persisted on disk after construcion completes, to be able to re-use 
@@ -236,7 +236,7 @@ val loadedSuccinctJsonRDD = sc.succinctJson("/path/to/data")
 ### DataFrame API
 
 The DataFrame API for Succinct is experimental for now, and only supports 
-selected data types and filters. The supported SparkSQL types include:
+selected data types and filters. The supported Apache Spark SQL data types include:
 
 ```
 BooleanType
@@ -250,7 +250,7 @@ DecimalType
 StringType
 ```
 
-The supported SparkSQL filters include:
+The supported filters include:
 
 ```
 StringStartsWith
