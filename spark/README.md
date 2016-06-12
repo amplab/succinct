@@ -50,10 +50,10 @@ The Succinct on Apache Spark exposes the following APIs:
 * A SuccinctRDD API that views an RDD as an unstructured "flat-file" and enables queries on its compressed representation.
 * A SuccinctKVRDD API that provides a key-value abstraction for the data, and supports search and random-access over the _values_.
 * A SuccinctJsonRDD API that enables random access and search on a collection of compressed JSON documents.
-* DataFrame API that integrates with the Spark SQL interface via Data Sources, and supports SQL queries on compressed structured data.
+* DataFrame API that integrates with Apache Spark SQL interface via Data Sources, and supports SQL queries on compressed structured data.
 
 **Note: The Apache Spark SQL interface is experimental, and only efficient for selected
-SQL operators. We aim to make the Spark SQL integration more efficient in
+SQL operators. We aim to make the Apache Spark SQL integration more efficient in
 future releases.**
 
 ### SuccinctRDD API
