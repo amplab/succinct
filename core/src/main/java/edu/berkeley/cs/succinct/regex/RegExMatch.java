@@ -74,6 +74,10 @@ public class RegExMatch implements Comparable<RegExMatch> {
     return end() <= r.getOffset();
   }
 
+  public boolean contains(RegExMatch r) {
+    return r.begin() >= begin() && r.end() <= end();
+  }
+
   @Override
   public String toString() {
     return "(" + offset + ", " + length + ")";

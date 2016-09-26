@@ -7,7 +7,7 @@ public class SuccinctRegExMatch extends Range {
   private int length;
 
   /**
-   * Constructor to initialize Regex Match
+   * Constructor to initialize Regex Match.
    *
    * @param first  First element.
    * @param second Second element.
@@ -18,6 +18,12 @@ public class SuccinctRegExMatch extends Range {
     this.length = length;
   }
 
+  /**
+   * Constructor to initialize Regex Match.
+   *
+   * @param range Input range.
+   * @param length Length of the match.
+   */
   public SuccinctRegExMatch(Range range, int length) {
     this(range.begin(), range.end(), length);
   }
@@ -29,5 +35,23 @@ public class SuccinctRegExMatch extends Range {
    */
   public int getLength() {
     return length;
+  }
+
+  @Override public int hashCode() {
+    int hash = 23;
+    hash = (int) (hash * 31 + first);
+    hash = (int) (hash * 31 + second);
+    hash = hash * 31 + length;
+    return hash;
+  }
+
+  @Override public boolean equals(Object obj) {
+    if (!(obj instanceof SuccinctRegExMatch))
+      return false;
+    if (obj == this)
+      return true;
+
+    SuccinctRegExMatch rhs = (SuccinctRegExMatch) obj;
+    return begin() == rhs.begin() && end() == rhs.end() && getLength() == rhs.getLength();
   }
 }

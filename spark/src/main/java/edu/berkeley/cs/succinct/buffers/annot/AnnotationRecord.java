@@ -3,6 +3,8 @@ package edu.berkeley.cs.succinct.buffers.annot;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class AnnotationRecord {
   private int offset;
@@ -156,8 +158,23 @@ public class AnnotationRecord {
    *
    * @return Iterator over all annotations in the record.
    */
-  public AnnotationIterator getAnnotationIterator() {
-    return new AnnotationIterator(this);
+  public Iterator<Annotation> iterator() {
+    return new Iterator<Annotation>() {
+      private int curAnnotIdx = 0;
+      @Override public boolean hasNext() {
+        return curAnnotIdx < getNumEntries();
+      }
+
+      @Override public Annotation next() {
+        if (!hasNext())
+          throw new NoSuchElementException();
+        return getAnnotation(curAnnotIdx++);
+      }
+
+      @Override public void remove() {
+        throw new UnsupportedOperationException();
+      }
+    };
   }
 
   /**
@@ -234,14 +251,15 @@ public class AnnotationRecord {
    * @param filter Filter on annotation metadata.
    * @return True if the record has any annotation containing the range; false otherwise.
    */
-  public boolean contains(final int begin, final int end, final MetadataFilter filter) {
+  public boolean contains(final int begin, final int end, final AnnotationFilter filter) {
     int idx = 0;
     while (idx < numEntries) {
       int startOffset = getStartOffset(idx);
       int endOffset = getEndOffset(idx);
       if (startOffset > begin)
         break;
-      if (begin >= startOffset && end <= endOffset && filter.filter(getMetadata(idx))) {
+      if (begin >= startOffset && end <= endOffset && filter.metadataFilter(getMetadata(idx))
+        && filter.textFilter(docId, startOffset, endOffset)) {
         return true;
       }
       idx++;
@@ -285,7 +303,7 @@ public class AnnotationRecord {
    * @param end   End of the input range.
    * @return True if the record has any annotation containing the range; false otherwise.
    */
-  public boolean containedIn(final int begin, final int end, final MetadataFilter filter) {
+  public boolean containedIn(final int begin, final int end, final AnnotationFilter filter) {
     int idx = firstGEQ(begin);
     if (idx < 0 || idx >= numEntries) {
       return false;
@@ -296,7 +314,8 @@ public class AnnotationRecord {
       int endOffset = getEndOffset(idx);
       if (startOffset > end)
         break;
-      if (startOffset >= begin && endOffset <= end && filter.filter(getMetadata(idx))) {
+      if (startOffset >= begin && endOffset <= end && filter.metadataFilter(getMetadata(idx))
+        && filter.textFilter(docId, startOffset, endOffset)) {
         return true;
       }
       idx++;
@@ -345,7 +364,7 @@ public class AnnotationRecord {
    * @return True if the record has any annotation before the range; false otherwise.
    */
   public boolean before(final int begin, final int end, final int range,
-    final MetadataFilter filter) {
+    final AnnotationFilter filter) {
     int idx = firstLEQ(begin);
     if (idx < 0 || idx >= numEntries) {
       return false;
@@ -354,7 +373,8 @@ public class AnnotationRecord {
     while (idx >= 0) {
       int endOffset = getEndOffset(idx);
       if (endOffset <= begin && !(range != -1 && begin - endOffset > range) &&
-        filter.filter(getMetadata(idx))) {
+        filter.metadataFilter(getMetadata(idx)) &&
+        filter.textFilter(docId, getStartOffset(idx), endOffset)) {
         return true;
       }
       idx--;
@@ -403,7 +423,7 @@ public class AnnotationRecord {
    * @return True if the record has any annotation after the range; false otherwise.
    */
   public boolean after(final int begin, final int end, final int range,
-    final MetadataFilter filter) {
+    final AnnotationFilter filter) {
     int idx = firstGEQ(end);
     if (idx >= numEntries)
       return false;
@@ -412,7 +432,8 @@ public class AnnotationRecord {
       int startOffset = getStartOffset(idx);
       if (range != -1 && startOffset - end > range)
         break;
-      if (filter.filter(getMetadata(idx)))
+      if (filter.metadataFilter(getMetadata(idx)) && filter
+        .textFilter(docId, startOffset, getEndOffset(idx)))
         return true;
       idx++;
     }

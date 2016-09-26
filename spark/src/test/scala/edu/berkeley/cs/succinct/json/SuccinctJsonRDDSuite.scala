@@ -106,7 +106,7 @@ class SuccinctJsonRDDSuite extends FunSuite with LocalSparkContext {
       assertJsonEquals(jsonList(i), succinctJsonRDD.get(i))
     })
 
-    // Check filter
+    // Check metadataFilter
     val f1 = succinctJsonRDD.filter("name", "Cookie Monster").collect()
     assert(Array(1L) sameElements f1)
 

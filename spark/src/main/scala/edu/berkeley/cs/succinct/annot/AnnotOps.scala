@@ -25,14 +25,17 @@ case class Regex(query: String) extends Operator
 
 /**
   * FilterAnnotation operator: Filters all annotations that match regex filters corresponding to
-  * annotation class and type, and an arbitrary filter function on annotation metadata.
+  * annotation class and type, and an arbitrary metadataFilter function on annotation metadata.
   *
-  * @param annotClassFilter Regex filter on annotation class.
-  * @param annotTypeFilter  Regex filter on annotation type.
-  * @param metadataFilter   Arbitrary filter function to apply on annotation metadata.
+  * @param annotClassFilter Regex metadataFilter on annotation class.
+  * @param annotTypeFilter  Regex metadataFilter on annotation type.
+  * @param metadataFilter   Arbitrary metadataFilter function to apply on annotation metadata.
+  * @param textFilter       Arbitrary metadataFilter function to apply on document text corresponding to the
+  *                         annotation.
   */
 case class FilterAnnotations(annotClassFilter: String, annotTypeFilter: String,
-                             metadataFilter: String => Boolean = _ => true) extends Operator
+                             metadataFilter: String => Boolean = _ => true,
+                             textFilter: String => Boolean = null) extends Operator
 
 /**
   * Contains operator: Binary operator that finds all results in its first operand that contain

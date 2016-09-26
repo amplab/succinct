@@ -24,6 +24,10 @@ public class Range implements Comparable<Range>, Serializable {
     return value >= first && value <= second;
   }
 
+  public boolean contains(long first, long second) {
+    return first >= this.first && second <= this.second;
+  }
+
   public long begin() {
     return first;
   }
@@ -54,6 +58,23 @@ public class Range implements Comparable<Range>, Serializable {
     } else {
       return diff1 < 0 ? -1 : 1;
     }
+  }
+
+  @Override public int hashCode() {
+    int hash = 23;
+    hash = (int) (hash * 31 + first);
+    hash = (int) (hash * 31 + second);
+    return hash;
+  }
+
+  @Override public boolean equals(Object obj) {
+    if (!(obj instanceof Range))
+      return false;
+    if (obj == this)
+      return true;
+
+    Range rhs = (Range) obj;
+    return begin() == rhs.begin() && end() == rhs.end();
   }
 
   @Override public String toString() {
