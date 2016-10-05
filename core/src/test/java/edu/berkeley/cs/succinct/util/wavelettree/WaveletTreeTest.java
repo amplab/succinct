@@ -1,7 +1,8 @@
 package edu.berkeley.cs.succinct.util.wavelettree;
 
-import gnu.trove.list.array.TLongArrayList;
 import junit.framework.TestCase;
+
+import java.util.ArrayList;
 
 public class WaveletTreeTest extends TestCase {
 
@@ -24,7 +25,7 @@ public class WaveletTreeTest extends TestCase {
     WaveletTree instance1 = new WaveletTree(null);
     assertNull(instance1.getByteBuffer());
 
-    TLongArrayList A = new TLongArrayList(), B = new TLongArrayList();
+    ArrayList<Long> A = new ArrayList<>(), B = new ArrayList<>();
     for (long i = 0L; i < 256L; i++) {
       A.add(i);
       B.add(255L - i);

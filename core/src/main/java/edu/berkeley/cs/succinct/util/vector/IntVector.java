@@ -1,6 +1,7 @@
 package edu.berkeley.cs.succinct.util.vector;
 
 import edu.berkeley.cs.succinct.util.BitUtils;
+import edu.berkeley.cs.succinct.util.container.IntArrayList;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -60,6 +61,23 @@ public class IntVector extends BitVector {
         throw new IllegalFormatPrecisionException(bitWidth);
       }
       add(i, data[i]);
+    }
+  }
+
+  /**
+   * Initialize the IntVector with an existing integer array list and a specified element bit-width.
+   *
+   * @param data Array list of integers to store.
+   * @param bitWidth Width in bits of each element.
+   */
+  public IntVector(IntArrayList data, int bitWidth) {
+    super(data.size() * bitWidth);
+    this.bitWidth = bitWidth;
+    for (int i = 0; i < data.size(); i++) {
+      if (BitUtils.bitWidth(data.get(i)) > bitWidth) {
+        throw new IllegalFormatPrecisionException(bitWidth);
+      }
+      add(i, data.get(i));
     }
   }
 

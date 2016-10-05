@@ -2,9 +2,9 @@ package edu.berkeley.cs.succinct.util.wavelettree;
 
 import edu.berkeley.cs.succinct.util.bitmap.BitMap;
 import edu.berkeley.cs.succinct.util.dictionary.Dictionary;
-import gnu.trove.list.array.TLongArrayList;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 public class WaveletTree {
 
@@ -28,7 +28,7 @@ public class WaveletTree {
    * @param values    Context values.
    * @param columnIds Column IDs.
    */
-  public WaveletTree(long startIdx, long endIdx, TLongArrayList values, TLongArrayList columnIds) {
+  public WaveletTree(long startIdx, long endIdx, ArrayList<Long> values, ArrayList<Long> columnIds) {
     assert (values.size() > 0);
     assert (columnIds.size() == values.size());
     if (startIdx == endIdx)
@@ -189,43 +189,43 @@ public class WaveletTree {
      * @param values    Context Values.
      * @param columnIds Column IDs.
      */
-    public WaveletNode(long startIdx, long endIdx, TLongArrayList values,
-      TLongArrayList columnIds) {
+    public WaveletNode(long startIdx, long endIdx, ArrayList<Long> values,
+      ArrayList<Long> columnIds) {
       assert (values.size() > 0);
       assert (values.size() == columnIds.size());
-      char m = (char) columnIds.get((values.size() - 1) / 2);
+      char m = (char) columnIds.get((values.size() - 1) / 2).intValue();
       m = (char) Math.min(m, endIdx - 1);
 
       long r;
-      TLongArrayList valuesRight, columnIdsRight, valuesLeft, columnIdsLeft;
+      ArrayList<Long> valuesRight, columnIdsRight, valuesLeft, columnIdsLeft;
 
-      valuesRight = new TLongArrayList();
-      columnIdsRight = new TLongArrayList();
-      valuesLeft = new TLongArrayList();
-      columnIdsLeft = new TLongArrayList();
+      valuesRight = new ArrayList<>();
+      columnIdsRight = new ArrayList<>();
+      valuesLeft = new ArrayList<>();
+      columnIdsLeft = new ArrayList<>();
       BitMap B = new BitMap(values.size());
 
       this.id = m;
 
       for (int i = 0; i < values.size(); i++) {
         if (columnIds.get(i) > m && columnIds.get(i) <= endIdx) {
-          B.setBit((int) values.get(i));
+          B.setBit(values.get(i).intValue());
         }
       }
 
       this.D = new Dictionary(B);
 
-      for (long i = 0; i < values.size(); i++) {
-        if (columnIds.get((int) i) > m && columnIds.get((int) i) <= endIdx) {
-          r = D.getRank1((int) values.get((int) i)) - 1;
+      for (int i = 0; i < values.size(); i++) {
+        if (columnIds.get(i) > m && columnIds.get(i) <= endIdx) {
+          r = D.getRank1(values.get(i).intValue()) - 1;
           assert (r >= 0);
           valuesRight.add(r);
-          columnIdsRight.add(columnIds.get((int) i));
+          columnIdsRight.add(columnIds.get(i));
         } else {
-          r = D.getRank0((int) values.get((int) i)) - 1;
+          r = D.getRank0(values.get(i).intValue()) - 1;
           assert (r >= 0);
           valuesLeft.add(r);
-          columnIdsLeft.add(columnIds.get((int) i));
+          columnIdsLeft.add(columnIds.get(i));
         }
       }
 

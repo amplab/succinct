@@ -2,7 +2,7 @@ package edu.berkeley.cs.succinct.util.vector;
 
 import edu.berkeley.cs.succinct.util.BitUtils;
 import edu.berkeley.cs.succinct.util.EliasGamma;
-import gnu.trove.list.array.TIntArrayList;
+import edu.berkeley.cs.succinct.util.container.IntArrayList;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -116,10 +116,10 @@ public class DeltaEncodedIntVector {
       return;
     }
 
-    TIntArrayList samplesBuf, deltasBuf, deltaOffsetsBuf;
-    samplesBuf = new TIntArrayList(0);
-    deltasBuf = new TIntArrayList(0);
-    deltaOffsetsBuf = new TIntArrayList(0);
+    IntArrayList samplesBuf, deltasBuf, deltaOffsetsBuf;
+    samplesBuf = new IntArrayList();
+    deltasBuf = new IntArrayList();
+    deltaOffsetsBuf = new IntArrayList();
 
     int maxSample = 0;
     int lastValue = 0;
@@ -166,20 +166,20 @@ public class DeltaEncodedIntVector {
     if (samplesBuf.size() == 0) {
       samples = null;
     } else {
-      samples = new IntVector(samplesBuf.toArray(), sampleBits);
+      samples = new IntVector(samplesBuf, sampleBits);
     }
 
     if (cumulativeDeltaSize == 0) {
       deltas = null;
     } else {
       deltas = new BitVector(cumulativeDeltaSize + 16); // One extra block for safety
-      encodeDeltas(deltasBuf.toArray());
+      encodeDeltas(deltasBuf);
     }
 
     if (deltaOffsetsBuf.size() == 0) {
       deltaOffsets = null;
     } else {
-      deltaOffsets = new IntVector(deltaOffsetsBuf.toArray(), deltaOffsetBits);
+      deltaOffsets = new IntVector(deltaOffsetsBuf, deltaOffsetBits);
     }
   }
 
@@ -188,17 +188,17 @@ public class DeltaEncodedIntVector {
    *
    * @param deltasArray Array of integers containing delta values.
    */
-  private void encodeDeltas(int[] deltasArray) {
+  private void encodeDeltas(IntArrayList deltasArray) {
     long pos = 0;
-    for (int i = 0; i < deltasArray.length; i++) {
+    for (int i = 0; i < deltasArray.size(); i++) {
       // System.out.println("i = " + i + " value = " + deltasArray[i]);
-      int deltaBits = BitUtils.bitWidth(deltasArray[i]) - 1;
+      int deltaBits = BitUtils.bitWidth(deltasArray.get(i)) - 1;
       pos += deltaBits;
 
-      assert 1L << deltaBits <= deltasArray[i];
+      assert 1L << deltaBits <= deltasArray.get(i);
 
       deltas.setBit(pos++);
-      deltas.setValue(pos, deltasArray[i] - (1L << deltaBits), deltaBits);
+      deltas.setValue(pos, deltasArray.get(i) - (1L << deltaBits), deltaBits);
       pos += deltaBits;
     }
   }

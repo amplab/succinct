@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.ValueNode;
 import edu.berkeley.cs.succinct.DataType;
 import edu.berkeley.cs.succinct.SerializationException;
 import edu.berkeley.cs.succinct.block.BlockSerializer;
-import gnu.trove.list.array.TIntArrayList;
+import edu.berkeley.cs.succinct.util.container.IntArrayList;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,10 +28,9 @@ public class JsonBlockSerializer implements BlockSerializer<String> {
     this.currentDelimiterIdx = 0;
   }
 
-  @Override public SerializedData serialize(Iterator<String> data)
-    throws SerializationException {
+  @Override public SerializedData serialize(Iterator<String> data) throws SerializationException {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    TIntArrayList offsets = new TIntArrayList();
+    IntArrayList offsets = new IntArrayList();
     int currentOffset = 0;
     while (data.hasNext()) {
       String json = data.next();

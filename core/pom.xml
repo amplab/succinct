@@ -7,11 +7,11 @@
   <parent>
     <groupId>amplab</groupId>
     <artifactId>succinct</artifactId>
-    <version>0.1.7</version>
+    <version>0.1.8-SNAPSHOT</version>
   </parent>
 
   <artifactId>succinct-core</artifactId>
-  <version>0.1.7</version>
+  <version>0.1.8-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Succinct Core</name>
   <url>http://succinct.cs.berkeley.edu/</url>
@@ -66,11 +66,6 @@
   </build>
 
   <dependencies>
-    <dependency>
-      <groupId>net.sf.trove4j</groupId>
-      <artifactId>trove4j</artifactId>
-      <version>${trove4j.version}</version>
-    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

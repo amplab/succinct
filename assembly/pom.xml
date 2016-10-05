@@ -7,11 +7,11 @@
   <parent>
     <groupId>amplab</groupId>
     <artifactId>succinct</artifactId>
-    <version>0.1.7</version>
+    <version>0.1.8-SNAPSHOT</version>
   </parent>
 
   <artifactId>succinct-assembly</artifactId>
-  <version>0.1.7</version>
+  <version>0.1.8-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Succinct Assembly</name>
   <url>http://succinct.cs.berkeley.edu</url>
@@ -20,17 +20,17 @@
     <dependency>
       <groupId>amplab</groupId>
       <artifactId>succinct-core</artifactId>
-      <version>0.1.7</version>
+      <version>0.1.8-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>amplab</groupId>
       <artifactId>succinct-spark_2.11</artifactId>
-      <version>0.1.7</version>
+      <version>0.1.8-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>amplab</groupId>
       <artifactId>succinct-serde</artifactId>
-      <version>0.1.7</version>
+      <version>0.1.8-SNAPSHOT</version>
     </dependency>
   </dependencies>
 

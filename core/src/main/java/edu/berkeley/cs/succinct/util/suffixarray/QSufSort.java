@@ -2,9 +2,9 @@ package edu.berkeley.cs.succinct.util.suffixarray;
 
 import edu.berkeley.cs.succinct.util.Source;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
-import gnu.trove.set.hash.TIntHashSet;
 
 import java.util.Arrays;
+import java.util.HashSet;
 
 public final class QSufSort {
   /**
@@ -32,6 +32,15 @@ public final class QSufSort {
    */
   private int h;
 
+  private void initAlphabet(HashSet<Integer> set) {
+    alphabet = new int[set.size()];
+    int i = 0;
+    for (Integer val : set)
+      alphabet[i++] = val;
+
+    Arrays.sort(alphabet);
+  }
+
   /**
    * Builds suffix array from input byte array.
    *
@@ -43,7 +52,7 @@ public final class QSufSort {
 
     I = new int[input.length() + 2];
     V = new int[input.length() + 2];
-    TIntHashSet alphabetSet = new TIntHashSet();
+    HashSet<Integer> alphabetSet = new HashSet<>();
     for (int i = 0; i < input.length(); i++) {
       V[i] = input.get(i);
       if (V[i] > max)
@@ -59,8 +68,7 @@ public final class QSufSort {
       min = V[input.length()];
     alphabetSet.add(SuccinctConstants.EOF);
 
-    alphabet = alphabetSet.toArray();
-    Arrays.sort(alphabet);
+    initAlphabet(alphabetSet);
 
     suffixSort(input.length() + 1, max + 1, min);
   }

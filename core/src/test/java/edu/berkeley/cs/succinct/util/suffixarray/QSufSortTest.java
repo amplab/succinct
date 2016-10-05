@@ -3,13 +3,13 @@ package edu.berkeley.cs.succinct.util.suffixarray;
 import edu.berkeley.cs.succinct.util.IOUtils;
 import edu.berkeley.cs.succinct.util.Source;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
-import gnu.trove.set.hash.TIntHashSet;
 import junit.framework.TestCase;
 
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Arrays;
+import java.util.HashSet;
 
 public class QSufSortTest extends TestCase {
 
@@ -50,12 +50,16 @@ public class QSufSortTest extends TestCase {
   public void testGetAlphabet() {
     int[] alphabet = instance.getAlphabet();
 
-    TIntHashSet set = new TIntHashSet();
-    for (byte d: data) {
-      set.add(d);
+    HashSet<Integer> set = new HashSet<>();
+    for (byte d : data) {
+      set.add((int) d);
     }
     set.add(SuccinctConstants.EOF);
-    int[] expectedAlphabet = set.toArray();
+    int[] expectedAlphabet = new int[set.size()];
+    int i = 0;
+    for (Integer value : set) {
+      expectedAlphabet[i++] = value;
+    }
     Arrays.sort(expectedAlphabet);
 
     assertTrue(Arrays.equals(expectedAlphabet, alphabet));
