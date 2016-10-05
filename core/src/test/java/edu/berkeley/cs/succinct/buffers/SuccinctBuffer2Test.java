@@ -103,7 +103,7 @@ public class SuccinctBuffer2Test extends SuccinctCoreTest {
   public void testReadFromFile() throws Exception {
 
     ((SuccinctBuffer) sCore).writeToFile(testFileSuccinctMin);
-    SuccinctBuffer sCoreRead = new SuccinctBuffer(testFileSuccinctMin, StorageMode.MEMORY_MAPPED);
+    SuccinctBuffer sCoreRead = new SuccinctBuffer(testFileSuccinctMin, StorageMode.MEMORY_ONLY);
 
     assertNotNull(sCoreRead);
     assertEquals(sCore.getOriginalSize(), sCoreRead.getOriginalSize());
