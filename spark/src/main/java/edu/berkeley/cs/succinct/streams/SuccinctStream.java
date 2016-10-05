@@ -27,6 +27,7 @@ public class SuccinctStream extends SuccinctCore {
 
   protected transient FSDataInputStream originalStream;
   protected transient long endOfCoreStream;
+  protected transient int coreSize;
 
   private transient Configuration conf;
 
@@ -41,6 +42,8 @@ public class SuccinctStream extends SuccinctCore {
     this.conf = conf;
 
     FSDataInputStream is = getStream(filePath);
+
+    coreSize = is.readInt();
 
     setOriginalSize(is.readInt());
     setSamplingRateSA(is.readInt());

@@ -92,9 +92,9 @@ public class BitVector {
   /**
    * Set the value at a particular offset into the BitVector.
    *
-   * @param pos The offset into the bit vector.
+   * @param pos   The offset into the bit vector.
    * @param value The value to set.
-   * @param bits The bit-width of the value to set.
+   * @param bits  The bit-width of the value to set.
    */
   public void setValue(long pos, long value, int bits) {
     if (bits == 0) {
@@ -106,20 +106,21 @@ public class BitVector {
 
     if (sOff + bits <= 64) {
       // Can be accommodated in 1 bitmap block
-      data[sIdx] = (data[sIdx]
-        & (BitUtils.LOW_BITS_SET[sOff] | BitUtils.LOW_BITS_UNSET[sOff + bits])) | value << sOff;
+      data[sIdx] =
+        (data[sIdx] & (BitUtils.LOW_BITS_SET[sOff] | BitUtils.LOW_BITS_UNSET[sOff + bits]))
+          | value << sOff;
     } else {
       // Must use 2 bitmap blocks
       data[sIdx] = (data[sIdx] & BitUtils.LOW_BITS_SET[sOff]) | value << sOff;
-      data[sIdx + 1] = (data[sIdx + 1] & BitUtils.LOW_BITS_UNSET[(sOff + bits) % 64])
-        | (value >>> (64 - sOff));
+      data[sIdx + 1] =
+        (data[sIdx + 1] & BitUtils.LOW_BITS_UNSET[(sOff + bits) % 64]) | (value >>> (64 - sOff));
     }
   }
 
   /**
    * Get the value at a particular offset into the BitVector.
    *
-   * @param pos The offset into the BitVector.
+   * @param pos  The offset into the BitVector.
    * @param bits The bit-width of the value to get.
    * @return The value of specified bit-width at the specified offset into the BitVector.
    */
@@ -170,6 +171,16 @@ public class BitVector {
    */
   public void writeToStream(DataOutputStream out) throws IOException {
     out.writeInt(data.length);
+    writeDataToStream(out);
+  }
+
+  /**
+   * Serialize the data buffer to a DataOutputStream.
+   *
+   * @param out Output Stream.
+   * @throws IOException
+   */
+  public void writeDataToStream(DataOutputStream out) throws IOException {
     for (int i = 0; i < data.length; i++) {
       out.writeLong(data[i]);
     }

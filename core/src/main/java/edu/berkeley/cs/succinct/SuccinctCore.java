@@ -10,7 +10,7 @@ import java.util.logging.*;
 public abstract class SuccinctCore implements Serializable {
 
   // Logger
-  public final static Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+  public final static Logger LOG = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
   static {
     final Handler consoleHandler = new ConsoleHandler();
     consoleHandler.setFormatter(new Formatter() {
@@ -19,9 +19,9 @@ public abstract class SuccinctCore implements Serializable {
           .getMessage() + "\n";
       }
     });
-    logger.setUseParentHandlers(false);
-    logger.addHandler(consoleHandler);
-    logger.setLevel(Level.OFF);
+    LOG.setUseParentHandlers(false);
+    LOG.addHandler(consoleHandler);
+    LOG.setLevel(Level.OFF);
   }
 
   // Metadata

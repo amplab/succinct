@@ -2,7 +2,10 @@ package edu.berkeley.cs.succinct.buffers;
 
 import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctCore;
-import edu.berkeley.cs.succinct.util.*;
+import edu.berkeley.cs.succinct.util.BitUtils;
+import edu.berkeley.cs.succinct.util.CommonUtils;
+import edu.berkeley.cs.succinct.util.Source;
+import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeByteBuffer;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeLongBuffer;
 import edu.berkeley.cs.succinct.util.buffer.serops.ArrayOps;
@@ -34,6 +37,9 @@ public class SuccinctBuffer extends SuccinctCore {
   // Storage mode
   protected transient StorageMode storageMode;
 
+  // Succinct core data structures buffer
+  protected transient ByteBuffer core;
+
   /**
    * Default constructor.
    */
@@ -42,16 +48,7 @@ public class SuccinctBuffer extends SuccinctCore {
   }
 
   @Override public int getCoreSize() {
-    // Compute size of all columns
-    int columnsSize = 0;
-    for (ThreadSafeByteBuffer column : columns) {
-      columnsSize += (12 + column.capacity() * SuccinctConstants.BYTE_SIZE_BYTES);
-    }
-
-    return baseSize() + (12 + sa.capacity() * SuccinctConstants.LONG_SIZE_BYTES) + (12
-      + isa.capacity() * SuccinctConstants.LONG_SIZE_BYTES) + (12
-      + columnoffsets.capacity() * SuccinctConstants.LONG_SIZE_BYTES) + (12
-      + columns.length * SuccinctConstants.REF_SIZE_BYTES) + columnsSize;
+    return core.limit();
   }
 
   /**
@@ -61,15 +58,20 @@ public class SuccinctBuffer extends SuccinctCore {
    */
   public SuccinctBuffer(final byte[] input) {
     // Construct Succinct data-structures
-    construct(new Source() {
-      @Override public int length() {
-        return input.length;
-      }
+    try {
+      construct(new Source() {
+        @Override public int length() {
+          return input.length;
+        }
 
-      @Override public int get(int i) {
-        return input[i];
-      }
-    });
+        @Override public int get(int i) {
+          return input[i];
+        }
+      });
+    } catch (IOException e) {
+      throw new RuntimeException("Could not create core data structures", e);
+    }
+    mapFromCore();
   }
 
   /**
@@ -79,15 +81,20 @@ public class SuccinctBuffer extends SuccinctCore {
    */
   public SuccinctBuffer(final char[] input) {
     // Construct Succinct data-structures
-    construct(new Source() {
-      @Override public int length() {
-        return input.length;
-      }
+    try {
+      construct(new Source() {
+        @Override public int length() {
+          return input.length;
+        }
 
-      @Override public int get(int i) {
-        return input[i];
-      }
-    });
+        @Override public int get(int i) {
+          return input[i];
+        }
+      });
+    } catch (IOException e) {
+      throw new RuntimeException("Could not create core data structures", e);
+    }
+    mapFromCore();
   }
 
   /**
@@ -128,7 +135,8 @@ public class SuccinctBuffer extends SuccinctCore {
    * @param buf Input buffer to load the data from
    */
   public SuccinctBuffer(ByteBuffer buf) {
-    mapFromBuffer(buf);
+    this.core = buf;
+    mapFromCore();
   }
 
   /**
@@ -247,13 +255,25 @@ public class SuccinctBuffer extends SuccinctCore {
    *
    * @param input Input byte array.
    */
-  protected void construct(Source input) {
+  protected void construct(Source input) throws IOException {
 
     // Uncompressed ISA
     int[] ISA;
+    int[] columnOffsets;
 
-    logger.info("Constructing Succinct data structures.");
+    LOG.info("Constructing Succinct data structures.");
     long startTimeGlobal = System.currentTimeMillis();
+
+    File tmpFile = File.createTempFile("succinct-construct-", ".tmp");
+    DataOutputStream coreStream = new DataOutputStream(new FileOutputStream(tmpFile));
+
+    int originalSize = input.length() + 1;
+
+    int samplingRateSA = SuccinctConstants.DEFAULT_SA_SAMPLING_RATE;
+    int samplingRateISA = SuccinctConstants.DEFAULT_ISA_SAMPLING_RATE;
+    int samplingRateNPA = SuccinctConstants.DEFAULT_NPA_SAMPLING_RATE;
+    int sampleBitWidth = BitUtils.bitWidth(input.length() + 1);
+    int alphabetSize;
 
     // Scope of SA, input
     {
@@ -265,212 +285,117 @@ public class SuccinctBuffer extends SuccinctCore {
 
       int[] SA = suffixSorter.getSA();
       ISA = suffixSorter.getISA();
+      alphabetSize = suffixSorter.getAlphabetSize();
 
       // Set metadata
-      setOriginalSize(input.length() + 1);
-      setSamplingRateSA(SuccinctConstants.DEFAULT_SA_SAMPLING_RATE);
-      setSamplingRateISA(SuccinctConstants.DEFAULT_ISA_SAMPLING_RATE);
-      setSamplingRateNPA(SuccinctConstants.DEFAULT_NPA_SAMPLING_RATE);
-      setSampleBitWidth(BitUtils.bitWidth(getOriginalSize()));
-      setAlphabetSize(suffixSorter.getAlphabetSize());
+      coreStream.writeInt(originalSize);    // Original size
+      coreStream.writeInt(samplingRateSA);  // SA sampling rate
+      coreStream.writeInt(samplingRateISA); // ISA sampling rate
+      coreStream.writeInt(samplingRateNPA); // NPA sampling rate
+      coreStream.writeInt(sampleBitWidth);  // Sample Width
+      coreStream.writeInt(alphabetSize);    // Alphabet size
 
       // Get alphabet
-      alphabet = suffixSorter.getAlphabet();
+      int[] alphabetArray = suffixSorter.getAlphabet();
+      for (int i = 0; i < alphabetSize; i++) {
+        coreStream.writeInt(alphabetArray[i]);
+      }
 
       long timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
-      logger.info("Built SA, ISA and set metadata in " + timeTaken + "s.");
+      LOG.info("Built SA, ISA and set metadata in " + timeTaken + "s.");
 
+      // Save column offsets in an array
       startTime = System.currentTimeMillis();
 
-      // Populate column offsets and alphabetMap
       int pos = 0;
       int prevSortedChar = SuccinctConstants.EOF;
-      columnoffsets = ThreadSafeLongBuffer.allocate(getAlphabetSize());
-      columnoffsets.put(pos, 0);
+      columnOffsets = new int[alphabetSize];
+      columnOffsets[pos] = 0;
       pos++;
-      for (int i = 1; i < getOriginalSize(); ++i) {
+      for (int i = 1; i < originalSize; ++i) {
         if (input.get(SA[i]) != prevSortedChar) {
           prevSortedChar = input.get(SA[i]);
-          columnoffsets.put(pos, i);
+          columnOffsets[pos] = i;
           pos++;
         }
       }
-      columnoffsets.rewind();
 
       timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
-      logger.info("Computed alphabet map and column offsets in " + timeTaken + "s.");
+      LOG.info("Computed column offsets in " + timeTaken + "s.");
+    }
+
+    {
+      // Sample SA, ISA
+      long startTime = System.currentTimeMillis();
+
+      IntVector sampledSA, sampledISA;
+      int numSampledElementsSA = CommonUtils.numBlocks(originalSize, samplingRateSA);
+      int numSampledElementsISA = CommonUtils.numBlocks(originalSize, samplingRateISA);
+      sampledSA = new IntVector(numSampledElementsSA, sampleBitWidth);
+      sampledISA = new IntVector(numSampledElementsISA, sampleBitWidth);
+      for (int val = 0; val < originalSize; val++) {
+        int idx = ISA[val];
+        if (idx % samplingRateSA == 0) {
+          sampledSA.add(idx / samplingRateSA, val);
+        }
+        if (val % samplingRateISA == 0) {
+          sampledISA.add(val / samplingRateISA, idx);
+        }
+      }
+      sampledSA.writeDataToStream(coreStream);
+      sampledISA.writeDataToStream(coreStream);
+
+      long timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
+      LOG.info("Sampled SA, ISA in " + timeTaken + "s.");
     }
 
     // Scope of NPA
     {
       long startTime = System.currentTimeMillis();
 
+      // Write column offsets
+      for (int i = 0; i < alphabetSize; i++) {
+        coreStream.writeLong(columnOffsets[i]);
+      }
+
       // Construct NPA
-      int[] NPA = new int[getOriginalSize()];
-      for (int i = 1; i < getOriginalSize(); i++) {
+      int[] NPA = new int[originalSize];
+      for (int i = 1; i < originalSize; i++) {
         NPA[ISA[i - 1]] = ISA[i];
       }
-      NPA[ISA[getOriginalSize() - 1]] = ISA[0];
+      NPA[ISA[originalSize - 1]] = ISA[0];
 
       long timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
-      logger.info("Built uncompressed NPA in " + timeTaken + "s.");
+      LOG.info("Built uncompressed NPA in " + timeTaken + "s.");
 
       startTime = System.currentTimeMillis();
 
       // Compress NPA
-      logger.info("Compressing NPA in " + getAlphabetSize() + " columns...");
-      columns = new ThreadSafeByteBuffer[getAlphabetSize()];
-      for (int i = 0; i < getAlphabetSize(); i++) {
-        int startOffset = (int) columnoffsets.get(i);
-        int endOffset =
-          (i < getAlphabetSize() - 1) ? (int) columnoffsets.get(i + 1) : getOriginalSize();
+      LOG.info("Compressing NPA in " + alphabetSize + " columns...");
+      for (int i = 0; i < alphabetSize; i++) {
+        int startOffset = columnOffsets[i];
+        int endOffset = (i < alphabetSize - 1) ? columnOffsets[i + 1] : originalSize;
         int length = endOffset - startOffset;
         DeltaEncodedIntVector columnVector =
-          new DeltaEncodedIntVector(NPA, startOffset, length, getSamplingRateNPA());
-        int columnSizeInBytes = columnVector.serializedSize();
-        columns[i] = ThreadSafeByteBuffer.allocate(columnSizeInBytes);
-        columnVector.writeToBuffer(columns[i].buffer());
-        columns[i].rewind();
-        logger.info("Compressed column " + i + ".");
+          new DeltaEncodedIntVector(NPA, startOffset, length, samplingRateNPA);
+        coreStream.writeInt(columnVector.serializedSize());
+        columnVector.writeToStream(coreStream);
+        LOG.info("Compressed column " + i + ".");
       }
 
       timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
-      logger.info("Compressed NPA in " + timeTaken + "s.");
-    }
-
-    {
-      long startTime = System.currentTimeMillis();
-
-      // Sample SA, ISA
-      IntVector sampledSA, sampledISA;
-      int numSampledElementsSA = CommonUtils.numBlocks(getOriginalSize(), getSamplingRateSA());
-      int numSampledElementsISA = CommonUtils.numBlocks(getOriginalSize(), getSamplingRateISA());
-      int sampleBitWidth = BitUtils.bitWidth(getOriginalSize());
-      sampledSA = new IntVector(numSampledElementsSA, sampleBitWidth);
-      sampledISA = new IntVector(numSampledElementsISA, sampleBitWidth);
-      for (int val = 0; val < getOriginalSize(); val++) {
-        int idx = ISA[val];
-        if (idx % getSamplingRateSA() == 0) {
-          sampledSA.add(idx / getSamplingRateSA(), val);
-        }
-        if (val % getSamplingRateISA() == 0) {
-          sampledISA.add(val / getSamplingRateISA(), idx);
-        }
-      }
-      sa = ThreadSafeLongBuffer.wrap(sampledSA.getData());
-      sa.rewind();
-      isa = ThreadSafeLongBuffer.wrap(sampledISA.getData());
-      isa.rewind();
-
-      long timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
-      logger.info("Sampled SA, ISA in " + timeTaken + "s.");
+      LOG.info("Compressed NPA in " + timeTaken + "s.");
     }
 
     long timeTakenGlobal = (System.currentTimeMillis() - startTimeGlobal) / 1000L;
-    logger.info("Finished constructing Succinct data structures in " + timeTakenGlobal + "s.");
-  }
+    LOG.info("Finished constructing Succinct data structures in " + timeTakenGlobal + "s.");
 
-  /**
-   * Write Succinct data structures to a DataOutputStream.
-   *
-   * @param os Output stream to write data to.
-   * @throws IOException
-   */
-  public void writeToStream(DataOutputStream os) throws IOException {
-    WritableByteChannel dataChannel = Channels.newChannel(os);
+    coreStream.close();
 
-    os.writeInt(getOriginalSize());
-    os.writeInt(getSamplingRateSA());
-    os.writeInt(getSamplingRateISA());
-    os.writeInt(getSamplingRateNPA());
-    os.writeInt(getSampleBitWidth());
-    os.writeInt(getAlphabetSize());
-
-    for (int i = 0; i < getAlphabetSize(); i++) {
-      os.writeInt(alphabet[i]);
-    }
-
-    ByteBuffer bufSA = ByteBuffer.allocate(sa.limit() * SuccinctConstants.LONG_SIZE_BYTES);
-    bufSA.asLongBuffer().put(sa.buffer());
-    dataChannel.write(bufSA.order(ByteOrder.BIG_ENDIAN));
-    sa.rewind();
-
-    ByteBuffer bufISA = ByteBuffer.allocate(isa.limit() * SuccinctConstants.LONG_SIZE_BYTES);
-    bufISA.asLongBuffer().put(isa.buffer());
-    dataChannel.write(bufISA.order(ByteOrder.BIG_ENDIAN));
-    isa.rewind();
-
-    ByteBuffer bufColOff =
-      ByteBuffer.allocate(getAlphabetSize() * SuccinctConstants.LONG_SIZE_BYTES);
-    bufColOff.asLongBuffer().put(columnoffsets.buffer());
-    dataChannel.write(bufColOff.order(ByteOrder.BIG_ENDIAN));
-    columnoffsets.rewind();
-
-    for (int i = 0; i < columns.length; i++) {
-      os.writeInt(columns[i].limit());
-      dataChannel.write(columns[i].order(ByteOrder.BIG_ENDIAN));
-      columns[i].rewind();
-    }
-  }
-
-  /**
-   * Reads Succinct data structures from a DataInputStream.
-   *
-   * @param is Stream to read data structures from.
-   * @throws IOException
-   */
-  public void readFromStream(DataInputStream is) throws IOException {
-    ReadableByteChannel dataChannel = Channels.newChannel(is);
-    setOriginalSize(is.readInt());
-    setSamplingRateSA(is.readInt());
-    setSamplingRateISA(is.readInt());
-    setSamplingRateNPA(is.readInt());
-    setSampleBitWidth(is.readInt());
-    setAlphabetSize(is.readInt());
-
-    // Read alphabet
-    alphabet = new int[getAlphabetSize()];
-    for (int i = 0; i < getAlphabetSize(); i++) {
-      alphabet[i] = is.readInt();
-    }
-
-    // Compute number of sampled elements
-    int totalSampledBitsSA =
-      CommonUtils.numBlocks(getOriginalSize(), getSamplingRateSA()) * getSampleBitWidth();
-
-    // Read sa
-    ByteBuffer saBuf = ByteBuffer
-      .allocate(BitUtils.bitsToBlocks64(totalSampledBitsSA) * SuccinctConstants.LONG_SIZE_BYTES);
-    dataChannel.read(saBuf);
-    saBuf.rewind();
-    sa = ThreadSafeLongBuffer.fromLongBuffer(saBuf.asLongBuffer());
-
-    // Compute number of sampled elements
-    int totalSampledBitsISA =
-      CommonUtils.numBlocks(getOriginalSize(), getSamplingRateISA()) * getSampleBitWidth();
-
-    // Read isa
-    ByteBuffer isaBuf = ByteBuffer
-      .allocate(BitUtils.bitsToBlocks64(totalSampledBitsISA) * SuccinctConstants.LONG_SIZE_BYTES);
-    dataChannel.read(isaBuf);
-    isaBuf.rewind();
-    isa = ThreadSafeLongBuffer.fromLongBuffer(isaBuf.asLongBuffer());
-
-    // Read columnoffsets
-    ByteBuffer coloffsetsBuf =
-      ByteBuffer.allocate(getAlphabetSize() * SuccinctConstants.LONG_SIZE_BYTES);
-    dataChannel.read(coloffsetsBuf);
-    coloffsetsBuf.rewind();
-    columnoffsets = ThreadSafeLongBuffer.fromLongBuffer(coloffsetsBuf.asLongBuffer());
-
-    // Read NPA columns
-    columns = new ThreadSafeByteBuffer[getAlphabetSize()];
-    for (int i = 0; i < getAlphabetSize(); i++) {
-      int columnSize = is.readInt();
-      ByteBuffer columnBuf = ByteBuffer.allocate(columnSize);
-      dataChannel.read(columnBuf);
-      columns[i] = ThreadSafeByteBuffer.fromByteBuffer(((ByteBuffer) columnBuf.rewind()));
-    }
+    core = ByteBuffer.allocateDirect(((int) tmpFile.length()));
+    FileChannel inChannel = new FileInputStream(tmpFile).getChannel();
+    inChannel.read(core);
+    inChannel.close();
   }
 
   /**
@@ -487,25 +412,23 @@ public class SuccinctBuffer extends SuccinctCore {
   }
 
   /**
-   * Reads Succinct data structures from a ByteBuffer.
-   *
-   * @param buf ByteBuffer to read Succinct data structures from.
+   * Reads Succinct data structures from the data ByteBuffer.
    */
-  public void mapFromBuffer(ByteBuffer buf) {
-    buf.rewind();
+  public void mapFromCore() {
+    core.rewind();
 
     // Deserialize metadata
-    setOriginalSize(buf.getInt());
-    setSamplingRateSA(buf.getInt());
-    setSamplingRateISA(buf.getInt());
-    setSamplingRateNPA(buf.getInt());
-    setSampleBitWidth(buf.getInt());
-    setAlphabetSize(buf.getInt());
+    setOriginalSize(core.getInt());
+    setSamplingRateSA(core.getInt());
+    setSamplingRateISA(core.getInt());
+    setSamplingRateNPA(core.getInt());
+    setSampleBitWidth(core.getInt());
+    setAlphabetSize(core.getInt());
 
     // Read alphabet
     alphabet = new int[getAlphabetSize()];
     for (int i = 0; i < getAlphabetSize(); i++) {
-      alphabet[i] = buf.getInt();
+      alphabet[i] = core.getInt();
     }
 
     // Compute number of sampled elements
@@ -514,7 +437,7 @@ public class SuccinctBuffer extends SuccinctCore {
 
     // Read sa
     int saSize = BitUtils.bitsToBlocks64(totalSampledBitsSA) * SuccinctConstants.LONG_SIZE_BYTES;
-    sa = ThreadSafeLongBuffer.fromLongBuffer(sliceOrderLimit(buf, saSize).asLongBuffer());
+    sa = ThreadSafeLongBuffer.fromLongBuffer(sliceOrderLimit(core, saSize).asLongBuffer());
 
     // Compute number of sampled elements
     int totalSampledBitsISA =
@@ -522,19 +445,51 @@ public class SuccinctBuffer extends SuccinctCore {
 
     // Read isa
     int isaSize = BitUtils.bitsToBlocks64(totalSampledBitsISA) * SuccinctConstants.LONG_SIZE_BYTES;
-    isa = ThreadSafeLongBuffer.fromLongBuffer(sliceOrderLimit(buf, isaSize).asLongBuffer());
+    isa = ThreadSafeLongBuffer.fromLongBuffer(sliceOrderLimit(core, isaSize).asLongBuffer());
 
     // Read columnoffsets
     int coloffsetsSize = getAlphabetSize() * SuccinctConstants.LONG_SIZE_BYTES;
     columnoffsets =
-      ThreadSafeLongBuffer.fromLongBuffer(sliceOrderLimit(buf, coloffsetsSize).asLongBuffer());
+      ThreadSafeLongBuffer.fromLongBuffer(sliceOrderLimit(core, coloffsetsSize).asLongBuffer());
 
     columns = new ThreadSafeByteBuffer[getAlphabetSize()];
     for (int i = 0; i < getAlphabetSize(); i++) {
-      int columnSize = buf.getInt();
-      columns[i] = ThreadSafeByteBuffer.fromByteBuffer(sliceOrderLimit(buf, columnSize));
+      int columnSize = core.getInt();
+      columns[i] = ThreadSafeByteBuffer.fromByteBuffer(sliceOrderLimit(core, columnSize));
       columns[i].rewind();
     }
+
+    core.rewind();
+  }
+
+  /**
+   * Write Succinct data structures to a DataOutputStream.
+   *
+   * @param os Output stream to write data to.
+   * @throws IOException
+   */
+  public void writeToStream(DataOutputStream os) throws IOException {
+    WritableByteChannel dataChannel = Channels.newChannel(os);
+
+    os.writeInt(core.limit());
+    dataChannel.write(core.order(ByteOrder.BIG_ENDIAN));
+    core.rewind();
+  }
+
+  /**
+   * Reads Succinct data structures from a DataInputStream.
+   *
+   * @param is Stream to read data structures from.
+   * @throws IOException
+   */
+  public void readFromStream(DataInputStream is) throws IOException {
+    ReadableByteChannel dataChannel = Channels.newChannel(is);
+
+    int dataSize = is.readInt();
+    core = ByteBuffer.allocateDirect(dataSize);
+    dataChannel.read(core);
+    mapFromCore();
+    core.rewind();
   }
 
   /**
@@ -573,7 +528,9 @@ public class SuccinctBuffer extends SuccinctCore {
     FileChannel fileChannel = new RandomAccessFile(file, "r").getChannel();
 
     ByteBuffer buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size);
-    mapFromBuffer(buf);
+    int compressedSize = buf.getInt();
+    core = (ByteBuffer) buf.slice().limit(compressedSize);
+    mapFromCore();
   }
 
   /**

@@ -12,6 +12,7 @@ import edu.berkeley.cs.succinct.util.iterator.SearchRecordIterator;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.*;
 
 public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements SuccinctIndexedFile {
@@ -72,7 +73,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   public SuccinctIndexedFileBuffer(ByteBuffer buf) {
     super(buf);
   }
-  
+
   /**
    * Default constructor.
    */
@@ -385,15 +386,25 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   }
 
   /**
-   * Reads Succinct data structures from a ByteBuffer.
+   * Memory maps serialized Succinct data structures.
    *
-   * @param buf ByteBuffer to read Succinct data structures from.
+   * @param path Path to serialized Succinct data structures.
+   * @throws IOException
    */
-  @Override public void mapFromBuffer(ByteBuffer buf) {
-    super.mapFromBuffer(buf);
+  public void memoryMap(String path) throws IOException {
+    File file = new File(path);
+    long size = file.length();
+    FileChannel fileChannel = new RandomAccessFile(file, "r").getChannel();
+
+    ByteBuffer buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size);
+    int dataSize = buf.getInt();
+    core = (ByteBuffer) buf.slice().limit(dataSize);
+    mapFromCore();
+
+    buf.position(buf.position() + dataSize);
     int len = buf.getInt();
     offsets = new int[len];
-    for (int i = 0; i < offsets.length; i++) {
+    for (int i = 0; i < len; i++) {
       offsets[i] = buf.getInt();
     }
   }

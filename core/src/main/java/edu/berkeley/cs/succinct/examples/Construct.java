@@ -19,7 +19,7 @@ public class Construct {
       System.exit(-1);
     }
 
-    SuccinctCore.logger.setLevel(Level.ALL);
+    SuccinctCore.LOG.setLevel(Level.ALL);
     SuccinctFileBuffer succinctFileBuffer;
 
     String type = "file";

@@ -20,6 +20,10 @@ public class ThreadSafeByteBuffer {
     return new ThreadSafeByteBuffer(ByteBuffer.allocate(capacity));
   }
 
+  public static ThreadSafeByteBuffer allocateDirect(int capacity) {
+    return new ThreadSafeByteBuffer(ByteBuffer.allocateDirect(capacity));
+  }
+
   public static ThreadSafeByteBuffer wrap(byte[] array) {
     return new ThreadSafeByteBuffer(ByteBuffer.wrap(array));
   }
