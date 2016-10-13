@@ -265,6 +265,7 @@ public class SuccinctBuffer extends SuccinctCore {
     long startTimeGlobal = System.currentTimeMillis();
 
     File tmpFile = File.createTempFile("succinct-construct-", ".tmp");
+    tmpFile.deleteOnExit();
     DataOutputStream coreStream = new DataOutputStream(new FileOutputStream(tmpFile));
 
     int originalSize = input.length() + 1;
@@ -396,6 +397,10 @@ public class SuccinctBuffer extends SuccinctCore {
     FileChannel inChannel = new FileInputStream(tmpFile).getChannel();
     inChannel.read(core);
     inChannel.close();
+
+    if (!tmpFile.delete()) {
+      LOG.warning("Could not delete temporary file.");
+    }
   }
 
   /**
