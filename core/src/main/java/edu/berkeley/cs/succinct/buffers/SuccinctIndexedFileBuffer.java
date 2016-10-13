@@ -13,7 +13,9 @@ import edu.berkeley.cs.succinct.util.iterator.SearchRecordIterator;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements SuccinctIndexedFile {
 
@@ -87,8 +89,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @return The size of the Succinct compressed file.
    */
   @Override public int getCompressedSize() {
-    return super.getCompressedSize()
-      + (12 + offsets.length * SuccinctConstants.INT_SIZE_BYTES);
+    return super.getCompressedSize() + offsets.length * SuccinctConstants.INT_SIZE_BYTES;
   }
 
   /**
@@ -108,8 +109,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   @Override public int getRecordOffset(int recordId) {
     if (recordId >= offsets.length || recordId < 0) {
-      throw new ArrayIndexOutOfBoundsException(
-        "Record does not exist: recordId = " + recordId);
+      throw new ArrayIndexOutOfBoundsException("Record does not exist: recordId = " + recordId);
     }
 
     return offsets[recordId];
@@ -123,21 +123,18 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   @Override public byte[] getRecordBytes(int recordId) {
     if (recordId >= offsets.length || recordId < 0) {
-      throw new ArrayIndexOutOfBoundsException(
-        "Record does not exist: recordId = " + recordId);
+      throw new ArrayIndexOutOfBoundsException("Record does not exist: recordId = " + recordId);
     }
     int begOffset = offsets[recordId];
-    int endOffset = (recordId == offsets.length - 1) ?
-      getOriginalSize() - 1 :
-      offsets[recordId + 1];
+    int endOffset =
+      (recordId == offsets.length - 1) ? getOriginalSize() - 1 : offsets[recordId + 1];
     int len = (endOffset - begOffset - 1);
     return extractBytes(begOffset, len);
   }
 
   @Override public byte[] extractRecordBytes(int recordId, int offset, int length) {
     if (recordId >= offsets.length || recordId < 0) {
-      throw new ArrayIndexOutOfBoundsException(
-        "Record does not exist: recordId = " + recordId);
+      throw new ArrayIndexOutOfBoundsException("Record does not exist: recordId = " + recordId);
     }
 
     if (length == 0) {
@@ -145,9 +142,8 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     }
 
     int begOffset = offsets[recordId] + offset;
-    int nextRecordOffset = (recordId == offsets.length - 1) ?
-      getOriginalSize() - 1 :
-      offsets[recordId + 1];
+    int nextRecordOffset =
+      (recordId == offsets.length - 1) ? getOriginalSize() - 1 : offsets[recordId + 1];
     length = Math.min(nextRecordOffset - begOffset - 1, length);
     return extractBytes(begOffset, length);
   }
@@ -160,13 +156,11 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   @Override public String getRecord(int recordId) {
     if (recordId >= offsets.length || recordId < 0) {
-      throw new ArrayIndexOutOfBoundsException(
-        "Record does not exist: recordId = " + recordId);
+      throw new ArrayIndexOutOfBoundsException("Record does not exist: recordId = " + recordId);
     }
     int begOffset = offsets[recordId];
-    int endOffset = (recordId == offsets.length - 1) ?
-      getOriginalSize() - 1 :
-      offsets[recordId + 1];
+    int endOffset =
+      (recordId == offsets.length - 1) ? getOriginalSize() - 1 : offsets[recordId + 1];
     int len = (endOffset - begOffset - 1);
     return extract(begOffset, len);
   }
@@ -181,8 +175,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   @Override public String extractRecord(int recordId, int offset, int length) {
     if (recordId >= offsets.length || recordId < 0) {
-      throw new ArrayIndexOutOfBoundsException(
-        "Record does not exist: recordId = " + recordId);
+      throw new ArrayIndexOutOfBoundsException("Record does not exist: recordId = " + recordId);
     }
 
     if (length == 0) {
@@ -190,9 +183,8 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     }
 
     int begOffset = offsets[recordId] + offset;
-    int nextRecordOffset = (recordId == offsets.length - 1) ?
-      getOriginalSize() - 1 :
-      offsets[recordId + 1];
+    int nextRecordOffset =
+      (recordId == offsets.length - 1) ? getOriginalSize() - 1 : offsets[recordId + 1];
     length = Math.min(nextRecordOffset - begOffset - 1, length);
     return extract(begOffset, length);
   }
@@ -329,7 +321,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   /**
    * Check if the two offsets belong to the same record.
    *
-   * @param firstOffset The first offset.
+   * @param firstOffset  The first offset.
    * @param secondOffset The second offset.
    * @return True if the two offsets belong to the same record, false otherwise.
    */
