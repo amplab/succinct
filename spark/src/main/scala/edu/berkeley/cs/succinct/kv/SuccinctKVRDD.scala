@@ -266,7 +266,7 @@ object SuccinctKVRDD {
       }
     })
     val numPartitions = status.length
-    val succinctPartitions = sc.parallelize(0 to numPartitions - 1, numPartitions)
+    val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
       .mapPartitionsWithIndex[SuccinctKVPartition[K]]((i, partition) => {
       val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
       Iterator(SuccinctKVPartition[K](partitionLocation, storageLevel))
