@@ -2,6 +2,7 @@ package edu.berkeley.cs.succinct
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 
 package object json {
@@ -9,6 +10,11 @@ package object json {
   implicit class SuccinctContext(sc: SparkContext) {
     def succinctJson(filePath: String, storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
     : SuccinctJsonRDD = SuccinctJsonRDD(sc, filePath, storageLevel)
+  }
+
+  implicit class SuccinctSession(spark: SparkSession) {
+    def succinctJson(filePath: String, storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+    : SuccinctJsonRDD = SuccinctJsonRDD(spark, filePath, storageLevel)
   }
 
   implicit class SuccinctJSONRDD(rdd: RDD[String]) {

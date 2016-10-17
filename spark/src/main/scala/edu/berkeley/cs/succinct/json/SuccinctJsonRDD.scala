@@ -6,6 +6,7 @@ import edu.berkeley.cs.succinct.json.impl.SuccinctJsonRDDImpl
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.succinct.json.SuccinctJsonPartition
 import org.apache.spark.{Dependency, Partition, SparkContext, TaskContext}
@@ -168,7 +169,7 @@ object SuccinctJsonRDD {
   def apply(inputRDD: RDD[String]): SuccinctJsonRDD = {
     val idOffsets = inputRDD.mapPartitions(it => Iterator(it.length)).collect().scanLeft(0L)(_ + _)
     val partitionsRDD = inputRDD.mapPartitionsWithIndex((idx, it) =>
-      createSuccinctJsonPartition(it, idOffsets(idx), idOffsets(idx + 1) - 1))
+      createSuccinctJsonPartition(it, idOffsets(idx), idOffsets(idx + 1) - 1)).cache()
     new SuccinctJsonRDDImpl(partitionsRDD)
   }
 
@@ -185,8 +186,9 @@ object SuccinctJsonRDD {
   /**
     * Reads a SuccinctKVRDD from disk.
     *
-    * @param sc       The spark context
-    * @param location The path to read the SuccinctKVRDD from.
+    * @param sc           The spark context.
+    * @param location     The path to read the SuccinctKVRDD from.
+    * @param storageLevel Storage level of the SuccinctJsonRDD.
     * @return The SuccinctKVRDD.
     */
   def apply(sc: SparkContext, location: String, storageLevel: StorageLevel): SuccinctJsonRDD = {
@@ -204,5 +206,17 @@ object SuccinctJsonRDD {
       Iterator(SuccinctJsonPartition(partitionLocation, storageLevel))
     }).cache()
     new SuccinctJsonRDDImpl(succinctPartitions)
+  }
+
+  /**
+    * Reads a SuccinctKVRDD from disk.
+    *
+    * @param spark        The spark session.
+    * @param location     The path to read the SuccinctKVRDD from.
+    * @param storageLevel Storage level of the SuccinctJsonRDD.
+    * @return The SuccinctKVRDD.
+    */
+  def apply(spark: SparkSession, location: String, storageLevel: StorageLevel): SuccinctJsonRDD = {
+    apply(spark.sparkContext, location, storageLevel)
   }
 }
