@@ -1,6 +1,7 @@
 # Succinct
 
 [![Build Status](https://amplab.cs.berkeley.edu/jenkins/buildStatus/icon?job=Succinct)](https://amplab.cs.berkeley.edu/jenkins/job/Succinct/)
+[![License](http://img.shields.io/:license-Apache%202-red.svg)](LICENSE)
 
 [Succinct](http://succinct.cs.berkeley.edu) is a data store that enables queries
 directly on a compressed representation of data. This repository maintains the 
