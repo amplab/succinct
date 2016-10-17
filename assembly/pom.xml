@@ -24,7 +24,7 @@
     </dependency>
     <dependency>
       <groupId>amplab</groupId>
-      <artifactId>succinct-spark_2.11</artifactId>
+      <artifactId>succinct-spark</artifactId>
       <version>0.1.8-SNAPSHOT</version>
     </dependency>
     <dependency>
