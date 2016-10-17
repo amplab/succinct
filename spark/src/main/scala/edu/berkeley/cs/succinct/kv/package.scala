@@ -2,6 +2,7 @@ package edu.berkeley.cs.succinct
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
@@ -12,6 +13,12 @@ package object kv {
     def succinctKV[K: ClassTag](filePath: String, storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
                                (implicit ordering: Ordering[K])
     : SuccinctKVRDD[K] = SuccinctKVRDD[K](sc, filePath, storageLevel)
+  }
+
+  implicit class SuccinctSession(spark: SparkSession) {
+    def succinctKV[K: ClassTag](filePath: String, storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+                               (implicit ordering: Ordering[K])
+    : SuccinctKVRDD[K] = SuccinctKVRDD[K](spark, filePath, storageLevel)
   }
 
   implicit class SuccinctPairedRDD[K: ClassTag](rdd: RDD[(K, Array[Byte])])

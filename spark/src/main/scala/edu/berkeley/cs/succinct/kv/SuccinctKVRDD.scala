@@ -9,6 +9,7 @@ import edu.berkeley.cs.succinct.util.SuccinctConstants
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.succinct.kv.SuccinctKVPartition
 import org.apache.spark.{Dependency, Partition, SparkContext, TaskContext}
@@ -241,8 +242,7 @@ object SuccinctKVRDD {
     * @return The SuccinctKVRDD.
     */
   def apply[K: ClassTag](inputRDD: RDD[(K, Array[Byte])])
-                        (implicit ordering: Ordering[K])
-  : SuccinctKVRDD[K] = {
+                        (implicit ordering: Ordering[K]): SuccinctKVRDD[K] = {
     val partitionsRDD = inputRDD.sortByKey().mapPartitions(createSuccinctKVPartition[K]).cache()
     val firstKeys = partitionsRDD.map(_.firstKey).collect()
     new SuccinctKVRDDImpl[K](partitionsRDD, firstKeys)
@@ -292,8 +292,9 @@ object SuccinctKVRDD {
   /**
     * Reads a SuccinctKVRDD from disk.
     *
-    * @param sc       The spark context
-    * @param location The path to read the SuccinctKVRDD from.
+    * @param sc           The spark context.
+    * @param location     The path to read the SuccinctKVRDD from.
+    * @param storageLevel Storage level of the SuccinctKVRDD.
     * @return The SuccinctKVRDD.
     */
   def apply[K: ClassTag](sc: SparkContext, location: String, storageLevel: StorageLevel)
@@ -314,5 +315,19 @@ object SuccinctKVRDD {
     }).cache()
     val firstKeys = succinctPartitions.map(_.firstKey).collect()
     new SuccinctKVRDDImpl[K](succinctPartitions, firstKeys)
+  }
+
+  /**
+    * Reads a SuccinctKVRDD from disk.
+    *
+    * @param spark        The spark session.
+    * @param location     The path to read the SuccinctKVRDD from.
+    * @param storageLevel Storage level of the SuccinctKVRDD.
+    * @return The SuccinctKVRDD.
+    */
+  def apply[K: ClassTag](spark: SparkSession, location: String, storageLevel: StorageLevel)
+                        (implicit ordering: Ordering[K])
+  : SuccinctKVRDD[K] = {
+    apply(spark.sparkContext, location, storageLevel)
   }
 }
