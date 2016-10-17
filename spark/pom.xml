@@ -10,7 +10,7 @@
     <version>0.1.8-SNAPSHOT</version>
   </parent>
 
-  <artifactId>succinct-spark_2.11</artifactId>
+  <artifactId>succinct-spark</artifactId>
   <version>0.1.8-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Succinct on Apache Spark</name>
