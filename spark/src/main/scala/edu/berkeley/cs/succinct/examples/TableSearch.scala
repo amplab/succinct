@@ -3,8 +3,7 @@ package edu.berkeley.cs.succinct.examples
 import com.google.common.io.Files
 import edu.berkeley.cs.succinct.sql._
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
-import org.apache.spark.sql.{Row, SQLContext}
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.{Row, SparkSession}
 
 /**
   * Performs search on a TPC-H dataset provided as an input.
@@ -18,8 +17,8 @@ object TableSearch {
     }
 
     val dataPath = args(0)
-    val ctx = new SparkContext(new SparkConf().setAppName("TableSearch"))
-    val sqlCtx = new SQLContext(ctx)
+    val spark = SparkSession.builder().appName("TableSearch").enableHiveSupport().getOrCreate()
+    val ctx = spark.sparkContext
     val partitions = if (args.length > 1) args(1).toInt else 1
     val csvData = ctx.textFile(dataPath)
       .map(_.split('|').toSeq)
@@ -27,12 +26,12 @@ object TableSearch {
     val schema = StructType(firstRecord.map(StructField(_, StringType)))
     val tableRDD = csvData.filter(_ != firstRecord).map(Row.fromSeq(_)).repartition(partitions)
 
-    val dataFrame = sqlCtx.createDataFrame(tableRDD, schema)
+    val dataFrame = spark.createDataFrame(tableRDD, schema)
     val tempDir = Files.createTempDir()
     val succinctDir = tempDir + "/succinct"
     dataFrame.write.format("edu.berkeley.cs.succinct.sql").save(succinctDir)
 
-    val succinctDataFrame = sqlCtx.succinctTable(succinctDir)
+    val succinctDataFrame = spark.succinctTable(succinctDir)
 
     // Search for "TRUCK" for attribute shipmode
     val attrName = "shipmode"
