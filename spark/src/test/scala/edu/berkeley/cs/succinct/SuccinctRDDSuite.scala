@@ -1,8 +1,8 @@
 package edu.berkeley.cs.succinct
 
 import com.google.common.io.Files
-import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.FunSuite
 
 import scala.collection.mutable.ArrayBuffer

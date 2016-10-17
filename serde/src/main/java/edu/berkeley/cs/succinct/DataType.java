@@ -17,14 +17,14 @@ public enum DataType {
     this.order = order;
   }
 
-  public int getOrder() {
-    return order;
-  }
-
   public static DataType encapsulatingType(DataType type1, DataType type2) {
     if (type1.getOrder() < type2.getOrder()) {
       return type2;
     }
     return type1;
+  }
+
+  public int getOrder() {
+    return order;
   }
 }

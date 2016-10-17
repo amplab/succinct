@@ -112,7 +112,8 @@ public class SuccinctShell {
             results.put(result.getOffset(), result.getLength());
           }
         } catch (RegExParsingException e) {
-          System.err.println("Could not parse regular expression: [" + cmdArray[1] + "]: " + e.getMessage());
+          System.err.println(
+            "Could not parse regular expression: [" + cmdArray[1] + "]: " + e.getMessage());
           continue;
         }
         System.out.println("Result size = " + results.size());

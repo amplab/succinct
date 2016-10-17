@@ -201,8 +201,7 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
     s = lookupNPA(s);
     int byte1 = lookupC(s);
 
-    return (short) ((byte0 << 8) |
-      (byte1 & 0xFF));
+    return (short) ((byte0 << 8) | (byte1 & 0xFF));
   }
 
   /**

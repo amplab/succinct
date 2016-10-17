@@ -53,7 +53,7 @@ public class RegExParser {
   /**
    * Checks the parse tree for conformity to supported grammar.
    *
-   * @param node Current node.
+   * @param node   Current node.
    * @param parent Current node's parent.
    * @throws RegExParsingException
    */
@@ -78,18 +78,18 @@ public class RegExParser {
         break;
       }
       case Repeat: {
-        RegExRepeat r = (RegExRepeat)node;
+        RegExRepeat r = (RegExRepeat) node;
         checkParseTree(r.getInternal(), r);
         break;
       }
       case Concat: {
-        RegExConcat c = (RegExConcat)node;
+        RegExConcat c = (RegExConcat) node;
         checkParseTree(c.getLeft(), c);
         checkParseTree(c.getRight(), c);
         break;
       }
       case Union: {
-        RegExUnion u = (RegExUnion)node;
+        RegExUnion u = (RegExUnion) node;
         checkParseTree(u.getFirst(), u);
         checkParseTree(u.getSecond(), u);
         break;
@@ -224,7 +224,8 @@ public class RegExParser {
         eat(WILDCARD);
         RegEx nextF = factor();
         if (f.getRegExType() == RegExType.Blank || nextF.getRegExType() == RegExType.Blank) {
-          throw new RegExParsingException("Malformed RegEx query; Invalid empty children for wildcard operator.");
+          throw new RegExParsingException(
+            "Malformed RegEx query; Invalid empty children for wildcard operator.");
         }
         f = new RegExWildcard(f, nextF);
       } else {

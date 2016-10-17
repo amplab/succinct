@@ -4,9 +4,9 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 public final class IntArray implements BasicArray {
+  private static final int INT_SIZE_IN_BYTES = 4;
   private IntBuffer m_A;
   private int m_pos;
-  private static final int INT_SIZE_IN_BYTES = 4;
 
   public IntArray(IntArray A, int pos) {
     m_A = A.m_A;

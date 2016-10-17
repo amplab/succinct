@@ -6,7 +6,7 @@ import java.nio.LongBuffer;
 
 /**
  * Operations on Serialized BitVector. Supports read-only operations. </p>
- *
+ * <p/>
  * The buffer passed in as argument to all operations is the BitVector data (containing the 64-bit
  * blocks) represented as a LongBuffer.
  */
@@ -16,7 +16,7 @@ public class BitVectorOps {
    * Get the bit at the specified index.
    *
    * @param data LongBuffer representation of BitVector's data.
-   * @param i The index into the BitVector.
+   * @param i    The index into the BitVector.
    * @return The bit at the specified bit.
    */
   static long getBit(LongBuffer data, long i) {
@@ -28,7 +28,7 @@ public class BitVectorOps {
    * Get the value at a particular offset into the BitVector.
    *
    * @param data LongBuffer representation of BitVector's data.
-   * @param pos The offset into the BitVector.
+   * @param pos  The offset into the BitVector.
    * @param bits The bit-width of the value to get.
    * @return The value of specified bit-width at the specified offset into the BitVector.
    */

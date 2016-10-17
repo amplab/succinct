@@ -36,7 +36,7 @@ class SuccinctJsonPartition(ids: Array[Long], valueBuffer: SuccinctIndexedFile,
   def getDocBytes(recordId: Int): Array[Byte] = {
     val start = valueBuffer.getRecordOffset(recordId)
     val end = if (recordId == valueBuffer.getNumRecords - 1) valueBuffer.getSize - 1
-      else valueBuffer.getRecordOffset(recordId + 1)
+    else valueBuffer.getRecordOffset(recordId + 1)
     valueBuffer.extractBytes(start, end - start)
   }
 

@@ -78,13 +78,11 @@ public class RegExMatch implements Comparable<RegExMatch> {
     return r.begin() >= begin() && r.end() <= end();
   }
 
-  @Override
-  public String toString() {
+  @Override public String toString() {
     return "(" + offset + ", " + length + ")";
   }
 
-  @Override
-  public int compareTo(RegExMatch o) {
+  @Override public int compareTo(RegExMatch o) {
     if (offset == o.getOffset()) {
       return length - o.getLength();
     }

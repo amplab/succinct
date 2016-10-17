@@ -23,7 +23,7 @@ public class SuccinctRegEx {
    * @throws RegExParsingException
    */
   public SuccinctRegEx(SuccinctFile succinctFile, String regExString, boolean greedy)
-      throws RegExParsingException {
+    throws RegExParsingException {
     this.succinctFile = succinctFile;
     this.regExString = regExString;
     this.regEx = parse();

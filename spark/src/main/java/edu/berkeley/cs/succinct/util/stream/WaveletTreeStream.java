@@ -1,7 +1,7 @@
 package edu.berkeley.cs.succinct.util.stream;
 
-import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import edu.berkeley.cs.succinct.util.CommonUtils;
+import edu.berkeley.cs.succinct.util.dictionary.Tables;
 import edu.berkeley.cs.succinct.util.stream.serops.BitMapOps;
 import org.apache.hadoop.fs.FSDataInputStream;
 
@@ -150,8 +150,7 @@ public class WaveletTreeStream {
       blockClass = (int) BitMapOps.getValPos(dictBuf, pos, 4);
       short offsetSize = (short) Tables.offsetBits[blockClass];
       pos += 4;
-      blockOffset =
-        (int) ((blockClass == 0) ? BitMapOps.getBit(dictBuf, pos) * 16 : 0);
+      blockOffset = (int) ((blockClass == 0) ? BitMapOps.getBit(dictBuf, pos) * 16 : 0);
       pos += offsetSize;
 
       if (val <= (16 - (blockClass + blockOffset))) {
@@ -165,8 +164,7 @@ public class WaveletTreeStream {
 
     blockClass = (int) BitMapOps.getValPos(dictBuf, pos, 4);
     pos += 4;
-    blockOffset =
-      (int) BitMapOps.getValPos(dictBuf, pos, Tables.offsetBits[blockClass]);
+    blockOffset = (int) BitMapOps.getValPos(dictBuf, pos, Tables.offsetBits[blockClass]);
     lastBlock = Tables.decodeTable[blockClass][blockOffset];
 
     long count = 0;
@@ -277,8 +275,7 @@ public class WaveletTreeStream {
       blockClass = (int) BitMapOps.getValPos(dictBuf, pos, 4);
       short offsetSize = (short) Tables.offsetBits[blockClass];
       pos += 4;
-      blockOffset =
-        (int) ((blockClass == 0) ? BitMapOps.getBit(dictBuf, pos) * 16 : 0);
+      blockOffset = (int) ((blockClass == 0) ? BitMapOps.getBit(dictBuf, pos) * 16 : 0);
       pos += offsetSize;
 
       if (val <= (blockClass + blockOffset)) {
@@ -292,8 +289,7 @@ public class WaveletTreeStream {
 
     blockClass = (int) BitMapOps.getValPos(dictBuf, pos, 4);
     pos += 4;
-    blockOffset =
-      (int) BitMapOps.getValPos(dictBuf, pos, Tables.offsetBits[blockClass]);
+    blockOffset = (int) BitMapOps.getValPos(dictBuf, pos, Tables.offsetBits[blockClass]);
     lastBlock = Tables.decodeTable[blockClass][blockOffset];
 
     long count = 0;

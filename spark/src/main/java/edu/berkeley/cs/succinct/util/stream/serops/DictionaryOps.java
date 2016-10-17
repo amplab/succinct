@@ -19,8 +19,7 @@ public class DictionaryOps {
    * @param i        Index to compute rank1.
    * @return Value of rank1.
    */
-  public static long getRank1(RandomAccessByteStream buf, int startPos, int i)
-    throws IOException {
+  public static long getRank1(RandomAccessByteStream buf, int startPos, int i) throws IOException {
     if (i < 0) {
       return 0;
     }
@@ -98,8 +97,7 @@ public class DictionaryOps {
    * @return Value of rank0.
    * @throws IOException
    */
-  public static long getRank0(RandomAccessByteStream buf, int startPos, int i)
-    throws IOException {
+  public static long getRank0(RandomAccessByteStream buf, int startPos, int i) throws IOException {
     return i - getRank1(buf, startPos, i) + 1;
   }
 

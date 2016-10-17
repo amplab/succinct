@@ -1,8 +1,8 @@
 package edu.berkeley.cs.succinct.util.dictionary;
 
+import edu.berkeley.cs.succinct.util.CommonUtils;
 import edu.berkeley.cs.succinct.util.DictionaryUtils;
 import edu.berkeley.cs.succinct.util.bitmap.BitMap;
-import edu.berkeley.cs.succinct.util.CommonUtils;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -144,20 +144,18 @@ public class Dictionary {
         break;
 
       case 2:
-        res +=
-          DictionaryUtils.GETRANKL1(rankL12[l2Idx], 1) + DictionaryUtils
-            .GETRANKL1(rankL12[l2Idx], 2);
-        pos += DictionaryUtils.GETPOSL1(posL12[l2Idx], 1) + DictionaryUtils
-          .GETPOSL1(posL12[l2Idx], 2);
+        res += DictionaryUtils.GETRANKL1(rankL12[l2Idx], 1) + DictionaryUtils
+          .GETRANKL1(rankL12[l2Idx], 2);
+        pos +=
+          DictionaryUtils.GETPOSL1(posL12[l2Idx], 1) + DictionaryUtils.GETPOSL1(posL12[l2Idx], 2);
         break;
 
       case 3:
-        res +=
-          DictionaryUtils.GETRANKL1(rankL12[l2Idx], 1) + DictionaryUtils
-            .GETRANKL1(rankL12[l2Idx], 2) + DictionaryUtils
-            .GETRANKL1(rankL12[l2Idx], 3);
-        pos += DictionaryUtils.GETPOSL1(posL12[l2Idx], 1) + DictionaryUtils
-          .GETPOSL1(posL12[l2Idx], 2) + DictionaryUtils.GETPOSL1(posL12[l2Idx], 3);
+        res += DictionaryUtils.GETRANKL1(rankL12[l2Idx], 1) + DictionaryUtils
+          .GETRANKL1(rankL12[l2Idx], 2) + DictionaryUtils.GETRANKL1(rankL12[l2Idx], 3);
+        pos +=
+          DictionaryUtils.GETPOSL1(posL12[l2Idx], 1) + DictionaryUtils.GETPOSL1(posL12[l2Idx], 2)
+            + DictionaryUtils.GETPOSL1(posL12[l2Idx], 3);
         break;
 
       default:

@@ -11,13 +11,12 @@ import java.util.Arrays;
 
 public class SuccinctIndexedFileBuffer2Test extends SuccinctIndexedFileTest {
 
+  char[] data;
   private String testFileRaw = this.getClass().getResource("/test_file_utf8").getFile();
   private String testFileSuccinct =
     this.getClass().getResource("/test_file_utf8").getFile() + ".idx.succinct";
   private String testFileSuccinctMin =
     this.getClass().getResource("/test_file_utf8").getFile() + ".idx.min.succinct";
-
-  char[] data;
   private String[] queryStrings =
     {"kΩ", "əsoʊsiˈeıʃn", "‘single’", "გაიაროთ", "в", "ร", "ተ", "ᚻᛖ", "⡌⠁", "╳", "rand"};
 

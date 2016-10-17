@@ -15,7 +15,9 @@ abstract public class SuccinctFileTest extends TestCase {
   protected Source fileData;
 
   abstract public String getQueryString(int i);
+
   abstract public int numQueryStrings();
+
   abstract public String getData();
 
   /**

@@ -15,94 +15,15 @@ package edu.berkeley.cs.succinct.util.suffixarray;
  * {@link #buildSuffixArray(byte[])} for details.
  */
 public final class DivSufSort {
-  /*
-   *
-   */
-  private final static class StackElement {
-    final int a, b, c, e;
-    int d;
-
-    StackElement(int a, int b, int c, int d, int e) {
-      this.a = a;
-      this.b = b;
-      this.c = c;
-      this.d = d;
-      this.e = e;
-    }
-
-    StackElement(int a, int b, int c, int d) {
-      this(a, b, c, d, 0);
-    }
-  }
-
-
-  /*
-   *
-   */
-  private final static class TRBudget {
-    int chance;
-    int remain;
-    int incval;
-    int count;
-
-    private TRBudget(int chance, int incval) {
-      this.chance = chance;
-      this.remain = incval;
-      this.incval = incval;
-    }
-
-    private int check(int size) {
-      if (size <= this.remain) {
-        this.remain -= size;
-        return 1;
-      }
-      if (this.chance == 0) {
-        this.count += size;
-        return 0;
-      }
-      this.remain += this.incval - size;
-      this.chance -= 1;
-      return 1;
-    }
-  }
-
-
-  /*
-   *
-   */
-  private static final class TRPartitionResult {
-    final int a;
-    final int b;
-
-    public TRPartitionResult(int a, int b) {
-      this.a = a;
-      this.b = b;
-    }
-  }
-
-  /**
-   * @param alphabetSize The size of the input alphabet.
-   */
-  public DivSufSort(int alphabetSize) {
-    ALPHABET_SIZE = alphabetSize;
-    BUCKET_A_SIZE = ALPHABET_SIZE;
-    BUCKET_B_SIZE = ALPHABET_SIZE * ALPHABET_SIZE;
-  }
-
-  public DivSufSort() {
-    this(DEFAULT_ALPHABET_SIZE);
-  }
-
-    /* constants */
-
   private final static int DEFAULT_ALPHABET_SIZE = 256;
   private final static int SS_INSERTIONSORT_THRESHOLD = 8;
   private final static int SS_BLOCKSIZE = 1024;
   private final static int SS_MISORT_STACKSIZE = 16;
   private final static int SS_SMERGE_STACKSIZE = 32;
+
+    /* constants */
   private final static int TR_STACKSIZE = 64;
   private final static int TR_INSERTIONSORT_THRESHOLD = 8;
-
   private final static int[] sqq_table =
     {0, 16, 22, 27, 32, 35, 39, 42, 45, 48, 50, 53, 55, 57, 59, 61, 64, 65, 67, 69, 71, 73, 75, 76,
       78, 80, 81, 83, 84, 86, 87, 89, 90, 91, 93, 94, 96, 97, 98, 99, 101, 102, 103, 104, 106, 107,
@@ -118,7 +39,6 @@ public final class DivSufSort {
       235, 236, 236, 237, 237, 238, 238, 239, 240, 240, 241, 241, 242, 242, 243, 243, 244, 244, 245,
       245, 246, 246, 247, 247, 248, 248, 249, 249, 250, 250, 251, 251, 252, 252, 253, 253, 254, 254,
       255};
-
   private final static int[] lg_table =
     {-1, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
       4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
@@ -129,13 +49,81 @@ public final class DivSufSort {
       7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
       7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
       7, 7, 7, 7, 7, 7, 7, 7};
-
   /* fields */
   private final int ALPHABET_SIZE;
   private final int BUCKET_A_SIZE;
   private final int BUCKET_B_SIZE;
   private int[] SA;
   private byte[] T;
+
+  /**
+   * @param alphabetSize The size of the input alphabet.
+   */
+  public DivSufSort(int alphabetSize) {
+    ALPHABET_SIZE = alphabetSize;
+    BUCKET_A_SIZE = ALPHABET_SIZE;
+    BUCKET_B_SIZE = ALPHABET_SIZE * ALPHABET_SIZE;
+  }
+  public DivSufSort() {
+    this(DEFAULT_ALPHABET_SIZE);
+  }
+
+  private static int getIDX(int a) {
+    return (0 <= (a)) ? (a) : (~(a));
+  }
+
+  private static int min(int a, int b) {
+    return a < b ? a : b;
+  }
+
+  /**
+   *
+   */
+  private static int ssIsqrt(int x) {
+    int y, e;
+
+    if (x >= (SS_BLOCKSIZE * SS_BLOCKSIZE)) {
+      return SS_BLOCKSIZE;
+    }
+    e = ((x & 0xffff0000) != 0) ?
+      (((x & 0xff000000) != 0) ?
+        24 + lg_table[(x >> 24) & 0xff] :
+        16 + lg_table[(x >> 16) & 0xff]) :
+      (x & 0x0000ff00) != 0 ? 8 + lg_table[x >> 8 & 0xff] : lg_table[x & 0xff];
+
+    if (e >= 16) {
+      y = sqq_table[x >> ((e - 6) - (e & 1))] << ((e >> 1) - 7);
+      if (e >= 24) {
+        y = (y + 1 + x / y) >> 1;
+      }
+      y = (y + 1 + x / y) >> 1;
+    } else if (e >= 8) {
+      y = (sqq_table[x >> ((e - 6) - (e & 1))] >> (7 - (e >> 1))) + 1;
+    } else {
+      return sqq_table[x] >> 4;
+    }
+
+    return (x < (y * y)) ? y - 1 : y;
+  }
+
+  /**
+   *
+   */
+  private static int ssIlg(int n) {
+
+    return ((n & 0xff00) != 0) ? (8 + lg_table[(n >> 8) & 0xff]) : lg_table[n & 0xff];
+  }
+
+  /**
+   *
+   */
+  private static int trIlg(int n) {
+    return ((n & 0xffff0000) != 0) ?
+      (((n & 0xff000000) != 0) ?
+        24 + lg_table[(n >> 24) & 0xff] :
+        16 + lg_table[(n >> 16) & 0xff]) :
+      (n & 0x0000ff00) != 0 ? 8 + lg_table[n >> 8 & 0xff] : lg_table[n & 0xff];
+  }
 
   public final void buildSuffixArray(byte[] input) {
     assert input != null;
@@ -361,8 +349,8 @@ public final class DivSufSort {
   /**
    *
    */
-  private void ssSort(final int PA, int first, int last, int buf, int bufsize, int depth,
-    int n, boolean lastsuffix) {
+  private void ssSort(final int PA, int first, int last, int buf, int bufsize, int depth, int n,
+    boolean lastsuffix) {
     int a, b, middle, curbuf;// SA pointer
 
     int j, k, curbufsize, limit;
@@ -569,14 +557,6 @@ public final class DivSufSort {
       SA[a] = SA[b];
       SA[b] = t;
     }
-  }
-
-  private static int getIDX(int a) {
-    return (0 <= (a)) ? (a) : (~(a));
-  }
-
-  private static int min(int a, int b) {
-    return a < b ? a : b;
   }
 
   /**
@@ -934,36 +914,6 @@ public final class DivSufSort {
 
   }
 
-  /**
-   *
-   */
-  private static int ssIsqrt(int x) {
-    int y, e;
-
-    if (x >= (SS_BLOCKSIZE * SS_BLOCKSIZE)) {
-      return SS_BLOCKSIZE;
-    }
-    e = ((x & 0xffff0000) != 0) ?
-      (((x & 0xff000000) != 0) ?
-        24 + lg_table[(x >> 24) & 0xff] :
-        16 + lg_table[(x >> 16) & 0xff]) :
-      (x & 0x0000ff00) != 0 ? 8 + lg_table[x >> 8 & 0xff] : lg_table[x & 0xff];
-
-    if (e >= 16) {
-      y = sqq_table[x >> ((e - 6) - (e & 1))] << ((e >> 1) - 7);
-      if (e >= 24) {
-        y = (y + 1 + x / y) >> 1;
-      }
-      y = (y + 1 + x / y) >> 1;
-    } else if (e >= 8) {
-      y = (sqq_table[x >> ((e - 6) - (e & 1))] >> (7 - (e >> 1))) + 1;
-    } else {
-      return sqq_table[x] >> 4;
-    }
-
-    return (x < (y * y)) ? y - 1 : y;
-  }
-
   /* Multikey introsort for medium size groups. */
   private void ssMintroSort(int PA, int first, int last, int depth) {
     final int STACK_SIZE = SS_MISORT_STACKSIZE;
@@ -1307,14 +1257,6 @@ public final class DivSufSort {
     }
     SA[i + sa] = v;
 
-  }
-
-  /**
-   *
-   */
-  private static int ssIlg(int n) {
-
-    return ((n & 0xff00) != 0) ? (8 + lg_table[(n >> 8) & 0xff]) : lg_table[n & 0xff];
   }
 
   /**
@@ -2016,15 +1958,70 @@ public final class DivSufSort {
     }
   }
 
-  /**
+
+  /*
    *
    */
-  private static int trIlg(int n) {
-    return ((n & 0xffff0000) != 0) ?
-      (((n & 0xff000000) != 0) ?
-        24 + lg_table[(n >> 24) & 0xff] :
-        16 + lg_table[(n >> 16) & 0xff]) :
-      (n & 0x0000ff00) != 0 ? 8 + lg_table[n >> 8 & 0xff] : lg_table[n & 0xff];
+  private final static class StackElement {
+    final int a, b, c, e;
+    int d;
+
+    StackElement(int a, int b, int c, int d, int e) {
+      this.a = a;
+      this.b = b;
+      this.c = c;
+      this.d = d;
+      this.e = e;
+    }
+
+    StackElement(int a, int b, int c, int d) {
+      this(a, b, c, d, 0);
+    }
+  }
+
+
+  /*
+   *
+   */
+  private final static class TRBudget {
+    int chance;
+    int remain;
+    int incval;
+    int count;
+
+    private TRBudget(int chance, int incval) {
+      this.chance = chance;
+      this.remain = incval;
+      this.incval = incval;
+    }
+
+    private int check(int size) {
+      if (size <= this.remain) {
+        this.remain -= size;
+        return 1;
+      }
+      if (this.chance == 0) {
+        this.count += size;
+        return 0;
+      }
+      this.remain += this.incval - size;
+      this.chance -= 1;
+      return 1;
+    }
+  }
+
+
+  /*
+   *
+   */
+  private static final class TRPartitionResult {
+    final int a;
+    final int b;
+
+    public TRPartitionResult(int a, int b) {
+      this.a = a;
+      this.b = b;
+    }
   }
 
 }

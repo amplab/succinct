@@ -11,7 +11,7 @@ import java.nio.ShortBuffer;
 public class RandomAccessByteStreamTest extends TestCase {
 
   public void testGet() throws Exception {
-        ByteBuffer buf = ByteBuffer.allocate(10);
+    ByteBuffer buf = ByteBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put((byte) i);
     }
@@ -23,7 +23,7 @@ public class RandomAccessByteStreamTest extends TestCase {
   }
 
   public void testGet1() throws Exception {
-        ByteBuffer buf = ByteBuffer.allocate(10);
+    ByteBuffer buf = ByteBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put((byte) i);
     }
@@ -35,7 +35,7 @@ public class RandomAccessByteStreamTest extends TestCase {
   }
 
   public void testGetShort() throws Exception {
-        ShortBuffer buf = ShortBuffer.allocate(10);
+    ShortBuffer buf = ShortBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put((short) i);
     }
@@ -47,7 +47,7 @@ public class RandomAccessByteStreamTest extends TestCase {
   }
 
   public void testGetShort1() throws Exception {
-        ShortBuffer buf = ShortBuffer.allocate(10);
+    ShortBuffer buf = ShortBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put((short) i);
     }
@@ -59,7 +59,7 @@ public class RandomAccessByteStreamTest extends TestCase {
   }
 
   public void testGetInt() throws Exception {
-        IntBuffer buf = IntBuffer.allocate(10);
+    IntBuffer buf = IntBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put(i);
     }
@@ -71,7 +71,7 @@ public class RandomAccessByteStreamTest extends TestCase {
   }
 
   public void testGetInt1() throws Exception {
-        IntBuffer buf = IntBuffer.allocate(10);
+    IntBuffer buf = IntBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put(i);
     }
@@ -83,7 +83,7 @@ public class RandomAccessByteStreamTest extends TestCase {
   }
 
   public void testGetLong() throws Exception {
-        LongBuffer buf = LongBuffer.allocate(10);
+    LongBuffer buf = LongBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put(i);
     }
@@ -95,7 +95,7 @@ public class RandomAccessByteStreamTest extends TestCase {
   }
 
   public void testGetLong1() throws Exception {
-        LongBuffer buf = LongBuffer.allocate(10);
+    LongBuffer buf = LongBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put(i);
     }
@@ -107,7 +107,7 @@ public class RandomAccessByteStreamTest extends TestCase {
   }
 
   public void testPosition() throws Exception {
-        ByteBuffer buf = ByteBuffer.allocate(10);
+    ByteBuffer buf = ByteBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put((byte) i);
     }
@@ -118,7 +118,7 @@ public class RandomAccessByteStreamTest extends TestCase {
   }
 
   public void testRewind() throws Exception {
-        ByteBuffer buf = ByteBuffer.allocate(10);
+    ByteBuffer buf = ByteBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put((byte) i);
     }
@@ -130,7 +130,7 @@ public class RandomAccessByteStreamTest extends TestCase {
   }
 
   public void testOffsetBeginning() throws Exception {
-        ByteBuffer buf = ByteBuffer.allocate(20);
+    ByteBuffer buf = ByteBuffer.allocate(20);
     for (int i = 0; i < 20; i++) {
       buf.put((byte) i);
     }
@@ -148,7 +148,7 @@ public class RandomAccessByteStreamTest extends TestCase {
   }
 
   public void testAsIntStream() throws Exception {
-        IntBuffer buf = IntBuffer.allocate(20);
+    IntBuffer buf = IntBuffer.allocate(20);
     for (int i = 0; i < 20; i++) {
       buf.put(i);
     }
@@ -168,7 +168,7 @@ public class RandomAccessByteStreamTest extends TestCase {
   }
 
   public void testAsLongStream() throws Exception {
-        LongBuffer buf = LongBuffer.allocate(20);
+    LongBuffer buf = LongBuffer.allocate(20);
     for (int i = 0; i < 20; i++) {
       buf.put(i);
     }

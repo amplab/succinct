@@ -71,6 +71,39 @@ public class DeltaEncodedIntVector {
   }
 
   /**
+   * De-serialize the DeltaEncodedIntVector from a ByteBuffer.
+   *
+   * @param buf Input ByteBuffer.
+   */
+  public static DeltaEncodedIntVector readFromBuffer(ByteBuffer buf) {
+    int samplingRate = buf.getInt();
+    IntVector samples = IntVector.readFromBuffer(buf);
+    IntVector deltaOffsets = IntVector.readFromBuffer(buf);
+    BitVector deltas = BitVector.readFromBuffer(buf);
+    if (samples == null) {
+      return null;
+    }
+    return new DeltaEncodedIntVector(samples, deltaOffsets, deltas, samplingRate);
+  }
+
+  /**
+   * De-serialize the DeltaEncodedIntVector from a DataInputStream.
+   *
+   * @param in Input Stream.
+   * @throws IOException
+   */
+  public static DeltaEncodedIntVector readFromStream(DataInputStream in) throws IOException {
+    int samplingRate = in.readInt();
+    IntVector samples = IntVector.readFromStream(in);
+    IntVector deltaOffsets = IntVector.readFromStream(in);
+    BitVector deltas = BitVector.readFromStream(in);
+    if (samples == null) {
+      return null;
+    }
+    return new DeltaEncodedIntVector(samples, deltaOffsets, deltas, samplingRate);
+  }
+
+  /**
    * Get the samples for the DeltaEncodedVector.
    *
    * @return Samples for the DeltaEncodedVector.
@@ -333,39 +366,5 @@ public class DeltaEncodedIntVector {
     } else {
       out.writeInt(0);
     }
-  }
-
-
-  /**
-   * De-serialize the DeltaEncodedIntVector from a ByteBuffer.
-   *
-   * @param buf Input ByteBuffer.
-   */
-  public static DeltaEncodedIntVector readFromBuffer(ByteBuffer buf) {
-    int samplingRate = buf.getInt();
-    IntVector samples = IntVector.readFromBuffer(buf);
-    IntVector deltaOffsets = IntVector.readFromBuffer(buf);
-    BitVector deltas = BitVector.readFromBuffer(buf);
-    if (samples == null) {
-      return null;
-    }
-    return new DeltaEncodedIntVector(samples, deltaOffsets, deltas, samplingRate);
-  }
-
-  /**
-   * De-serialize the DeltaEncodedIntVector from a DataInputStream.
-   *
-   * @param in Input Stream.
-   * @throws IOException
-   */
-  public static DeltaEncodedIntVector readFromStream(DataInputStream in) throws IOException {
-    int samplingRate = in.readInt();
-    IntVector samples = IntVector.readFromStream(in);
-    IntVector deltaOffsets = IntVector.readFromStream(in);
-    BitVector deltas = BitVector.readFromStream(in);
-    if (samples == null) {
-      return null;
-    }
-    return new DeltaEncodedIntVector(samples, deltaOffsets, deltas, samplingRate);
   }
 }

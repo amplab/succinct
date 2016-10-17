@@ -15,7 +15,7 @@ public class PrimitiveSerializer {
     return data.getBytes();
   }
 
-  static byte[] serialize(boolean data) throws SerializationException  {
+  static byte[] serialize(boolean data) throws SerializationException {
     return data ? new byte[] {SERIALIZED_TRUE} : new byte[] {SERIALIZED_FALSE};
   }
 

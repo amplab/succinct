@@ -2,12 +2,11 @@ package edu.berkeley.cs.succinct.util.container;
 
 public class IntArrayList {
 
-  private int[][] buckets;
-  private int currentIdx;
-
   private static final int FBS = 16;
   private static final int FBS_HIBIT = 4;
   private static final int NUM_BUCKETS = 32;
+  private int[][] buckets;
+  private int currentIdx;
 
   public IntArrayList() {
     buckets = new int[NUM_BUCKETS][];

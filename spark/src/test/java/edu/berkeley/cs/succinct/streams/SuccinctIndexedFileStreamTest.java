@@ -11,12 +11,11 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 
 public class SuccinctIndexedFileStreamTest extends SuccinctIndexedFileTest {
+  byte[] data;
   private String testFileRaw = this.getClass().getResource("/raw.dat").getFile();
   private String testFileSuccinct =
     this.getClass().getResource("/raw.dat").getFile() + ".idx.succinct";
-
-  byte[] data;
-  private String[] queryStrings = { "int", "include", "random", "random int" };
+  private String[] queryStrings = {"int", "include", "random", "random int"};
 
   @Override public String getQueryString(int i) {
     return queryStrings[i];

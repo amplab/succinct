@@ -88,7 +88,7 @@ public class BitMapTest extends TestCase {
     }
 
     for (int i = 0; i < test.size(); i++) {
-      assertEquals(instance.getSelect1(i), (long)test.get(i));
+      assertEquals(instance.getSelect1(i), (long) test.get(i));
     }
   }
 

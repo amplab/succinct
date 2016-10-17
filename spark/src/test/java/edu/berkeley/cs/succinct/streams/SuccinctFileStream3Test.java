@@ -48,10 +48,13 @@ public class SuccinctFileStream3Test extends TestCase {
       short shortVal = stream.extractShort(i * SuccinctConstants.SHORT_SIZE_BYTES);
       assertEquals(shortVal, i);
 
-      int intVal = stream.extractInt(10 * SuccinctConstants.SHORT_SIZE_BYTES + i * SuccinctConstants.INT_SIZE_BYTES);
+      int intVal = stream
+        .extractInt(10 * SuccinctConstants.SHORT_SIZE_BYTES + i * SuccinctConstants.INT_SIZE_BYTES);
       assertEquals(intVal, i);
 
-      long longVal = stream.extractLong(10 * (SuccinctConstants.SHORT_SIZE_BYTES + SuccinctConstants.INT_SIZE_BYTES) + i * SuccinctConstants.LONG_SIZE_BYTES);
+      long longVal = stream.extractLong(
+        10 * (SuccinctConstants.SHORT_SIZE_BYTES + SuccinctConstants.INT_SIZE_BYTES)
+          + i * SuccinctConstants.LONG_SIZE_BYTES);
       assertEquals(longVal, i);
     }
   }

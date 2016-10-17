@@ -15,7 +15,9 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
   protected Source fileData;
 
   abstract public String getQueryString(int i);
+
   abstract public int numQueryStrings();
+
   abstract public String getData();
 
   /**
@@ -117,7 +119,7 @@ abstract public class SuccinctIndexedFileTest extends TestCase {
 
     // TODO: Add more tests
     Integer[] recordsIds = sIFile.recordSearchRegexIds("int");
-    for (Integer recordId: recordsIds) {
+    for (Integer recordId : recordsIds) {
       assertTrue(new String(sIFile.getRecordBytes(recordId)).contains("int"));
     }
   }

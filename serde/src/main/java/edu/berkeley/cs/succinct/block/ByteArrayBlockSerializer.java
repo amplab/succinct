@@ -29,7 +29,7 @@ public class ByteArrayBlockSerializer implements BlockSerializer<byte[]> {
     TIntArrayList offsets = new TIntArrayList();
     out.write(recordSeparator);
     int currentOffset = 1;
-    while(data.hasNext()) {
+    while (data.hasNext()) {
       byte[] recordData = data.next();
       try {
         offsets.add(currentOffset);
@@ -44,20 +44,20 @@ public class ByteArrayBlockSerializer implements BlockSerializer<byte[]> {
   }
 
   /**
-   * Set the record separator byte.
-   *
-   * @param recordSeparator The record separator byte.
-   */
-  public void setRecordSeparator(byte recordSeparator) {
-    this.recordSeparator = recordSeparator;
-  }
-
-  /**
    * Get the record separator byte.
    *
    * @return The record separator byte.
    */
   public byte getRecordSeparator() {
     return recordSeparator;
+  }
+
+  /**
+   * Set the record separator byte.
+   *
+   * @param recordSeparator The record separator byte.
+   */
+  public void setRecordSeparator(byte recordSeparator) {
+    this.recordSeparator = recordSeparator;
   }
 }

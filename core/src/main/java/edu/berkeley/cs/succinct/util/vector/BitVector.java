@@ -43,6 +43,47 @@ public class BitVector {
   }
 
   /**
+   * De-serialize the BitVector from a ByteBuffer.
+   *
+   * @param buf Input ByteBuffer.
+   * @return The BitVector.
+   */
+  public static BitVector readFromBuffer(ByteBuffer buf) {
+    int numBlocks = buf.getInt();
+
+    if (numBlocks == 0) {
+      return null;
+    }
+
+    long[] data = new long[numBlocks];
+    for (int i = 0; i < data.length; i++) {
+      data[i] = buf.getLong();
+    }
+    return new BitVector(data);
+  }
+
+  /**
+   * De-serialize the BitVector from a DataInputStream.
+   *
+   * @param in Input Stream.
+   * @return The BitVector.
+   * @throws IOException
+   */
+  public static BitVector readFromStream(DataInputStream in) throws IOException {
+    int numBlocks = in.readInt();
+
+    if (numBlocks == 0) {
+      return null;
+    }
+
+    long[] data = new long[numBlocks];
+    for (int i = 0; i < data.length; i++) {
+      data[i] = in.readLong();
+    }
+    return new BitVector(data);
+  }
+
+  /**
    * Get the underlying blocks in the BitVector.
    *
    * @return The underlying blocks in the BitVector.
@@ -184,47 +225,6 @@ public class BitVector {
     for (int i = 0; i < data.length; i++) {
       out.writeLong(data[i]);
     }
-  }
-
-  /**
-   * De-serialize the BitVector from a ByteBuffer.
-   *
-   * @param buf Input ByteBuffer.
-   * @return The BitVector.
-   */
-  public static BitVector readFromBuffer(ByteBuffer buf) {
-    int numBlocks = buf.getInt();
-
-    if (numBlocks == 0) {
-      return null;
-    }
-
-    long[] data = new long[numBlocks];
-    for (int i = 0; i < data.length; i++) {
-      data[i] = buf.getLong();
-    }
-    return new BitVector(data);
-  }
-
-  /**
-   * De-serialize the BitVector from a DataInputStream.
-   *
-   * @param in Input Stream.
-   * @return The BitVector.
-   * @throws IOException
-   */
-  public static BitVector readFromStream(DataInputStream in) throws IOException {
-    int numBlocks = in.readInt();
-
-    if (numBlocks == 0) {
-      return null;
-    }
-
-    long[] data = new long[numBlocks];
-    for (int i = 0; i < data.length; i++) {
-      data[i] = in.readLong();
-    }
-    return new BitVector(data);
   }
 
 }

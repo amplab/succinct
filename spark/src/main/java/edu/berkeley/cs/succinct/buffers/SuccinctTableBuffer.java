@@ -55,7 +55,8 @@ public class SuccinctTableBuffer extends SuccinctIndexedFileBuffer implements Su
    * @param queries    The actual query parameters associated with each query
    * @return The records matching the multi-search queries.
    */
-  @Override public Integer[] recordMultiSearchIds(SuccinctTable.QueryType[] queryTypes, byte[][][] queries) {
+  @Override public Integer[] recordMultiSearchIds(SuccinctTable.QueryType[] queryTypes,
+    byte[][][] queries) {
     assert (queryTypes.length == queries.length);
     Set<Integer> recordIds = new HashSet<>();
 

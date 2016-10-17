@@ -3,9 +3,9 @@ package edu.berkeley.cs.succinct.sql
 import java.io.{File, IOException}
 
 import com.google.common.io.Files
-import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{SQLContext, DataFrame, Row}
+import org.apache.spark.sql.{DataFrame, Row, SQLContext}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest._
 
 import scala.util.Random
@@ -13,8 +13,8 @@ import scala.util.Random
 private[succinct] object TestUtils {
 
   /**
-   * This function deletes a file or a directory with everything that's in it.
-   */
+    * This function deletes a file or a directory with everything that's in it.
+    */
   def deleteRecursively(file: File) {
     def listFilesSafely(file: File): Seq[File] = {
       if (file.exists()) {
@@ -116,8 +116,8 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
     val cityRDD = sparkContext.textFile(citiesTable)
       .map(_.split(','))
       .map { t =>
-      Row.fromSeq(Seq.tabulate(schema.size)(i => TestUtils.castToType(t(i), schema(i).dataType)))
-    }
+        Row.fromSeq(Seq.tabulate(schema.size)(i => TestUtils.castToType(t(i), schema(i).dataType)))
+      }
     val df = sqlContext.createDataFrame(cityRDD, schema)
 
     val tempDir = Files.createTempDir()
@@ -170,25 +170,25 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
       .succinctTable(succinctDir)
       .select("Name")
       .collect()
-    assert(cities.map(_(0)).toSet === Set("San Francisco", "Palo Alto", "Munich"))
+    assert(cities.map(_ (0)).toSet === Set("San Francisco", "Palo Alto", "Munich"))
 
     val lengths = sqlContext
       .succinctTable(succinctDir)
       .select("Length")
       .collect()
-    assert(lengths.map(_(0)).toSet === Set(12, 12, 8))
+    assert(lengths.map(_ (0)).toSet === Set(12, 12, 8))
 
     val areas = sqlContext
       .succinctTable(succinctDir)
       .select("Area")
       .collect()
-    assert(areas.map(_(0)).toSet === Set(44.52, 22.33, 3.14))
+    assert(areas.map(_ (0)).toSet === Set(44.52, 22.33, 3.14))
 
     val airports = sqlContext
       .succinctTable(succinctDir)
       .select("Airport")
       .collect()
-    assert(airports.map(_(0)).toSet === Set(true, false, true))
+    assert(airports.map(_ (0)).toSet === Set(true, false, true))
   }
 
   test("prunes") {

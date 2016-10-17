@@ -9,7 +9,8 @@ import java.io.*;
 public class SuccinctStream2Test extends SuccinctCoreTest {
 
   private String testFileRaw = this.getClass().getResource("/utf8.dat").getFile();
-  private String testFileSuccinct = this.getClass().getResource("/utf8.dat").getFile() + ".succinct";
+  private String testFileSuccinct =
+    this.getClass().getResource("/utf8.dat").getFile() + ".succinct";
   private String testFileSA = this.getClass().getResource("/utf8.dat.sa").getFile();
   private String testFileISA = this.getClass().getResource("/utf8.dat.isa").getFile();
   private String testFileNPA = this.getClass().getResource("/utf8.dat.npa").getFile();

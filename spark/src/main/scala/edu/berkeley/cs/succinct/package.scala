@@ -5,6 +5,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 
 package object succinct {
+
   implicit class SuccinctContext(sc: SparkContext) {
     def succinctFile(filePath: String, storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY): SuccinctRDD = {
       SuccinctRDD(sc, filePath, storageLevel)
@@ -18,4 +19,5 @@ package object succinct {
 
     def saveAsSuccinctFile(path: String): Unit = SuccinctRDD(rdd).save(path)
   }
+
 }

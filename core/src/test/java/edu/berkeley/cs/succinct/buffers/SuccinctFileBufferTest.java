@@ -11,12 +11,11 @@ import java.util.Set;
 
 public class SuccinctFileBufferTest extends SuccinctFileTest {
 
+  byte[] data;
   private String testFileRaw = this.getClass().getResource("/test_file").getFile();
   private String testFileSuccinct =
     this.getClass().getResource("/test_file").getFile() + ".buf.succinct";
-
-  byte[] data;
-  private String[] queryStrings = { "int", "include", "random", "random int" };
+  private String[] queryStrings = {"int", "include", "random", "random int"};
 
   @Override public String getQueryString(int i) {
     return queryStrings[i];

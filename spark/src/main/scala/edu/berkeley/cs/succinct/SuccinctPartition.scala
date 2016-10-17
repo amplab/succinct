@@ -15,13 +15,13 @@ import org.apache.spark.util.KnownSizeEstimation
 import scala.collection.JavaConversions._
 
 /**
- * A simple wrapper around `SuccinctIndexedFile` to enable partitions in SuccinctRDD to exploit
- * operations directly supported on succinct's compressed representation of data.
- */
+  * A simple wrapper around `SuccinctIndexedFile` to enable partitions in SuccinctRDD to exploit
+  * operations directly supported on succinct's compressed representation of data.
+  */
 class SuccinctPartition(
-    succinctIndexedFile: SuccinctIndexedFile,
-    partitionOffset: Long,
-    partitionFirstRecordId: Long) extends KnownSizeEstimation {
+                         succinctIndexedFile: SuccinctIndexedFile,
+                         partitionOffset: Long,
+                         partitionFirstRecordId: Long) extends KnownSizeEstimation {
 
   /** Returns the range of recordIds for which this partition is responsible (both inclusive) */
   def partitionOffsetRange: Range = {
@@ -67,9 +67,9 @@ class SuccinctPartition(
   }
 
   /**
-   * Obtain all recordIds and lengths of matches in input corresponding to a
-   * regex search query
-   */
+    * Obtain all recordIds and lengths of matches in input corresponding to a
+    * regex search query
+    */
   def regexSearch(query: String): Iterator[RegExMatch] = {
     succinctIndexedFile.regexSearch(query).iterator
   }

@@ -8,7 +8,7 @@ import java.util.Iterator;
 public class ByteArrayBlockSerializerTest extends TestCase {
 
   public void testSerialize() throws Exception {
-    byte[][] data = new byte[][]{"apple".getBytes(), "banana".getBytes(), "carrot".getBytes()};
+    byte[][] data = new byte[][] {"apple".getBytes(), "banana".getBytes(), "carrot".getBytes()};
     Iterator<byte[]> dataIterator = Arrays.asList(data).iterator();
     byte recordSeparator = -125;
     ByteArrayBlockSerializer serializer = new ByteArrayBlockSerializer(recordSeparator);
@@ -27,9 +27,9 @@ public class ByteArrayBlockSerializerTest extends TestCase {
     assertEquals(null, serializedData.getMetadata());
 
     // Check serialized data
-    byte[] expectedSerializedBytes = new byte[] {recordSeparator, 'a', 'p', 'p', 'l', 'e',
-      recordSeparator, 'b', 'a', 'n', 'a', 'n', 'a', recordSeparator, 'c', 'a', 'r', 'r', 'o', 't',
-      recordSeparator};
+    byte[] expectedSerializedBytes =
+      new byte[] {recordSeparator, 'a', 'p', 'p', 'l', 'e', recordSeparator, 'b', 'a', 'n', 'a',
+        'n', 'a', recordSeparator, 'c', 'a', 'r', 'r', 'o', 't', recordSeparator};
 
     assertTrue(Arrays.equals(expectedSerializedBytes, serializedData.getData()));
   }

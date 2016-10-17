@@ -31,8 +31,8 @@ public class JsonBlockSerializerTest extends TestCase {
     assertEquals(9, offsets[1]);
 
     // Check metadata
-    @SuppressWarnings("unchecked")
-    FieldMapping fieldMapping = (FieldMapping) serializedData.getMetadata();
+    @SuppressWarnings("unchecked") FieldMapping fieldMapping =
+      (FieldMapping) serializedData.getMetadata();
     assertEquals(4, fieldMapping.size());
     assertTrue(fieldMapping.containsField("name"));
     assertTrue(fieldMapping.containsField("age"));
@@ -44,8 +44,9 @@ public class JsonBlockSerializerTest extends TestCase {
     assertEquals(-117, fieldMapping.getDelimiter("name.last"));
 
     // Check serialized data
-    byte[] expectedSerializedData = new byte[]{-120, 'a', 'b', 'c', -120, -119, '1', '8', -119,
-      -118, 'a', 'b', 'c', -118, -117, 'd', 'e', 'f', -117, -119, '1', '6', '.' , '5', -119};
+    byte[] expectedSerializedData =
+      new byte[] {-120, 'a', 'b', 'c', -120, -119, '1', '8', -119, -118, 'a', 'b', 'c', -118, -117,
+        'd', 'e', 'f', -117, -119, '1', '6', '.', '5', -119};
     assertTrue(Arrays.equals(expectedSerializedData, serializedData.getData()));
 
   }

@@ -20,8 +20,9 @@ public class JsonDeserializerTest extends TestCase {
 
   public void testDeserialize() throws Exception {
     byte[] jsonSerializedData1 = new byte[] {-120, 'a', 'b', 'c', -120, -119, '1', '8', -119};
-    byte[] jsonSerializedData2 = new byte[] {-118, 'a', 'b', 'c', -118, -117, 'd', 'e', 'f', -117,
-      -119, '1', '6', '.', '5', -119};
+    byte[] jsonSerializedData2 =
+      new byte[] {-118, 'a', 'b', 'c', -118, -117, 'd', 'e', 'f', -117, -119, '1', '6', '.', '5',
+        -119};
 
     String expectedJsonString1 = "{\"name\":\"abc\", \"age\":18.0}";
     String expectedJsonString2 = "{\"name\": {\"first\":\"abc\", \"last\":\"def\"}, \"age\":16.5}";

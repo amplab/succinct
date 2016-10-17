@@ -13,10 +13,19 @@ import java.util.Iterator;
  * schema across object instances) and dictionary encoded strings (which share dictionary terms
  * across object instances).
  *
- *
  * @param <T> Type of the data in the block.
  */
 public interface BlockSerializer<T> {
+
+  /**
+   * Serializes a block of data (represented as an iterator over the generic data type) into an
+   * array of bytes. The array of bytes must be safe to use with Succinct interfaces.
+   *
+   * @param data Block of data to be serialized.
+   * @return The serialized array of bytes.
+   */
+  SerializedData serialize(Iterator<T> data) throws SerializationException;
+
 
   class SerializedData {
     private byte[] data;
@@ -41,13 +50,4 @@ public interface BlockSerializer<T> {
       return metadata;
     }
   }
-
-  /**
-   * Serializes a block of data (represented as an iterator over the generic data type) into an
-   * array of bytes. The array of bytes must be safe to use with Succinct interfaces.
-   *
-   * @param data Block of data to be serialized.
-   * @return The serialized array of bytes.
-   */
-  SerializedData serialize(Iterator<T> data) throws SerializationException;
 }

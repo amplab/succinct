@@ -17,16 +17,12 @@ public abstract class RegExExecutor {
   protected TreeSet<RegExMatch> finalResults;
   protected boolean greedy;
 
-  enum SortType {
-    FRONT_SORTED,
-    END_SORTED
-  }
 
   /**
    * Constructor to initialize RegExExecutor.
    *
    * @param succinctFile The input SuccinctFile.
-   * @param regEx The input regular expression.
+   * @param regEx        The input regular expression.
    */
   RegExExecutor(SuccinctFile succinctFile, RegEx regEx, boolean greedy) {
     this.succinctFile = succinctFile;
@@ -100,7 +96,8 @@ public abstract class RegExExecutor {
 
       // Greedy match
       RegExMatch lastMatch = null;
-      while (rightEntry != null && succinctFile.sameRecord(leftEntry.getOffset(), rightEntry.getOffset())) {
+      while (rightEntry != null && succinctFile
+        .sameRecord(leftEntry.getOffset(), rightEntry.getOffset())) {
         lastMatch = rightEntry;
         rightEntry = right.higher(rightEntry);
       }
@@ -116,5 +113,10 @@ public abstract class RegExExecutor {
     }
 
     return wildcardRes;
+  }
+
+  enum SortType {
+    FRONT_SORTED,
+    END_SORTED
   }
 }

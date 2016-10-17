@@ -12,13 +12,12 @@ import java.util.Arrays;
 
 public class SuccinctTableBufferTest extends SuccinctTableTest {
 
+  byte[] data;
   private String testFileRaw = this.getClass().getResource("/raw.dat").getFile();
   private String testFileSuccinct =
     this.getClass().getResource("/raw.dat").getFile() + ".idx.succinct";
   private String testFileSuccinctMin =
     this.getClass().getResource("/raw.dat").getFile() + ".idx.min.succinct";
-
-  byte[] data;
 
   /**
    * Set up test.
@@ -99,7 +98,7 @@ public class SuccinctTableBufferTest extends SuccinctTableTest {
    */
   public void testMemoryMap() throws Exception {
 
-    ((SuccinctTableBuffer)sTable).writeToFile(testFileSuccinctMin);
+    ((SuccinctTableBuffer) sTable).writeToFile(testFileSuccinctMin);
     SuccinctIndexedFile sIFileRead =
       new SuccinctIndexedFileBuffer(testFileSuccinctMin, StorageMode.MEMORY_MAPPED);
 
@@ -118,7 +117,7 @@ public class SuccinctTableBufferTest extends SuccinctTableTest {
    */
   public void testReadFromFile() throws Exception {
 
-    ((SuccinctTableBuffer)sTable).writeToFile(testFileSuccinctMin);
+    ((SuccinctTableBuffer) sTable).writeToFile(testFileSuccinctMin);
     SuccinctIndexedFile sIFileRead =
       new SuccinctIndexedFileBuffer(testFileSuccinctMin, StorageMode.MEMORY_ONLY);
 

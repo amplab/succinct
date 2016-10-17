@@ -30,7 +30,21 @@ abstract class SuccinctTableRDD(@transient private val sc: SparkContext,
                                 @transient private val deps: Seq[Dependency[_]])
   extends RDD[Row](sc, deps) {
 
-  private[succinct] def partitionsRDD: RDD[SuccinctTablePartition]
+  /**
+    * Saves the [[SuccinctTablePartition]]s to disk by serializing them.
+    *
+    * @param path Path to save the serialized partitions to.
+    */
+  def save(path: String): Unit
+
+  /**
+    * Search and extract based on a set of filters and the required columns.
+    *
+    * @param requiredColumns List of required columns
+    * @param filters         Set of filters.
+    * @return An RDD of matching rows with pruned columns; contains false positives.
+    */
+  def pruneAndFilter(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row]
 
   /**
     * Returns the RDD of partitions.
@@ -48,21 +62,7 @@ abstract class SuccinctTableRDD(@transient private val sc: SparkContext,
     firstParent[SuccinctTablePartition]
   }
 
-  /**
-    * Saves the [[SuccinctTablePartition]]s to disk by serializing them.
-    *
-    * @param path Path to save the serialized partitions to.
-    */
-  def save(path: String): Unit
-
-  /**
-    * Search and extract based on a set of filters and the required columns.
-    *
-    * @param requiredColumns List of required columns
-    * @param filters         Set of filters.
-    * @return An RDD of matching rows with pruned columns; contains false positives.
-    */
-  def pruneAndFilter(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row]
+  private[succinct] def partitionsRDD: RDD[SuccinctTablePartition]
 
 }
 
@@ -100,6 +100,27 @@ object SuccinctTableRDD {
 
 
     new SuccinctTableRDDImpl(succinctPartitions.cache(), succinctSeparators, succinctSchema, minRow, maxRow, succinctSerDe)
+  }
+
+  private def getLimits(maximums: Row, minimums: Row): Seq[Int] = {
+    val maxLengths = maximums.toSeq.map(getLength)
+    val minLengths = minimums.toSeq.map(getLength)
+    maxLengths.zip(minLengths).map(x => if (x._1 > x._2) x._1 else x._2)
+  }
+
+  private def getLength(data: Any): Int = {
+    data match {
+      case _: Boolean => 1
+      case _: Byte => data.toString.length
+      case _: Short => data.toString.length
+      case _: Int => data.toString.length
+      case _: Long => data.toString.length
+      case _: Float => "%.2f".format(data.asInstanceOf[Float]).length
+      case _: Double => "%.2f".format(data.asInstanceOf[Double]).length
+      case _: java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal].longValue.toString.length
+      case _: String => data.asInstanceOf[String].length
+      case other => throw new IllegalArgumentException(s"Unexpected type.")
+    }
   }
 
   /**
@@ -186,27 +207,6 @@ object SuccinctTableRDD {
 
     val succinctFile = new SuccinctTableBuffer(rawBufferOS.toByteArray, offsets.toArray)
     Iterator(new SuccinctTablePartition(succinctFile, succinctSerDe))
-  }
-
-  private def getLength(data: Any): Int = {
-    data match {
-      case _: Boolean => 1
-      case _: Byte => data.toString.length
-      case _: Short => data.toString.length
-      case _: Int => data.toString.length
-      case _: Long => data.toString.length
-      case _: Float => "%.2f".format(data.asInstanceOf[Float]).length
-      case _: Double => "%.2f".format(data.asInstanceOf[Double]).length
-      case _: java.math.BigDecimal => data.asInstanceOf[java.math.BigDecimal].longValue.toString.length
-      case _: String => data.asInstanceOf[String].length
-      case other => throw new IllegalArgumentException(s"Unexpected type.")
-    }
-  }
-
-  private def getLimits(maximums: Row, minimums: Row): Seq[Int] = {
-    val maxLengths = maximums.toSeq.map(getLength)
-    val minLengths = minimums.toSeq.map(getLength)
-    maxLengths.zip(minLengths).map(x => if (x._1 > x._2) x._1 else x._2)
   }
 
   private[succinct] def min(inputRDD: RDD[Row], schema: StructType): Row = {

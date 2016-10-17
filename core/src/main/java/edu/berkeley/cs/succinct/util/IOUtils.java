@@ -30,7 +30,7 @@ public class IOUtils {
    * Writes an integer array to stream.
    *
    * @param array Array to write to stream.
-   * @param os DataOutputStream to write to.
+   * @param os    DataOutputStream to write to.
    * @throws IOException
    */
   public static void writeArray(int[] array, DataOutputStream os) throws IOException {

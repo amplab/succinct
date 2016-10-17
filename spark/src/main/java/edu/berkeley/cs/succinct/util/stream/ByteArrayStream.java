@@ -26,7 +26,7 @@ public class ByteArrayStream {
     return stream.readByte();
   }
 
-  public int get(byte[] buf) throws IOException{
+  public int get(byte[] buf) throws IOException {
     stream.seek(startPos);
     return stream.read(buf);
   }

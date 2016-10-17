@@ -1,18 +1,18 @@
 package edu.berkeley.cs.succinct.kv.impl
 
 import edu.berkeley.cs.succinct.kv.SuccinctKVRDD
-import org.apache.spark.succinct.kv.SuccinctKVPartition
-import org.apache.spark.{TaskContext, OneToOneDependency}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.succinct.kv.SuccinctKVPartition
+import org.apache.spark.{OneToOneDependency, TaskContext}
 
 import scala.reflect.ClassTag
 
 class SuccinctKVRDDImpl[K: ClassTag] private[succinct](
-    val partitionsRDD: RDD[SuccinctKVPartition[K]],
-    val firstKeys: Array[K],
-    val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
-    (implicit ordering: Ordering[K])
+                                                        val partitionsRDD: RDD[SuccinctKVPartition[K]],
+                                                        val firstKeys: Array[K],
+                                                        val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+                                                      (implicit ordering: Ordering[K])
   extends SuccinctKVRDD[K](partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
   val recordCount: Long = partitionsRDD.map(_.count).aggregate(0L)(_ + _, _ + _)
@@ -30,9 +30,9 @@ class SuccinctKVRDDImpl[K: ClassTag] private[succinct](
   setName("SuccinctKVRDD")
 
   /**
-   * Persists the Succinct partitions at the specified storage level, ignoring any existing target
-   * storage level.
-   */
+    * Persists the Succinct partitions at the specified storage level, ignoring any existing target
+    * storage level.
+    */
   override def persist(newLevel: StorageLevel): this.type = {
     partitionsRDD.persist(newLevel)
     this
@@ -50,14 +50,25 @@ class SuccinctKVRDDImpl[K: ClassTag] private[succinct](
     this
   }
 
-  /**
-    * Count the number of KV-pairs in the SuccinctKVRDD.
-    *
-    * @return The number of KV-pairs in the SuccinctKVRDD.
-    */
-  override def count(): Long = {
-    recordCount
+  /** Gets the values for the specified keys; adds null values for keys that don't exist. **/
+  def multiget(keys: Array[K]): Map[K, Array[Byte]] = {
+    val keysByPartition = keys.groupBy(k => partitionIdx(k))
+    val partitions = keysByPartition.keys.toSeq
+    val results: Array[Array[(K, Array[Byte])]] = context.runJob(partitionsRDD,
+      (context: TaskContext, partIter: Iterator[SuccinctKVPartition[K]]) => {
+        if (partIter.hasNext && keysByPartition.contains(context.partitionId())) {
+          val part = partIter.next()
+          val keysForPartition = keysByPartition.get(context.partitionId()).get
+          part.multiget(keysForPartition)
+        } else {
+          Array.empty
+        }
+      }, partitions)
+    results.flatten.toMap
   }
+
+  /** Get the partition index for a particular key. **/
+  def partitionIdx(key: K): Int = findKey(key)
 
   /** Find the index of a particular key using binary search. **/
   private def findKey(key: K): Int = {
@@ -72,38 +83,18 @@ class SuccinctKVRDDImpl[K: ClassTag] private[succinct](
     -1
   }
 
-  /** Get the partition index for a particular key. **/
-  def partitionIdx(key: K): Int = findKey(key)
-
-  /** Gets the values for the specified keys; adds null values for keys that don't exist. **/
-  def multiget(keys: Array[K]): Map[K, Array[Byte]] = {
-    val keysByPartition = keys.groupBy(k => partitionIdx(k))
-    val partitions = keysByPartition.keys.toSeq
-    val results: Array[Array[(K, Array[Byte])]] = context.runJob(partitionsRDD,
-      (context: TaskContext, partIter: Iterator[SuccinctKVPartition[K]]) => {
-        if (partIter.hasNext && keysByPartition.contains(context.partitionId())) {
-          val part = partIter.next()
-          val keysForPartition  = keysByPartition.get(context.partitionId()).get
-          part.multiget(keysForPartition)
-        } else {
-          Array.empty
-        }
-      }, partitions)
-    results.flatten.toMap
-  }
-
   /**
     * Bulk append data to SuccinctKVRDD; returns a new SuccinctKVRDD, with the newly appended
     * data encoded as Succinct data structures. The original RDD is removed from memory after this
     * operation.
     *
-    * @param data The data to be appended.
+    * @param data                 The data to be appended.
     * @param preservePartitioning Preserves the partitioning for the appended data if true;
     *                             repartitions the data otherwise.
     * @return A new SuccinctKVRDD containing the newly appended data.
     */
   def bulkAppend(data: RDD[(K, Array[Byte])], preservePartitioning: Boolean = false):
-      SuccinctKVRDD[K] = {
+  SuccinctKVRDD[K] = {
 
     val countPerPartition: Double = count().toDouble / partitionsRDD.partitions.length.toDouble
     val nNewPartitions: Int = Math.ceil(data.count() / countPerPartition).toInt
@@ -119,5 +110,14 @@ class SuccinctKVRDDImpl[K: ClassTag] private[succinct](
     partitionsRDD.unpersist()
     val firstKeys = newSuccinctRDDPartitions.map(_.firstKey).collect()
     new SuccinctKVRDDImpl[K](newSuccinctRDDPartitions, firstKeys)
+  }
+
+  /**
+    * Count the number of KV-pairs in the SuccinctKVRDD.
+    *
+    * @return The number of KV-pairs in the SuccinctKVRDD.
+    */
+  override def count(): Long = {
+    recordCount
   }
 }

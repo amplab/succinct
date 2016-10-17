@@ -63,8 +63,8 @@ public class JsonDeserializer implements ObjectDeserializer<String> {
     if (key.contains(".")) {
       String[] keySplits = key.split("\\.", 2);
       if (map.containsKey(keySplits[0])) {
-        @SuppressWarnings("unchecked")
-        Map<String, Object> valObj = (Map<String, Object>) map.get(keySplits[0]);
+        @SuppressWarnings("unchecked") Map<String, Object> valObj =
+          (Map<String, Object>) map.get(keySplits[0]);
         add(valObj, keySplits[1], value);
       } else {
         Map<String, Object> valObj = new HashMap<String, Object>();

@@ -45,7 +45,8 @@ public abstract class SuccinctRegExExecutor extends RegExExecutor {
 
 
       for (Map.Entry<Long, Integer> match : succinctMatches.entrySet()) {
-        regExMatches.add(new RegExMatch(succinctFile.succinctIndexToOffset(match.getKey()), match.getValue()));
+        regExMatches.add(
+          new RegExMatch(succinctFile.succinctIndexToOffset(match.getKey()), match.getValue()));
       }
 
       RegExMatch prv = null;

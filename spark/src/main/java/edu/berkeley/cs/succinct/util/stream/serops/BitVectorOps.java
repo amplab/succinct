@@ -11,7 +11,7 @@ public class BitVectorOps {
    * Get the bit at the specified index.
    *
    * @param data LongArrayStream representation of BitVector's data.
-   * @param i The index into the BitVector.
+   * @param i    The index into the BitVector.
    * @return The bit at the specified bit.
    */
   public static long getBit(LongArrayStream data, long i) throws IOException {
@@ -23,7 +23,7 @@ public class BitVectorOps {
    * Get the value at a particular offset into the BitVector.
    *
    * @param data LongArrayStream representation of BitVector's data.
-   * @param pos The offset into the BitVector.
+   * @param pos  The offset into the BitVector.
    * @param bits The bit-width of the value to get.
    * @return The value of specified bit-width at the specified offset into the BitVector.
    */

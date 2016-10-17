@@ -44,8 +44,8 @@ public interface SuccinctIndexedFile extends SuccinctFile {
    * Get random access into record.
    *
    * @param recordId The record id.
-   * @param offset Offset into record.
-   * @param length Number of bytes to fetch.
+   * @param offset   Offset into record.
+   * @param length   Number of bytes to fetch.
    * @return The extracted data.
    */
   byte[] extractRecordBytes(int recordId, int offset, int length);
@@ -62,8 +62,8 @@ public interface SuccinctIndexedFile extends SuccinctFile {
    * Get random access into record.
    *
    * @param recordId The record id.
-   * @param offset Offset into record.
-   * @param length Number of bytes to fetch.
+   * @param offset   Offset into record.
+   * @param length   Number of bytes to fetch.
    * @return The extracted data.
    */
   String extractRecord(int recordId, int offset, int length);

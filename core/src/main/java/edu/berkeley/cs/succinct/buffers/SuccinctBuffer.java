@@ -47,10 +47,6 @@ public class SuccinctBuffer extends SuccinctCore {
     super();
   }
 
-  @Override public int getCoreSize() {
-    return core.limit();
-  }
-
   /**
    * Constructor to initialize SuccinctCore from input byte array.
    *
@@ -137,6 +133,10 @@ public class SuccinctBuffer extends SuccinctCore {
   public SuccinctBuffer(ByteBuffer buf) {
     this.core = buf;
     mapFromCore();
+  }
+
+  @Override public int getCoreSize() {
+    return core.limit();
   }
 
   /**

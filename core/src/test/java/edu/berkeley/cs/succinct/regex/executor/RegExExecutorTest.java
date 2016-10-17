@@ -11,8 +11,7 @@ abstract public class RegExExecutorTest extends TestCase {
   protected String input = "YoHoYoHoHoYoYoHoHoHo";
   protected SuccinctFileBuffer succinctFile = new SuccinctFileBuffer(input.getBytes());
 
-  abstract Set<RegExMatch> runRegEx(String exp, boolean greedy)
-    throws RegExParsingException;
+  abstract Set<RegExMatch> runRegEx(String exp, boolean greedy) throws RegExParsingException;
 
   public void testExecuteGreedy() throws Exception {
 

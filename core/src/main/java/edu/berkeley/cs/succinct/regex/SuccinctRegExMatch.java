@@ -21,7 +21,7 @@ public class SuccinctRegExMatch extends Range {
   /**
    * Constructor to initialize Regex Match.
    *
-   * @param range Input range.
+   * @param range  Input range.
    * @param length Length of the match.
    */
   public SuccinctRegExMatch(Range range, int length) {

@@ -16,38 +16,15 @@ import org.apache.spark.succinct.SuccinctPartition
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * Extends `RDD[Array[Byte]]` to a SuccinctRDD, which stores encodes each partition of the parent
- * RDD using Succinct. SuccinctRDD supports count, search and extract operations, which treat the
- * RDD as a flat file. SuccinctRDD additionally supports search and extract operations on a
- * record granularity.
- */
+  * Extends `RDD[Array[Byte]]` to a SuccinctRDD, which stores encodes each partition of the parent
+  * RDD using Succinct. SuccinctRDD supports count, search and extract operations, which treat the
+  * RDD as a flat file. SuccinctRDD additionally supports search and extract operations on a
+  * record granularity.
+  */
 
 abstract class SuccinctRDD(@transient private val sc: SparkContext,
                            @transient private val deps: Seq[Dependency[_]])
   extends RDD[Array[Byte]](sc, deps) {
-
-  /**
-   * Returns the RDD of partitions.
-   *
-   * @return The RDD of partitions.
-   */
-  private[succinct] def partitionsRDD: RDD[SuccinctPartition]
-
-  /**
-   * Returns first parent of the RDD.
-   *
-   * @return The first parent of the RDD.
-   */
-  protected[succinct] def getFirstParent: RDD[SuccinctPartition] = {
-    firstParent[SuccinctPartition]
-  }
-
-  /**
-   * Returns the array of partitions.
-   *
-   * @return The array of partitions.
-   */
-  override protected def getPartitions: Array[Partition] = partitionsRDD.partitions
 
   /** Overrides the compute function to return iterator over Succinct records. */
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
@@ -60,75 +37,66 @@ abstract class SuccinctRDD(@transient private val sc: SparkContext,
   }
 
   /**
-   * Search for all occurrences of a query within the RDD.
-   *
-   * @param query The search query.
-   * @return The RDD of iterables over recordIds into each partition.
-   */
-  def search(query: Array[Byte]): RDD[Long] = {
-    partitionsRDD.flatMap(_.search(query))
-  }
-
-  /**
-   * Search for all occurrences of a query string within the RDD.
-   *
-   * @param query The search query.
-   * @return The RDD of recordIds.
-   */
+    * Search for all occurrences of a query string within the RDD.
+    *
+    * @param query The search query.
+    * @return The RDD of recordIds.
+    */
   def search(query: String): RDD[Long] = {
     search(query.getBytes("utf-8"))
   }
 
   /**
-   * Counts for all occurrences of a query in the RDD.
-   *
-   * @param query The count query.
-   * @return The count of the number of occurrences of the query.
-   */
-  def count(query: Array[Byte]): Long = {
-    partitionsRDD.map(_.count(query)).aggregate(0L)(_ + _, _ + _)
+    * Search for all occurrences of a query within the RDD.
+    *
+    * @param query The search query.
+    * @return The RDD of iterables over recordIds into each partition.
+    */
+  def search(query: Array[Byte]): RDD[Long] = {
+    partitionsRDD.flatMap(_.search(query))
   }
 
   /**
-   * Counts for all occurrences of a query in the RDD.
-   *
-   * @param query The count query.
-   * @return The count of the number of occurrences of the query.
-   */
+    * Counts for all occurrences of a query in the RDD.
+    *
+    * @param query The count query.
+    * @return The count of the number of occurrences of the query.
+    */
   def count(query: String): Long = {
     count(query.getBytes("utf-8"))
   }
 
   /**
-   * Provides random access into the RDD; extracts specified number of bytes starting at specified
-   * offset into the original RDD.
-   *
-   * @param offset Offset into original RDD.
-   * @param length Number of bytes to be fetched.
-   * @return The extracted data.
-   */
-  def extract(offset: Long, length: Int): Array[Byte]
-
-  /**
-   * Searches for the input regular expression within each RDD and
-   * returns results as (offset, length) pairs.
-   *
-   * The query must be UTF-8 encoded.
-   *
-   * @param query The regular expression search query.
-   * @return RDD of matched pattern occurrences.
-   */
-  def regexSearch(query: String): RDD[RegExMatch] = {
-    partitionsRDD.flatMap(_.regexSearch(query))
+    * Counts for all occurrences of a query in the RDD.
+    *
+    * @param query The count query.
+    * @return The count of the number of occurrences of the query.
+    */
+  def count(query: Array[Byte]): Long = {
+    partitionsRDD.map(_.count(query)).aggregate(0L)(_ + _, _ + _)
   }
 
   /**
-   * Count the number of records in the SuccinctRDD.
-   *
-   * @return The number of records in the SuccinctRDD.
-   */
-  override def count(): Long = {
-    partitionsRDD.map(_.count).aggregate(0L)(_ + _, _ + _)
+    * Provides random access into the RDD; extracts specified number of bytes starting at specified
+    * offset into the original RDD.
+    *
+    * @param offset Offset into original RDD.
+    * @param length Number of bytes to be fetched.
+    * @return The extracted data.
+    */
+  def extract(offset: Long, length: Int): Array[Byte]
+
+  /**
+    * Searches for the input regular expression within each RDD and
+    * returns results as (offset, length) pairs.
+    *
+    * The query must be UTF-8 encoded.
+    *
+    * @param query The regular expression search query.
+    * @return RDD of matched pattern occurrences.
+    */
+  def regexSearch(query: String): RDD[RegExMatch] = {
+    partitionsRDD.flatMap(_.regexSearch(query))
   }
 
   /**
@@ -136,7 +104,7 @@ abstract class SuccinctRDD(@transient private val sc: SparkContext,
     * data encoded as Succinct data structures. The original RDD is removed from memory after this
     * operation.
     *
-    * @param data The data to be appended.
+    * @param data                 The data to be appended.
     * @param preservePartitioning Preserves the partitioning for the appended data if true;
     *                             repartitions the data otherwise.
     * @return A new SuccinctJsonRDD containing the newly appended data.
@@ -175,10 +143,19 @@ abstract class SuccinctRDD(@transient private val sc: SparkContext,
   }
 
   /**
-   * Saves the SuccinctRDD at the specified path.
-   *
-   * @param location The path where the SuccinctRDD should be stored.
-   */
+    * Count the number of records in the SuccinctRDD.
+    *
+    * @return The number of records in the SuccinctRDD.
+    */
+  override def count(): Long = {
+    partitionsRDD.map(_.count).aggregate(0L)(_ + _, _ + _)
+  }
+
+  /**
+    * Saves the SuccinctRDD at the specified path.
+    *
+    * @param location The path where the SuccinctRDD should be stored.
+    */
   def save(location: String): Unit = {
     val path = new Path(location)
     val fs = FileSystem.get(path.toUri, new Configuration())
@@ -201,21 +178,43 @@ abstract class SuccinctRDD(@transient private val sc: SparkContext,
     fs.create(successPath).close()
   }
 
+  /**
+    * Returns first parent of the RDD.
+    *
+    * @return The first parent of the RDD.
+    */
+  protected[succinct] def getFirstParent: RDD[SuccinctPartition] = {
+    firstParent[SuccinctPartition]
+  }
+
+  /**
+    * Returns the array of partitions.
+    *
+    * @return The array of partitions.
+    */
+  override protected def getPartitions: Array[Partition] = partitionsRDD.partitions
+
+  /**
+    * Returns the RDD of partitions.
+    *
+    * @return The RDD of partitions.
+    */
+  private[succinct] def partitionsRDD: RDD[SuccinctPartition]
+
 }
 
 /** Factory for [[SuccinctRDD]] instances */
 object SuccinctRDD {
 
   /**
-   * Converts an input RDD to SuccinctRDD.
-   *
-   * @param inputRDD The input RDD.
-   * @return The SuccinctRDD.
-   */
-  def apply(
-      inputRDD: RDD[Array[Byte]],
-      storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY):
-   SuccinctRDD = {
+    * Converts an input RDD to SuccinctRDD.
+    *
+    * @param inputRDD The input RDD.
+    * @return The SuccinctRDD.
+    */
+  def apply(inputRDD: RDD[Array[Byte]],
+            storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY):
+  SuccinctRDD = {
     val partitionSizes = inputRDD.mapPartitionsWithIndex((idx, partition) => {
       val partitionSize = partition.aggregate(0L)((sum, record) => sum + (record.length + 1), _ + _)
       Iterator((idx, partitionSize))
@@ -236,39 +235,14 @@ object SuccinctRDD {
   }
 
   /**
-   * Reads a SuccinctRDD from disk.
-   *
-   * @param sc The spark context
-   * @param location The path to read the SuccinctRDD from.
-   * @return The SuccinctRDD.
-   */
-  def apply(sc: SparkContext, location: String, storageLevel: StorageLevel): SuccinctRDD = {
-    val locationPath = new Path(location)
-    val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
-    val status = fs.listStatus(locationPath, new PathFilter {
-      override def accept(path: Path): Boolean = {
-        path.getName.startsWith("part-")
-      }
-    })
-    val numPartitions = status.length
-    val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
-      .mapPartitionsWithIndex[SuccinctPartition]((i, partition) => {
-      val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
-      Iterator(SuccinctPartition(partitionLocation, storageLevel))
-    })
-    new SuccinctRDDImpl(succinctPartitions, storageLevel)
-  }
-
-  /**
-   * Creates a SuccinctPartition from a partition of the input RDD.
-   *
-   * @param dataIter The iterator over the input partition data.
-   * @return An Iterator over the SuccinctPartition.
-   */
-  private[succinct] def createSuccinctPartition(
-    partitionOffset: Long,
-    partitionFirstRecordId: Long,
-    dataIter: Iterator[Array[Byte]]):
+    * Creates a SuccinctPartition from a partition of the input RDD.
+    *
+    * @param dataIter The iterator over the input partition data.
+    * @return An Iterator over the SuccinctPartition.
+    */
+  private[succinct] def createSuccinctPartition(partitionOffset: Long,
+                                                partitionFirstRecordId: Long,
+                                                dataIter: Iterator[Array[Byte]]):
   Iterator[SuccinctPartition] = {
     var offsets = new ArrayBuffer[Int]()
     var buffers = new ArrayBuffer[Array[Byte]]()
@@ -291,6 +265,30 @@ object SuccinctRDD {
 
     val succinctBuf = new SuccinctIndexedFileBuffer(rawBufferOS.toByteArray, offsets.toArray)
     Iterator(new SuccinctPartition(succinctBuf, partitionOffset, partitionFirstRecordId))
+  }
+
+  /**
+    * Reads a SuccinctRDD from disk.
+    *
+    * @param sc       The spark context
+    * @param location The path to read the SuccinctRDD from.
+    * @return The SuccinctRDD.
+    */
+  def apply(sc: SparkContext, location: String, storageLevel: StorageLevel): SuccinctRDD = {
+    val locationPath = new Path(location)
+    val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
+    val status = fs.listStatus(locationPath, new PathFilter {
+      override def accept(path: Path): Boolean = {
+        path.getName.startsWith("part-")
+      }
+    })
+    val numPartitions = status.length
+    val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
+      .mapPartitionsWithIndex[SuccinctPartition]((i, partition) => {
+      val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
+      Iterator(SuccinctPartition(partitionLocation, storageLevel))
+    })
+    new SuccinctRDDImpl(succinctPartitions, storageLevel)
   }
 
 }

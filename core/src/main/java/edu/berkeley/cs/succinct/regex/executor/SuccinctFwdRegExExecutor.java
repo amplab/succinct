@@ -115,7 +115,7 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
   /**
    * Performs concatenation of a Succinct match with right subtree.
    *
-   * @param r Right subtree.
+   * @param r         Right subtree.
    * @param leftMatch Left succinct match.
    * @return Concatenation of left match with right subtree.
    */
@@ -151,7 +151,8 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
                 continue;
               }
               Range range = succinctFile
-                .continueFwdSearch(String.valueOf(c).toCharArray(), leftMatch, leftMatch.getLength());
+                .continueFwdSearch(String.valueOf(c).toCharArray(), leftMatch,
+                  leftMatch.getLength());
               if (!range.empty()) {
                 SuccinctRegExMatch m = new SuccinctRegExMatch(range, leftMatch.getLength() + 1);
                 concatResults.add(m);
@@ -163,7 +164,8 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
             char[] charRange = p.getPrimitiveStr().toCharArray();
             for (char c : charRange) {
               Range range = succinctFile
-                .continueFwdSearch(String.valueOf(c).toCharArray(), leftMatch, leftMatch.getLength());
+                .continueFwdSearch(String.valueOf(c).toCharArray(), leftMatch,
+                  leftMatch.getLength());
               if (!range.empty()) {
                 SuccinctRegExMatch m = new SuccinctRegExMatch(range, leftMatch.getLength() + 1);
                 concatResults.add(m);
@@ -200,7 +202,8 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
             break;
           }
           case MinToMax: {
-            concatResults = regexRepeatMinToMax(rep.getInternal(), leftMatch, rep.getMin(), rep.getMax());
+            concatResults =
+              regexRepeatMinToMax(rep.getInternal(), leftMatch, rep.getMin(), rep.getMax());
             break;
           }
         }
@@ -228,7 +231,7 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
     }
 
     repeatResults.addAll(internalResults);
-    for (SuccinctRegExMatch internalMatch: internalResults) {
+    for (SuccinctRegExMatch internalMatch : internalResults) {
       repeatResults.addAll(regexRepeatOneOrMore(r, internalMatch));
     }
     return repeatResults;
@@ -237,7 +240,7 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
   /**
    * Repeat regular expression one or more times given left match.
    *
-   * @param r The regular expression.
+   * @param r         The regular expression.
    * @param leftMatch The left match.
    * @return The results for repeat.
    */
@@ -262,7 +265,7 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
   /**
    * Repeat regular expression zero or more times given left match.
    *
-   * @param r The regular expression.
+   * @param r         The regular expression.
    * @param leftMatch The left match.
    * @return The results for repeat.
    */
@@ -280,14 +283,14 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
   /**
    * Repeat regular expression from min to max times.
    *
-   * @param r The regular expression.
+   * @param r   The regular expression.
    * @param min The minimum number of repetitions.
    * @param max The maximum number of repetitions.
    * @return The results for repeat.
    */
   private HashSet<SuccinctRegExMatch> regexRepeatMinToMax(RegEx r, int min, int max) {
-    min = (min > 0) ? min - 1: 0;
-    max = (max > 0) ? max - 1: 0;
+    min = (min > 0) ? min - 1 : 0;
+    max = (max > 0) ? max - 1 : 0;
 
     HashSet<SuccinctRegExMatch> repeatResults = new HashSet<>();
     HashSet<SuccinctRegExMatch> internalResults = computeSuccinctly(r);
@@ -300,7 +303,7 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
     }
 
     if (max > 0) {
-      for (SuccinctRegExMatch internalMatch: internalResults) {
+      for (SuccinctRegExMatch internalMatch : internalResults) {
         repeatResults.addAll(regexRepeatMinToMax(r, internalMatch, min, max));
       }
     }
@@ -310,15 +313,16 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
   /**
    * Repeat the regular expression from min to max times given left match.
    *
-   * @param r The regular expression.
+   * @param r         The regular expression.
    * @param leftMatch The left match.
-   * @param min The minimum number of repetitions.
-   * @param max The maximum number of repetitions.
+   * @param min       The minimum number of repetitions.
+   * @param max       The maximum number of repetitions.
    * @return The results for repeat.
    */
-  private HashSet<SuccinctRegExMatch> regexRepeatMinToMax(RegEx r, SuccinctRegExMatch leftMatch, int min, int max) {
-    min = (min > 0) ? min - 1: 0;
-    max = (max > 0) ? max - 1: 0;
+  private HashSet<SuccinctRegExMatch> regexRepeatMinToMax(RegEx r, SuccinctRegExMatch leftMatch,
+    int min, int max) {
+    min = (min > 0) ? min - 1 : 0;
+    max = (max > 0) ? max - 1 : 0;
 
     HashSet<SuccinctRegExMatch> repeatResults = new HashSet<>();
     if (leftMatch.empty()) {
@@ -335,7 +339,7 @@ public class SuccinctFwdRegExExecutor extends SuccinctRegExExecutor {
     }
 
     if (max > 0) {
-      for (SuccinctRegExMatch concatMatch: concatResults) {
+      for (SuccinctRegExMatch concatMatch : concatResults) {
         repeatResults.addAll(regexRepeatMinToMax(r, concatMatch, min, max));
       }
     }

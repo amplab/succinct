@@ -4,7 +4,7 @@ import java.nio.LongBuffer;
 
 /**
  * Operations on Serialized IntVector. Supports read-only operations. </p>
- *
+ * <p/>
  * The buffer passed in as argument to all operations is the IntVector data (containing the 64-bit
  * blocks) represented as a LongBuffer.
  */

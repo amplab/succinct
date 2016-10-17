@@ -7,7 +7,7 @@ public class TestUtils {
    * Naive string count algorithm. This is the baseline we test against.
    *
    * @param input Input string.
-   * @param str Query string.
+   * @param str   Query string.
    * @return Number of occurrences of the query string in the input string.
    */
   public static int stringCount(String input, String str) {
@@ -29,9 +29,9 @@ public class TestUtils {
   /**
    * Naive string record count algorithm. This is the baseline we test against.
    *
-   * @param input Input string.
+   * @param input   Input string.
    * @param offsets Offsets marking beginning of new records.
-   * @param str Query string.
+   * @param str     Query string.
    * @return Number of records in the input string which contain the query string.
    */
   public static int stringRecordCount(String input, int[] offsets, String str) {
@@ -46,7 +46,8 @@ public class TestUtils {
       if (j == str.length()) {
         int k = 0;
         for (; k < offsets.length; k++) {
-          if (offsets[k] > i) break;
+          if (offsets[k] > i)
+            break;
         }
         records.add(k - 1);
       }

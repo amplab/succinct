@@ -7,8 +7,8 @@ import org.apache.spark.sql.types._
 import scala.collection.mutable.ListBuffer
 
 /**
- * Object that provides serialization/de-serialization methods for each tuple.
- */
+  * Object that provides serialization/de-serialization methods for each tuple.
+  */
 class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int])
   extends Serializable {
 
@@ -17,11 +17,11 @@ class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int
   }
 
   /**
-   * Serializes a [[Row]] with input delimiters to create a single byte buffer.
-   *
-   * @param data The [[Row]] to be serialized.
-   * @return The serialized [[Row]].
-   */
+    * Serializes a [[Row]] with input delimiters to create a single byte buffer.
+    *
+    * @param data The [[Row]] to be serialized.
+    * @return The serialized [[Row]].
+    */
   def serializeRow(data: Row): Array[Byte] = {
     assert(data.length == separators.length)
     assert(data.length == schema.length)
@@ -60,11 +60,11 @@ class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int
   }
 
   /**
-   * De-serializes a single byte buffer to give back the original [[Row]].
-   *
-   * @param data The serialized [[Row]].
-   * @return The de-serialized [[Row]].
-   */
+    * De-serializes a single byte buffer to give back the original [[Row]].
+    *
+    * @param data The serialized [[Row]].
+    * @return The de-serialized [[Row]].
+    */
   def deserializeRow(data: Array[Byte]): Row = {
     val fieldTypes = schema.fields.map(_.dataType)
     var i = 0
@@ -92,15 +92,15 @@ class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int
   }
 
   /**
-   * De-serializes a single byte buffer to give back the [[Row]] with pruned columns.
-   *
-   * @param data The serialized [[Row]].
-   * @param requiredColumns Checks if a column is required or not.
-   * @return The de-serialized [[Row]].
-   */
+    * De-serializes a single byte buffer to give back the [[Row]] with pruned columns.
+    *
+    * @param data            The serialized [[Row]].
+    * @param requiredColumns Checks if a column is required or not.
+    * @return The de-serialized [[Row]].
+    */
   def deserializeRow(
-      data: Array[Byte],
-      requiredColumns: Map[String, Boolean]): Row = {
+                      data: Array[Byte],
+                      requiredColumns: Map[String, Boolean]): Row = {
     if (data.length == 0 || !requiredColumns.values.reduce((a, b) => a | b)) return Row()
     val requiredFieldTypes = schema.fields.filter(field => requiredColumns(field.name)).map(_.dataType)
     val fieldNames = schema.fields.map(_.name)
@@ -128,12 +128,12 @@ class SuccinctSerDe(schema: StructType, separators: Array[Byte], limits: Seq[Int
   }
 
   /**
-   * Converts a String to the corresponding data-type based on the input data type.
-   *
-   * @param elem The string element to be converted.
-   * @param dataType The data-type of the element.
-   * @return The type-converted data.
-   */
+    * Converts a String to the corresponding data-type based on the input data type.
+    *
+    * @param elem     The string element to be converted.
+    * @param dataType The data-type of the element.
+    * @return The type-converted data.
+    */
   def stringToType(elem: String, dataType: DataType): Any = {
     if (elem == "NULL") return null
     dataType match {

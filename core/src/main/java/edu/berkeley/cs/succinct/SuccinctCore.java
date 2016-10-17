@@ -11,6 +11,7 @@ public abstract class SuccinctCore implements Serializable {
 
   // Logger
   public final static Logger LOG = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+
   static {
     final Handler consoleHandler = new ConsoleHandler();
     consoleHandler.setFormatter(new Formatter() {
@@ -24,6 +25,8 @@ public abstract class SuccinctCore implements Serializable {
     LOG.setLevel(Level.OFF);
   }
 
+  // Alphabet map
+  protected transient int[] alphabet;
   // Metadata
   private transient int originalSize;
   private transient int alphabetSize;
@@ -31,9 +34,6 @@ public abstract class SuccinctCore implements Serializable {
   private transient int samplingRateISA;
   private transient int samplingRateNPA;
   private transient int sampleBitWidth;
-
-  // Alphabet map
-  protected transient int[] alphabet;
 
   public SuccinctCore() {
   }
@@ -138,6 +138,15 @@ public abstract class SuccinctCore implements Serializable {
   }
 
   /**
+   * Set the sample bit width.
+   *
+   * @param sampleBitWidth The sample bit width to set.
+   */
+  public void setSampleBitWidth(int sampleBitWidth) {
+    this.sampleBitWidth = sampleBitWidth;
+  }
+
+  /**
    * Find a character in the alphabet.
    *
    * @param c The character to find.
@@ -145,15 +154,6 @@ public abstract class SuccinctCore implements Serializable {
    */
   public int findCharacter(int c) {
     return Arrays.binarySearch(alphabet, 1, alphabet.length, c);
-  }
-
-  /**
-   * Set the sample bit width.
-   *
-   * @param sampleBitWidth The sample bit width to set.
-   */
-  public void setSampleBitWidth(int sampleBitWidth) {
-    this.sampleBitWidth = sampleBitWidth;
   }
 
   protected int baseSize() {

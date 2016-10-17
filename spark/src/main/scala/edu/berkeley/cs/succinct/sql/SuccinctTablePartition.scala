@@ -14,9 +14,13 @@ import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
 
 class SuccinctTablePartition(
-    succinctIndexedFile: SuccinctTable,
-    succinctSerDe: SuccinctSerDe
-  ) extends KnownSizeEstimation {
+                              succinctIndexedFile: SuccinctTable,
+                              succinctSerDe: SuccinctSerDe
+                            ) extends KnownSizeEstimation {
+
+  override val estimatedSize: Long = {
+    succinctIndexedFile.getCompressedSize + SizeEstimator.estimate(succinctSerDe)
+  }
 
   def iterator: Iterator[Row] = {
     new Iterator[Row] {
@@ -47,9 +51,9 @@ class SuccinctTablePartition(
   }
 
   def pruneAndFilter(
-      reqColumnsCheck: Map[String, Boolean],
-      queryTypes: Array[QueryType],
-      queries: Array[Array[Array[Byte]]]): Iterator[Row] = {
+                      reqColumnsCheck: Map[String, Boolean],
+                      queryTypes: Array[QueryType],
+                      queries: Array[Array[Array[Byte]]]): Iterator[Row] = {
     new Iterator[Row] {
       val searchResults = succinctIndexedFile.recordMultiSearchIds(queryTypes, queries).iterator
 
@@ -67,17 +71,13 @@ class SuccinctTablePartition(
   def writeToStream(dataOutputStream: DataOutputStream): Unit = {
     succinctIndexedFile.writeToStream(dataOutputStream)
   }
-
-  override val estimatedSize: Long = {
-    succinctIndexedFile.getCompressedSize + SizeEstimator.estimate(succinctSerDe)
-  }
 }
 
 object SuccinctTablePartition {
   def apply(
-      partitionLocation: String,
-      succinctSerDe: SuccinctSerDe,
-      storageLevel: StorageLevel): SuccinctTablePartition = {
+             partitionLocation: String,
+             succinctSerDe: SuccinctSerDe,
+             storageLevel: StorageLevel): SuccinctTablePartition = {
     val path = new Path(partitionLocation)
     val fs = FileSystem.get(path.toUri, new Configuration())
     val is = fs.open(path)

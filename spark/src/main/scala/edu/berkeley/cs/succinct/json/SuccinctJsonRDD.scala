@@ -25,29 +25,6 @@ abstract class SuccinctJsonRDD(@transient private val sc: SparkContext,
   extends RDD[String](sc, deps) {
 
   /**
-    * Returns the RDD of partitions.
-    *
-    * @return The RDD of partitions.
-    */
-  private[succinct] def partitionsRDD: RDD[SuccinctJsonPartition]
-
-  /**
-    * Returns first parent of the RDD.
-    *
-    * @return The first parent of the RDD.
-    */
-  protected[succinct] def getFirstParent: RDD[SuccinctJsonPartition] = {
-    firstParent[SuccinctJsonPartition]
-  }
-
-  /**
-    * Returns the array of partitions.
-    *
-    * @return The array of partitions.
-    */
-  override protected def getPartitions: Array[Partition] = partitionsRDD.partitions
-
-  /**
     * Overrides the compute function to iterate over Succinct's representation of JSON documents,
     * and deserialize them into uncompressed JSON documents.
     */
@@ -58,15 +35,6 @@ abstract class SuccinctJsonRDD(@transient private val sc: SparkContext,
     } else {
       Iterator[String]()
     }
-  }
-
-  /**
-    * Count the number of JSON documents in the SuccinctJsonRDD.
-    *
-    * @return The number of JSON documents in the SuccinctJsonRDD.
-    */
-  override def count(): Long = {
-    partitionsRDD.map(_.count).aggregate(0L)(_ + _, _ + _)
   }
 
   /**
@@ -136,6 +104,15 @@ abstract class SuccinctJsonRDD(@transient private val sc: SparkContext,
   }
 
   /**
+    * Count the number of JSON documents in the SuccinctJsonRDD.
+    *
+    * @return The number of JSON documents in the SuccinctJsonRDD.
+    */
+  override def count(): Long = {
+    partitionsRDD.map(_.count).aggregate(0L)(_ + _, _ + _)
+  }
+
+  /**
     * Saves the SuccinctJsonRDD at the specified path.
     *
     * @param location The path where the SuccinctJsonRDD should be stored.
@@ -161,6 +138,29 @@ abstract class SuccinctJsonRDD(@transient private val sc: SparkContext,
     val successPath = new Path(location.stripSuffix("/") + "/_SUCCESS")
     fs.create(successPath).close()
   }
+
+  /**
+    * Returns first parent of the RDD.
+    *
+    * @return The first parent of the RDD.
+    */
+  protected[succinct] def getFirstParent: RDD[SuccinctJsonPartition] = {
+    firstParent[SuccinctJsonPartition]
+  }
+
+  /**
+    * Returns the array of partitions.
+    *
+    * @return The array of partitions.
+    */
+  override protected def getPartitions: Array[Partition] = partitionsRDD.partitions
+
+  /**
+    * Returns the RDD of partitions.
+    *
+    * @return The RDD of partitions.
+    */
+  private[succinct] def partitionsRDD: RDD[SuccinctJsonPartition]
 }
 
 /** Factory object for creating [[SuccinctJsonRDD]]. **/
@@ -170,6 +170,16 @@ object SuccinctJsonRDD {
     val partitionsRDD = inputRDD.mapPartitionsWithIndex((idx, it) =>
       createSuccinctJsonPartition(it, idOffsets(idx), idOffsets(idx + 1) - 1))
     new SuccinctJsonRDDImpl(partitionsRDD)
+  }
+
+  def createSuccinctJsonPartition(dataIter: Iterator[String], idBegin: Long, idEnd: Long):
+  Iterator[SuccinctJsonPartition] = {
+    val serializer = new JsonBlockSerializer((-120 to -1).toArray.map(_.toByte))
+    val serializedData = serializer.serialize(dataIter)
+    val valueBuffer = new SuccinctIndexedFileBuffer(serializedData.getData,
+      serializedData.getOffsets)
+    val fieldMapping = serializedData.getMetadata.asInstanceOf[FieldMapping]
+    Iterator(new SuccinctJsonPartition((idBegin to idEnd).toArray, valueBuffer, fieldMapping))
   }
 
   /**
@@ -194,15 +204,5 @@ object SuccinctJsonRDD {
       Iterator(SuccinctJsonPartition(partitionLocation, storageLevel))
     }).cache()
     new SuccinctJsonRDDImpl(succinctPartitions)
-  }
-
-  def createSuccinctJsonPartition(dataIter: Iterator[String], idBegin: Long, idEnd: Long):
-  Iterator[SuccinctJsonPartition] = {
-    val serializer = new JsonBlockSerializer((-120 to -1).toArray.map(_.toByte))
-    val serializedData = serializer.serialize(dataIter)
-    val valueBuffer = new SuccinctIndexedFileBuffer(serializedData.getData,
-      serializedData.getOffsets)
-    val fieldMapping = serializedData.getMetadata.asInstanceOf[FieldMapping]
-    Iterator(new SuccinctJsonPartition((idBegin to idEnd).toArray, valueBuffer, fieldMapping))
   }
 }

@@ -12,11 +12,10 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 
 public class SuccinctTableStreamTest extends SuccinctTableTest {
+  byte[] data;
   private String testFileRaw = this.getClass().getResource("/raw.dat").getFile();
   private String testFileSuccinct =
     this.getClass().getResource("/raw.dat").getFile() + ".idx.succinct";
-
-  byte[] data;
 
   /**
    * Set up test.

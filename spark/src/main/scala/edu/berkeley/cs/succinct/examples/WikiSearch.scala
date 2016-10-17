@@ -4,8 +4,8 @@ import edu.berkeley.cs.succinct._
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
- * Performs search on a Wikipedia dataset provided as an input.
- */
+  * Performs search on a Wikipedia dataset provided as an input.
+  */
 object WikiSearch {
 
   val extractOffset = 0

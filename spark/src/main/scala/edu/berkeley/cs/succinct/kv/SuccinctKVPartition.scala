@@ -9,15 +9,15 @@ import edu.berkeley.cs.succinct.streams.SuccinctIndexedFileStream
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.util.{SizeEstimator, KnownSizeEstimation}
+import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
 
 import scala.reflect.ClassTag
 
 /**
- * The implementation for a single SuccinctKVRDD partition.
- */
+  * The implementation for a single SuccinctKVRDD partition.
+  */
 class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctIndexedFile)
-    (implicit ordering: Ordering[K]) extends KnownSizeEstimation {
+                                      (implicit ordering: Ordering[K]) extends KnownSizeEstimation {
 
   val numKeys = keys.length
 
@@ -36,6 +36,17 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
     }
   }
 
+  /** Get the values corresponding to an array of keys. **/
+  def multiget(keys: Array[K]): Array[(K, Array[Byte])] = {
+    keys.map(k => (k, get(k)))
+  }
+
+  /** Get the value corresponding to a key. **/
+  def get(key: K): Array[Byte] = {
+    val pos = findKey(key)
+    if (pos < 0 || pos > numKeys) null else valueBuffer.getRecordBytes(pos)
+  }
+
   /** Find the index of a particular key using binary search. **/
   def findKey(key: K): Int = {
     var (low, high) = (0, numKeys - 1)
@@ -47,17 +58,6 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
         case mid => return mid
       }
     -1
-  }
-
-  /** Get the value corresponding to a key. **/
-  def get(key: K): Array[Byte] = {
-    val pos = findKey(key)
-    if (pos < 0 || pos > numKeys) null else valueBuffer.getRecordBytes(pos)
-  }
-
-  /** Get the values corresponding to an array of keys. **/
-  def multiget(keys: Array[K]): Array[(K, Array[Byte])] = {
-    keys.map(k => (k, get(k)))
   }
 
   /** Random access into the value corresponding to a key. **/
@@ -161,7 +161,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
 
 object SuccinctKVPartition {
   def apply[K: ClassTag](partitionLocation: String, storageLevel: StorageLevel)
-    (implicit ordering: Ordering[K])
+                        (implicit ordering: Ordering[K])
   : SuccinctKVPartition[K] = {
 
     val path = new Path(partitionLocation)

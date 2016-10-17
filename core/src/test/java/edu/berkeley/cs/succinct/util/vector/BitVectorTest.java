@@ -3,7 +3,10 @@ package edu.berkeley.cs.succinct.util.vector;
 import edu.berkeley.cs.succinct.util.BitUtils;
 import junit.framework.TestCase;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.nio.ByteBuffer;
 
 public class BitVectorTest extends TestCase {

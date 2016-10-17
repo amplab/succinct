@@ -11,11 +11,10 @@ import java.util.Set;
 
 public class SuccinctFileBuffer2Test extends SuccinctFileTest {
 
+  char[] data;
   private String testFileRaw = this.getClass().getResource("/test_file_utf8").getFile();
   private String testFileSuccinct =
     this.getClass().getResource("/test_file_utf8").getFile() + ".buf.succinct";
-
-  char[] data;
   private String[] queryStrings =
     {"kΩ", "əsoʊsiˈeıʃn", "‘single’", "გაიაროთ", "в", "ร", "ተ", "ᚻᛖ", "⡌⠁", "╳", "rand"};
 

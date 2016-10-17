@@ -13,7 +13,7 @@ public class IntArrayStreamTest extends TestCase {
    * @throws Exception
    */
   public void testGet() throws Exception {
-        IntBuffer buf = IntBuffer.allocate(10);
+    IntBuffer buf = IntBuffer.allocate(10);
     for (int i = 0; i < 10; i++) {
       buf.put(i);
     }
@@ -30,7 +30,7 @@ public class IntArrayStreamTest extends TestCase {
    * @throws Exception
    */
   public void testSize() throws Exception {
-        IntArrayStream bs = new IntArrayStream(null, 0, 40);
+    IntArrayStream bs = new IntArrayStream(null, 0, 40);
     assertEquals(10, bs.size());
   }
 }

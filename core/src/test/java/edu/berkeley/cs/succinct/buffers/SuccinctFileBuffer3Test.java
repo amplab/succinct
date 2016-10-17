@@ -42,10 +42,13 @@ public class SuccinctFileBuffer3Test extends TestCase {
       short shortVal = buffer.extractShort(i * SuccinctConstants.SHORT_SIZE_BYTES);
       assertEquals(shortVal, i);
 
-      int intVal = buffer.extractInt(10 * SuccinctConstants.SHORT_SIZE_BYTES + i * SuccinctConstants.INT_SIZE_BYTES);
+      int intVal = buffer
+        .extractInt(10 * SuccinctConstants.SHORT_SIZE_BYTES + i * SuccinctConstants.INT_SIZE_BYTES);
       assertEquals(intVal, i);
 
-      long longVal = buffer.extractLong(10 * (SuccinctConstants.SHORT_SIZE_BYTES + SuccinctConstants.INT_SIZE_BYTES) + i * SuccinctConstants.LONG_SIZE_BYTES);
+      long longVal = buffer.extractLong(
+        10 * (SuccinctConstants.SHORT_SIZE_BYTES + SuccinctConstants.INT_SIZE_BYTES)
+          + i * SuccinctConstants.LONG_SIZE_BYTES);
       assertEquals(longVal, i);
     }
   }

@@ -2,15 +2,8 @@ package edu.berkeley.cs.succinct.regex.parser;
 
 public class RegExPrimitive extends RegEx {
 
-  public enum PrimitiveType {
-    MGRAM,
-    CHAR_RANGE,
-    DOT
-  }
-
   private String primitiveStr;
   private PrimitiveType primitiveType;
-
   /**
    * Constructor to initialize RegExPrimitive with primitive string.
    *
@@ -38,6 +31,12 @@ public class RegExPrimitive extends RegEx {
    */
   public String getPrimitiveStr() {
     return primitiveStr;
+  }
+
+  public enum PrimitiveType {
+    MGRAM,
+    CHAR_RANGE,
+    DOT
   }
 
 }

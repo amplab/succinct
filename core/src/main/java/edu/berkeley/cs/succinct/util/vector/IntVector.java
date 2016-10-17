@@ -29,7 +29,7 @@ public class IntVector extends BitVector {
    * Initialize the IntVector with a specified capacity and element bit-width.
    *
    * @param numElements Number of elements in IntVector.
-   * @param bitWidth Width in bits of each element.
+   * @param bitWidth    Width in bits of each element.
    */
   public IntVector(int numElements, int bitWidth) {
     super(numElements * bitWidth);
@@ -39,7 +39,7 @@ public class IntVector extends BitVector {
   /**
    * Initialize the IntVector from underlying BitVector.
    *
-   * @param bitWidth Width in bits of each element.
+   * @param bitWidth  Width in bits of each element.
    * @param bitVector The underlying bitVector.
    */
   public IntVector(int bitWidth, BitVector bitVector) {
@@ -50,7 +50,7 @@ public class IntVector extends BitVector {
   /**
    * Initialize the IntVector with an existing integer array and a specified element bit-width.
    *
-   * @param data Array of integers to store.
+   * @param data     Array of integers to store.
    * @param bitWidth Width in bits of each element.
    */
   public IntVector(int[] data, int bitWidth) {
@@ -67,7 +67,7 @@ public class IntVector extends BitVector {
   /**
    * Initialize the IntVector with an existing integer array list and a specified element bit-width.
    *
-   * @param data Array list of integers to store.
+   * @param data     Array list of integers to store.
    * @param bitWidth Width in bits of each element.
    */
   public IntVector(IntArrayList data, int bitWidth) {
@@ -79,64 +79,6 @@ public class IntVector extends BitVector {
       }
       add(i, data.get(i));
     }
-  }
-
-  /**
-   * Get the width in bits of each element.
-   *
-   * @return Width in bits of each element.
-   */
-  public int getBitWidth() {
-    return bitWidth;
-  }
-
-  /**
-   * Add an element at a specified index into the IntVector.
-   *
-   * @param index Index into the IntVector.
-   * @param element Element to be added.
-   */
-  public void add(int index, int element) {
-    setValue(index * bitWidth, element, bitWidth);
-  }
-
-  /**
-   * Get the element at a specified index into the BitVector.
-   *
-   * @param index Index into the IntVector.
-   * @return Element at specified index.
-   */
-  public int get(int index) {
-    return (int) getValue(index * bitWidth, bitWidth);
-  }
-
-  /**
-   * Get the size in bytes when serialized.
-   * @return Size in bytes when serialized.
-   */
-  public int serializedSize() {
-    return 4 + super.serializedSize();
-  }
-
-  /**
-   * Serialize the IntVector to a ByteBuffer.
-   *
-   * @param buf Output ByteBuffer.
-   */
-  public void writeToBuffer(ByteBuffer buf) {
-    buf.putInt(bitWidth);
-    super.writeToBuffer(buf);
-  }
-
-  /**
-   * Serialize the IntVector to a DataOutputStream.
-   *
-   * @param out Output Stream.
-   * @throws IOException
-   */
-  public void writeToStream(DataOutputStream out) throws IOException {
-    out.writeInt(bitWidth);
-    super.writeToStream(out);
   }
 
   /**
@@ -170,6 +112,65 @@ public class IntVector extends BitVector {
     }
 
     return new IntVector(bitWidth, BitVector.readFromStream(in));
+  }
+
+  /**
+   * Get the width in bits of each element.
+   *
+   * @return Width in bits of each element.
+   */
+  public int getBitWidth() {
+    return bitWidth;
+  }
+
+  /**
+   * Add an element at a specified index into the IntVector.
+   *
+   * @param index   Index into the IntVector.
+   * @param element Element to be added.
+   */
+  public void add(int index, int element) {
+    setValue(index * bitWidth, element, bitWidth);
+  }
+
+  /**
+   * Get the element at a specified index into the BitVector.
+   *
+   * @param index Index into the IntVector.
+   * @return Element at specified index.
+   */
+  public int get(int index) {
+    return (int) getValue(index * bitWidth, bitWidth);
+  }
+
+  /**
+   * Get the size in bytes when serialized.
+   *
+   * @return Size in bytes when serialized.
+   */
+  public int serializedSize() {
+    return 4 + super.serializedSize();
+  }
+
+  /**
+   * Serialize the IntVector to a ByteBuffer.
+   *
+   * @param buf Output ByteBuffer.
+   */
+  public void writeToBuffer(ByteBuffer buf) {
+    buf.putInt(bitWidth);
+    super.writeToBuffer(buf);
+  }
+
+  /**
+   * Serialize the IntVector to a DataOutputStream.
+   *
+   * @param out Output Stream.
+   * @throws IOException
+   */
+  public void writeToStream(DataOutputStream out) throws IOException {
+    out.writeInt(bitWidth);
+    super.writeToStream(out);
   }
 
 }

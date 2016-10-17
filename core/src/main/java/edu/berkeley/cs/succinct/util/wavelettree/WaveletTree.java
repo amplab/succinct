@@ -28,7 +28,8 @@ public class WaveletTree {
    * @param values    Context values.
    * @param columnIds Column IDs.
    */
-  public WaveletTree(long startIdx, long endIdx, ArrayList<Long> values, ArrayList<Long> columnIds) {
+  public WaveletTree(long startIdx, long endIdx, ArrayList<Long> values,
+    ArrayList<Long> columnIds) {
     assert (values.size() > 0);
     assert (columnIds.size() == values.size());
     if (startIdx == endIdx)

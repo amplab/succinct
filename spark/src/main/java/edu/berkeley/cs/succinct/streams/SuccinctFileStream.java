@@ -179,8 +179,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     s = lookupNPA(s);
     int byte1 = lookupC(s);
 
-    return (short) ((byte0 << 8) |
-      (byte1 & 0xFF));
+    return (short) ((byte0 << 8) | (byte1 & 0xFF));
   }
 
   /**
@@ -312,7 +311,8 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
       if (pos >= 0) {
         try {
           c1 = columnoffsets.get(pos);
-          c2 = ((pos + 1) == getAlphabetSize() ? getOriginalSize() : columnoffsets.get(pos + 1)) - 1;
+          c2 =
+            ((pos + 1) == getAlphabetSize() ? getOriginalSize() : columnoffsets.get(pos + 1)) - 1;
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -392,7 +392,8 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
       if (pos >= 0) {
         try {
           c1 = columnoffsets.get(pos);
-          c2 = ((pos + 1) == getAlphabetSize() ? getOriginalSize() : columnoffsets.get(pos + 1)) - 1;
+          c2 =
+            ((pos + 1) == getAlphabetSize() ? getOriginalSize() : columnoffsets.get(pos + 1)) - 1;
         } catch (IOException e) {
           throw new RuntimeException(e);
         }

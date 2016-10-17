@@ -20,29 +20,6 @@ abstract class SuccinctKVRDD[K: ClassTag](@transient private val sc: SparkContex
                                           @transient private val deps: Seq[Dependency[_]])
   extends RDD[(K, Array[Byte])](sc, deps) {
 
-  /**
-    * Returns the RDD of partitions.
-    *
-    * @return The RDD of partitions.
-    */
-  private[succinct] def partitionsRDD: RDD[SuccinctKVPartition[K]]
-
-  /**
-    * Returns first parent of the RDD.
-    *
-    * @return The first parent of the RDD.
-    */
-  protected[succinct] def getFirstParent: RDD[SuccinctKVPartition[K]] = {
-    firstParent[SuccinctKVPartition[K]]
-  }
-
-  /**
-    * Returns the array of partitions.
-    *
-    * @return The array of partitions.
-    */
-  override protected def getPartitions: Array[Partition] = partitionsRDD.partitions
-
   override def compute(split: Partition, context: TaskContext): Iterator[(K, Array[Byte])] = {
     val succinctIterator = firstParent[SuccinctKVPartition[K]].iterator(split, context)
     if (succinctIterator.hasNext) {
@@ -89,8 +66,8 @@ abstract class SuccinctKVRDD[K: ClassTag](@transient private val sc: SparkContex
     * @param query The search term.
     * @return An RDD of matched keys.
     */
-  def search(query: Array[Byte]): RDD[K] = {
-    partitionsRDD.flatMap(_.search(query))
+  def search(query: String): RDD[K] = {
+    search(query.getBytes("utf-8"))
   }
 
   /**
@@ -99,18 +76,8 @@ abstract class SuccinctKVRDD[K: ClassTag](@transient private val sc: SparkContex
     * @param query The search term.
     * @return An RDD of matched keys.
     */
-  def search(query: String): RDD[K] = {
-    search(query.getBytes("utf-8"))
-  }
-
-  /**
-    * Search for a term across values, and return matched key-value pairs.
-    *
-    * @param query The search term.
-    * @return An RDD of matched key-value pairs.
-    */
-  def filterByValue(query: Array[Byte]): RDD[(K, Array[Byte])] = {
-    partitionsRDD.flatMap(_.searchAndGet(query))
+  def search(query: Array[Byte]): RDD[K] = {
+    partitionsRDD.flatMap(_.search(query))
   }
 
   /**
@@ -124,13 +91,13 @@ abstract class SuccinctKVRDD[K: ClassTag](@transient private val sc: SparkContex
   }
 
   /**
-    * Search for a term across values, and return the total number of occurrences.
+    * Search for a term across values, and return matched key-value pairs.
     *
     * @param query The search term.
-    * @return Count of the number of occurrences.
+    * @return An RDD of matched key-value pairs.
     */
-  def count(query: Array[Byte]): Long = {
-    partitionsRDD.map(_.count(query)).aggregate(0L)(_ + _, _ + _)
+  def filterByValue(query: Array[Byte]): RDD[(K, Array[Byte])] = {
+    partitionsRDD.flatMap(_.searchAndGet(query))
   }
 
   /**
@@ -144,15 +111,13 @@ abstract class SuccinctKVRDD[K: ClassTag](@transient private val sc: SparkContex
   }
 
   /**
-    * Search for a term across values and return offsets for the matches relative to the beginning of
-    * the value. The result is a collection of (key, offset) pairs, where the offset is relative to
-    * the beginning of the corresponding value.
+    * Search for a term across values, and return the total number of occurrences.
     *
     * @param query The search term.
-    * @return An RDD of (key, offset) pairs.
+    * @return Count of the number of occurrences.
     */
-  def searchOffsets(query: Array[Byte]): RDD[(K, Int)] = {
-    partitionsRDD.flatMap(_.searchOffsets(query))
+  def count(query: Array[Byte]): Long = {
+    partitionsRDD.map(_.count(query)).aggregate(0L)(_ + _, _ + _)
   }
 
   /**
@@ -165,6 +130,18 @@ abstract class SuccinctKVRDD[K: ClassTag](@transient private val sc: SparkContex
     */
   def searchOffsets(query: String): RDD[(K, Int)] = {
     searchOffsets(query.getBytes("utf-8"))
+  }
+
+  /**
+    * Search for a term across values and return offsets for the matches relative to the beginning of
+    * the value. The result is a collection of (key, offset) pairs, where the offset is relative to
+    * the beginning of the corresponding value.
+    *
+    * @param query The search term.
+    * @return An RDD of (key, offset) pairs.
+    */
+  def searchOffsets(query: Array[Byte]): RDD[(K, Int)] = {
+    partitionsRDD.flatMap(_.searchOffsets(query))
   }
 
   /**
@@ -228,6 +205,29 @@ abstract class SuccinctKVRDD[K: ClassTag](@transient private val sc: SparkContex
     val successPath = new Path(location.stripSuffix("/") + "/_SUCCESS")
     fs.create(successPath).close()
   }
+
+  /**
+    * Returns first parent of the RDD.
+    *
+    * @return The first parent of the RDD.
+    */
+  protected[succinct] def getFirstParent: RDD[SuccinctKVPartition[K]] = {
+    firstParent[SuccinctKVPartition[K]]
+  }
+
+  /**
+    * Returns the array of partitions.
+    *
+    * @return The array of partitions.
+    */
+  override protected def getPartitions: Array[Partition] = partitionsRDD.partitions
+
+  /**
+    * Returns the RDD of partitions.
+    *
+    * @return The RDD of partitions.
+    */
+  private[succinct] def partitionsRDD: RDD[SuccinctKVPartition[K]]
 }
 
 /** Factory for [[SuccinctKVRDD]] instances **/
@@ -246,33 +246,6 @@ object SuccinctKVRDD {
     val partitionsRDD = inputRDD.sortByKey().mapPartitions(createSuccinctKVPartition[K]).cache()
     val firstKeys = partitionsRDD.map(_.firstKey).collect()
     new SuccinctKVRDDImpl[K](partitionsRDD, firstKeys)
-  }
-
-  /**
-    * Reads a SuccinctKVRDD from disk.
-    *
-    * @param sc       The spark context
-    * @param location The path to read the SuccinctKVRDD from.
-    * @return The SuccinctKVRDD.
-    */
-  def apply[K: ClassTag](sc: SparkContext, location: String, storageLevel: StorageLevel)
-                        (implicit ordering: Ordering[K])
-  : SuccinctKVRDD[K] = {
-    val locationPath = new Path(location)
-    val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
-    val status = fs.listStatus(locationPath, new PathFilter {
-      override def accept(path: Path): Boolean = {
-        path.getName.startsWith("part-")
-      }
-    })
-    val numPartitions = status.length
-    val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
-      .mapPartitionsWithIndex[SuccinctKVPartition[K]]((i, partition) => {
-      val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
-      Iterator(SuccinctKVPartition[K](partitionLocation, storageLevel))
-    }).cache()
-    val firstKeys = succinctPartitions.map(_.firstKey).collect()
-    new SuccinctKVRDDImpl[K](succinctPartitions, firstKeys)
   }
 
   /**
@@ -314,5 +287,32 @@ object SuccinctKVRDD {
     val valueBuffer = new SuccinctIndexedFileBuffer(rawValueBuffer, offsets)
 
     Iterator(new SuccinctKVPartition[K](keys, valueBuffer))
+  }
+
+  /**
+    * Reads a SuccinctKVRDD from disk.
+    *
+    * @param sc       The spark context
+    * @param location The path to read the SuccinctKVRDD from.
+    * @return The SuccinctKVRDD.
+    */
+  def apply[K: ClassTag](sc: SparkContext, location: String, storageLevel: StorageLevel)
+                        (implicit ordering: Ordering[K])
+  : SuccinctKVRDD[K] = {
+    val locationPath = new Path(location)
+    val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
+    val status = fs.listStatus(locationPath, new PathFilter {
+      override def accept(path: Path): Boolean = {
+        path.getName.startsWith("part-")
+      }
+    })
+    val numPartitions = status.length
+    val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
+      .mapPartitionsWithIndex[SuccinctKVPartition[K]]((i, partition) => {
+      val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
+      Iterator(SuccinctKVPartition[K](partitionLocation, storageLevel))
+    }).cache()
+    val firstKeys = succinctPartitions.map(_.firstKey).collect()
+    new SuccinctKVRDDImpl[K](succinctPartitions, firstKeys)
   }
 }

@@ -11,7 +11,8 @@ public class PrimitiveDeserializer {
       throw new DeserializationException("Invalid number of bytes for boolean.");
     }
 
-    if (data[0] != PrimitiveSerializer.SERIALIZED_TRUE && data[0] != PrimitiveSerializer.SERIALIZED_FALSE) {
+    if (data[0] != PrimitiveSerializer.SERIALIZED_TRUE
+      && data[0] != PrimitiveSerializer.SERIALIZED_FALSE) {
       throw new DeserializationException("Invalid boolean data.");
     }
 
@@ -45,15 +46,24 @@ public class PrimitiveDeserializer {
   public static Object deserializePrimitive(byte[] field, DataType dataType)
     throws DeserializationException {
     switch (dataType) {
-      case STRING: return PrimitiveDeserializer.deserializeString(field);
-      case BOOLEAN: return PrimitiveDeserializer.deserialzeBoolean(field);
-      case BYTE: return PrimitiveDeserializer.deserializeByte(field);
-      case SHORT: return PrimitiveDeserializer.deserializeShort(field);
-      case INT: return PrimitiveDeserializer.deserializeInt(field);
-      case LONG: return PrimitiveDeserializer.deserializeLong(field);
-      case FLOAT: return PrimitiveDeserializer.deserializeFloat(field);
-      case DOUBLE: return PrimitiveDeserializer.deserializeDouble(field);
-      default: throw new DeserializationException("Deserialize using custom deserializer.");
+      case STRING:
+        return PrimitiveDeserializer.deserializeString(field);
+      case BOOLEAN:
+        return PrimitiveDeserializer.deserialzeBoolean(field);
+      case BYTE:
+        return PrimitiveDeserializer.deserializeByte(field);
+      case SHORT:
+        return PrimitiveDeserializer.deserializeShort(field);
+      case INT:
+        return PrimitiveDeserializer.deserializeInt(field);
+      case LONG:
+        return PrimitiveDeserializer.deserializeLong(field);
+      case FLOAT:
+        return PrimitiveDeserializer.deserializeFloat(field);
+      case DOUBLE:
+        return PrimitiveDeserializer.deserializeDouble(field);
+      default:
+        throw new DeserializationException("Deserialize using custom deserializer.");
     }
   }
 }

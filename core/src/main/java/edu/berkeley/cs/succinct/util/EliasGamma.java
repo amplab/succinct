@@ -6,6 +6,17 @@ package edu.berkeley.cs.succinct.util;
 public class EliasGamma {
 
   /**
+   * The encoding size for the value if encoded using Elias Gamma encoding.
+   *
+   * @param value The value to encode.
+   * @return The size of the encoding.
+   */
+  public static int encodingSize(int value) {
+    return 2 * (BitUtils.bitWidth(value) - 1) + 1;
+  }
+
+
+  /**
    * Precomputed table to speed-up computation of prefix sum for delta encoded values
    * using EliasGamma encoding.
    */
@@ -65,15 +76,5 @@ public class EliasGamma {
     public static int sum(int block) {
       return prefixSum[block] & 0xFFFF;
     }
-  }
-
-  /**
-   * The encoding size for the value if encoded using Elias Gamma encoding.
-   *
-   * @param value The value to encode.
-   * @return The size of the encoding.
-   */
-  public static int encodingSize(int value) {
-    return 2 * (BitUtils.bitWidth(value) - 1) + 1;
   }
 }

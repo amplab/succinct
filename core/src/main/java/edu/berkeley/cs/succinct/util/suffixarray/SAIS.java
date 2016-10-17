@@ -7,7 +7,7 @@ import edu.berkeley.cs.succinct.util.container.IntArray;
 
 /**
  * SA-IS algorithm, ported from Yuta Mori's implementation.
- *
+ * <p/>
  * Ge Nong, Sen Zhang and Wai Hong Chan, Two Efficient Algorithms for Linear Suffix Array
  * Construction, 2008.
  *
@@ -41,7 +41,8 @@ public class SAIS {
   }
 
   /* compute SA and BWT */
-  private static void induceSA(BasicArray T, IntArray SA, BasicArray C, BasicArray B, int n, int k) {
+  private static void induceSA(BasicArray T, IntArray SA, BasicArray C, BasicArray B, int n,
+    int k) {
     int b, i, j;
     int c0, c1;
     /* compute SAl */
@@ -88,7 +89,8 @@ public class SAIS {
     }
   }
 
-  private static int computeBWT(BasicArray T, IntArray SA, BasicArray C, BasicArray B, int n, int k) {
+  private static int computeBWT(BasicArray T, IntArray SA, BasicArray C, BasicArray B, int n,
+    int k) {
     int b, i, j, pidx = -1;
     int c0, c1;
     /* compute SAl */

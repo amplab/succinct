@@ -7,16 +7,16 @@ import org.apache.spark.storage.StorageLevel
 import org.apache.spark.succinct.SuccinctPartition
 
 /**
- * Implementation of SuccinctRDD.
- *
- * @constructor Create a new SuccinctRDDImpl from an RDD of partitions (SuccinctIndexedBuffer) and the target
- *              storage level.
- * @param partitionsRDD The input RDD of partitions.
- * @param targetStorageLevel The storage level for the RDD.
- */
+  * Implementation of SuccinctRDD.
+  *
+  * @constructor Create a new SuccinctRDDImpl from an RDD of partitions (SuccinctIndexedBuffer) and the target
+  *              storage level.
+  * @param partitionsRDD      The input RDD of partitions.
+  * @param targetStorageLevel The storage level for the RDD.
+  */
 class SuccinctRDDImpl private[succinct](
-    val partitionsRDD: RDD[SuccinctPartition],
-    val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
+                                         val partitionsRDD: RDD[SuccinctPartition],
+                                         val targetStorageLevel: StorageLevel = StorageLevel.MEMORY_ONLY)
   extends SuccinctRDD(partitionsRDD.context, List(new OneToOneDependency(partitionsRDD))) {
 
   val partitionOffsetRanges = partitionsRDD.map(_.partitionOffsetRange).collect().sorted
@@ -34,9 +34,9 @@ class SuccinctRDDImpl private[succinct](
   setName("SuccinctRDD")
 
   /**
-   * Persists the Succinct partitions at the specified storage level, ignoring any existing target
-   * storage level.
-   */
+    * Persists the Succinct partitions at the specified storage level, ignoring any existing target
+    * storage level.
+    */
   override def persist(newLevel: StorageLevel): this.type = {
     partitionsRDD.persist(newLevel)
     this

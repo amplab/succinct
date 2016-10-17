@@ -11,11 +11,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class SuccinctIndexedFileStream2Test extends SuccinctIndexedFileTest {
+  char[] data;
   private String testFileRaw = this.getClass().getResource("/utf8.dat").getFile();
   private String testFileSuccinct =
     this.getClass().getResource("/utf8.dat").getFile() + ".idx.succinct";
-
-  char[] data;
   private String[] queryStrings =
     {"kΩ", "əsoʊsiˈeıʃn", "‘single’", "გაიაროთ", "в", "ร", "ተ", "ᚻᛖ", "⡌⠁", "╳", "rand"};
 

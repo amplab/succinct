@@ -7,8 +7,8 @@ import org.apache.spark.sql.{Row, SQLContext}
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
- * Performs search on a TPC-H dataset provided as an input.
- */
+  * Performs search on a TPC-H dataset provided as an input.
+  */
 object TableSearch {
   def main(args: Array[String]) = {
 
