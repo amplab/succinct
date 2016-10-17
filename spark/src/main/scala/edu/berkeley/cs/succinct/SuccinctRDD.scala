@@ -10,6 +10,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.succinct.SuccinctPartition
 
@@ -212,9 +213,7 @@ object SuccinctRDD {
     * @param inputRDD The input RDD.
     * @return The SuccinctRDD.
     */
-  def apply(inputRDD: RDD[Array[Byte]],
-            storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY):
-  SuccinctRDD = {
+  def apply(inputRDD: RDD[Array[Byte]]): SuccinctRDD = {
     val partitionSizes = inputRDD.mapPartitionsWithIndex((idx, partition) => {
       val partitionSize = partition.aggregate(0L)((sum, record) => sum + (record.length + 1), _ + _)
       Iterator((idx, partitionSize))
@@ -231,13 +230,15 @@ object SuccinctRDD {
 
     val succinctPartitions = inputRDD.mapPartitionsWithIndex((i, p) =>
       createSuccinctPartition(partitionOffsets(i), partitionFirstRecordIds(i), p)).cache()
-    new SuccinctRDDImpl(succinctPartitions, storageLevel)
+    new SuccinctRDDImpl(succinctPartitions)
   }
 
   /**
     * Creates a SuccinctPartition from a partition of the input RDD.
     *
-    * @param dataIter The iterator over the input partition data.
+    * @param partitionOffset        The offset of the partition.
+    * @param partitionFirstRecordId The first recordId in the partition.
+    * @param dataIter               The iterator over the input partition data.
     * @return An Iterator over the SuccinctPartition.
     */
   private[succinct] def createSuccinctPartition(partitionOffset: Long,
@@ -270,8 +271,9 @@ object SuccinctRDD {
   /**
     * Reads a SuccinctRDD from disk.
     *
-    * @param sc       The spark context
-    * @param location The path to read the SuccinctRDD from.
+    * @param sc           The spark context
+    * @param location     The path to read the SuccinctRDD from.
+    * @param storageLevel The storage level for the SuccinctRDD.
     * @return The SuccinctRDD.
     */
   def apply(sc: SparkContext, location: String, storageLevel: StorageLevel): SuccinctRDD = {
@@ -289,6 +291,18 @@ object SuccinctRDD {
       Iterator(SuccinctPartition(partitionLocation, storageLevel))
     })
     new SuccinctRDDImpl(succinctPartitions, storageLevel)
+  }
+
+  /**
+    * Reads a SuccinctRDD from disk.
+    *
+    * @param spark        The spark session.
+    * @param location     The path to read the SuccinctRDD from.
+    * @param storageLevel The storage level for the SuccinctRDD.
+    * @return The SuccinctRDD.
+    */
+  def apply(spark: SparkSession, location: String, storageLevel: StorageLevel): SuccinctRDD = {
+    apply(spark.sparkContext, location, storageLevel)
   }
 
 }
