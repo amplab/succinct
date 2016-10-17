@@ -4,7 +4,7 @@ import java.io.{File, IOException}
 
 import com.google.common.io.Files
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Row, SQLContext}
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest._
 
@@ -86,15 +86,15 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
     StructField("Area", DoubleType, nullable = false),
     StructField("Airport", BooleanType, nullable = true)))
 
-  private var sqlContext: SQLContext = _
+  private var spark: SparkSession = _
   private var sparkContext: SparkContext = _
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    sparkContext = new SparkContext(conf)
-    sqlContext = new SQLContext(sparkContext)
+    spark = SparkSession.builder().config(conf).getOrCreate()
+    sparkContext = spark.sparkContext
 
-    val baseRDD = sqlContext.sparkContext.textFile(getClass.getResource("/table.dat").getFile)
+    val baseRDD = spark.sparkContext.textFile(getClass.getResource("/table.dat").getFile)
       .map(_.split('|').toSeq)
     val firstRecord = baseRDD.first()
     val schema = StructType(firstRecord.map(StructField(_, StringType)))
@@ -106,7 +106,7 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
   override def afterAll(): Unit = {
     TestUtils.deleteRecursively(new File(succinctTable))
     try {
-      sqlContext.sparkContext.stop()
+      spark.sparkContext.stop()
     } finally {
       super.afterAll()
     }
@@ -118,17 +118,17 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
       .map { t =>
         Row.fromSeq(Seq.tabulate(schema.size)(i => TestUtils.castToType(t(i), schema(i).dataType)))
       }
-    val df = sqlContext.createDataFrame(cityRDD, schema)
+    val df = spark.createDataFrame(cityRDD, schema)
 
     val tempDir = Files.createTempDir()
     val succinctDir = tempDir + "/succinct"
     df.saveAsSuccinctTable(succinctDir)
-    val loadedDF = sqlContext.succinctTable(succinctDir)
+    val loadedDF = spark.succinctTable(succinctDir)
     (df, loadedDF) // (expected, actual: succinct loaded)
   }
 
   test("dsl test") {
-    val results = sqlContext
+    val results = spark
       .succinctTable(succinctTable)
       .select("shipmode")
       .collect()
@@ -137,14 +137,14 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
   }
 
   test("sql test") {
-    sqlContext.sql(
+    spark.sql(
       s"""
          |CREATE TEMPORARY TABLE succinctTable
          |USING edu.berkeley.cs.succinct.sql
          |OPTIONS (path "$succinctTable")
       """.stripMargin.replaceAll("\n", " "))
 
-    assert(sqlContext.sql("SELECT * FROM succinctTable").collect().length === 1000)
+    assert(spark.sql("SELECT * FROM succinctTable").collect().length === 1000)
   }
 
   test("Convert specific SparkSQL types to succinct") {
@@ -158,33 +158,33 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
       Row("San Francisco", 12, 44.52, true),
       Row("Palo Alto", 12, 22.33, false),
       Row("Munich", 8, 3.14, true)))
-    val cityDataFrame = sqlContext.createDataFrame(cityRDD, testSchema)
+    val cityDataFrame = spark.createDataFrame(cityRDD, testSchema)
 
     val tempDir = Files.createTempDir()
     val succinctDir = tempDir + "/succinct"
     cityDataFrame.saveAsSuccinctTable(succinctDir)
 
-    assert(sqlContext.succinctTable(succinctDir).collect().length == 3)
+    assert(spark.succinctTable(succinctDir).collect().length == 3)
 
-    val cities = sqlContext
+    val cities = spark
       .succinctTable(succinctDir)
       .select("Name")
       .collect()
     assert(cities.map(_ (0)).toSet === Set("San Francisco", "Palo Alto", "Munich"))
 
-    val lengths = sqlContext
+    val lengths = spark
       .succinctTable(succinctDir)
       .select("Length")
       .collect()
     assert(lengths.map(_ (0)).toSet === Set(12, 12, 8))
 
-    val areas = sqlContext
+    val areas = spark
       .succinctTable(succinctDir)
       .select("Area")
       .collect()
     assert(areas.map(_ (0)).toSet === Set(44.52, 22.33, 3.14))
 
-    val airports = sqlContext
+    val airports = spark
       .succinctTable(succinctDir)
       .select("Airport")
       .collect()
@@ -294,14 +294,14 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
 
   test("test load and save") {
     // Test if load works as expected
-    val df = sqlContext.read.format("edu.berkeley.cs.succinct.sql").load(succinctTable)
+    val df = spark.read.format("edu.berkeley.cs.succinct.sql").load(succinctTable)
     assert(df.count == 1000)
 
     // Test if save works as expected
     val tempSaveDir = Files.createTempDir().getAbsolutePath
     TestUtils.deleteRecursively(new File(tempSaveDir))
     df.write.format("edu.berkeley.cs.succinct.sql").save(tempSaveDir)
-    val newDf = sqlContext.read.format("edu.berkeley.cs.succinct.sql").load(tempSaveDir)
+    val newDf = spark.read.format("edu.berkeley.cs.succinct.sql").load(tempSaveDir)
     assert(newDf.count == 1000)
   }
 
