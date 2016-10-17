@@ -17,7 +17,7 @@ using Maven by adding the following dependency information to your pom.xml file:
 <dependency>
     <groupId>edu.berkeley.cs.succinct</groupId>
     <artifactId>succinct-core</artifactId>
-    <version>0.1.7</version>
+    <version>0.1.8</version>
 </dependency>
 ```
 

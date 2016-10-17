@@ -32,7 +32,7 @@ using Maven by adding the following dependency information to your pom.xml file:
 <dependency>
     <groupId>amplab</groupId>
     <artifactId>succinct-core</artifactId>
-    <version>0.1.7</version>
+    <version>0.1.8</version>
 </dependency>
 ```
 
@@ -55,7 +55,7 @@ library using Apache Maven by adding the following dependency information to you
 <dependency>
     <groupId>amplab</groupId>
     <artifactId>succinct-spark</artifactId>
-    <version>0.1.7</version>
+    <version>0.1.8</version>
 </dependency>
 ```
 
@@ -67,7 +67,7 @@ for spark-submit and Maven instructions):
 
 ```
 resolvers += "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
-libraryDependencies += "amplab" % "succinct" % "0.1.7"
+libraryDependencies += "amplab" % "succinct" % "0.1.8"
 ```
 
 The succinct-spark jar file can also be added to a Spark shell using the 
@@ -75,5 +75,5 @@ The succinct-spark jar file can also be added to a Spark shell using the
 spark shell:
 
 ```
-$ bin/spark-shell --jars succinct-0.1.7.jar
+$ bin/spark-shell --jars succinct-0.1.8.jar
 ```
