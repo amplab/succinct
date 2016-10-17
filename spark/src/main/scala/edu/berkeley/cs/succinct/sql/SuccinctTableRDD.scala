@@ -92,7 +92,7 @@ object SuccinctTableRDD {
       }
     })
     val numPartitions = status.length
-    val succinctPartitions = sparkContext.parallelize(0 to numPartitions - 1, numPartitions)
+    val succinctPartitions = sparkContext.parallelize(0 until numPartitions, numPartitions)
       .mapPartitionsWithIndex[SuccinctTablePartition]((i, partition) => {
       val partitionLocation = dataPath + "/part-" + "%05d".format(i)
       Iterator(SuccinctTablePartition(partitionLocation, succinctSerDe, storageLevel))
@@ -162,9 +162,8 @@ object SuccinctTableRDD {
     * @param succinctSerDe The serializer/deserializer for Succinct's representation of records.
     * @return An Iterator over the [[SuccinctIndexedFile]].
     */
-  private[succinct] def createSuccinctTablePartition(
-                                                      dataIter: Iterator[Row],
-                                                      succinctSerDe: SuccinctSerDe): Iterator[SuccinctTablePartition] = {
+  private[succinct] def createSuccinctTablePartition(dataIter: Iterator[Row],
+                                                     succinctSerDe: SuccinctSerDe): Iterator[SuccinctTablePartition] = {
 
     var offsets = new ArrayBuffer[Int]()
     var buffers = new ArrayBuffer[Array[Byte]]()
@@ -249,7 +248,7 @@ object SuccinctTableRDD {
   private[succinct] def min(a: Row, b: Row): Row = {
     assert(a.length == b.length)
     val resArr = new Array[Any](a.length)
-    for (i <- 0 to a.length - 1) {
+    for (i <- 0 until a.length) {
       resArr(i) = minValue(a.get(i), b.get(i))
     }
     Row.fromSeq(resArr.toSeq)
@@ -258,7 +257,7 @@ object SuccinctTableRDD {
   private[succinct] def max(a: Row, b: Row): Row = {
     assert(a.length == b.length)
     val resArr = new Array[Any](a.length)
-    for (i <- 0 to a.length - 1) {
+    for (i <- 0 until a.length) {
       resArr(i) = maxValue(a.get(i), b.get(i))
     }
     Row.fromSeq(resArr.toSeq)
