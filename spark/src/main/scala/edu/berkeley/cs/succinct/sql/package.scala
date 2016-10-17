@@ -1,6 +1,6 @@
 package edu.berkeley.cs.succinct
 
-import org.apache.spark.sql.{DataFrame, SQLContext}
+import org.apache.spark.sql.{SparkSession, DataFrame, SQLContext}
 
 package object sql {
 
@@ -10,6 +10,15 @@ package object sql {
   implicit class SuccinctSQLContext(sqlContext: SQLContext) {
     def succinctTable(filePath: String) = {
       sqlContext.baseRelationToDataFrame(SuccinctRelation(filePath)(sqlContext))
+    }
+  }
+
+  /**
+    * Adds a method, `succinctTable`, to SparkSession that allows reading data stored in Succinct format.
+    */
+  implicit class SuccinctSession(spark: SparkSession) {
+    def succinctTable(filePath: String) = {
+      spark.baseRelationToDataFrame(SuccinctRelation(filePath)(spark.sqlContext))
     }
   }
 
