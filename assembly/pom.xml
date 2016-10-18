@@ -87,9 +87,35 @@
           </execution>
         </executions>
         <configuration>
-          <finalName>succinct-${project.version}</finalName>
+          <finalName>${project.parent.artifactId}-${project.version}</finalName>
+          <outputDirectory>${project.basedir}/../target</outputDirectory>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>install-assembly-jar</id>
+            <phase>install</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <version>${project.version}</version>
+                  <type>jar</type>
+                  <destFileName>${project.parent.artifactId}-${project.parent.version}.jar</destFileName>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${settings.localRepository}/${project.parent.groupId}/${project.parent.artifactId}/${project.parent.version}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
