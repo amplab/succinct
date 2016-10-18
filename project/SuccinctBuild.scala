@@ -1,4 +1,7 @@
-
+import sbt.Keys._
+import sbt._
+import sbtassembly.Plugin.AssemblyKeys._
+import sbtassembly.Plugin._
 
 object SuccinctBuild extends Build {
 
@@ -20,6 +23,7 @@ object SuccinctBuild extends Build {
     .settings(commonSettings: _*)
     .settings(TestSettings.settings: _*)
     .settings(name := "succinct-serde")
+    .dependsOn(core)
 
   lazy val spark = project.in(file("spark"))
     .settings(assemblySettings: _*)
@@ -31,9 +35,9 @@ object SuccinctBuild extends Build {
 
   lazy val commonSettings = Seq(
     name := "succinct",
-    version := "0.1.7-SNAPSHOT",
+    version := "0.1.8",
     organization := "amplab",
-    scalaVersion := "2.10.4",
+    scalaVersion := "2.11.7",
 
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "2.2.1" % "test",
