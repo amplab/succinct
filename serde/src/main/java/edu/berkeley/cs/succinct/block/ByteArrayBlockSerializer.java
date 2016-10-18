@@ -1,7 +1,7 @@
 package edu.berkeley.cs.succinct.block;
 
 import edu.berkeley.cs.succinct.SerializationException;
-import gnu.trove.list.array.TIntArrayList;
+import edu.berkeley.cs.succinct.util.container.IntArrayList;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -26,7 +26,7 @@ public class ByteArrayBlockSerializer implements BlockSerializer<byte[]> {
 
   @Override public SerializedData serialize(Iterator<byte[]> data) throws SerializationException {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    TIntArrayList offsets = new TIntArrayList();
+    IntArrayList offsets = new IntArrayList();
     out.write(recordSeparator);
     int currentOffset = 1;
     while (data.hasNext()) {
