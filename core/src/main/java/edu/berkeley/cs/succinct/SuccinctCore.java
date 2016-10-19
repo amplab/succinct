@@ -53,6 +53,9 @@ public abstract class SuccinctCore implements Serializable {
    * @param originalSize The originalSize to set.
    */
   public void setOriginalSize(int originalSize) {
+    if (originalSize < 0) {
+      throw new IllegalArgumentException("Original size is negative (" + originalSize + ")");
+    }
     this.originalSize = originalSize;
   }
 
@@ -71,6 +74,9 @@ public abstract class SuccinctCore implements Serializable {
    * @param alphabetSize The alphabetSize to set.
    */
   public void setAlphabetSize(int alphabetSize) {
+    if (alphabetSize < 0) {
+      throw new IllegalArgumentException("Alphabet size is negative (" + alphabetSize + ")");
+    }
     this.alphabetSize = alphabetSize;
   }
 
@@ -89,6 +95,14 @@ public abstract class SuccinctCore implements Serializable {
    * @param samplingRate The samplingRate to set.
    */
   public void setSamplingRateSA(int samplingRate) {
+    if (samplingRate < 0) {
+      throw new IllegalArgumentException("SA Sampling rate is negative (" + samplingRate + ")");
+    }
+
+    if ((samplingRate & (samplingRate - 1)) != 0) {
+      throw new IllegalArgumentException("SA Sampling rate != power of 2 (" + samplingRate + ")");
+    }
+
     this.samplingRateSA = samplingRate;
   }
 
@@ -107,6 +121,14 @@ public abstract class SuccinctCore implements Serializable {
    * @param samplingRate The samplingRate to set.
    */
   public void setSamplingRateISA(int samplingRate) {
+    if (samplingRate < 0) {
+      throw new IllegalArgumentException("ISA Sampling rate is negative (" + samplingRate + ")");
+    }
+
+    if ((samplingRate & (samplingRate - 1)) != 0) {
+      throw new IllegalArgumentException("ISA Sampling rate != power of 2 (" + samplingRate + ")");
+    }
+
     this.samplingRateISA = samplingRate;
   }
 
@@ -125,6 +147,14 @@ public abstract class SuccinctCore implements Serializable {
    * @param samplingRate The samplingRate to set.
    */
   public void setSamplingRateNPA(int samplingRate) {
+    if (samplingRate < 0) {
+      throw new IllegalArgumentException("NPA Sampling rate is negative (" + samplingRate + ")");
+    }
+
+    if ((samplingRate & (samplingRate - 1)) != 0) {
+      throw new IllegalArgumentException("NPA Sampling rate != power of 2 (" + samplingRate + ")");
+    }
+
     this.samplingRateNPA = samplingRate;
   }
 
@@ -143,6 +173,14 @@ public abstract class SuccinctCore implements Serializable {
    * @param sampleBitWidth The sample bit width to set.
    */
   public void setSampleBitWidth(int sampleBitWidth) {
+    if (sampleBitWidth < 0) {
+      throw new IllegalArgumentException("Sample bit width is negative (" + sampleBitWidth + ")");
+    }
+
+    if (sampleBitWidth > 31) {
+      throw new IllegalArgumentException("Sample bit width too large (" + sampleBitWidth + ")");
+    }
+
     this.sampleBitWidth = sampleBitWidth;
   }
 
@@ -158,7 +196,7 @@ public abstract class SuccinctCore implements Serializable {
 
   protected int baseSize() {
     return 6 * SuccinctConstants.INT_SIZE_BYTES // For constants
-      + (12 + alphabet.length * SuccinctConstants.BYTE_SIZE_BYTES); // For Byte Array
+      + (12 + alphabet.length * SuccinctConstants.INT_SIZE_BYTES); // For Integer Array
   }
 
   /**
