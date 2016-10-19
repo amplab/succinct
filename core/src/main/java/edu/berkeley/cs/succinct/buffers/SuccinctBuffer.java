@@ -420,6 +420,7 @@ public class SuccinctBuffer extends SuccinctCore {
    * Reads Succinct data structures from the data ByteBuffer.
    */
   public void mapFromCore() {
+    core.order(ByteOrder.BIG_ENDIAN);
     core.rewind();
 
     // Deserialize metadata
