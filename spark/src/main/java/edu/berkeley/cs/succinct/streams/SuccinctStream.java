@@ -5,6 +5,7 @@ import edu.berkeley.cs.succinct.util.BitUtils;
 import edu.berkeley.cs.succinct.util.CommonUtils;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import edu.berkeley.cs.succinct.util.stream.DeltaEncodedIntStream;
+import edu.berkeley.cs.succinct.util.stream.IntArrayStream;
 import edu.berkeley.cs.succinct.util.stream.LongArrayStream;
 import edu.berkeley.cs.succinct.util.stream.serops.ArrayOps;
 import edu.berkeley.cs.succinct.util.stream.serops.IntVectorOps;
@@ -22,12 +23,11 @@ public class SuccinctStream extends SuccinctCore {
 
   protected transient LongArrayStream sa;
   protected transient LongArrayStream isa;
-  protected transient LongArrayStream columnoffsets;
+  protected transient IntArrayStream columnoffsets;
   protected transient DeltaEncodedIntStream[] columns;
 
   protected transient FSDataInputStream originalStream;
   protected transient long endOfCoreStream;
-  protected transient int coreSize;
 
   private transient Configuration conf;
 
@@ -42,8 +42,6 @@ public class SuccinctStream extends SuccinctCore {
     this.conf = conf;
 
     FSDataInputStream is = getStream(filePath);
-
-    coreSize = is.readInt();
 
     setOriginalSize(is.readInt());
     setSamplingRateSA(is.readInt());
@@ -77,8 +75,8 @@ public class SuccinctStream extends SuccinctCore {
     is.seek(is.getPos() + isaSize);
 
     // Map columnoffsets
-    int columnoffsetsSize = getAlphabetSize() * SuccinctConstants.LONG_SIZE_BYTES;
-    columnoffsets = new LongArrayStream(is, is.getPos(), columnoffsetsSize);
+    int columnoffsetsSize = getAlphabetSize() * SuccinctConstants.INT_SIZE_BYTES;
+    columnoffsets = new IntArrayStream(is, is.getPos(), columnoffsetsSize);
     is.seek(is.getPos() + columnoffsetsSize);
 
     columns = new DeltaEncodedIntStream[getAlphabetSize()];
@@ -117,9 +115,13 @@ public class SuccinctStream extends SuccinctCore {
     return fs.open(path);
   }
 
+  /**
+   * Get the size (in bytes) of Succinct data structures (compressed).
+   *
+   * @return Size (in bytes) of Succinct data structures (compressed).
+   */
   @Override public int getCoreSize() {
-    return baseSize() + (12 + 12 + SuccinctConstants.REF_SIZE_BYTES) * 3 + (12 + columns.length * (
-      2 * SuccinctConstants.REF_SIZE_BYTES + 8));
+    return 0;
   }
 
   /**
