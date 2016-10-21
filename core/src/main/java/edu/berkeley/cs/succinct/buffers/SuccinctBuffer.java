@@ -37,9 +37,6 @@ public class SuccinctBuffer extends SuccinctCore {
   // Storage mode
   protected transient StorageMode storageMode;
 
-  // Succinct core data structures buffer
-  protected transient ByteBuffer core;
-
   /**
    * Default constructor.
    */
@@ -67,7 +64,6 @@ public class SuccinctBuffer extends SuccinctCore {
     } catch (IOException e) {
       throw new RuntimeException("Could not create core data structures", e);
     }
-    mapFromCore();
   }
 
   /**
@@ -90,7 +86,6 @@ public class SuccinctBuffer extends SuccinctCore {
     } catch (IOException e) {
       throw new RuntimeException("Could not create core data structures", e);
     }
-    mapFromCore();
   }
 
   /**
@@ -131,12 +126,23 @@ public class SuccinctBuffer extends SuccinctCore {
    * @param buf Input buffer to load the data from
    */
   public SuccinctBuffer(ByteBuffer buf) {
-    this.core = buf;
-    mapFromCore();
+    mapFromBuffer(buf);
   }
 
+  /**
+   * Get the total size of the core Succinct data-structures.
+   *
+   * @return The total size of the core Succinct data-structures.
+   */
   @Override public int getCoreSize() {
-    return core.limit();
+    int coreSize = baseSize();
+    coreSize += sa.limit() * SuccinctConstants.LONG_SIZE_BYTES;
+    coreSize += isa.limit() * SuccinctConstants.LONG_SIZE_BYTES;
+    coreSize += columnoffsets.limit() * SuccinctConstants.LONG_SIZE_BYTES;
+    for (ThreadSafeByteBuffer column : columns) {
+      coreSize += column.limit() * SuccinctConstants.BYTE_SIZE_BYTES;
+    }
+    return coreSize;
   }
 
   /**
@@ -255,18 +261,60 @@ public class SuccinctBuffer extends SuccinctCore {
    *
    * @param input Input byte array.
    */
-  protected void construct(Source input) throws IOException {
+  private void construct(Source input) throws IOException {
+    File tmpFile = File.createTempFile("succinct-construct-", ".tmp");
+    tmpFile.deleteOnExit();
+    DataOutputStream coreStream = new DataOutputStream(new FileOutputStream(tmpFile));
 
+    construct(input, coreStream);
+
+    coreStream.close();
+
+    readCoreFromFile(tmpFile.getAbsolutePath());
+
+    if (!tmpFile.delete()) {
+      LOG.warning("Could not delete temporary file.");
+    }
+  }
+
+  public static void construct(final char[] input, DataOutputStream coreStream) throws IOException {
+    construct(new Source() {
+      @Override public int length() {
+        return input.length;
+      }
+
+      @Override public int get(int i) {
+        return input[i];
+      }
+    }, coreStream);
+  }
+
+  public static void construct(final byte[] input, DataOutputStream coreStream) throws IOException {
+    construct(new Source() {
+      @Override public int length() {
+        return input.length;
+      }
+
+      @Override public int get(int i) {
+        return input[i];
+      }
+    }, coreStream);
+  }
+
+  /**
+   * Construct core Succinct data structures and write them to provided output stream.
+   *
+   * @param input      The input source.
+   * @param coreStream The data output stream.
+   * @throws IOException
+   */
+  public static void construct(Source input, DataOutputStream coreStream) throws IOException {
     // Uncompressed ISA
     int[] ISA;
     int[] columnOffsets;
 
     LOG.info("Constructing Succinct data structures.");
     long startTimeGlobal = System.currentTimeMillis();
-
-    File tmpFile = File.createTempFile("succinct-construct-", ".tmp");
-    tmpFile.deleteOnExit();
-    DataOutputStream coreStream = new DataOutputStream(new FileOutputStream(tmpFile));
 
     int originalSize = input.length() + 1;
 
@@ -389,18 +437,7 @@ public class SuccinctBuffer extends SuccinctCore {
     }
 
     long timeTakenGlobal = (System.currentTimeMillis() - startTimeGlobal) / 1000L;
-    LOG.info("Finished constructing Succinct data structures in " + timeTakenGlobal + "s.");
-
-    coreStream.close();
-
-    core = ByteBuffer.allocateDirect(((int) tmpFile.length()));
-    FileChannel inChannel = new FileInputStream(tmpFile).getChannel();
-    inChannel.read(core);
-    inChannel.close();
-
-    if (!tmpFile.delete()) {
-      LOG.warning("Could not delete temporary file.");
-    }
+    LOG.info("Finished constructing core Succinct data structures in " + timeTakenGlobal + "s.");
   }
 
   /**
@@ -419,10 +456,7 @@ public class SuccinctBuffer extends SuccinctCore {
   /**
    * Reads Succinct data structures from the data ByteBuffer.
    */
-  public void mapFromCore() {
-    core.order(ByteOrder.BIG_ENDIAN);
-    core.rewind();
-
+  public void mapFromBuffer(ByteBuffer core) {
     // Deserialize metadata
     setOriginalSize(core.getInt());
     setSamplingRateSA(core.getInt());
@@ -444,6 +478,7 @@ public class SuccinctBuffer extends SuccinctCore {
     // Read sa
     int saSize = BitUtils.bitsToBlocks64(totalSampledBitsSA) * SuccinctConstants.LONG_SIZE_BYTES;
     sa = ThreadSafeLongBuffer.fromLongBuffer(sliceOrderLimit(core, saSize).asLongBuffer());
+    sa.rewind();
 
     // Compute number of sampled elements
     int totalSampledBitsISA =
@@ -452,11 +487,13 @@ public class SuccinctBuffer extends SuccinctCore {
     // Read isa
     int isaSize = BitUtils.bitsToBlocks64(totalSampledBitsISA) * SuccinctConstants.LONG_SIZE_BYTES;
     isa = ThreadSafeLongBuffer.fromLongBuffer(sliceOrderLimit(core, isaSize).asLongBuffer());
+    isa.rewind();
 
     // Read columnoffsets
     int coloffsetsSize = getAlphabetSize() * SuccinctConstants.LONG_SIZE_BYTES;
     columnoffsets =
       ThreadSafeLongBuffer.fromLongBuffer(sliceOrderLimit(core, coloffsetsSize).asLongBuffer());
+    columnoffsets.rewind();
 
     columns = new ThreadSafeByteBuffer[getAlphabetSize()];
     for (int i = 0; i < getAlphabetSize(); i++) {
@@ -464,8 +501,6 @@ public class SuccinctBuffer extends SuccinctCore {
       columns[i] = ThreadSafeByteBuffer.fromByteBuffer(sliceOrderLimit(core, columnSize));
       columns[i].rewind();
     }
-
-    core.rewind();
   }
 
   /**
@@ -477,9 +512,34 @@ public class SuccinctBuffer extends SuccinctCore {
   public void writeToStream(DataOutputStream os) throws IOException {
     WritableByteChannel dataChannel = Channels.newChannel(os);
 
-    os.writeInt(core.limit());
-    dataChannel.write(core.order(ByteOrder.BIG_ENDIAN));
-    core.rewind();
+    os.writeInt(getOriginalSize());
+    os.writeInt(getSamplingRateSA());
+    os.writeInt(getSamplingRateISA());
+    os.writeInt(getSamplingRateNPA());
+    os.writeInt(getSampleBitWidth());
+    os.writeInt(getAlphabetSize());
+
+    for (int i = 0; i < getAlphabetSize(); i++) {
+      os.writeInt(alphabet[i]);
+    }
+
+    for (int i = 0; i < sa.limit(); i++) {
+      os.writeLong(sa.get(i));
+    }
+
+    for (int i = 0; i < isa.limit(); i++) {
+      os.writeLong(isa.get(i));
+    }
+
+    for (int i = 0; i < columnoffsets.limit(); i++) {
+      os.writeLong(columnoffsets.get(i));
+    }
+
+    for (int i = 0; i < columns.length; i++) {
+      os.writeInt(columns[i].limit());
+      dataChannel.write(columns[i].order(ByteOrder.BIG_ENDIAN));
+      columns[i].rewind();
+    }
   }
 
   /**
@@ -488,14 +548,62 @@ public class SuccinctBuffer extends SuccinctCore {
    * @param is Stream to read data structures from.
    * @throws IOException
    */
-  public void readFromStream(DataInputStream is) throws IOException {
+  private void readCoreFromStream(DataInputStream is) throws IOException {
     ReadableByteChannel dataChannel = Channels.newChannel(is);
+    setOriginalSize(is.readInt());
+    setSamplingRateSA(is.readInt());
+    setSamplingRateISA(is.readInt());
+    setSamplingRateNPA(is.readInt());
+    setSampleBitWidth(is.readInt());
+    setAlphabetSize(is.readInt());
 
-    int dataSize = is.readInt();
-    core = ByteBuffer.allocateDirect(dataSize);
-    dataChannel.read(core);
-    mapFromCore();
-    core.rewind();
+    // Read alphabet
+    alphabet = new int[getAlphabetSize()];
+    for (int i = 0; i < getAlphabetSize(); i++) {
+      alphabet[i] = is.readInt();
+    }
+
+    // Compute number of sampled elements
+    int totalSampledBitsSA =
+      CommonUtils.numBlocks(getOriginalSize(), getSamplingRateSA()) * getSampleBitWidth();
+
+    // Read sa
+    ByteBuffer saBuf = ByteBuffer
+      .allocateDirect(BitUtils.bitsToBlocks64(totalSampledBitsSA) * SuccinctConstants.LONG_SIZE_BYTES);
+    dataChannel.read(saBuf);
+    saBuf.rewind();
+    sa = ThreadSafeLongBuffer.fromLongBuffer(saBuf.asLongBuffer());
+
+    // Compute number of sampled elements
+    int totalSampledBitsISA =
+      CommonUtils.numBlocks(getOriginalSize(), getSamplingRateISA()) * getSampleBitWidth();
+
+    // Read isa
+    ByteBuffer isaBuf = ByteBuffer
+      .allocateDirect(BitUtils.bitsToBlocks64(totalSampledBitsISA) * SuccinctConstants.LONG_SIZE_BYTES);
+    dataChannel.read(isaBuf);
+    isaBuf.rewind();
+    isa = ThreadSafeLongBuffer.fromLongBuffer(isaBuf.asLongBuffer());
+
+    // Read columnoffsets
+    ByteBuffer coloffsetsBuf =
+      ByteBuffer.allocateDirect(getAlphabetSize() * SuccinctConstants.LONG_SIZE_BYTES);
+    dataChannel.read(coloffsetsBuf);
+    coloffsetsBuf.rewind();
+    columnoffsets = ThreadSafeLongBuffer.fromLongBuffer(coloffsetsBuf.asLongBuffer());
+
+    // Read NPA columns
+    columns = new ThreadSafeByteBuffer[getAlphabetSize()];
+    for (int i = 0; i < getAlphabetSize(); i++) {
+      int columnSize = is.readInt();
+      ByteBuffer columnBuf = ByteBuffer.allocateDirect(columnSize);
+      dataChannel.read(columnBuf);
+      columns[i] = ThreadSafeByteBuffer.fromByteBuffer(((ByteBuffer) columnBuf.rewind()));
+    }
+  }
+
+  public void readFromStream(DataInputStream is) throws IOException {
+    readCoreFromStream(is);
   }
 
   /**
@@ -510,6 +618,12 @@ public class SuccinctBuffer extends SuccinctCore {
     writeToStream(os);
   }
 
+  private void readCoreFromFile(String path) throws IOException {
+    FileInputStream fis = new FileInputStream(path);
+    DataInputStream is = new DataInputStream(fis);
+    readCoreFromStream(is);
+  }
+
   /**
    * Read Succinct data structures into memory from file.
    *
@@ -517,9 +631,7 @@ public class SuccinctBuffer extends SuccinctCore {
    * @throws IOException
    */
   public void readFromFile(String path) throws IOException {
-    FileInputStream fis = new FileInputStream(path);
-    DataInputStream is = new DataInputStream(fis);
-    readFromStream(is);
+    readCoreFromFile(path);
   }
 
   /**
@@ -533,10 +645,7 @@ public class SuccinctBuffer extends SuccinctCore {
     long size = file.length();
     FileChannel fileChannel = new RandomAccessFile(file, "r").getChannel();
 
-    ByteBuffer buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size);
-    int compressedSize = buf.getInt();
-    core = (ByteBuffer) buf.slice().limit(compressedSize);
-    mapFromCore();
+    mapFromBuffer(fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size));
   }
 
   /**

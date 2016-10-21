@@ -102,7 +102,6 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
    * @throws Exception
    */
   public void testMemoryMap() throws Exception {
-
     ((SuccinctIndexedFileBuffer) sIFile).writeToFile(testFileSuccinctMin);
     SuccinctIndexedFile sIFileRead =
       new SuccinctIndexedFileBuffer(testFileSuccinctMin, StorageMode.MEMORY_MAPPED);
@@ -121,8 +120,29 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
    * @throws Exception
    */
   public void testReadFromFile() throws Exception {
-
     ((SuccinctIndexedFileBuffer) sIFile).writeToFile(testFileSuccinctMin);
+    SuccinctIndexedFile sIFileRead =
+      new SuccinctIndexedFileBuffer(testFileSuccinctMin, StorageMode.MEMORY_ONLY);
+
+    assertNotNull(sIFileRead);
+    assertEquals(sIFile.getNumRecords(), sIFileRead.getNumRecords());
+    for (int i = 0; i < sIFile.getNumRecords(); i++) {
+      assertTrue(Arrays.equals(sIFile.getRecordBytes(i), sIFileRead.getRecordBytes(i)));
+    }
+  }
+
+  /**
+   * Test method: void construct(byte[] input, int[] offsets DataOutputStream out)
+   *
+   * @throws Exception
+   */
+  public void testConstruct() throws Exception {
+    FileOutputStream fos = new FileOutputStream(testFileSuccinctMin);
+    DataOutputStream os = new DataOutputStream(fos);
+
+    SuccinctIndexedFileBuffer.construct(data, offsets, os);
+    os.close();
+
     SuccinctIndexedFile sIFileRead =
       new SuccinctIndexedFileBuffer(testFileSuccinctMin, StorageMode.MEMORY_ONLY);
 

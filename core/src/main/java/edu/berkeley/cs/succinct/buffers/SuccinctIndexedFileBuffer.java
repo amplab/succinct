@@ -52,6 +52,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   public SuccinctIndexedFileBuffer(String path, StorageMode storageMode) {
     super(path, storageMode);
+
   }
 
   /**
@@ -81,6 +82,65 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    */
   public SuccinctIndexedFileBuffer() {
     super();
+  }
+
+  /**
+   * Construct SuccinctIndexedFile from input source and offsets, and write them to file.
+   *
+   * @param input   The input source.
+   * @param offsets The offsets corresponding to records.
+   * @param os      The data output stream.
+   * @throws IOException
+   */
+  public static void construct(final char[] input, int[] offsets, DataOutputStream os)
+    throws IOException {
+    construct(new Source() {
+      @Override public int length() {
+        return input.length;
+      }
+
+      @Override public int get(int i) {
+        return input[i];
+      }
+    }, offsets, os);
+  }
+
+  /**
+   * Construct SuccinctIndexedFile from input source and offsets, and write them to file.
+   *
+   * @param input   The input source.
+   * @param offsets The offsets corresponding to records.
+   * @param os      The data output stream.
+   * @throws IOException
+   */
+  public static void construct(final byte[] input, int[] offsets, DataOutputStream os)
+    throws IOException {
+    construct(new Source() {
+      @Override public int length() {
+        return input.length;
+      }
+
+      @Override public int get(int i) {
+        return input[i];
+      }
+    }, offsets, os);
+  }
+
+  /**
+   * Construct SuccinctIndexedFile from input source and offsets, and write them to file.
+   *
+   * @param input   The input source.
+   * @param offsets The offsets corresponding to records.
+   * @param os      The data output stream.
+   * @throws IOException
+   */
+  public static void construct(Source input, int[] offsets, DataOutputStream os)
+    throws IOException {
+    construct(input, os);
+    os.writeInt(offsets.length);
+    for (int i = 0; i < offsets.length; i++) {
+      os.writeInt(offsets[i]);
+    }
   }
 
   /**
@@ -349,6 +409,30 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   }
 
   /**
+   * Write SuccinctIndexedFile to file.
+   *
+   * @param path Path to file where Succinct data structures should be written.
+   * @throws IOException
+   */
+  public void writeToFile(String path) throws IOException {
+    FileOutputStream fos = new FileOutputStream(path);
+    DataOutputStream os = new DataOutputStream(fos);
+    writeToStream(os);
+  }
+
+  /**
+   * Read SuccinctIndexedFile from file.
+   *
+   * @param path Path to serialized Succinct data structures.
+   * @throws IOException
+   */
+  @Override public void readFromFile(String path) throws IOException {
+    FileInputStream fis = new FileInputStream(path);
+    DataInputStream is = new DataInputStream(fis);
+    readFromStream(is);
+  }
+
+  /**
    * Write Succinct data structures to a DataOutputStream.
    *
    * @param os Output stream to write data to.
@@ -389,11 +473,8 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
     FileChannel fileChannel = new RandomAccessFile(file, "r").getChannel();
 
     ByteBuffer buf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size);
-    int dataSize = buf.getInt();
-    core = (ByteBuffer) buf.slice().limit(dataSize);
-    mapFromCore();
+    mapFromBuffer(buf);
 
-    buf.position(buf.position() + dataSize);
     int len = buf.getInt();
     offsets = new int[len];
     for (int i = 0; i < len; i++) {
