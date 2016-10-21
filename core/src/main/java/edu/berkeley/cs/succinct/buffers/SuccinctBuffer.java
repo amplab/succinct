@@ -7,6 +7,7 @@ import edu.berkeley.cs.succinct.util.CommonUtils;
 import edu.berkeley.cs.succinct.util.Source;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeByteBuffer;
+import edu.berkeley.cs.succinct.util.buffer.ThreadSafeIntBuffer;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeLongBuffer;
 import edu.berkeley.cs.succinct.util.buffer.serops.ArrayOps;
 import edu.berkeley.cs.succinct.util.buffer.serops.DeltaEncodedIntVectorOps;
@@ -31,7 +32,7 @@ public class SuccinctBuffer extends SuccinctCore {
   // Serialized data structures
   protected transient ThreadSafeLongBuffer sa;
   protected transient ThreadSafeLongBuffer isa;
-  protected transient ThreadSafeLongBuffer columnoffsets;
+  protected transient ThreadSafeIntBuffer columnoffsets;
   protected transient ThreadSafeByteBuffer[] columns;
 
   // Storage mode
@@ -404,7 +405,7 @@ public class SuccinctBuffer extends SuccinctCore {
 
       // Write column offsets
       for (int i = 0; i < alphabetSize; i++) {
-        coreStream.writeLong(columnOffsets[i]);
+        coreStream.writeInt(columnOffsets[i]);
       }
 
       // Construct NPA
@@ -490,9 +491,9 @@ public class SuccinctBuffer extends SuccinctCore {
     isa.rewind();
 
     // Read columnoffsets
-    int coloffsetsSize = getAlphabetSize() * SuccinctConstants.LONG_SIZE_BYTES;
+    int coloffsetsSize = getAlphabetSize() * SuccinctConstants.INT_SIZE_BYTES;
     columnoffsets =
-      ThreadSafeLongBuffer.fromLongBuffer(sliceOrderLimit(core, coloffsetsSize).asLongBuffer());
+      ThreadSafeIntBuffer.fromIntBuffer(sliceOrderLimit(core, coloffsetsSize).asIntBuffer());
     columnoffsets.rewind();
 
     columns = new ThreadSafeByteBuffer[getAlphabetSize()];
@@ -532,7 +533,7 @@ public class SuccinctBuffer extends SuccinctCore {
     }
 
     for (int i = 0; i < columnoffsets.limit(); i++) {
-      os.writeLong(columnoffsets.get(i));
+      os.writeInt(columnoffsets.get(i));
     }
 
     for (int i = 0; i < columns.length; i++) {
@@ -568,8 +569,8 @@ public class SuccinctBuffer extends SuccinctCore {
       CommonUtils.numBlocks(getOriginalSize(), getSamplingRateSA()) * getSampleBitWidth();
 
     // Read sa
-    ByteBuffer saBuf = ByteBuffer
-      .allocateDirect(BitUtils.bitsToBlocks64(totalSampledBitsSA) * SuccinctConstants.LONG_SIZE_BYTES);
+    ByteBuffer saBuf = ByteBuffer.allocateDirect(
+      BitUtils.bitsToBlocks64(totalSampledBitsSA) * SuccinctConstants.LONG_SIZE_BYTES);
     dataChannel.read(saBuf);
     saBuf.rewind();
     sa = ThreadSafeLongBuffer.fromLongBuffer(saBuf.asLongBuffer());
@@ -579,18 +580,18 @@ public class SuccinctBuffer extends SuccinctCore {
       CommonUtils.numBlocks(getOriginalSize(), getSamplingRateISA()) * getSampleBitWidth();
 
     // Read isa
-    ByteBuffer isaBuf = ByteBuffer
-      .allocateDirect(BitUtils.bitsToBlocks64(totalSampledBitsISA) * SuccinctConstants.LONG_SIZE_BYTES);
+    ByteBuffer isaBuf = ByteBuffer.allocateDirect(
+      BitUtils.bitsToBlocks64(totalSampledBitsISA) * SuccinctConstants.LONG_SIZE_BYTES);
     dataChannel.read(isaBuf);
     isaBuf.rewind();
     isa = ThreadSafeLongBuffer.fromLongBuffer(isaBuf.asLongBuffer());
 
     // Read columnoffsets
     ByteBuffer coloffsetsBuf =
-      ByteBuffer.allocateDirect(getAlphabetSize() * SuccinctConstants.LONG_SIZE_BYTES);
+      ByteBuffer.allocateDirect(getAlphabetSize() * SuccinctConstants.INT_SIZE_BYTES);
     dataChannel.read(coloffsetsBuf);
     coloffsetsBuf.rewind();
-    columnoffsets = ThreadSafeLongBuffer.fromLongBuffer(coloffsetsBuf.asLongBuffer());
+    columnoffsets = ThreadSafeIntBuffer.fromIntBuffer(coloffsetsBuf.asIntBuffer());
 
     // Read NPA columns
     columns = new ThreadSafeByteBuffer[getAlphabetSize()];
