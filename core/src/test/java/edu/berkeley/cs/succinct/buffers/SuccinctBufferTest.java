@@ -7,6 +7,7 @@ import java.io.*;
 
 public class SuccinctBufferTest extends SuccinctCoreTest {
 
+  private byte[] data;
   private String testFileRaw = this.getClass().getResource("/test_file").getFile();
   private String testFileSuccinct =
     this.getClass().getResource("/test_file").getFile() + ".succinct";
@@ -26,10 +27,10 @@ public class SuccinctBufferTest extends SuccinctCoreTest {
 
     File inputFile = new File(testFileRaw);
 
-    byte[] fileData = new byte[(int) inputFile.length()];
+    data = new byte[(int) inputFile.length()];
     DataInputStream dis = new DataInputStream(new FileInputStream(inputFile));
-    dis.readFully(fileData);
-    sCore = new SuccinctBuffer(fileData);
+    dis.readFully(data);
+    sCore = new SuccinctBuffer(data);
 
   }
 
@@ -103,6 +104,29 @@ public class SuccinctBufferTest extends SuccinctCoreTest {
   public void testReadFromFile() throws Exception {
 
     ((SuccinctBuffer) sCore).writeToFile(testFileSuccinctMin);
+    SuccinctBuffer sCoreRead = new SuccinctBuffer(testFileSuccinctMin, StorageMode.MEMORY_ONLY);
+
+    assertNotNull(sCoreRead);
+    assertEquals(sCore.getOriginalSize(), sCoreRead.getOriginalSize());
+    for (int i = 0; i < sCore.getOriginalSize(); i++) {
+      assertEquals(sCore.lookupNPA(i), sCoreRead.lookupNPA(i));
+      assertEquals(sCore.lookupSA(i), sCoreRead.lookupSA(i));
+      assertEquals(sCore.lookupISA(i), sCoreRead.lookupISA(i));
+    }
+  }
+
+  /**
+   * Test method: void construct(byte[] data)
+   * Test method: void readFromFile(String path)
+   *
+   * @throws Exception
+   */
+  public void testConstruct() throws Exception {
+    FileOutputStream fos = new FileOutputStream(testFileSuccinctMin);
+    DataOutputStream os = new DataOutputStream(fos);
+    SuccinctBuffer.construct(data, os);
+    os.close();
+
     SuccinctBuffer sCoreRead = new SuccinctBuffer(testFileSuccinctMin, StorageMode.MEMORY_ONLY);
 
     assertNotNull(sCoreRead);
