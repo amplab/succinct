@@ -263,19 +263,16 @@ public class SuccinctBuffer extends SuccinctCore {
    * @param input Input byte array.
    */
   private void construct(Source input) throws IOException {
-    File tmpFile = File.createTempFile("succinct-construct-", ".tmp");
-    tmpFile.deleteOnExit();
-    DataOutputStream coreStream = new DataOutputStream(new FileOutputStream(tmpFile));
+    ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+    DataOutputStream coreStream = new DataOutputStream(byteStream);
 
     construct(input, coreStream);
 
     coreStream.close();
 
-    readCoreFromFile(tmpFile.getAbsolutePath());
-
-    if (!tmpFile.delete()) {
-      LOG.warning("Could not delete temporary file.");
-    }
+    ByteBuffer buf = ByteBuffer.wrap(byteStream.toByteArray());
+    mapFromBuffer(buf);
+    byteStream.close();
   }
 
   public static void construct(final char[] input, DataOutputStream coreStream) throws IOException {
