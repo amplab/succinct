@@ -69,7 +69,8 @@ abstract class SuccinctTableRDD(@transient private val sc: SparkContext,
 /** Factory for [[SuccinctTableRDD]] instances */
 object SuccinctTableRDD {
 
-  def apply(sparkContext: SparkContext, path: String, storageLevel: StorageLevel): SuccinctTableRDD = {
+  def apply(sparkContext: SparkContext, path: String,
+            storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY): SuccinctTableRDD = {
     val dataPath = path.stripSuffix("/") + "/data"
     val schemaPath = path.stripSuffix("/") + "/schema"
     val separatorsPath = path.stripSuffix("/") + "/separators"
