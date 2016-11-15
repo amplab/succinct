@@ -11,7 +11,7 @@ class DefaultSource
   override def createRelation(
                                sqlContext: SQLContext,
                                parameters: Map[String, String]): BaseRelation = {
-    SuccinctRelation(checkPath(parameters))(sqlContext)
+    SuccinctPersistentRelation(checkPath(parameters))(sqlContext)
   }
 
   private def checkPath(parameters: Map[String, String]): String = {
@@ -48,10 +48,9 @@ class DefaultSource
     createRelation(sqlContext, parameters, data.schema)
   }
 
-  override def createRelation(
-                               sqlContext: SQLContext,
-                               parameters: Map[String, String],
-                               schema: StructType): BaseRelation = {
-    SuccinctRelation(checkPath(parameters), schema)(sqlContext)
+  override def createRelation(sqlContext: SQLContext,
+                              parameters: Map[String, String],
+                              schema: StructType): BaseRelation = {
+    SuccinctPersistentRelation(checkPath(parameters), schema)(sqlContext)
   }
 }

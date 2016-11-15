@@ -191,6 +191,44 @@ class SuccinctSQLSuite extends FunSuite with BeforeAndAfterAll {
     assert(airports.map(_ (0)).toSet === Set(true, false, true))
   }
 
+  test("Convert specific SparkSQL types to succinct in memory") {
+    val testSchema = StructType(Seq(
+      StructField("Name", StringType, nullable = false),
+      StructField("Length", IntegerType, nullable = true),
+      StructField("Area", DoubleType, nullable = false),
+      StructField("Airport", BooleanType, nullable = true)))
+
+    val cityRDD = sparkContext.parallelize(Seq(
+      Row("San Francisco", 12, 44.52, true),
+      Row("Palo Alto", 12, 22.33, false),
+      Row("Munich", 8, 3.14, true)))
+    val cityDataFrame = spark.createDataFrame(cityRDD, testSchema)
+
+    val succinctDF = cityDataFrame.toSuccinctDF
+
+    assert(succinctDF.collect().length == 3)
+
+    val cities = succinctDF
+      .select("Name")
+      .collect()
+    assert(cities.map(_ (0)).toSet === Set("San Francisco", "Palo Alto", "Munich"))
+
+    val lengths = succinctDF
+      .select("Length")
+      .collect()
+    assert(lengths.map(_ (0)).toSet === Set(12, 12, 8))
+
+    val areas = succinctDF
+      .select("Area")
+      .collect()
+    assert(areas.map(_ (0)).toSet === Set(44.52, 22.33, 3.14))
+
+    val airports = succinctDF
+      .select("Airport")
+      .collect()
+    assert(airports.map(_ (0)).toSet === Set(true, false, true))
+  }
+
   test("prunes") {
     val (cityDataFrame, loadedDF) = createTestDF(testSchema)
 
