@@ -6,6 +6,7 @@ import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.SuccinctRegEx;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.Source;
+import edu.berkeley.cs.succinct.util.SuccinctConfiguration;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import edu.berkeley.cs.succinct.util.container.Range;
 import edu.berkeley.cs.succinct.util.iterator.SearchIterator;
@@ -23,9 +24,29 @@ public class SuccinctFileBuffer extends SuccinctBuffer implements SuccinctFile {
    * Constructor to create SuccinctBuffer from byte array and file offset.
    *
    * @param input Input byte array.
+   * @param conf Succinct configuration.
+   */
+  public SuccinctFileBuffer(final char[] input, SuccinctConfiguration conf) {
+    super(input, conf);
+  }
+
+  /**
+   * Constructor to create SuccinctBuffer from byte array and file offset.
+   *
+   * @param input Input byte array.
    */
   public SuccinctFileBuffer(final char[] input) {
     super(input);
+  }
+
+  /**
+   * Constructor to create SuccinctBuffer from byte array and file offset.
+   *
+   * @param input Input byte array.
+   * @param conf Succinct configuration.
+   */
+  public SuccinctFileBuffer(final byte[] input, SuccinctConfiguration conf) {
+    super(input, conf);
   }
 
   /**

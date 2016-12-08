@@ -2,10 +2,7 @@ package edu.berkeley.cs.succinct.buffers;
 
 import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctCore;
-import edu.berkeley.cs.succinct.util.BitUtils;
-import edu.berkeley.cs.succinct.util.CommonUtils;
-import edu.berkeley.cs.succinct.util.Source;
-import edu.berkeley.cs.succinct.util.SuccinctConstants;
+import edu.berkeley.cs.succinct.util.*;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeByteBuffer;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeIntBuffer;
 import edu.berkeley.cs.succinct.util.buffer.ThreadSafeLongBuffer;
@@ -49,8 +46,9 @@ public class SuccinctBuffer extends SuccinctCore {
    * Constructor to initialize SuccinctCore from input byte array.
    *
    * @param input Input byte array.
+   * @param conf Succinct configuration.
    */
-  public SuccinctBuffer(final byte[] input) {
+  public SuccinctBuffer(final byte[] input, SuccinctConfiguration conf) {
     // Construct Succinct data-structures
     try {
       construct(new Source() {
@@ -61,7 +59,39 @@ public class SuccinctBuffer extends SuccinctCore {
         @Override public int get(int i) {
           return input[i];
         }
-      });
+      }, conf);
+    } catch (IOException e) {
+      throw new RuntimeException("Could not create core data structures", e);
+    }
+  }
+
+  /**
+   * Constructor to initialize SuccinctCore from input byte array.
+   *
+   * @param input Input byte array.
+   */
+  public SuccinctBuffer(final byte[] input) {
+    this(input, new SuccinctConfiguration());
+  }
+
+  /**
+   * Constructor to initialize SuccinctCore from input char array.
+   *
+   * @param input Input char array.
+   * @param conf Succinct configuration.
+   */
+  public SuccinctBuffer(final char[] input, SuccinctConfiguration conf) {
+    // Construct Succinct data-structures
+    try {
+      construct(new Source() {
+        @Override public int length() {
+          return input.length;
+        }
+
+        @Override public int get(int i) {
+          return input[i];
+        }
+      }, conf);
     } catch (IOException e) {
       throw new RuntimeException("Could not create core data structures", e);
     }
@@ -73,20 +103,7 @@ public class SuccinctBuffer extends SuccinctCore {
    * @param input Input char array.
    */
   public SuccinctBuffer(final char[] input) {
-    // Construct Succinct data-structures
-    try {
-      construct(new Source() {
-        @Override public int length() {
-          return input.length;
-        }
-
-        @Override public int get(int i) {
-          return input[i];
-        }
-      });
-    } catch (IOException e) {
-      throw new RuntimeException("Could not create core data structures", e);
-    }
+    this(input, new SuccinctConfiguration());
   }
 
   /**
@@ -262,11 +279,11 @@ public class SuccinctBuffer extends SuccinctCore {
    *
    * @param input Input byte array.
    */
-  private void construct(Source input) throws IOException {
+  private void construct(Source input, SuccinctConfiguration conf) throws IOException {
     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
     DataOutputStream coreStream = new DataOutputStream(byteStream);
 
-    construct(input, coreStream);
+    construct(input, coreStream, conf);
 
     coreStream.close();
 
@@ -275,7 +292,9 @@ public class SuccinctBuffer extends SuccinctCore {
     byteStream.close();
   }
 
-  public static void construct(final char[] input, DataOutputStream coreStream) throws IOException {
+  public static void construct(final char[] input, DataOutputStream coreStream,
+    SuccinctConfiguration conf) throws IOException {
+
     construct(new Source() {
       @Override public int length() {
         return input.length;
@@ -284,10 +303,11 @@ public class SuccinctBuffer extends SuccinctCore {
       @Override public int get(int i) {
         return input[i];
       }
-    }, coreStream);
+    }, coreStream, conf);
   }
 
-  public static void construct(final byte[] input, DataOutputStream coreStream) throws IOException {
+  public static void construct(final byte[] input, DataOutputStream coreStream,
+    SuccinctConfiguration conf) throws IOException {
     construct(new Source() {
       @Override public int length() {
         return input.length;
@@ -296,7 +316,7 @@ public class SuccinctBuffer extends SuccinctCore {
       @Override public int get(int i) {
         return input[i];
       }
-    }, coreStream);
+    }, coreStream, conf);
   }
 
   /**
@@ -306,7 +326,8 @@ public class SuccinctBuffer extends SuccinctCore {
    * @param coreStream The data output stream.
    * @throws IOException
    */
-  public static void construct(Source input, DataOutputStream coreStream) throws IOException {
+  public static void construct(Source input, DataOutputStream coreStream,
+    SuccinctConfiguration conf) throws IOException {
     // Uncompressed ISA
     int[] ISA;
     int[] columnOffsets;
@@ -316,9 +337,9 @@ public class SuccinctBuffer extends SuccinctCore {
 
     int originalSize = input.length() + 1;
 
-    int samplingRateSA = SuccinctConstants.DEFAULT_SA_SAMPLING_RATE;
-    int samplingRateISA = SuccinctConstants.DEFAULT_ISA_SAMPLING_RATE;
-    int samplingRateNPA = SuccinctConstants.DEFAULT_NPA_SAMPLING_RATE;
+    int samplingRateSA = conf.getSaSamplingRate();
+    int samplingRateISA = conf.getIsaSamplingRate();
+    int samplingRateNPA = conf.getNpaSamplingRate();
     int sampleBitWidth = BitUtils.bitWidth(input.length() + 1);
     int alphabetSize;
 

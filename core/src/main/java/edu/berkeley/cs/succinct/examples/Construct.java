@@ -3,6 +3,7 @@ package edu.berkeley.cs.succinct.examples;
 import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.buffers.SuccinctFileBuffer;
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer;
+import edu.berkeley.cs.succinct.util.SuccinctConfiguration;
 import edu.berkeley.cs.succinct.util.container.IntArrayList;
 
 import java.io.*;
@@ -51,11 +52,11 @@ public class Construct {
     SuccinctCore.LOG.setLevel(Level.ALL);
     switch (type) {
       case "text-file": {
-        SuccinctFileBuffer.construct(readTextFile(file), os);
+        SuccinctFileBuffer.construct(readTextFile(file), os, new SuccinctConfiguration());
         break;
       }
       case "binary-file": {
-        SuccinctFileBuffer.construct(readBinaryFile(file), os);
+        SuccinctFileBuffer.construct(readBinaryFile(file), os, new SuccinctConfiguration());
         break;
       }
       case "indexed-text-file": {
@@ -67,7 +68,7 @@ public class Construct {
             offsets.add(i + 1);
           }
         }
-        SuccinctIndexedFileBuffer.construct(fileData, offsets.toArray(), os);
+        SuccinctIndexedFileBuffer.construct(fileData, offsets.toArray(), os, new SuccinctConfiguration());
         break;
       }
       case "indexed-binary-file": {
@@ -79,7 +80,7 @@ public class Construct {
             offsets.add(i + 1);
           }
         }
-        SuccinctIndexedFileBuffer.construct(fileData, offsets.toArray(), os);
+        SuccinctIndexedFileBuffer.construct(fileData, offsets.toArray(), os, new SuccinctConfiguration());
         break;
       }
       default:

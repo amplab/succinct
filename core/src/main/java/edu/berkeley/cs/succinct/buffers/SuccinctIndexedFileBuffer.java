@@ -5,6 +5,7 @@ import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.regex.RegExMatch;
 import edu.berkeley.cs.succinct.regex.parser.RegExParsingException;
 import edu.berkeley.cs.succinct.util.Source;
+import edu.berkeley.cs.succinct.util.SuccinctConfiguration;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import edu.berkeley.cs.succinct.util.container.Range;
 import edu.berkeley.cs.succinct.util.iterator.SearchIterator;
@@ -27,9 +28,33 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    *
    * @param input   The input byte array.
    * @param offsets Offsets corresponding to records.
+   * @param conf SuccinctConfiguration
+   */
+  public SuccinctIndexedFileBuffer(byte[] input, int[] offsets, SuccinctConfiguration conf) {
+    super(input, conf);
+    this.offsets = offsets;
+  }
+
+  /**
+   * Constructor to initialize SuccinctIndexedBuffer from input byte array and offsets corresponding to records.
+   *
+   * @param input   The input byte array.
+   * @param offsets Offsets corresponding to records.
    */
   public SuccinctIndexedFileBuffer(byte[] input, int[] offsets) {
     super(input);
+    this.offsets = offsets;
+  }
+
+  /**
+   * Constructor to initialize SuccinctIndexedBuffer from input byte array and offsets corresponding to records.
+   *
+   * @param input   The input byte array.
+   * @param offsets Offsets corresponding to records.
+   * @param conf SuccinctConfiguration
+   */
+  public SuccinctIndexedFileBuffer(char[] input, int[] offsets, SuccinctConfiguration conf) {
+    super(input, conf);
     this.offsets = offsets;
   }
 
@@ -92,8 +117,8 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @param os      The data output stream.
    * @throws IOException
    */
-  public static void construct(final char[] input, int[] offsets, DataOutputStream os)
-    throws IOException {
+  public static void construct(final char[] input, int[] offsets, DataOutputStream os,
+    SuccinctConfiguration conf) throws IOException {
     construct(new Source() {
       @Override public int length() {
         return input.length;
@@ -102,7 +127,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
       @Override public int get(int i) {
         return input[i];
       }
-    }, offsets, os);
+    }, offsets, os, conf);
   }
 
   /**
@@ -113,7 +138,8 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @param os      The data output stream.
    * @throws IOException
    */
-  public static void construct(final byte[] input, int[] offsets, DataOutputStream os)
+  public static void construct(final byte[] input, int[] offsets, DataOutputStream os,
+    SuccinctConfiguration conf)
     throws IOException {
     construct(new Source() {
       @Override public int length() {
@@ -123,7 +149,7 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
       @Override public int get(int i) {
         return input[i];
       }
-    }, offsets, os);
+    }, offsets, os, conf);
   }
 
   /**
@@ -134,9 +160,10 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
    * @param os      The data output stream.
    * @throws IOException
    */
-  public static void construct(Source input, int[] offsets, DataOutputStream os)
+  public static void construct(Source input, int[] offsets, DataOutputStream os,
+    SuccinctConfiguration conf)
     throws IOException {
-    construct(input, os);
+    construct(input, os, conf);
     os.writeInt(offsets.length);
     for (int i = 0; i < offsets.length; i++) {
       os.writeInt(offsets[i]);

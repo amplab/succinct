@@ -2,6 +2,7 @@ package edu.berkeley.cs.succinct.buffers;
 
 import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctCoreTest;
+import edu.berkeley.cs.succinct.util.SuccinctConfiguration;
 
 import java.io.*;
 
@@ -124,7 +125,7 @@ public class SuccinctBufferTest extends SuccinctCoreTest {
   public void testConstruct() throws Exception {
     FileOutputStream fos = new FileOutputStream(testFileSuccinctMin);
     DataOutputStream os = new DataOutputStream(fos);
-    SuccinctBuffer.construct(data, os);
+    SuccinctBuffer.construct(data, os, new SuccinctConfiguration());
     os.close();
 
     SuccinctBuffer sCoreRead = new SuccinctBuffer(testFileSuccinctMin, StorageMode.MEMORY_ONLY);

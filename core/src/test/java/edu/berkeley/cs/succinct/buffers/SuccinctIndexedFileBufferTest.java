@@ -4,6 +4,7 @@ import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctIndexedFile;
 import edu.berkeley.cs.succinct.SuccinctIndexedFileTest;
 import edu.berkeley.cs.succinct.util.Source;
+import edu.berkeley.cs.succinct.util.SuccinctConfiguration;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -140,7 +141,7 @@ public class SuccinctIndexedFileBufferTest extends SuccinctIndexedFileTest {
     FileOutputStream fos = new FileOutputStream(testFileSuccinctMin);
     DataOutputStream os = new DataOutputStream(fos);
 
-    SuccinctIndexedFileBuffer.construct(data, offsets, os);
+    SuccinctIndexedFileBuffer.construct(data, offsets, os, new SuccinctConfiguration());
     os.close();
 
     SuccinctIndexedFile sIFileRead =
