@@ -36,6 +36,13 @@ public interface SuccinctFile extends Serializable {
   int getCompressedSize();
 
   /**
+   * Extract context to store SA index, so that contiguous extracts may use it.
+   */
+  class ExtractContext {
+    public long marker;
+  }
+
+  /**
    * Get character at ith index in file chunk.
    *
    * @param i Index relative to file chunk.
@@ -48,9 +55,38 @@ public interface SuccinctFile extends Serializable {
    *
    * @param offset Index into original input to start extracting at.
    * @param len    Length of data to be extracted.
+   * @param ctx    Extract context to be populated with end marker of extract.
+   * @return Extracted data.
+   */
+  String extract(long offset, int len, ExtractContext ctx);
+
+  /**
+   * Extract data of specified length from Succinct data structures at specified index.
+   *
+   * @param offset Index into original input to start extracting at.
+   * @param len    Length of data to be extracted.
    * @return Extracted data.
    */
   String extract(long offset, int len);
+
+  /**
+   * Extract data of specified length from Succinct data structures.
+   *
+   * @param ctx Extract context containing the end marker of previous extract.
+   * @param len Length of data to be extracted.
+   * @return Extracted data.
+   */
+  String extract(ExtractContext ctx, int len);
+
+  /**
+   * Extract data from Succinct data structures at specified index until specified delimiter.
+   *
+   * @param offset Index into original input to start extracting at.
+   * @param delim  Delimiter at which to stop extracting.
+   * @param ctx    Extract context to be populated with end marker of extract.
+   * @return Extracted data.
+   */
+  String extractUntil(long offset, int delim, ExtractContext ctx);
 
   /**
    * Extract data from Succinct data structures at specified index until specified delimiter.
@@ -62,6 +98,25 @@ public interface SuccinctFile extends Serializable {
   String extractUntil(long offset, int delim);
 
   /**
+   * Extract data from Succinct data structures until specified delimiter.
+   *
+   * @param ctx   Extract context containing the end marker of previous extract.
+   * @param delim Delimiter at which to stop extracting.
+   * @return Extracted data.
+   */
+  String extractUntil(ExtractContext ctx, int delim);
+
+  /**
+   * Extract data of specified length from Succinct data structures at specified index.
+   *
+   * @param offset Index into original input to start extracting at.
+   * @param len    Length of data to be extracted.
+   * @param ctx    Extract context to be populated with end marker of extract.
+   * @return Extracted data.
+   */
+  byte[] extractBytes(long offset, int len, ExtractContext ctx);
+
+  /**
    * Extract data of specified length from Succinct data structures at specified index.
    *
    * @param offset Index into original input to start extracting at.
@@ -69,6 +124,25 @@ public interface SuccinctFile extends Serializable {
    * @return Extracted data.
    */
   byte[] extractBytes(long offset, int len);
+
+  /**
+   * Extract data of specified length from Succinct data structures.
+   *
+   * @param ctx Extract context containing the end marker of previous extract.
+   * @param len Length of data to be extracted.
+   * @return Extracted data.
+   */
+  byte[] extractBytes(ExtractContext ctx, int len);
+
+  /**
+   * Extract data from Succinct data structures at specified index until specified delimiter.
+   *
+   * @param offset Index into original input to start extracting at.
+   * @param delim  Delimiter at which to stop extracting.
+   * @param ctx    Extract context to be populated with end marker of extract.
+   * @return Extracted data.
+   */
+  byte[] extractBytesUntil(long offset, int delim, ExtractContext ctx);
 
   /**
    * Extract data from Succinct data structures at specified index until specified delimiter.
@@ -80,12 +154,47 @@ public interface SuccinctFile extends Serializable {
   byte[] extractBytesUntil(long offset, int delim);
 
   /**
+   * Extract data from Succinct data structures until specified delimiter.
+   *
+   * @param ctx   Extract context containing the end marker of previous extract.
+   * @param delim Delimiter at which to stop extracting.
+   * @return Extracted data.
+   */
+  byte[] extractBytesUntil(ExtractContext ctx, int delim);
+
+  /**
+   * Extract short integer at specified offset.
+   *
+   * @param offset Offset into the original input to start extracting at.
+   * @param ctx    Extract context to be populated with end marker of extract.
+   * @return Extracted short integer.
+   */
+  short extractShort(int offset, ExtractContext ctx);
+
+  /**
    * Extract short integer at specified offset.
    *
    * @param offset Offset into the original input to start extracting at.
    * @return Extracted short integer.
    */
   short extractShort(int offset);
+
+  /**
+   * Extract short integer at specified offset.
+   *
+   * @param ctx Extract context containing the end marker of previous extract.
+   * @return Extracted short integer.
+   */
+  short extractShort(ExtractContext ctx);
+
+  /**
+   * Extract integer at specified offset.
+   *
+   * @param offset Offset into the original input to start extracting at.
+   * @param ctx    Extract context to be populated with end marker of extract.
+   * @return Extracted integer.
+   */
+  int extractInt(int offset, ExtractContext ctx);
 
   /**
    * Extract integer at specified offset.
@@ -96,12 +205,37 @@ public interface SuccinctFile extends Serializable {
   int extractInt(int offset);
 
   /**
+   * Extract integer at specified offset.
+   *
+   * @param ctx Extract context containing the end marker of previous extract.
+   * @return Extracted integer.
+   */
+  int extractInt(ExtractContext ctx);
+
+  /**
+   * Extract long integer at specified offset.
+   *
+   * @param offset Offset into the original input to start extracting at.
+   * @param ctx    Extract context to be populated with end marker of extract.
+   * @return Extracted long integer.
+   */
+  long extractLong(int offset, ExtractContext ctx);
+
+  /**
    * Extract long integer at specified offset.
    *
    * @param offset Offset into the original input to start extracting at.
    * @return Extracted long integer.
    */
   long extractLong(int offset);
+
+  /**
+   * Extract long integer at specified offset.
+   *
+   * @param ctx Extract context containing the end marker of previous extract.
+   * @return Extracted long integer.
+   */
+  long extractLong(ExtractContext ctx);
 
   /**
    * Perform a range search to obtain SA range between two given queries.

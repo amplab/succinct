@@ -1,5 +1,6 @@
 package edu.berkeley.cs.succinct.buffers;
 
+import edu.berkeley.cs.succinct.SuccinctFile;
 import edu.berkeley.cs.succinct.util.SuccinctConstants;
 import junit.framework.TestCase;
 
@@ -37,19 +38,39 @@ public class SuccinctFileBuffer3Test extends TestCase {
   }
 
   public void testExtracts() throws Exception {
-
     for (int i = 0; i < 10; i++) {
       short shortVal = buffer.extractShort(i * SuccinctConstants.SHORT_SIZE_BYTES);
-      assertEquals(shortVal, i);
+      assertEquals(i, shortVal);
 
       int intVal = buffer
         .extractInt(10 * SuccinctConstants.SHORT_SIZE_BYTES + i * SuccinctConstants.INT_SIZE_BYTES);
-      assertEquals(intVal, i);
+      assertEquals(i, intVal);
 
       long longVal = buffer.extractLong(
         10 * (SuccinctConstants.SHORT_SIZE_BYTES + SuccinctConstants.INT_SIZE_BYTES)
           + i * SuccinctConstants.LONG_SIZE_BYTES);
-      assertEquals(longVal, i);
+      assertEquals(i, longVal);
+    }
+  }
+
+  public void testExtractsContiguous() throws Exception {
+    SuccinctFile.ExtractContext ctx = new SuccinctFile.ExtractContext();
+    short shortVal = buffer.extractShort(0, ctx);
+    assertEquals(shortVal, 0);
+
+    for (int i = 1; i < 10; i++) {
+      shortVal = buffer.extractShort(ctx);
+      assertEquals(i, shortVal);
+    }
+
+    for (int i = 0; i < 10; i++) {
+      int intVal = buffer.extractInt(ctx);
+      assertEquals(i, intVal);
+    }
+
+    for (int i = 0; i < 10; i++) {
+      long longVal = buffer.extractLong(ctx);
+      assertEquals(i, longVal);
     }
   }
 }

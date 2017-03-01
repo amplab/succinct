@@ -81,19 +81,78 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    *
    * @param offset Index into original input to start extracting at.
    * @param len    Length of data to be extracted.
+   * @param ctx    Extract context to be populated with end marker of extract.
    * @return Extracted data.
    */
-  @Override public String extract(long offset, int len) {
+  @Override public String extract(long offset, int len, ExtractContext ctx) {
     StringBuilder out = new StringBuilder(len);
     long s = lookupISA(offset);
-    for (int k = 0; k < len && k < getOriginalSize(); k++) {
+    for (int k = 0; k < len && offset + k < getOriginalSize(); k++) {
       int nextChar = lookupC(s);
-      if (nextChar < Character.MIN_VALUE || nextChar > Character.MAX_VALUE) {
+      if (nextChar < Character.MIN_VALUE || nextChar > Character.MAX_VALUE)
         break;
-      }
       out.append((char) nextChar);
       s = lookupNPA(s);
     }
+
+    if (ctx != null)
+      ctx.marker = s;
+
+    return out.toString();
+  }
+
+  /**
+   * Extract data of specified length from Succinct data structures at specified index.
+   *
+   * @param offset Index into original input to start extracting at.
+   * @param length Length of data to be extracted.
+   * @return Extracted data.
+   */
+  @Override public String extract(long offset, int length) {
+    return extract(offset, length, null);
+  }
+
+  /**
+   * Extract data of specified length from Succinct data structures.
+   *
+   * @param ctx Extract context containing the end marker of previous extract.
+   * @param len Length of data to be extracted.
+   * @return Extracted data.
+   */
+  @Override public String extract(ExtractContext ctx, int len) {
+    StringBuilder out = new StringBuilder(len);
+    for (int k = 0; k < len; k++) {
+      int nextChar = lookupC(ctx.marker);
+      if (nextChar < Character.MIN_VALUE || nextChar > Character.MAX_VALUE)
+        break;
+      out.append((char) nextChar);
+      ctx.marker = lookupNPA(ctx.marker);
+    }
+    return out.toString();
+  }
+
+  /**
+   * Extract data from Succinct data structures at specified index until specified delimiter.
+   *
+   * @param offset Index into original input to start extracting at.
+   * @param delim  Delimiter at which to stop extracting.
+   * @param ctx    Extract context to be populated with end marker of extract.
+   * @return Extracted data.
+   */
+  @Override public String extractUntil(long offset, int delim, ExtractContext ctx) {
+    StringBuilder out = new StringBuilder();
+
+    long s = lookupISA(offset);
+    do {
+      int nextChar = lookupC(s);
+      if (nextChar == delim || nextChar == SuccinctConstants.EOF)
+        break;
+      out.append((char) nextChar);
+      s = lookupNPA(s);
+    } while (true);
+
+    if (ctx != null)
+      ctx.marker = s;
 
     return out.toString();
   }
@@ -106,16 +165,25 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @return Extracted data.
    */
   @Override public String extractUntil(long offset, int delim) {
-    StringBuilder out = new StringBuilder();
-    long s;
+    return extractUntil(offset, delim, null);
+  }
 
-    s = lookupISA(offset);
+  /**
+   * Extract data from Succinct data structures until specified delimiter.
+   *
+   * @param ctx   Extract context containing the end marker of previous extract.
+   * @param delim Delimiter at which to stop extracting.
+   * @return Extracted data.
+   */
+  @Override public String extractUntil(ExtractContext ctx, int delim) {
+    StringBuilder out = new StringBuilder();
+
     do {
-      int nextChar = lookupC(s);
+      int nextChar = lookupC(ctx.marker);
       if (nextChar == delim || nextChar == SuccinctConstants.EOF)
         break;
       out.append((char) nextChar);
-      s = lookupNPA(s);
+      ctx.marker = lookupNPA(ctx.marker);
     } while (true);
 
     return out.toString();
@@ -126,19 +194,78 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    *
    * @param offset Index into original input to start extracting at.
    * @param len    Length of data to be extracted.
+   * @param ctx    Extract context to be populated with end marker of extract.
    * @return Extracted data.
    */
-  @Override public byte[] extractBytes(long offset, int len) {
+  @Override public byte[] extractBytes(long offset, int len, ExtractContext ctx) {
     ByteArrayOutputStream out = new ByteArrayOutputStream(len);
     long s = lookupISA(offset);
-    for (int k = 0; k < len && k < getOriginalSize(); k++) {
+    for (int k = 0; k < len && offset + k < getOriginalSize(); k++) {
       int nextByte = lookupC(s);
-      if (nextByte < Byte.MIN_VALUE || nextByte > Byte.MAX_VALUE) {
+      if (nextByte < Byte.MIN_VALUE || nextByte > Byte.MAX_VALUE)
         break;
-      }
       out.write(nextByte);
       s = lookupNPA(s);
     }
+
+    if (ctx != null)
+      ctx.marker = s;
+
+    return out.toByteArray();
+  }
+
+  /**
+   * Extract data of specified length from Succinct data structures at specified index.
+   *
+   * @param offset Index into original input to start extracting at.
+   * @param length Length of data to be extracted.
+   * @return Extracted data.
+   */
+  @Override public byte[] extractBytes(long offset, int length) {
+    return extractBytes(offset, length, null);
+  }
+
+  /**
+   * Extract data of specified length from Succinct data structures.
+   *
+   * @param ctx Extract context containing the end marker of previous extract.
+   * @param len Length of data to be extracted.
+   * @return Extracted data.
+   */
+  @Override public byte[] extractBytes(ExtractContext ctx, int len) {
+    ByteArrayOutputStream out = new ByteArrayOutputStream(len);
+    for (int k = 0; k < len; k++) {
+      int nextByte = lookupC(ctx.marker);
+      if (nextByte < Byte.MIN_VALUE || nextByte > Byte.MAX_VALUE)
+        break;
+      out.write(nextByte);
+      ctx.marker = lookupNPA(ctx.marker);
+    }
+
+    return out.toByteArray();
+  }
+
+  /**
+   * Extract data from Succinct data structures at specified index until specified delimiter.
+   *
+   * @param offset Index into original input to start extracting at.
+   * @param delim  Delimiter at which to stop extracting.
+   * @param ctx    Extract context to be populated with end marker of extract.
+   * @return Extracted data.
+   */
+  @Override public byte[] extractBytesUntil(long offset, int delim, ExtractContext ctx) {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    long s = lookupISA(offset);
+    do {
+      int nextByte = lookupC(s);
+      if (nextByte == delim || nextByte == SuccinctConstants.EOF)
+        break;
+      out.write(nextByte);
+      s = lookupNPA(s);
+    } while (true);
+
+    if (ctx != null)
+      ctx.marker = s;
 
     return out.toByteArray();
   }
@@ -151,16 +278,24 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * @return Extracted data.
    */
   @Override public byte[] extractBytesUntil(long offset, int delim) {
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    long s;
+    return extractBytesUntil(offset, delim, null);
+  }
 
-    s = lookupISA(offset);
+  /**
+   * Extract data from Succinct data structures until specified delimiter.
+   *
+   * @param ctx   Extract context containing the end marker of previous extract.
+   * @param delim Delimiter at which to stop extracting.
+   * @return Extracted data.
+   */
+  @Override public byte[] extractBytesUntil(ExtractContext ctx, int delim) {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
     do {
-      int nextByte = lookupC(s);
+      int nextByte = lookupC(ctx.marker);
       if (nextByte == delim || nextByte == SuccinctConstants.EOF)
         break;
       out.write(nextByte);
-      s = lookupNPA(s);
+      ctx.marker = lookupNPA(ctx.marker);
     } while (true);
 
     return out.toByteArray();
@@ -170,14 +305,45 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * Extract short integer at specified offset.
    *
    * @param offset Offset into the original input to start extracting at.
+   * @param ctx    Extract context to be populated with end marker of extract.
    * @return Extracted short integer.
    */
-  @Override public short extractShort(int offset) {
+  @Override public short extractShort(int offset, ExtractContext ctx) {
     long s = lookupISA(offset);
     int byte0 = lookupC(s);
 
     s = lookupNPA(s);
     int byte1 = lookupC(s);
+
+    if (ctx != null)
+      ctx.marker = lookupNPA(ctx.marker);
+
+    return (short) ((byte0 << 8) | (byte1 & 0xFF));
+  }
+
+  /**
+   * Extract short integer at specified offset.
+   *
+   * @param offset Offset into the original input to start extracting at.
+   * @return Extracted short integer.
+   */
+  @Override public short extractShort(int offset) {
+    return extractShort(offset, null);
+  }
+
+  /**
+   * Extract short integer at specified offset.
+   *
+   * @param ctx Extract context containing the end marker of previous extract.
+   * @return Extracted short integer.
+   */
+  @Override public short extractShort(ExtractContext ctx) {
+    int byte0 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
+    int byte1 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
 
     return (short) ((byte0 << 8) | (byte1 & 0xFF));
   }
@@ -186,9 +352,10 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * Extract integer at specified offset.
    *
    * @param offset Offset into the original input to start extracting at.
+   * @param ctx    Extract context to be populated with end marker of extract.
    * @return Extracted integer.
    */
-  @Override public int extractInt(int offset) {
+  @Override public int extractInt(int offset, ExtractContext ctx) {
     long s = lookupISA(offset);
     int byte0 = lookupC(s);
 
@@ -201,20 +368,53 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     s = lookupNPA(s);
     int byte3 = lookupC(s);
 
-    return (byte0 << 24) |
-      ((byte1 & 0xFF) << 16) |
-      ((byte2 & 0xFF) << 8) |
-      (byte3 & 0xFF);
+    if (ctx != null)
+      ctx.marker = lookupNPA(s);
+
+    return (byte0 << 24) | ((byte1 & 0xFF) << 16) | ((byte2 & 0xFF) << 8) | (byte3 & 0xFF);
+  }
+
+  /**
+   * Extract integer at specified offset.
+   *
+   * @param offset Offset into the original input to start extracting at.
+   * @return Extracted integer.
+   */
+  @Override public int extractInt(int offset) {
+    return extractInt(offset, null);
+  }
+
+  /**
+   * Extract integer at specified offset.
+   *
+   * @param ctx Extract context containing the end marker of previous extract.
+   * @return Extracted integer.
+   */
+  @Override public int extractInt(ExtractContext ctx) {
+    int byte0 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
+    int byte1 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
+    int byte2 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
+    int byte3 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
+
+    return (byte0 << 24) | ((byte1 & 0xFF) << 16) | ((byte2 & 0xFF) << 8) | (byte3 & 0xFF);
   }
 
   /**
    * Extract long integer at specified offset.
    *
    * @param offset Offset into the original input to start extracting at.
+   * @param ctx    Extract context to be populated with end marker of extract.
    * @return Extracted long integer.
    */
-  @Override public long extractLong(int offset) {
-
+  @Override public long extractLong(int offset, ExtractContext ctx) {
     long s = lookupISA(offset);
     int byte0 = lookupC(s);
 
@@ -239,14 +439,59 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
     s = lookupNPA(s);
     int byte7 = lookupC(s);
 
-    return ((long) byte0 << 56) |
-      ((long) (byte1 & 0xFF) << 48) |
-      ((long) (byte2 & 0xFF) << 40) |
-      ((long) (byte3 & 0xFF) << 32) |
-      ((long) (byte4 & 0xFF) << 24) |
-      ((byte5 & 0xFF) << 16) |
-      ((byte6 & 0xFF) << 8) |
-      ((byte7 & 0xFF));
+    if (ctx != null)
+      ctx.marker = lookupNPA(s);
+
+    return ((long) byte0 << 56) | ((long) (byte1 & 0xFF) << 48) | ((long) (byte2 & 0xFF) << 40) | (
+      (long) (byte3 & 0xFF) << 32) | ((long) (byte4 & 0xFF) << 24) | ((byte5 & 0xFF) << 16) | (
+      (byte6 & 0xFF) << 8) | ((byte7 & 0xFF));
+  }
+
+  /**
+   * Extract long integer at specified offset.
+   *
+   * @param offset Offset into the original input to start extracting at.
+   * @return Extracted long integer.
+   */
+  @Override public long extractLong(int offset) {
+    return extractLong(offset, null);
+  }
+
+  /**
+   * Extract long integer at specified offset.
+   *
+   * @param ctx Extract context containing the end marker of previous extract.
+   * @return Extracted long integer.
+   */
+  @Override public long extractLong(ExtractContext ctx) {
+    int byte0 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
+    int byte1 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
+    int byte2 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
+    int byte3 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
+    int byte4 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
+    int byte5 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
+    int byte6 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
+    int byte7 = lookupC(ctx.marker);
+
+    ctx.marker = lookupNPA(ctx.marker);
+
+    return ((long) byte0 << 56) | ((long) (byte1 & 0xFF) << 48) | ((long) (byte2 & 0xFF) << 40) | (
+      (long) (byte3 & 0xFF) << 32) | ((long) (byte4 & 0xFF) << 24) | ((byte5 & 0xFF) << 16) | (
+      (byte6 & 0xFF) << 8) | ((byte7 & 0xFF));
   }
 
   /**
@@ -921,7 +1166,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    *
    * @param query Regular expression pattern to be matched. (UTF-8 encoded)
    * @return All locations and lengths of matching patterns in original input.
-   * @throws RegExParsingException
+   * @throws RegExParsingException Throws parse exception if query string cannot be parsed
    */
   @Override public Set<RegExMatch> regexSearch(String query) throws RegExParsingException {
     return new SuccinctRegEx(this, query).compute();
@@ -931,7 +1176,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * Reads Succinct data structures from a DataInputStream.
    *
    * @param is Stream to read data structures from.
-   * @throws IOException
+   * @throws IOException Throws exception if input stream is bad
    */
   @Override public void readFromStream(DataInputStream is) throws IOException {
     throw new UnsupportedOperationException("Cannot read SuccinctStream from another stream.");
@@ -941,7 +1186,7 @@ public class SuccinctFileStream extends SuccinctStream implements SuccinctFile {
    * Write Succinct data structures to a DataOutputStream.
    *
    * @param os Output stream to write data to.
-   * @throws IOException
+   * @throws IOException Throws exception if output stream is bad
    */
   @Override public void writeToStream(DataOutputStream os) throws IOException {
     byte[] buffer = new byte[1024];
