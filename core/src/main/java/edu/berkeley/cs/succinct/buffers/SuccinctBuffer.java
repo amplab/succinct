@@ -1,5 +1,7 @@
 package edu.berkeley.cs.succinct.buffers;
 
+// WHITESPACE CHANGE DO NOT MERGE
+
 import edu.berkeley.cs.succinct.StorageMode;
 import edu.berkeley.cs.succinct.SuccinctCore;
 import edu.berkeley.cs.succinct.util.*;
