@@ -15,7 +15,7 @@ using Maven by adding the following dependency information to your pom.xml file:
 
 ```xml
 <dependency>
-    <groupId>edu.berkeley.cs.succinct</groupId>
+    <groupId>amplab</groupId>
     <artifactId>succinct-core</artifactId>
     <version>0.1.8</version>
 </dependency>
