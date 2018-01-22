@@ -141,9 +141,9 @@ abstract class SuccinctStringKVRDD[K: ClassTag](@transient private val sc: Spark
     *
     * @param location The path where the SuccinctStringKVRDD should be stored.
     */
-  def save(location: String): Unit = {
+  def save(location: String, conf: Configuration = new Configuration()): Unit = {
     val path = new Path(location)
-    val fs = FileSystem.get(path.toUri, new Configuration())
+    val fs = FileSystem.get(path.toUri, conf)
     if (!fs.exists(path)) {
       fs.mkdirs(path)
     }

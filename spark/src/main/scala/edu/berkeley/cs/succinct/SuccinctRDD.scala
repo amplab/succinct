@@ -157,19 +157,21 @@ abstract class SuccinctRDD(@transient private val sc: SparkContext,
     *
     * @param location The path where the SuccinctRDD should be stored.
     */
-  def save(location: String): Unit = {
+  def save(location: String, conf: Configuration = new Configuration()): Unit = {
     val path = new Path(location)
-    val fs = FileSystem.get(path.toUri, new Configuration())
+    val fs = FileSystem.get(path.toUri, conf)
     if (!fs.exists(path)) {
       fs.mkdirs(path)
     }
+
+    val serializableConf = new SerializableWritable(conf)
 
     partitionsRDD.zipWithIndex().foreach(entry => {
       val i = entry._2
       val partition = entry._1
       val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
       val path = new Path(partitionLocation)
-      val fs = FileSystem.get(path.toUri, new Configuration())
+      val fs = FileSystem.get(path.toUri, serializableConf.value)
       val os = fs.create(path)
       partition.writeToStream(os)
       os.close()

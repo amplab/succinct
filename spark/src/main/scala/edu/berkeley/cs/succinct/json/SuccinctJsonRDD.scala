@@ -9,7 +9,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.succinct.json.SuccinctJsonPartition
-import org.apache.spark.{Dependency, Partition, SparkContext, TaskContext}
+import org.apache.spark._
 
 import scala.collection.JavaConversions._
 
@@ -118,19 +118,21 @@ abstract class SuccinctJsonRDD(@transient private val sc: SparkContext,
     *
     * @param location The path where the SuccinctJsonRDD should be stored.
     */
-  def save(location: String): Unit = {
+  def save(location: String, conf: Configuration = new Configuration()): Unit = {
     val path = new Path(location)
-    val fs = FileSystem.get(path.toUri, new Configuration())
+    val fs = FileSystem.get(path.toUri, conf)
     if (!fs.exists(path)) {
       fs.mkdirs(path)
     }
+
+    val serializableConf = new SerializableWritable(conf)
 
     partitionsRDD.zipWithIndex().foreach(entry => {
       val i = entry._2
       val partition = entry._1
       val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
       val path = new Path(partitionLocation)
-      val fs = FileSystem.get(path.toUri, new Configuration())
+      val fs = FileSystem.get(path.toUri, serializableConf.value)
       val os = fs.create(path)
       partition.writeToStream(os)
       os.close()
