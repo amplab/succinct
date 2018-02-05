@@ -4,7 +4,7 @@ import edu.berkeley.cs.succinct.block.json.{FieldMapping, JsonBlockSerializer}
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.json.impl.SuccinctJsonRDDImpl
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
+import org.apache.hadoop.fs.{FileSystem, InvalidPathException, Path, PathFilter}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
@@ -196,18 +196,27 @@ object SuccinctJsonRDD {
   def apply(sc: SparkContext, location: String, storageLevel: StorageLevel): SuccinctJsonRDD = {
     val locationPath = new Path(location)
     val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
-    val status = fs.listStatus(locationPath, new PathFilter {
-      override def accept(path: Path): Boolean = {
-        path.getName.startsWith("part-")
-      }
-    })
-    val numPartitions = status.length
-    val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
-      .mapPartitionsWithIndex[SuccinctJsonPartition]((i, partition) => {
-      val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
-      Iterator(SuccinctJsonPartition(partitionLocation, storageLevel))
-    }).cache()
-    new SuccinctJsonRDDImpl(succinctPartitions)
+    if (fs.isDirectory(locationPath)) {
+      val status = fs.listStatus(locationPath, new PathFilter {
+        override def accept(path: Path): Boolean = {
+          path.getName.startsWith("part-")
+        }
+      })
+      val numPartitions = status.length
+      val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
+        .mapPartitionsWithIndex[SuccinctJsonPartition]((i, _) => {
+        val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
+        Iterator(SuccinctJsonPartition(partitionLocation, storageLevel))
+      }).cache()
+      new SuccinctJsonRDDImpl(succinctPartitions)
+    } else if (fs.isFile(locationPath)) {
+      val succinctPartitions = sc.parallelize(0 until 1, 1).mapPartitions[SuccinctJsonPartition](_ => {
+        Iterator(SuccinctJsonPartition(location, storageLevel))
+      }).cache()
+      new SuccinctJsonRDDImpl(succinctPartitions, storageLevel)
+    } else {
+      throw new InvalidPathException("Path is not a file or directory")
+    }
   }
 
   /**

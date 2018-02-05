@@ -1,15 +1,15 @@
 package edu.berkeley.cs.succinct.kv
 
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
-import edu.berkeley.cs.succinct.kv.impl.SuccinctStringKVRDDImpl
+import edu.berkeley.cs.succinct.kv.impl.{SuccinctKVRDDImpl, SuccinctStringKVRDDImpl}
 import edu.berkeley.cs.succinct.regex.RegExMatch
 import edu.berkeley.cs.succinct.util.SuccinctConstants
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
+import org.apache.hadoop.fs.{FileSystem, InvalidPathException, Path, PathFilter}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.succinct.kv.SuccinctStringKVPartition
+import org.apache.spark.succinct.kv.{SuccinctKVPartition, SuccinctStringKVPartition}
 import org.apache.spark.{Dependency, Partition, SparkContext, TaskContext}
 
 import scala.collection.mutable.ArrayBuffer
@@ -258,19 +258,29 @@ object SuccinctStringKVRDD {
   : SuccinctStringKVRDD[K] = {
     val locationPath = new Path(location)
     val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
-    val status = fs.listStatus(locationPath, new PathFilter {
-      override def accept(path: Path): Boolean = {
-        path.getName.startsWith("part-")
-      }
-    })
-    val numPartitions = status.length
-    val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
-      .mapPartitionsWithIndex[SuccinctStringKVPartition[K]]((i, partition) => {
-      val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
-      Iterator(SuccinctStringKVPartition[K](partitionLocation, storageLevel))
-    }).cache()
-    val firstKeys = succinctPartitions.map(_.firstKey).collect()
-    new SuccinctStringKVRDDImpl[K](succinctPartitions, firstKeys)
+    if (fs.isDirectory(locationPath)) {
+      val status = fs.listStatus(locationPath, new PathFilter {
+        override def accept(path: Path): Boolean = {
+          path.getName.startsWith("part-")
+        }
+      })
+      val numPartitions = status.length
+      val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
+        .mapPartitionsWithIndex[SuccinctStringKVPartition[K]]((i, _) => {
+        val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
+        Iterator(SuccinctStringKVPartition[K](partitionLocation, storageLevel))
+      }).cache()
+      val firstKeys = succinctPartitions.map(_.firstKey).collect()
+      new SuccinctStringKVRDDImpl[K](succinctPartitions, firstKeys)
+    } else if (fs.isFile(locationPath)) {
+      val succinctPartitions = sc.parallelize(0 until 1, 1).mapPartitions[SuccinctStringKVPartition[K]](_ => {
+        Iterator(SuccinctStringKVPartition[K](location, storageLevel))
+      }).cache()
+      val firstKeys = succinctPartitions.map(_.firstKey).collect()
+      new SuccinctStringKVRDDImpl[K](succinctPartitions, firstKeys)
+    } else {
+      throw new InvalidPathException("Path is not a file or directory")
+    }
   }
 
   /**

@@ -7,7 +7,7 @@ import edu.berkeley.cs.succinct.impl.SuccinctRDDImpl
 import edu.berkeley.cs.succinct.regex.RegExMatch
 import edu.berkeley.cs.succinct.util.SuccinctConstants
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
+import org.apache.hadoop.fs.{FileSystem, InvalidPathException, Path, PathFilter}
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
@@ -281,18 +281,27 @@ object SuccinctRDD {
   def apply(sc: SparkContext, location: String, storageLevel: StorageLevel): SuccinctRDD = {
     val locationPath = new Path(location)
     val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
-    val status = fs.listStatus(locationPath, new PathFilter {
-      override def accept(path: Path): Boolean = {
-        path.getName.startsWith("part-")
-      }
-    })
-    val numPartitions = status.length
-    val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
-      .mapPartitionsWithIndex[SuccinctPartition]((i, partition) => {
-      val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
-      Iterator(SuccinctPartition(partitionLocation, storageLevel))
-    })
-    new SuccinctRDDImpl(succinctPartitions, storageLevel)
+    if (fs.isDirectory(locationPath)) {
+      val status = fs.listStatus(locationPath, new PathFilter {
+        override def accept(path: Path): Boolean = {
+          path.getName.startsWith("part-")
+        }
+      })
+      val numPartitions = status.length
+      val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
+        .mapPartitionsWithIndex[SuccinctPartition]((i, _) => {
+        val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
+        Iterator(SuccinctPartition(partitionLocation, storageLevel))
+      }).cache()
+      new SuccinctRDDImpl(succinctPartitions, storageLevel)
+    } else if (fs.isFile(locationPath)) {
+      val succinctPartitions = sc.parallelize(0 until 1, 1).mapPartitions[SuccinctPartition](_ => {
+        Iterator(SuccinctPartition(location, storageLevel))
+      }).cache()
+      new SuccinctRDDImpl(succinctPartitions, storageLevel)
+    } else {
+      throw new InvalidPathException("Path is not a file or directory")
+    }
   }
 
   /**

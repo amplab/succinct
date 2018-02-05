@@ -156,8 +156,18 @@ class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
 
     // Compute results
     val extractedData = succinctRDD.extract(offset, length)
-
     assert(extractedData === expectedExtractedData)
+
+    // Save and load only one partition
+    val tmpDir = Files.createTempDir()
+    val succinctDir = tmpDir + "/succinct"
+    succinctRDD.save(succinctDir)
+
+    val loadData = SuccinctRDD(sc, succinctDir + "/" + "part-00000", StorageLevel.MEMORY_ONLY).collect()
+    val expectedData = succinctRDD.mapPartitionsWithIndex((i, p) => {
+      if(i == 0) p else Iterator[Array[Byte]]()
+    }).collect()
+    assert(loadData === expectedData)
   }
 
   test("Test save and load in memory") {
