@@ -14,7 +14,7 @@ import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
 
 import scala.reflect.ClassTag
 
-class SuccinctStringKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctIndexedFile)
+class SuccinctStringKVPartition[K: ClassTag](keys: Array[K] with Serializable, valueBuffer: SuccinctIndexedFile)
                                             (implicit ordering: Ordering[K]) extends KnownSizeEstimation with Serializable {
 
   val numKeys: Int = keys.length
@@ -147,8 +147,11 @@ class SuccinctStringKVPartition[K: ClassTag](keys: Array[K], valueBuffer: Succin
   /** Write the partition data to output stream. **/
   def writeToStream(dataStream: DataOutputStream): Unit = {
     valueBuffer.writeToStream(dataStream)
+    dataStream.flush()
+
     val objectOutputStream = new ObjectOutputStream(dataStream)
     objectOutputStream.writeObject(keys)
+    objectOutputStream.flush()
   }
 
   /** Returns the first key in the partition. **/
@@ -159,11 +162,10 @@ object SuccinctStringKVPartition {
   def apply[K: ClassTag](partitionLocation: String, storageLevel: StorageLevel)
                         (implicit ordering: Ordering[K])
   : SuccinctStringKVPartition[K] = {
-
+    System.out.println("Reading partition " + partitionLocation)
     val path = new Path(partitionLocation)
     val fs = FileSystem.get(path.toUri, new Configuration())
     val is = fs.open(path)
-
     try {
       val valueBuffer = storageLevel match {
         case StorageLevel.MEMORY_ONLY =>
@@ -176,12 +178,13 @@ object SuccinctStringKVPartition {
       val ois = new ObjectInputStream(is)
       val keys = ois.readObject().asInstanceOf[Array[K]]
       is.close()
-
+      System.out.println("Done reading partition " + partitionLocation)
       new SuccinctStringKVPartition[K](keys, valueBuffer)
     } catch {
       case e: Exception => {
+        is.close()
         throw new IOException("Could not read Succinct Partition File [" + partitionLocation
-          + "]; full trace:\n" + e.getStackTrace.toString)
+          + "]; full trace:\n" + e.getStackTrace.mkString("\n\t-->"))
       }
     }
   }
