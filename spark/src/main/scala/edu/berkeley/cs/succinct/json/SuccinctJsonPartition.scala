@@ -1,6 +1,6 @@
 package org.apache.spark.succinct.json
 
-import java.io.{DataOutputStream, ObjectInputStream, ObjectOutputStream}
+import java.io.{DataOutputStream, ObjectInputStream, ObjectOutputStream, Serializable}
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.`object`.deserializer.JsonDeserializer
@@ -14,7 +14,7 @@ import org.apache.spark.succinct.kv.SuccinctKVPartition
 
 class SuccinctJsonPartition(ids: Array[Long], valueBuffer: SuccinctIndexedFile,
                             fieldMapping: FieldMapping)
-  extends SuccinctKVPartition[Long](ids, valueBuffer) {
+  extends SuccinctKVPartition[Long](ids, valueBuffer) with Serializable {
 
   val jsonDeserializer: JsonDeserializer = new JsonDeserializer(fieldMapping)
 

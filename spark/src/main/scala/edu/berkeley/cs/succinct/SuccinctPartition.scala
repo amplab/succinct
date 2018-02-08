@@ -1,6 +1,7 @@
 package org.apache.spark.succinct
 
-import java.io.DataOutputStream
+import java.io.{DataOutputStream, Serializable}
+import java.{lang, util}
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
@@ -21,7 +22,7 @@ import scala.collection.JavaConversions._
 class SuccinctPartition(
                          succinctIndexedFile: SuccinctIndexedFile,
                          partitionOffset: Long,
-                         partitionFirstRecordId: Long) extends KnownSizeEstimation {
+                         partitionFirstRecordId: Long) extends KnownSizeEstimation with Serializable  {
 
   /** Returns the range of recordIds for which this partition is responsible (both inclusive) */
   def partitionOffsetRange: Range = {
@@ -48,7 +49,7 @@ class SuccinctPartition(
   /** Obtain all occurrences in input corresponding to a search query */
   def search(query: Array[Byte]): Iterator[Long] = {
     new Iterator[Long] {
-      val it = succinctIndexedFile.searchIterator(query)
+      val it: util.Iterator[lang.Long] = succinctIndexedFile.searchIterator(query)
 
       override def hasNext: Boolean = it.hasNext
 
@@ -96,7 +97,7 @@ class SuccinctPartition(
 /** Factory for [[SuccinctPartition]] instances **/
 object SuccinctPartition {
   /** Creates a [[SuccinctPartition]] instance from the partition location and its storageLevel **/
-  def apply(partitionLocation: String, storageLevel: StorageLevel) = {
+  def apply(partitionLocation: String, storageLevel: StorageLevel): SuccinctPartition = {
     val path = new Path(partitionLocation)
     val fs = FileSystem.get(path.toUri, new Configuration())
     val is = fs.open(path)

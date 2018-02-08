@@ -1,6 +1,6 @@
 package org.apache.spark.succinct.sql
 
-import java.io.DataOutputStream
+import java.io.{DataOutputStream, Serializable}
 
 import edu.berkeley.cs.succinct.SuccinctTable
 import edu.berkeley.cs.succinct.SuccinctTable.QueryType
@@ -16,7 +16,7 @@ import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
 class SuccinctTablePartition(
                               succinctIndexedFile: SuccinctTable,
                               succinctSerDe: SuccinctSerDe
-                            ) extends KnownSizeEstimation {
+                            ) extends KnownSizeEstimation with Serializable  {
 
   override val estimatedSize: Long = {
     succinctIndexedFile.getCompressedSize + SizeEstimator.estimate(succinctSerDe)
@@ -55,9 +55,11 @@ class SuccinctTablePartition(
                       queryTypes: Array[QueryType],
                       queries: Array[Array[Array[Byte]]]): Iterator[Row] = {
     new Iterator[Row] {
-      val searchResults = succinctIndexedFile.recordMultiSearchIds(queryTypes, queries).iterator
+      val searchResults: Iterator[Integer] = succinctIndexedFile.recordMultiSearchIds(queryTypes, queries).iterator
 
-      override def hasNext: Boolean = searchResults.hasNext
+      override def hasNext: Boolean = {
+        searchResults.hasNext
+      }
 
       override def next(): Row = {
         val data = succinctIndexedFile.getRecordBytes(searchResults.next())

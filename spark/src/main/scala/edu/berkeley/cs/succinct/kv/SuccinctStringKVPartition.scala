@@ -1,6 +1,6 @@
 package org.apache.spark.succinct.kv
 
-import java.io.{DataOutputStream, ObjectInputStream, ObjectOutputStream}
+import java.io._
 import java.{lang, util}
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
@@ -15,7 +15,7 @@ import org.apache.spark.util.{KnownSizeEstimation, SizeEstimator}
 import scala.reflect.ClassTag
 
 class SuccinctStringKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctIndexedFile)
-                                            (implicit ordering: Ordering[K]) extends KnownSizeEstimation {
+                                            (implicit ordering: Ordering[K]) extends KnownSizeEstimation with Serializable {
 
   val numKeys: Int = keys.length
 

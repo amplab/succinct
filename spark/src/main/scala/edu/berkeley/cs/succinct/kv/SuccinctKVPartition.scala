@@ -1,6 +1,7 @@
 package org.apache.spark.succinct.kv
 
-import java.io.{DataOutputStream, ObjectInputStream, ObjectOutputStream}
+import java.io.{DataOutputStream, ObjectInputStream, ObjectOutputStream, Serializable}
+import java.{lang, util}
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
@@ -17,9 +18,9 @@ import scala.reflect.ClassTag
   * The implementation for a single SuccinctKVRDD partition.
   */
 class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctIndexedFile)
-                                      (implicit ordering: Ordering[K]) extends KnownSizeEstimation {
+                                      (implicit ordering: Ordering[K]) extends KnownSizeEstimation with Serializable {
 
-  val numKeys = keys.length
+  val numKeys: Int = keys.length
 
   def iterator: Iterator[(K, Array[Byte])] = {
     new Iterator[(K, Array[Byte])] {
@@ -69,7 +70,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   /** Search across values, and return all keys for matched values. **/
   def search(query: Array[Byte]): Iterator[K] = {
     new Iterator[K] {
-      val recordIds = valueBuffer.recordSearchIdIterator(query)
+      val recordIds: util.Iterator[Integer] = valueBuffer.recordSearchIdIterator(query)
 
       override def hasNext: Boolean = recordIds.hasNext
 
@@ -80,7 +81,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   /** Search across values, and return all (key, value) pairs for matched values. **/
   def searchAndGet(query: Array[Byte]): Iterator[(K, Array[Byte])] = {
     new Iterator[(K, Array[Byte])] {
-      val recordIds = valueBuffer.recordSearchIdIterator(query)
+      val recordIds: util.Iterator[Integer] = valueBuffer.recordSearchIdIterator(query)
 
       override def hasNext: Boolean = recordIds.hasNext
 
@@ -99,7 +100,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   /** Search across values, and return the key, match offset (relative to each value) pairs. **/
   def searchOffsets(query: Array[Byte]): Iterator[(K, Int)] = {
     new Iterator[(K, Int)] {
-      val searchIterator = valueBuffer.searchIterator(query)
+      val searchIterator: util.Iterator[lang.Long] = valueBuffer.searchIterator(query)
 
       override def hasNext: Boolean = searchIterator.hasNext
 
@@ -115,7 +116,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   /** Regex search across values, and return all keys for matched values. **/
   def regexSearch(query: String): Iterator[K] = {
     new Iterator[K] {
-      val recordIds = valueBuffer.recordSearchRegexIds(query).iterator
+      val recordIds: Iterator[Integer] = valueBuffer.recordSearchRegexIds(query).iterator
 
       override def hasNext: Boolean = recordIds.hasNext
 
@@ -126,7 +127,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   /** Regex search across values, and regurn the key, match (relative to each value) pairs. **/
   def regexMatch(query: String): Iterator[(K, RegExMatch)] = {
     new Iterator[(K, RegExMatch)] {
-      val matches = valueBuffer.regexSearch(query).iterator()
+      val matches: util.Iterator[RegExMatch] = valueBuffer.regexSearch(query).iterator()
 
       override def hasNext: Boolean = matches.hasNext
 
@@ -145,7 +146,7 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
   def count: Long = numKeys
 
   /** Write the partition data to output stream. **/
-  def writeToStream(dataStream: DataOutputStream) = {
+  def writeToStream(dataStream: DataOutputStream): Unit = {
     valueBuffer.writeToStream(dataStream)
     val objectOutputStream = new ObjectOutputStream(dataStream)
     objectOutputStream.writeObject(keys)
