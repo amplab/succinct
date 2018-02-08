@@ -163,18 +163,26 @@ object SuccinctStringKVPartition {
     val path = new Path(partitionLocation)
     val fs = FileSystem.get(path.toUri, new Configuration())
     val is = fs.open(path)
-    val valueBuffer = storageLevel match {
-      case StorageLevel.MEMORY_ONLY =>
-        new SuccinctIndexedFileBuffer(is)
-      case StorageLevel.DISK_ONLY =>
-        new SuccinctIndexedFileStream(path)
-      case _ =>
-        new SuccinctIndexedFileBuffer(is)
-    }
-    val ois = new ObjectInputStream(is)
-    val keys = ois.readObject().asInstanceOf[Array[K]]
-    is.close()
 
-    new SuccinctStringKVPartition[K](keys, valueBuffer)
+    try {
+      val valueBuffer = storageLevel match {
+        case StorageLevel.MEMORY_ONLY =>
+          new SuccinctIndexedFileBuffer(is)
+        case StorageLevel.DISK_ONLY =>
+          new SuccinctIndexedFileStream(path)
+        case _ =>
+          new SuccinctIndexedFileBuffer(is)
+      }
+      val ois = new ObjectInputStream(is)
+      val keys = ois.readObject().asInstanceOf[Array[K]]
+      is.close()
+
+      new SuccinctStringKVPartition[K](keys, valueBuffer)
+    } catch {
+      case e: Exception => {
+        throw new IOException("Could not read Succinct Partition File [" + partitionLocation
+          + "]; full trace:\n" + e.getStackTrace.toString)
+      }
+    }
   }
 }

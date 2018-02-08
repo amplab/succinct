@@ -1,6 +1,6 @@
 package org.apache.spark.succinct.kv
 
-import java.io.{DataOutputStream, ObjectInputStream, ObjectOutputStream, Serializable}
+import java.io._
 import java.{lang, util}
 
 import edu.berkeley.cs.succinct.SuccinctIndexedFile
@@ -168,18 +168,25 @@ object SuccinctKVPartition {
     val path = new Path(partitionLocation)
     val fs = FileSystem.get(path.toUri, new Configuration())
     val is = fs.open(path)
-    val valueBuffer = storageLevel match {
-      case StorageLevel.MEMORY_ONLY =>
-        new SuccinctIndexedFileBuffer(is)
-      case StorageLevel.DISK_ONLY =>
-        new SuccinctIndexedFileStream(path)
-      case _ =>
-        new SuccinctIndexedFileBuffer(is)
-    }
-    val ois = new ObjectInputStream(is)
-    val keys = ois.readObject().asInstanceOf[Array[K]]
-    is.close()
+    try {
+      val valueBuffer = storageLevel match {
+        case StorageLevel.MEMORY_ONLY =>
+          new SuccinctIndexedFileBuffer(is)
+        case StorageLevel.DISK_ONLY =>
+          new SuccinctIndexedFileStream(path)
+        case _ =>
+          new SuccinctIndexedFileBuffer(is)
+      }
+      val ois = new ObjectInputStream(is)
+      val keys = ois.readObject().asInstanceOf[Array[K]]
+      is.close()
 
-    new SuccinctKVPartition[K](keys, valueBuffer)
+      new SuccinctKVPartition[K](keys, valueBuffer)
+    } catch {
+      case e: Exception => {
+        throw new IOException("Could not read Succinct Partition File [" + partitionLocation
+          + "]; full trace:\n" + e.getStackTrace.toString)
+      }
+    }
   }
 }
