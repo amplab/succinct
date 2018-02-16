@@ -152,6 +152,21 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
     objectOutputStream.writeObject(keys)
   }
 
+  def save(location: String, conf: Configuration): Unit = {
+    val pathVals = new Path(location + ".vals")
+    val pathKeys = new Path(location + ".keys")
+
+    val fs = FileSystem.get(pathVals.toUri, conf)
+
+    val osVals = fs.create(pathVals)
+    valueBuffer.writeToStream(osVals)
+    osVals.close()
+
+    val osKeys = new ObjectOutputStream(fs.create(pathKeys))
+    osKeys.writeObject(keys)
+    osKeys.close()
+  }
+
   /** Returns the first key in the partition. **/
   def firstKey: K = keys(0)
 
@@ -161,25 +176,28 @@ class SuccinctKVPartition[K: ClassTag](keys: Array[K], valueBuffer: SuccinctInde
 }
 
 object SuccinctKVPartition {
-  def apply[K: ClassTag](partitionLocation: String, storageLevel: StorageLevel)
+  def apply[K: ClassTag](partitionLocation: String, storageLevel: StorageLevel, conf: Configuration)
                         (implicit ordering: Ordering[K])
   : SuccinctKVPartition[K] = {
 
-    val path = new Path(partitionLocation)
-    val fs = FileSystem.get(path.toUri, new Configuration())
-    val is = fs.open(path)
+    val fs = FileSystem.get(new Path(partitionLocation).toUri, conf)
+    val pathVals = new Path(partitionLocation + ".vals")
+    val isVals = fs.open(pathVals)
     try {
       val valueBuffer = storageLevel match {
         case StorageLevel.MEMORY_ONLY =>
-          new SuccinctIndexedFileBuffer(is)
+          new SuccinctIndexedFileBuffer(isVals)
         case StorageLevel.DISK_ONLY =>
-          new SuccinctIndexedFileStream(path)
+          new SuccinctIndexedFileStream(pathVals)
         case _ =>
-          new SuccinctIndexedFileBuffer(is)
+          new SuccinctIndexedFileBuffer(isVals)
       }
-      val ois = new ObjectInputStream(is)
-      val keys = ois.readObject().asInstanceOf[Array[K]]
-      is.close()
+      isVals.close()
+
+      val pathKeys = new Path(partitionLocation + ".keys")
+      val isKeys = new ObjectInputStream(fs.open(pathKeys))
+      val keys = isKeys.readObject().asInstanceOf[Array[K]]
+      isKeys.close()
 
       new SuccinctKVPartition[K](keys, valueBuffer)
     } catch {

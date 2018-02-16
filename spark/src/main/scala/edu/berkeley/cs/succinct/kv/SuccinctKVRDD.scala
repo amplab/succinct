@@ -198,11 +198,7 @@ abstract class SuccinctKVRDD[K: ClassTag](@transient private val sc: SparkContex
       val i = entry._2
       val partition = entry._1
       val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
-      val path = new Path(partitionLocation)
-      val fs = FileSystem.get(path.toUri, serializableConf.value)
-      val os = fs.create(path)
-      partition.writeToStream(os)
-      os.close()
+      partition.save(partitionLocation, serializableConf.value)
     })
 
     val successPath = new Path(location.stripSuffix("/") + "/_SUCCESS")
@@ -304,23 +300,26 @@ object SuccinctKVRDD {
   : SuccinctKVRDD[K] = {
     val locationPath = new Path(location)
     val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
+    val serializableConf = new SerializableWritable(sc.hadoopConfiguration)
     if (fs.isDirectory(locationPath)) {
       val status = fs.listStatus(locationPath, new PathFilter {
         override def accept(path: Path): Boolean = {
-          path.getName.startsWith("part-")
+          path.getName.startsWith("part-") && path.getName.endsWith(".vals")
         }
       })
       val numPartitions = status.length
       val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
         .mapPartitionsWithIndex[SuccinctKVPartition[K]]((i, _) => {
         val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
-        Iterator(SuccinctKVPartition[K](partitionLocation, storageLevel))
+        val localConf = serializableConf.value
+        Iterator(SuccinctKVPartition[K](partitionLocation, storageLevel, localConf))
       }).cache()
       val firstKeys = succinctPartitions.map(_.firstKey).collect()
       new SuccinctKVRDDImpl[K](succinctPartitions, firstKeys)
     } else if (fs.isFile(locationPath)) {
       val succinctPartitions = sc.parallelize(0 until 1, 1).mapPartitions[SuccinctKVPartition[K]](_ => {
-        Iterator(SuccinctKVPartition[K](location, storageLevel))
+        val localConf = serializableConf.value
+        Iterator(SuccinctKVPartition[K](location, storageLevel, localConf))
       }).cache()
       val firstKeys = succinctPartitions.map(_.firstKey).collect()
       new SuccinctKVRDDImpl[K](succinctPartitions, firstKeys)

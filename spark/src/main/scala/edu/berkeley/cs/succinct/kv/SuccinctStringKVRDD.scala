@@ -10,7 +10,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.succinct.kv.{SuccinctKVPartition, SuccinctStringKVPartition}
-import org.apache.spark.{Dependency, Partition, SparkContext, TaskContext}
+import org.apache.spark._
 
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
@@ -148,15 +148,13 @@ abstract class SuccinctStringKVRDD[K: ClassTag](@transient private val sc: Spark
       fs.mkdirs(path)
     }
 
+    val serializableConf = new SerializableWritable(conf)
+
     partitionsRDD.zipWithIndex().foreach(entry => {
       val i = entry._2
       val partition = entry._1
       val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
-      val path = new Path(partitionLocation)
-      val fs = FileSystem.get(path.toUri, new Configuration())
-      val os = fs.create(path)
-      partition.writeToStream(os)
-      os.close()
+      partition.save(partitionLocation, serializableConf.value)
     })
 
     val successPath = new Path(location.stripSuffix("/") + "/_SUCCESS")
@@ -258,23 +256,26 @@ object SuccinctStringKVRDD {
   : SuccinctStringKVRDD[K] = {
     val locationPath = new Path(location)
     val fs = FileSystem.get(locationPath.toUri, sc.hadoopConfiguration)
+    val serializableConf = new SerializableWritable(sc.hadoopConfiguration)
     if (fs.isDirectory(locationPath)) {
       val status = fs.listStatus(locationPath, new PathFilter {
         override def accept(path: Path): Boolean = {
-          path.getName.startsWith("part-")
+          path.getName.startsWith("part-") && path.getName.endsWith(".vals")
         }
       })
       val numPartitions = status.length
       val succinctPartitions = sc.parallelize(0 until numPartitions, numPartitions)
         .mapPartitionsWithIndex[SuccinctStringKVPartition[K]]((i, _) => {
         val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
-        Iterator(SuccinctStringKVPartition[K](partitionLocation, storageLevel))
+        val localConf = serializableConf.value
+        Iterator(SuccinctStringKVPartition[K](partitionLocation, storageLevel, localConf))
       }).cache()
       val firstKeys = succinctPartitions.map(_.firstKey).collect()
       new SuccinctStringKVRDDImpl[K](succinctPartitions, firstKeys)
     } else if (fs.isFile(locationPath)) {
       val succinctPartitions = sc.parallelize(0 until 1, 1).mapPartitions[SuccinctStringKVPartition[K]](_ => {
-        Iterator(SuccinctStringKVPartition[K](location, storageLevel))
+        val localConf = serializableConf.value
+        Iterator(SuccinctStringKVPartition[K](location, storageLevel, localConf))
       }).cache()
       val firstKeys = succinctPartitions.map(_.firstKey).collect()
       new SuccinctStringKVRDDImpl[K](succinctPartitions, firstKeys)
