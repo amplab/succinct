@@ -195,9 +195,10 @@ object SuccinctStringKVRDD {
     * @tparam K The key type.
     * @return The SuccinctStringKVRDD.
     */
-  def apply[K: ClassTag](inputRDD: RDD[(K, String)])
+  def apply[K: ClassTag](inputRDD: RDD[(K, String)], sync: Boolean = false)
                         (implicit ordering: Ordering[K]): SuccinctStringKVRDD[K] = {
-    val partitionsRDD = inputRDD.sortByKey().mapPartitions(createSuccinctStringKVPartition[K]).cache()
+    val partitionsRDD = inputRDD.sortByKey()
+      .mapPartitions(if (sync) createSuccinctStringKVPartitionSync[K] else createSuccinctStringKVPartition[K]).cache()
     val firstKeys = partitionsRDD.map(_.firstKey).collect()
     new SuccinctStringKVRDDImpl[K](partitionsRDD, firstKeys)
   }
@@ -241,6 +242,12 @@ object SuccinctStringKVRDD {
     val valueBuffer = new SuccinctIndexedFileBuffer(rawValueBuffer, offsets)
 
     Iterator(new SuccinctStringKVPartition[K](keys, valueBuffer))
+  }
+
+  private[succinct] def createSuccinctStringKVPartitionSync[K: ClassTag](kvIter: Iterator[(K, String)])
+                                                                    (implicit ordering: Ordering[K]):
+  Iterator[SuccinctStringKVPartition[K]] = synchronized {
+    createSuccinctStringKVPartition[K](kvIter)
   }
 
   /**

@@ -229,4 +229,27 @@ class SuccinctStringKVRDDSuite extends FunSuite with LocalSparkContext {
     assert(originalValues === newValues)
   }
 
+  test("Test save and load in memory 3") {
+    sc = new SparkContext(conf)
+
+    val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
+    val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1)).repartition(5)
+    val succinctKVRDD = SuccinctStringKVRDD(kvRDD, true)
+
+    val tmpDir = Files.createTempDir()
+    val succinctDir = tmpDir + "/succinct"
+    succinctKVRDD.save(succinctDir)
+
+    val reloadedRDD = SuccinctStringKVRDD[String](sc, succinctDir, StorageLevel.MEMORY_ONLY)
+
+    val originalKeys = succinctKVRDD.collect().map(_._1)
+    val newKeys = reloadedRDD.collect().map(_._1)
+
+    assert(originalKeys === newKeys)
+
+    val originalValues = succinctKVRDD.collect().map(_._2)
+    val newValues = reloadedRDD.collect().map(_._2)
+    assert(originalValues === newValues)
+  }
+
 }
