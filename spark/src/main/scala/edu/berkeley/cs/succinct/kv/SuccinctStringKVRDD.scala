@@ -1,9 +1,11 @@
 package edu.berkeley.cs.succinct.kv
 
+import java.io.ObjectOutputStream
+
 import edu.berkeley.cs.succinct.buffers.SuccinctIndexedFileBuffer
 import edu.berkeley.cs.succinct.kv.impl.{SuccinctKVRDDImpl, SuccinctStringKVRDDImpl}
 import edu.berkeley.cs.succinct.regex.RegExMatch
-import edu.berkeley.cs.succinct.util.SuccinctConstants
+import edu.berkeley.cs.succinct.util.{SuccinctConfiguration, SuccinctConstants}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, InvalidPathException, Path, PathFilter}
 import org.apache.spark.rdd.RDD
@@ -11,6 +13,7 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.succinct.kv.{SuccinctKVPartition, SuccinctStringKVPartition}
 import org.apache.spark._
+import org.apache.spark.unsafe.KVIterator
 
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
@@ -203,6 +206,29 @@ object SuccinctStringKVRDD {
     new SuccinctStringKVRDDImpl[K](partitionsRDD, firstKeys)
   }
 
+  def constructAndSave[K: ClassTag](inputRDD: RDD[(K, String)], location: String, sync: Boolean = false,
+                                    sort: Boolean = true)
+                                   (implicit ordering: Ordering[K]): Unit = {
+    val conf = inputRDD.sparkContext.hadoopConfiguration
+    val serializableConf = new SerializableWritable(conf)
+    if (sort)
+      inputRDD.sortByKey().foreachPartition(it => {
+        val i = TaskContext.getPartitionId()
+        val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
+        val localConf = serializableConf.value
+        if (sync) createAndSaveSuccinctStringKVPartitionSync[K](it, partitionLocation, localConf)
+        else createAndSaveSuccinctStringKVPartition[K](it, partitionLocation, localConf)
+      })
+    else
+      inputRDD.foreachPartition(it => {
+        val i = TaskContext.getPartitionId()
+        val partitionLocation = location.stripSuffix("/") + "/part-" + "%05d".format(i)
+        val localConf = serializableConf.value
+        if (sync) createAndSaveSuccinctStringKVPartitionSync[K](it, partitionLocation, localConf)
+        else createAndSaveSuccinctStringKVPartition[K](it, partitionLocation, localConf)
+      })
+  }
+
   /**
     * Creates a [[SuccinctStringKVPartition]] from a partition of the input RDD.
     *
@@ -215,25 +241,17 @@ object SuccinctStringKVRDD {
   Iterator[SuccinctStringKVPartition[K]] = {
     val keysBuffer = new ArrayBuffer[K]()
     var offsetsBuffer = new ArrayBuffer[Int]()
-    var buffers = new ArrayBuffer[String]()
+    val rawBufferOS = new StringBuilder()
 
     var offset = 0
-    var bufferSize = 0
 
     while (kvIter.hasNext) {
       val curRecord = kvIter.next()
       keysBuffer += curRecord._1
-      buffers += curRecord._2
-      bufferSize += (curRecord._2.length + 1)
-      offsetsBuffer += offset
-      offset = bufferSize
-    }
-
-    val rawBufferOS = new StringBuilder(bufferSize)
-    for (i <- buffers.indices) {
-      val curRecord = buffers(i)
-      rawBufferOS.append(curRecord)
+      rawBufferOS.append(curRecord._2)
       rawBufferOS.append(SuccinctConstants.EOL.toChar)
+      offsetsBuffer += offset
+      offset = rawBufferOS.length
     }
 
     val keys = keysBuffer.toArray
@@ -244,10 +262,77 @@ object SuccinctStringKVRDD {
     Iterator(new SuccinctStringKVPartition[K](keys, valueBuffer))
   }
 
+  /**
+    * Creates a [[SuccinctStringKVPartition]] from a partition of the input RDD; ensures only one task per Spark
+    * executor gets to execute this at a time. Helps in reducing GC overheads.
+    *
+    * @param kvIter The iterator over the input partition data.
+    * @tparam K The type for the keys.
+    * @return An iterator over the [[SuccinctStringKVPartition]]
+    */
   private[succinct] def createSuccinctStringKVPartitionSync[K: ClassTag](kvIter: Iterator[(K, String)])
                                                                     (implicit ordering: Ordering[K]):
   Iterator[SuccinctStringKVPartition[K]] = synchronized {
     createSuccinctStringKVPartition[K](kvIter)
+  }
+
+  /**
+    * Creates and saves the [[SuccinctStringKVPartition]] to a given location.
+    *
+    * @param kvIter Iterator over key-value pairs.
+    * @param location Output location for Succinct index.
+    * @param conf Configuration parameters.
+    * @param ordering Ordering for keys.
+    * @tparam K Key-type.
+    */
+  private[succinct] def createAndSaveSuccinctStringKVPartition[K: ClassTag](kvIter: Iterator[(K, String)],
+                                                                            location: String, conf: Configuration)
+                                                                           (implicit ordering: Ordering[K]):
+  Unit = {
+    val keysBuffer = new ArrayBuffer[K]()
+    var offsetsBuffer = new ArrayBuffer[Int]()
+    val rawBufferOS = new StringBuilder()
+
+    var offset = 0
+
+    while (kvIter.hasNext) {
+      val curRecord = kvIter.next()
+      keysBuffer += curRecord._1
+      rawBufferOS.append(curRecord._2)
+      rawBufferOS.append(SuccinctConstants.EOL.toChar)
+      offsetsBuffer += offset
+      offset = rawBufferOS.length
+    }
+
+    val pathVals = new Path(location + ".vals")
+    val pathKeys = new Path(location + ".keys")
+
+    val fs = FileSystem.get(pathVals.toUri, conf)
+
+    val osKeys = new ObjectOutputStream(fs.create(pathKeys))
+    osKeys.writeObject(keysBuffer.toArray)
+    osKeys.close()
+
+    val osVals = fs.create(pathVals)
+    SuccinctIndexedFileBuffer.construct(rawBufferOS.toArray, offsetsBuffer.toArray, osVals, new SuccinctConfiguration())
+    osVals.close()
+  }
+
+  /**
+    * Creates and saves the [[SuccinctStringKVPartition]], ensuring only one task per executor gets to execute. Helps
+    * in reducing GC overheads.
+    *
+    * @param kvIter Iterator over key-value pairs.
+    * @param location Output location for Succinct index.
+    * @param conf Configuration parameters.
+    * @param ordering Ordering for keys.
+    * @tparam K Key-type.
+    */
+  private[succinct] def createAndSaveSuccinctStringKVPartitionSync[K: ClassTag](kvIter: Iterator[(K, String)],
+                                                                            location: String, conf: Configuration)
+                                                                           (implicit ordering: Ordering[K]):
+  Unit = synchronized {
+    createAndSaveSuccinctStringKVPartition[K](kvIter, location, conf)
   }
 
   /**

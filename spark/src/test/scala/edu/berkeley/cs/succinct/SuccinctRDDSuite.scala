@@ -2,14 +2,14 @@ package edu.berkeley.cs.succinct
 
 import com.google.common.io.Files
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.{SparkConf, SparkContext, LocalSparkContext}
 import org.scalatest.FunSuite
 
 import scala.collection.mutable.ArrayBuffer
 
 class SuccinctRDDSuite extends FunSuite with LocalSparkContext {
 
-  val conf = new SparkConf().setAppName("test").setMaster("local")
+  val conf: SparkConf = new SparkConf().setAppName("test").setMaster("local")
     .set("spark.driver.allowMultipleContexts", "true")
 
   def search(data: String, str: String): Array[Long] = {

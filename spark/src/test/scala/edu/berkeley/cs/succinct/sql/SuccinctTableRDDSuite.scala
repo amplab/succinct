@@ -1,7 +1,7 @@
 package edu.berkeley.cs.succinct.sql
 
 import com.google.common.io.Files
-import edu.berkeley.cs.succinct.LocalSparkContext
+import org.apache.spark.LocalSparkContext
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.storage.StorageLevel

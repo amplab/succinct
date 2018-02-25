@@ -5,7 +5,7 @@ import java.io.{File, IOException}
 import com.google.common.io.Files
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.{SparkConf, SparkContext, LocalSparkContext}
 import org.scalatest._
 
 import scala.util.Random

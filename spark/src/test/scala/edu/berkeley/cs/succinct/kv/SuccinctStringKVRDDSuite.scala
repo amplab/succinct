@@ -1,7 +1,7 @@
 package edu.berkeley.cs.succinct.kv
 
 import com.google.common.io.Files
-import edu.berkeley.cs.succinct.LocalSparkContext
+import org.apache.spark.LocalSparkContext
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.FunSuite
@@ -248,6 +248,29 @@ class SuccinctStringKVRDDSuite extends FunSuite with LocalSparkContext {
     assert(originalKeys === newKeys)
 
     val originalValues = succinctKVRDD.collect().map(_._2)
+    val newValues = reloadedRDD.collect().map(_._2)
+    assert(originalValues === newValues)
+  }
+
+  test("Test save and load in memory 4") {
+    sc = new SparkContext(conf)
+
+    val textRDD = sc.textFile(getClass.getResource("/table.dat").getFile)
+    val kvRDD = textRDD.zipWithIndex().map(t => (String.valueOf(t._2), t._1)).sortByKey()
+
+    val tmpDir = Files.createTempDir()
+    val succinctDir = tmpDir + "/succinct"
+
+    SuccinctStringKVRDD.constructAndSave(kvRDD, succinctDir)
+
+    val reloadedRDD = SuccinctStringKVRDD[String](sc, succinctDir, StorageLevel.MEMORY_ONLY)
+
+    val originalKeys = kvRDD.collect().map(_._1)
+    val newKeys = reloadedRDD.collect().map(_._1)
+
+    assert(originalKeys === newKeys)
+
+    val originalValues = kvRDD.collect().map(_._2)
     val newValues = reloadedRDD.collect().map(_._2)
     assert(originalValues === newValues)
   }
