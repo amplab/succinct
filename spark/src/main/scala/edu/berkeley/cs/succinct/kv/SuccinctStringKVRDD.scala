@@ -364,7 +364,7 @@ object SuccinctStringKVRDD {
       }).cache()
       val firstKeys = succinctPartitions.map(_.firstKey).collect()
       new SuccinctStringKVRDDImpl[K](succinctPartitions, firstKeys)
-    } else if (fs.isFile(locationPath)) {
+    } else if (fs.isFile(new Path(location + ".keys"))) {
       val succinctPartitions = sc.parallelize(0 until 1, 1).mapPartitions[SuccinctStringKVPartition[K]](_ => {
         val localConf = serializableConf.value
         Iterator(SuccinctStringKVPartition[K](location, storageLevel, localConf))
