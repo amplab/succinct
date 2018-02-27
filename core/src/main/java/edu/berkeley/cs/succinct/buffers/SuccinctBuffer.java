@@ -391,6 +391,7 @@ public class SuccinctBuffer extends SuccinctCore {
       timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
       LOG.info("Computed column offsets in " + timeTaken + "s.");
     }
+    System.gc();
 
     {
       // Sample SA, ISA
@@ -416,6 +417,7 @@ public class SuccinctBuffer extends SuccinctCore {
       long timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
       LOG.info("Sampled SA, ISA in " + timeTaken + "s.");
     }
+    System.gc();
 
     // Scope of NPA
     {
@@ -454,6 +456,7 @@ public class SuccinctBuffer extends SuccinctCore {
       timeTaken = (System.currentTimeMillis() - startTime) / 1000L;
       LOG.info("Compressed NPA in " + timeTaken + "s.");
     }
+    System.gc();
 
     long timeTakenGlobal = (System.currentTimeMillis() - startTimeGlobal) / 1000L;
     LOG.info("Finished constructing core Succinct data structures in " + timeTakenGlobal + "s.");

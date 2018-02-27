@@ -316,6 +316,8 @@ object SuccinctStringKVRDD {
     val osVals = fs.create(pathVals)
     SuccinctIndexedFileBuffer.construct(rawBufferOS.toArray, offsetsBuffer.toArray, osVals, new SuccinctConfiguration())
     osVals.close()
+
+    System.gc()
   }
 
   /**
