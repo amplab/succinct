@@ -210,6 +210,12 @@ object SuccinctStringKVRDD {
                                     sort: Boolean = true)
                                    (implicit ordering: Ordering[K]): Unit = {
     val conf = inputRDD.sparkContext.hadoopConfiguration
+    val path = new Path(location)
+    val fs = FileSystem.get(path.toUri, conf)
+    if (!fs.exists(path)) {
+      fs.mkdirs(path)
+    }
+
     val serializableConf = new SerializableWritable(conf)
     if (sort)
       inputRDD.sortByKey().foreachPartition(it => {
@@ -227,6 +233,8 @@ object SuccinctStringKVRDD {
         if (sync) createAndSaveSuccinctStringKVPartitionSync[K](it, partitionLocation, localConf)
         else createAndSaveSuccinctStringKVPartition[K](it, partitionLocation, localConf)
       })
+    val successPath = new Path(location.stripSuffix("/") + "/_SUCCESS")
+    fs.create(successPath).close()
   }
 
   /**
@@ -313,11 +321,16 @@ object SuccinctStringKVRDD {
     osKeys.writeObject(keysBuffer.toArray)
     osKeys.close()
 
+    println(s"Constructing partition $location with ${keysBuffer.length} keys and ${rawBufferOS.length} value bytes")
+
     val osVals = fs.create(pathVals)
     SuccinctIndexedFileBuffer.construct(rawBufferOS.toArray, offsetsBuffer.toArray, osVals, new SuccinctConfiguration())
     osVals.close()
 
+    fs.create(new Path(location + ".success")).close()
     System.gc()
+
+    println(s"Finished constructing partition $location")
   }
 
   /**
