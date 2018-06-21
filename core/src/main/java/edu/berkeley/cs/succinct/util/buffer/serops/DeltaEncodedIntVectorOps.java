@@ -76,6 +76,7 @@ public class DeltaEncodedIntVectorOps {
    */
   public static int get(ByteBuffer vector, int i) {
     // Read sampling rate
+    int vectorPos = vector.position();
     int samplingRate = vector.getInt();
 
     // Read samples
@@ -89,7 +90,7 @@ public class DeltaEncodedIntVectorOps {
     int val = IntVectorOps.get(samples, samplesIdx, sampleBits);
 
     if (deltaOffsetsIdx == 0) {
-      vector.rewind();
+      vector.position(vectorPos);
       return val;
     }
 
@@ -106,7 +107,7 @@ public class DeltaEncodedIntVectorOps {
     int deltaOffset = IntVectorOps.get(deltaOffsets, samplesIdx, deltaOffsetBits);
     val += prefixSum(deltas, deltaOffset, deltaOffsetsIdx);
 
-    vector.rewind();
+    vector.position(vectorPos);
 
     return val;
   }
@@ -158,6 +159,9 @@ public class DeltaEncodedIntVectorOps {
     boolean flag) {
     if (endIdx < startIdx)
       return endIdx;
+
+    // Save initial state
+    int vectorPos = vector.position();
 
     // Read sampling rate
     int samplingRate = vector.getInt();
@@ -256,7 +260,7 @@ public class DeltaEncodedIntVectorOps {
       }
     }
 
-    vector.rewind();
+    vector.position(vectorPos);
 
     // Obtain the required index for the binary search
     int res = sampleOffset * samplingRate + deltaIdx;
