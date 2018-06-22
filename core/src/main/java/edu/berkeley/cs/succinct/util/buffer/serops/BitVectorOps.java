@@ -17,7 +17,7 @@ public class BitVectorOps {
    *
    * @param data LongBuffer representation of BitVector's data.
    * @param i    The index into the BitVector.
-   * @return The bit at the specified bit.
+   * @return The bit at the specified index.
    */
   static long getBit(LongBuffer data, long i) {
     // Skip one extra byte to account for size
@@ -50,5 +50,15 @@ public class BitVectorOps {
     }
   }
 
+  /**
+   * Check if the index being looked up is valid.
+   *
+   * @param data LongBuffer representation of BitVector's data.
+   * @param i The index into the BitVector.
+   * @return True if the index is valid, false otherwise.
+   */
+  static boolean checkIndex(LongBuffer data, long i) {
+    return (int) (i >>> 6) < data.limit();
+  }
 
 }
