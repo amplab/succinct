@@ -47,9 +47,9 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   }
 
   /**
-   * Constructor to initialize SuccinctIndexedBuffer from input byte array and offsets corresponding to records.
+   * Constructor to initialize SuccinctIndexedBuffer from input char array and offsets corresponding to records.
    *
-   * @param input   The input byte array.
+   * @param input   The input char array.
    * @param offsets Offsets corresponding to records.
    * @param conf SuccinctConfiguration
    */
@@ -59,9 +59,9 @@ public class SuccinctIndexedFileBuffer extends SuccinctFileBuffer implements Suc
   }
 
   /**
-   * Constructor to initialize SuccinctIndexedBuffer from input byte array and offsets corresponding to records.
+   * Constructor to initialize SuccinctIndexedBuffer from input char array and offsets corresponding to records.
    *
-   * @param input   The input byte array.
+   * @param input   The input char array.
    * @param offsets Offsets corresponding to records.
    */
   public SuccinctIndexedFileBuffer(char[] input, int[] offsets) {
