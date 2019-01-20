@@ -7,9 +7,7 @@ import edu.berkeley.cs.succinct.DeserializationException;
 import edu.berkeley.cs.succinct.PrimitiveDeserializer;
 import edu.berkeley.cs.succinct.block.json.FieldMapping;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class JsonDeserializer implements ObjectDeserializer<String> {
 
@@ -42,7 +40,7 @@ public class JsonDeserializer implements ObjectDeserializer<String> {
     return jsonString;
   }
 
-  private Map<String, Object> deserializeToMap(byte[] data) throws DeserializationException {
+  private Map<String, Object> deserializeToMap(byte[] data) throws DeserializationException, IllegalArgumentException {
     Map<String, Object> jsonMap = new HashMap<String, Object>();
 
     int curOffset = 0;
@@ -50,13 +48,43 @@ public class JsonDeserializer implements ObjectDeserializer<String> {
       byte curDelimiter = data[curOffset++];
       String fieldKey = fieldMapping.getField(curDelimiter);
       DataType fieldType = fieldMapping.getDataType(fieldKey);
-      byte[] fieldValueBytes = extractField(data, curOffset, curDelimiter);
-      Object fieldValue = PrimitiveDeserializer.deserializePrimitive(fieldValueBytes, fieldType);
+      Object fieldValue;
+      int totalLength;
+      if (isArray(fieldType)) {
+        ArrayList<byte []> fieldValuesBytes = extractArrayField(data, curOffset, curDelimiter);
+        final DataType typeinArray = getPrimitiveFromArray(fieldType);
+        ArrayList<Object> resultSet = new ArrayList<>();
+        totalLength = 0;
+        for (byte [] fieldValueBytes : fieldValuesBytes) {
+          resultSet.add(PrimitiveDeserializer.deserializePrimitive(fieldValueBytes, typeinArray));
+          totalLength += fieldValueBytes.length + 2; // Skip the field data, and the delimiter at end and start of next field
+        }
+        fieldValue = resultSet.toArray();
+        totalLength -= 1; //  Remove last additional append of delimiter
+      }
+      else {
+        byte[] fieldValueBytes = extractField(data, curOffset, curDelimiter);
+        fieldValue = PrimitiveDeserializer.deserializePrimitive(fieldValueBytes, fieldType);
+        totalLength = fieldValueBytes.length + 1; // Skip the field data, and the end delimiter
+      }
       add(jsonMap, fieldKey, fieldValue);
-      curOffset += (fieldValueBytes.length + 1); // Skip the field data, and the end delimiter
+      curOffset += totalLength;
     }
 
     return jsonMap;
+  }
+
+  private DataType getPrimitiveFromArray(DataType fieldType) throws IllegalArgumentException {
+    if (fieldType == DataType.STRINGARRAY) return DataType.STRING;
+    else if (fieldType == DataType.LONGARRAY) return DataType.LONG;
+    else if (fieldType == DataType.BYTEARRAY) return DataType.BYTE;
+    else if (fieldType == DataType.BOOLARRAY) return DataType.BOOLEAN;
+    else throw new IllegalArgumentException("Called getPrimitiveFromArray on a non Array DataType");
+  }
+
+  private Boolean isArray(DataType fieldType) {
+    return fieldType == DataType.STRINGARRAY || fieldType == DataType.LONGARRAY ||
+            fieldType == DataType.BYTEARRAY || fieldType == DataType.BOOLARRAY;
   }
 
   private void add(Map<String, Object> map, String key, Object value) {
@@ -82,6 +110,19 @@ public class JsonDeserializer implements ObjectDeserializer<String> {
       i++;
     }
     return Arrays.copyOfRange(data, startOffset, i);
+  }
+
+  private ArrayList<byte []> extractArrayField(byte[] data, int startOffset, byte delimiter) {
+    int i = startOffset;
+    ArrayList<byte []> res = new ArrayList<>();
+    while (true) {
+      byte[] result = extractField(data, i, delimiter);
+      res.add(result);
+      i += result.length + 1;
+      if(data.length <= i || data[i] != delimiter) break;
+      else i++;
+    }
+    return res;
   }
 
 }

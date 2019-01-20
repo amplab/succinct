@@ -9,7 +9,11 @@ public enum DataType {
   LONG(4),
   FLOAT(5),
   DOUBLE(6),
-  STRING(7);
+  STRING(7),
+  STRINGARRAY(8),
+  LONGARRAY(9),
+  BYTEARRAY(10),
+  BOOLARRAY(11);
 
   private final int order;
 
