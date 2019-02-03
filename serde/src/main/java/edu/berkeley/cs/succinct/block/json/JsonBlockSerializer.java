@@ -2,6 +2,7 @@ package edu.berkeley.cs.succinct.block.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
 import edu.berkeley.cs.succinct.DataType;
@@ -67,27 +68,47 @@ public class JsonBlockSerializer implements BlockSerializer<String> {
         flattenJsonTree(pathPrefix + entry.getKey(), entry.getValue(), out);
       }
     } else if (jsonNode.isArray()) {
-      throw new SerializationException("Arrays in JSON are not supported yet.");
+      ArrayNode arrayNode = (ArrayNode) jsonNode;
+      DataType primitiveArrayType = getNodeType(arrayNode.get(0));
+      DataType jsonArrayType = getArrayNodeType(primitiveArrayType);
+      for (int i = 0; i < arrayNode.size(); i++) {
+        if (getNodeType(arrayNode.get(i)) != primitiveArrayType)
+          throw new SerializationException("Multi Type Arrays in JSON are not supported yet.");
+        else if (!arrayNode.get(i).isValueNode())
+          throw new SerializationException("Non primitive types in Arrays in JSON are not supported yet.");
+      }
+      for (int i = 0; i < arrayNode.size(); i++) {
+        ValueNode valueNode = (ValueNode) arrayNode.get(i);
+        writeJsonTree(currentPath, valueNode, jsonArrayType, out, true);
+      }
     } else if (jsonNode.isValueNode()) {
       ValueNode valueNode = (ValueNode) jsonNode;
-      if (!fieldMapping.containsField(currentPath)) {
-        fieldMapping.put(currentPath, delimiters[currentDelimiterIdx++], getNodeType(jsonNode));
-      } else {
-        DataType existingType = fieldMapping.getDataType(currentPath);
-        DataType newType = getNodeType(valueNode);
-        if (existingType != newType) {
-          DataType encapsulatingType = DataType.encapsulatingType(existingType, newType);
+      writeJsonTree(currentPath, valueNode, getNodeType(jsonNode), out, false);
+    }
+  }
+
+  private void writeJsonTree(String currentPath, ValueNode valueNode, DataType fieldMappingType, ByteArrayOutputStream out,
+                             boolean isArray) throws SerializationException {
+    if (!fieldMapping.containsField(currentPath)) {
+      fieldMapping.put(currentPath, delimiters[currentDelimiterIdx++], fieldMappingType);
+    } else {
+      DataType existingType = fieldMapping.getDataType(currentPath);
+      DataType newType = getNodeType(valueNode);
+      if (existingType != newType) {
+        DataType encapsulatingType = DataType.encapsulatingType(existingType, newType);
+        if(isArray)
+          fieldMapping.updateType(currentPath, getArrayNodeType(encapsulatingType));
+        else
           fieldMapping.updateType(currentPath, encapsulatingType);
-        }
       }
-      try {
-        byte fieldByte = fieldMapping.getDelimiter(currentPath);
-        out.write(fieldByte);
-        out.write(valueNode.asText().getBytes());
-        out.write(fieldByte);
-      } catch (IOException e) {
-        throw new SerializationException(e.getMessage());
-      }
+    }
+    try {
+      byte fieldByte = fieldMapping.getDelimiter(currentPath);
+      out.write(fieldByte);
+      out.write(valueNode.asText().getBytes());
+      out.write(fieldByte);
+    } catch (IOException e) {
+      throw new SerializationException(e.getMessage());
     }
   }
 
@@ -107,5 +128,13 @@ public class JsonBlockSerializer implements BlockSerializer<String> {
     } else {
       throw new UnsupportedOperationException("JSON DataType not supported.");
     }
+  }
+
+  private DataType getArrayNodeType(DataType fieldType) {
+    if (fieldType == DataType.STRING) return DataType.STRINGARRAY;
+    else if (fieldType == DataType.LONG) return DataType.LONGARRAY;
+    else if (fieldType == DataType.BYTE) return DataType.BYTEARRAY;
+    else if (fieldType == DataType.BOOLEAN) return DataType.BOOLARRAY;
+    else throw new UnsupportedOperationException("JSON DataType not supported.");
   }
 }
